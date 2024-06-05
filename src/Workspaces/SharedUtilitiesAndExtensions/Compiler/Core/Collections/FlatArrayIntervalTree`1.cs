@@ -21,17 +21,21 @@ internal interface IIntervalTreeHelper<T, TIntervalTree, TNode>
     public bool TryGetRoot(TIntervalTree tree, [NotNullWhen(true)] out TNode? root);
     public bool TryGetLeftNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? leftNode);
     public bool TryGetRightNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? rightNode);
+
     public T GetValue(TIntervalTree tree, TNode node);
+    public TNode GetMaxEndNode(TIntervalTree tree, TNode node);
 }
 
 internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTreeHelper>
     where TIntervalTree : IIntervalTree<T>
     where TIntervalTreeHelper : struct, IIntervalTreeHelper<T, TIntervalTree, TNode>
 {
-    private static readonly ObjectPool<Stack<(TNode node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
+    private static readonly ObjectPool<Stack<TNode>> s_nodeStackPool = new(() => new(), 128, trimOnFree: false);
+    private static readonly ObjectPool<Stack<(TNode node, bool firstTime)>> s_preorderNodeStackPool = new(() => new(), trimOnFree: false);
 
-    public static IEnumerator<T> GetEnumerator(TIntervalTree tree, TIntervalTreeHelper helper)
+    public static IEnumerator<T> GetEnumerator(TIntervalTree tree)
     {
+        var helper = default(TIntervalTreeHelper);
         if (!helper.TryGetRoot(tree, out var root))
             return SpecializedCollections.EmptyEnumerator<T>();
 
@@ -40,7 +44,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         static IEnumerator<T> GetEnumeratorWorker(
             TIntervalTree tree, TIntervalTreeHelper helper, TNode root)
         {
-            using var _ = s_stackPool.GetPooledObject(out var candidates);
+            using var _ = s_preorderNodeStackPool.GetPooledObject(out var candidates);
             candidates.Push((root, firstTime: true));
 
             while (candidates.TryPop(out var tuple))
@@ -64,6 +68,83 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
                 }
             }
         }
+    }
+
+    public static bool Any<TIntrospector>(TIntervalTree tree, int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
+        var helper = default(TIntervalTreeHelper);
+        if (!helper.TryGetRoot(tree, out var root))
+            return false;
+
+        using var _ = s_nodeStackPool.GetPooledObject(out var candidates);
+
+        var end = start + length;
+
+        candidates.Push(root);
+
+        while (candidates.TryPop(out var currentNode))
+        {
+            // Check the nodes as we go down.  That way we can stop immediately when we find something that matches,
+            // instead of having to do an entire in-order walk, which might end up hitting a lot of nodes we don't care
+            // about and placing a lot into the stack.
+            if (testInterval(helper.GetValue(tree, currentNode), start, length, in introspector))
+                return true;
+
+            if (ShouldExamineRight(tree, start, end, currentNode, in introspector, out var right))
+                candidates.Push(right);
+
+            if (ShouldExamineLeft(tree, start, currentNode, in introspector, out var left))
+                candidates.Push(left);
+        }
+
+        return false;
+    }
+
+    private static bool ShouldExamineRight<TIntrospector>(
+        TIntervalTree tree,
+        int start,
+        int end,
+        TNode currentNode,
+        in TIntrospector introspector,
+        [NotNullWhen(true)] out TNode? right) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        var helper = default(TIntervalTreeHelper);
+
+        // right children's starts will never be to the left of the parent's start so we should consider right
+        // subtree only if root's start overlaps with interval's End, 
+        if (introspector.GetSpan(helper.GetValue(tree, currentNode)).Start <= end)
+        {
+            if (helper.TryGetRightNode(tree, currentNode, out var rightNode) &&
+                GetEnd(helper.GetValue(tree, helper.GetMaxEndNode(tree, rightNode)), in introspector) >= start)
+            {
+                right = rightNode;
+                return true;
+            }
+        }
+
+        right = default;
+        return false;
+    }
+
+    private static bool ShouldExamineLeft<TIntrospector>(
+        TIntervalTree tree,
+        int start,
+        TNode currentNode,
+        in TIntrospector introspector,
+        [NotNullWhen(true)] out TNode? left) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        var helper = default(TIntervalTreeHelper);
+        // only if left's maxVal overlaps with interval's start, we should consider 
+        // left subtree
+        if (helper.TryGetLeftNode(tree, currentNode, out left) &&
+            GetEnd(helper.GetValue(tree, helper.GetMaxEndNode(tree, left)), in introspector) >= start)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
 
@@ -447,10 +528,16 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, int, FlatArrayIntervalTreeHelper>.GetEnumerator(this, default(FlatArrayIntervalTreeHelper));
+        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, int, FlatArrayIntervalTreeHelper>.GetEnumerator(this);
 
     private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeHelper<T, FlatArrayIntervalTree<T>, int>
     {
+        public T GetValue(FlatArrayIntervalTree<T> tree, int node)
+            => tree._array[node].Value;
+
+        public int GetMaxEndNode(FlatArrayIntervalTree<T> tree, int node)
+            => tree._array[node].MaxEndNodeIndex;
+
         public bool TryGetRoot(FlatArrayIntervalTree<T> tree, out int root)
         {
             root = 0;
@@ -468,8 +555,5 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             rightNode = GetRightChildIndex(node);
             return rightNode < tree._array.Length;
         }
-
-        public T GetValue(FlatArrayIntervalTree<T> tree, int node)
-            => tree._array[node].Value;
     }
 }

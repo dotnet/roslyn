@@ -237,7 +237,7 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
     }
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, BinaryIntervalTree<T>, Node, BinaryIntervalTreeHelper>.GetEnumerator(this, default(BinaryIntervalTreeHelper));
+        => IntervalTreeHelpers<T, BinaryIntervalTree<T>, Node, BinaryIntervalTreeHelper>.GetEnumerator(this);
 
     IEnumerator IEnumerable.GetEnumerator()
         => this.GetEnumerator();
@@ -258,6 +258,12 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
 
     private readonly struct BinaryIntervalTreeHelper : IIntervalTreeHelper<T, BinaryIntervalTree<T>, Node>
     {
+        public T GetValue(BinaryIntervalTree<T> tree, Node node)
+            => node.Value;
+
+        public Node GetMaxEndNode(BinaryIntervalTree<T> tree, Node node)
+            => node.MaxEndNode;
+
         public bool TryGetRoot(BinaryIntervalTree<T> tree, [NotNullWhen(true)] out Node? root)
         {
             root = tree.root;
@@ -275,8 +281,5 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
             rightNode = node.Right;
             return rightNode != null;
         }
-
-        public T GetValue(BinaryIntervalTree<T> tree, Node node)
-            => node.Value;
     }
 }
