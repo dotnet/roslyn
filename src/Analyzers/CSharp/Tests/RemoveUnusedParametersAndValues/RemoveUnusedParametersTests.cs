@@ -1508,7 +1508,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         var options = Option(CodeStyleOptions2.UnusedParameters,
             new CodeStyleOption2<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption2.Suggestion));
 
-        var parameters = new TestParameters(globalOptions: options, retainNonFixableDiagnostics: true);
+        var parameters = new TestParameters(options: options, retainNonFixableDiagnostics: true);
 
         await TestDiagnosticMissingAsync(
             """

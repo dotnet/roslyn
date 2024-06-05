@@ -36,22 +36,6 @@ internal sealed record class CodeActionOptions
     public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls));
 #endif
 
-    /// <summary>
-    /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
-    /// That resolution is the most common value as per the last DevDiv survey as well as the latest
-    /// Steam hardware survey.  This also seems to a reasonable length default in that shorter
-    /// lengths can often feel too cramped for .NET languages, which are often starting with a
-    /// default indentation of at least 16 (for namespace, class, member, plus the final construct
-    /// indentation).
-    /// 
-    /// TODO: Currently the option has no storage and always has its default value. See https://github.com/dotnet/roslyn/pull/30422#issuecomment-436118696.
-    /// </summary>
-    public const int DefaultWrappingColumn = 120;
-
-    public const int DefaultConditionalExpressionWrappingLength = 120;
-
-    public const int DefaultCollectionExpressionWrappingLength = 120;
-
 #if !CODE_STYLE
     [DataMember] public required CodeCleanupOptions CleanupOptions { get; init; }
     [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
@@ -60,9 +44,6 @@ internal sealed record class CodeActionOptions
     [DataMember] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
     [DataMember] public ExtractMethodOptions ExtractMethodOptions { get; init; } = ExtractMethodOptions.Default;
     [DataMember] public bool HideAdvancedMembers { get; init; } = false;
-    [DataMember] public int WrappingColumn { get; init; } = DefaultWrappingColumn;
-    [DataMember] public int ConditionalExpressionWrappingLength { get; init; } = DefaultConditionalExpressionWrappingLength;
-    [DataMember] public int CollectionExpressionWrappingLength { get; init; } = DefaultCollectionExpressionWrappingLength;
 
     public static CodeActionOptions GetDefault(LanguageServices languageServices)
         => new()

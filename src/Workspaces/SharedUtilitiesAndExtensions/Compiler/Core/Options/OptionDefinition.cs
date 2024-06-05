@@ -12,9 +12,16 @@ namespace Microsoft.CodeAnalysis.Options;
 
 internal abstract class OptionDefinition : IEquatable<OptionDefinition?>
 {
-    // Editorconfig name prefixes used for C#/VB specific options:
+    // editorconfig name prefixes used for C#/VB specific options:
     public const string CSharpConfigNamePrefix = "csharp_";
     public const string VisualBasicConfigNamePrefix = "visual_basic_";
+
+    // editorconfig name prefix use for options that apply to both languages:
+    public const string LanguageAgnosticConfigNamePrefix = "dotnet_";
+
+    // editorconfig name prefix for feature options that are read from editorconfig 
+    // file but are currently not intended for users to be set in the editorconfig file.
+    public const string InternalConfigNamePrefix = "internal_";
 
     /// <summary>
     /// Optional group/sub-feature for this option.

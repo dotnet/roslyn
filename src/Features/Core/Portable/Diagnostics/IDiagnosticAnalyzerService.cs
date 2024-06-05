@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IDiagnosticAnalyzerService
 {
-    public IGlobalOptionService GlobalOptions { get; }
-
     /// <summary>
     /// Provides and caches analyzer information.
     /// </summary>

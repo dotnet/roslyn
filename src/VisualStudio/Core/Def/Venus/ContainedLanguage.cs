@@ -29,6 +29,7 @@ internal partial class ContainedLanguage
     protected readonly Workspace Workspace;
     protected readonly IComponentModel ComponentModel;
 
+    public IGlobalOptionService GlobalOptions { get; }
     public ProjectSystemProject? Project { get; }
 
     protected readonly ContainedDocument ContainedDocument;
@@ -82,6 +83,7 @@ internal partial class ContainedLanguage
 
         _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
         _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
+        GlobalOptions = componentModel.GetService<IGlobalOptionService>();
 
         // Get the ITextBuffer for the secondary buffer
         Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));
@@ -138,8 +140,6 @@ internal partial class ContainedLanguage
         // TODO: Can contained documents be linked or shared?
         this.DataBuffer.Changed += OnDataBufferChanged;
     }
-
-    public IGlobalOptionService GlobalOptions => _diagnosticAnalyzerService.GlobalOptions;
 
     private void OnDisconnect()
     {

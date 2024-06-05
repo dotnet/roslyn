@@ -230,12 +230,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(
                 initialMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData),
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData),
                 count);
         }
 

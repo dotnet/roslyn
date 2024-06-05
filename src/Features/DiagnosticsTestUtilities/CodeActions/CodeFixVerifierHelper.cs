@@ -118,8 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             foreach (var (optionKey, value) in options)
             {
-                Assert.True(optionKey.Option.Definition.IsEditorConfigOption);
-
                 if (value is NamingStylePreferences namingStylePreferences)
                 {
                     EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language!, analyzerConfig);

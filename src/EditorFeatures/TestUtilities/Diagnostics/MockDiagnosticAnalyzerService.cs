@@ -26,9 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MockDiagnosticAnalyzerService(IGlobalOptionService globalOptions)
+        public MockDiagnosticAnalyzerService()
         {
-            GlobalOptions = globalOptions;
             _diagnosticsWithKindFilter = ArrayBuilder<(DiagnosticData Diagnostic, DiagnosticKind KindFilter)>.GetInstance();
         }
 
@@ -46,8 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache
             => throw new NotImplementedException();
-
-        public IGlobalOptionService GlobalOptions { get; }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
             => throw new NotImplementedException();

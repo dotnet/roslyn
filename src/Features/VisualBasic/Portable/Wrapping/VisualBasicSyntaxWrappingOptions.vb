@@ -16,17 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
         Public Sub New(
             formattingOptions As VisualBasicSyntaxFormattingOptions,
-            wrappingColumn As Integer,
             operatorPlacement As OperatorPlacementWhenWrappingPreference)
 
-            MyBase.New(formattingOptions, wrappingColumn, operatorPlacement)
+            MyBase.New(formattingOptions, operatorPlacement)
         End Sub
 
         Public Shared Function Create(options As IOptionsReader, fallbackOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
             Return New VisualBasicSyntaxWrappingOptions(
                 formattingOptions:=New VisualBasicSyntaxFormattingOptions(options, DirectCast(fallbackOptions.CleanupOptions.FormattingOptions, VisualBasicSyntaxFormattingOptions)),
-                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.OperatorPlacementWhenWrapping),
-                wrappingColumn:=fallbackOptions.WrappingColumn)
+                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.OperatorPlacementWhenWrapping))
         End Function
     End Class
 End Namespace
