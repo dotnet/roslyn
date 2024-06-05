@@ -235,9 +235,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     private readonly SegmentedArray<Node> _array;
 
     private FlatArrayIntervalTree(SegmentedArray<Node> array)
-    {
-        _array = array;
-    }
+        => _array = array;
 
     /// <summary>
     /// Provides access to lots of common algorithms on this interval tree.
@@ -416,7 +414,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             // Now get the max end of the left and right children and compare to our end.  Whichever is the rightmost
             // endpoint is considered the max end index.
             var currentNode = array[currentNodeIndex];
-            var thisEndValue = GetEnd(currentNode.Value, in introspector);
+            var thisEndValue = introspector.GetSpan(currentNode.Value).End;
 
             if (thisEndValue >= leftMaxEndValue && thisEndValue >= rightMaxEndValue)
             {
@@ -452,10 +450,6 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
     private static int GetRightChildIndex(int nodeIndex)
         => (2 * nodeIndex) + 2;
-
-    private static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => introspector.GetSpan(value).End;
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
         => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
