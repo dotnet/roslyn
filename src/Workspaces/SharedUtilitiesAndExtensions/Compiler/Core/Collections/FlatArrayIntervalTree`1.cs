@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,6 +14,58 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
+
+internal interface IIntervalTreeHelper<T, TIntervalTree, TNode>
+    where TIntervalTree : IIntervalTree<T>
+{
+    public bool TryGetRoot(TIntervalTree tree, [NotNullWhen(true)] out TNode? root);
+    public bool TryGetLeftNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? leftNode);
+    public bool TryGetRightNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? rightNode);
+    public T GetValue(TIntervalTree tree, TNode node);
+}
+
+internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTreeHelper>
+    where TIntervalTree : IIntervalTree<T>
+    where TIntervalTreeHelper : struct, IIntervalTreeHelper<T, TIntervalTree, TNode>
+{
+    private static readonly ObjectPool<Stack<(TNode node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
+
+    public static IEnumerator<T> GetEnumerator(TIntervalTree tree, TIntervalTreeHelper helper)
+    {
+        if (!helper.TryGetRoot(tree, out var root))
+            return SpecializedCollections.EmptyEnumerator<T>();
+
+        return GetEnumeratorWorker(tree, helper, root);
+
+        static IEnumerator<T> GetEnumeratorWorker(
+            TIntervalTree tree, TIntervalTreeHelper helper, TNode root)
+        {
+            using var _ = s_stackPool.GetPooledObject(out var candidates);
+            candidates.Push((root, firstTime: true));
+
+            while (candidates.TryPop(out var tuple))
+            {
+                var (currentNode, firstTime) = tuple;
+                if (firstTime)
+                {
+                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
+                    // next time we see this node we'll yield it out.
+                    if (helper.TryGetRightNode(tree, currentNode, out var rightNode))
+                        candidates.Push((rightNode, firstTime: true));
+
+                    candidates.Push((currentNode, firstTime: false));
+
+                    if (helper.TryGetLeftNode(tree, currentNode, out var leftNode))
+                        candidates.Push((leftNode, firstTime: true));
+                }
+                else
+                {
+                    yield return helper.GetValue(tree, currentNode);
+                }
+            }
+        }
+    }
+}
 
 /// <summary>
 /// Implementation of an <see cref="IIntervalTree{T}"/> backed by a contiguous array of values.  This is a more memory
