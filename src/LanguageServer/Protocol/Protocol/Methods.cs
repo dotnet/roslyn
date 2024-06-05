@@ -32,16 +32,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string ProgressNotificationTokenName = "token";
 
         /// <summary>
-        /// Method name for 'textDocument/codeAction'.
-        /// </summary>
-        public const string TextDocumentCodeActionName = "textDocument/codeAction";
-
-        /// <summary>
-        /// Method name for 'codeAction/resolve'.
-        /// </summary>
-        public const string CodeActionResolveName = "codeAction/resolve";
-
-        /// <summary>
         /// Method name for 'textDocument/documentColor'.
         /// </summary>
         public const string TextDocumentDocumentColorName = "textDocument/documentColor";
@@ -126,16 +116,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/codeAction'.
-        /// </summary>
-        public static readonly LspRequest<CodeActionParams, SumType<Command, CodeAction>[]?> TextDocumentCodeAction = new LspRequest<CodeActionParams, SumType<Command, CodeAction>[]?>(TextDocumentCodeActionName);
-
-        /// <summary>
-        /// Strongly typed message object for 'codeAction/resolve'.
-        /// </summary>
-        public static readonly LspRequest<CodeAction, CodeAction> CodeActionResolve = new LspRequest<CodeAction, CodeAction>(CodeActionResolveName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/documentColor'.

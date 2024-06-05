@@ -414,4 +414,43 @@ partial class Methods
     /// Strongly typed message object for 'textDocument/signatureHelp'.
     /// </summary>
     public static readonly LspRequest<SignatureHelpParams, SignatureHelp?> TextDocumentSignatureHelp = new(TextDocumentSignatureHelpName);
+
+    /// <summary>
+    /// Method name for 'textDocument/codeAction'.
+    /// </summary>
+    public const string TextDocumentCodeActionName = "textDocument/codeAction";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/codeAction'.
+    /// <para>
+    /// The code action request is sent from the client to the server to compute commands for a
+    /// given text document and range. These commands are typically code fixes to either fix
+    /// problems or to beautify/refactor code.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_codeAction">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public static readonly LspRequest<CodeActionParams, SumType<Command, CodeAction>[]?> TextDocumentCodeAction = new(TextDocumentCodeActionName);
+
+    /// <summary>
+    /// Method name for 'codeAction/resolve'.
+    /// <para>
+    /// The request is sent from the client to the server to resolve additional information
+    /// for a given code action.
+    /// </para>
+    /// <para>
+    /// This is usually used to compute the edit property of a code action to avoid its
+    /// unnecessary computation during the textDocument/codeAction request.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeAction_resolve">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string CodeActionResolveName = "codeAction/resolve";
+
+    /// <summary>
+    /// Strongly typed message object for 'codeAction/resolve'.
+    /// </summary>
+    public static readonly LspRequest<CodeAction, CodeAction> CodeActionResolve = new(CodeActionResolveName);
 }

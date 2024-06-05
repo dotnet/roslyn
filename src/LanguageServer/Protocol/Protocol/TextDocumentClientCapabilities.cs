@@ -97,7 +97,7 @@ namespace Roslyn.LanguageServer.Protocol
         public DocumentSymbolSetting? DocumentSymbol { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if code action can be dynamically registered.
+        /// Capabilities specific to the `textDocument/codeAction` request.
         /// </summary>
         [JsonPropertyName("codeAction")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

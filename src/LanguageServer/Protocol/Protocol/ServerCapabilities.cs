@@ -133,7 +133,9 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<bool, DocumentSymbolOptions>? DocumentSymbolProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether code actions are supported.
+        /// The server provides code actions. The <see cref="CodeActionOptions"/> return type is
+        /// only valid if the client signals code action literal support via the
+        /// property <see cref="CodeActionSetting.CodeActionLiteralSupport"/>.
         /// </summary>
         [JsonPropertyName("codeActionProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
