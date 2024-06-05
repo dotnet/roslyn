@@ -135,6 +135,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
             if (extraElementsCount > 0)
             {
+                // Where at the end to start swapping elements from.  In the above example, this would be 12.
                 var lastElementToSwap = extraElementsCount * 2 - 2;
 
                 for (int i = lastElementToSwap, j = 0; i > 1; i -= 2, j++)
@@ -142,6 +143,25 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                     var destinationIndex = destination.Length - 1 - j;
                     destination[destinationIndex] = new Node(source[i], MaxEndNodeIndex: destinationIndex);
                     source[lastElementToSwap - j] = source[i - 1];
+
+                    // The above loop will do the following over the first few iterations (changes highlighted with *):
+                    //
+                    // Dst: ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀,   ␀, *m* // m placed at the end of the destination.
+                    // Src: a, b, c, d, e, f, g, h, i, j, k, l, *l*,   n // l moved to where m was in the original source.
+                    //
+                    // Dst: ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀,   ␀, *k*, m // k placed right before m in the destination.
+                    // Src: a, b, c, d, e, f, g, h, i, j, k, *j*,   l, n // j moved right before where we placed l in the original source.
+                    //
+                    // Dst: ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀,   ␀, *i*, k, m // i placed right before k in the destination.
+                    // Src: a, b, c, d, e, f, g, h, i, j, *h*,   j, l, n // h moved right before where we placed j in the original source.
+                    //
+                    // Each iteration takes the next odd element from the end of the source list and places it at the
+                    // next available space from the end of the destination array (effectively building the last row of
+                    // the complete binary tree).
+                    //
+                    // It then takes the next even element from the end of the source list and moves it to the next spot
+                    // from the end of the source list.  This makes the end of the source-list contain the original even
+                    // elements (up the perfect-complete count of elements), now abutted against each other.
                 }
 
                 // After this, source will be equal to:
@@ -149,7 +169,9 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 // a, b, c, d, e, f, g - b, d, f, h, j, l, n.
                 //
                 // In other words, the last half (after 'g') will be updated to be the even elements from the original
-                // list.  This will be what we'll create the perfect tree from below.
+                // list.  This will be what we'll create the perfect tree from below.  We will not look at the elements
+                // before this in 'source' as they are already either in the correct place in the 'source' *or*
+                // 'destination' arrays.
                 //
                 // Destination will be equal to:
                 // ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, c, e, g, i, k, m
