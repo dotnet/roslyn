@@ -1110,7 +1110,8 @@
     void Foo() { }
   -->
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
-    <Field Name="Symbol" Type="LocalFunctionSymbol"/>
+    <!-- Must be a LocalFunctionSymbol until the node reaches LocalRewriter -->
+    <Field Name="Symbol" Type="MethodSymbol"/>
     <Field Name="BlockBody" Type="BoundBlock?"/>
     <Field Name="ExpressionBody" Type="BoundBlock?"/>
   </Node>
@@ -1154,11 +1155,11 @@
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
@@ -1170,7 +1171,7 @@
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="BoundSwitchLabel?"/>
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="BreakLabel" Type="LabelSymbol"/>
   </Node>
 
   <!-- Part of a lowered integral switch statement. This evaluates Value, and then branches
@@ -1208,8 +1209,8 @@
   </Node>
 
   <AbstractNode Name="BoundLoopStatement" Base="BoundStatement">
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-    <Field Name="ContinueLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="BreakLabel" Type="LabelSymbol"/>
+    <Field Name="ContinueLabel" Type="LabelSymbol"/>
   </AbstractNode>
 
   <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
@@ -2270,8 +2271,9 @@
 
   <Node Name="BoundLambda" Base="BoundExpression">
     <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
+    <!-- Must be a LambdaSymbol until the node reaches LocalRewriter -->
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
-    <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
+    <Field Name="Symbol" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
     <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic&lt;AssemblySymbol&gt;"/>

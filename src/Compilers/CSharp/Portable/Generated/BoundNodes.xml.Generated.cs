@@ -3472,7 +3472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalFunctionStatement : BoundStatement
     {
-        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody, bool hasErrors = false)
+        public BoundLocalFunctionStatement(SyntaxNode syntax, MethodSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody, bool hasErrors = false)
             : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || blockBody.HasErrors() || expressionBody.HasErrors())
         {
 
@@ -3483,14 +3483,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ExpressionBody = expressionBody;
         }
 
-        public LocalFunctionSymbol Symbol { get; }
+        public MethodSymbol Symbol { get; }
         public BoundBlock? BlockBody { get; }
         public BoundBlock? ExpressionBody { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLocalFunctionStatement(this);
 
-        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody)
+        public BoundLocalFunctionStatement Update(MethodSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
             {
@@ -3662,7 +3662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBreakStatement : BoundStatement
     {
-        public BoundBreakStatement(SyntaxNode syntax, GeneratedLabelSymbol label, bool hasErrors)
+        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
             : base(BoundKind.BreakStatement, syntax, hasErrors)
         {
 
@@ -3671,7 +3671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Label = label;
         }
 
-        public BoundBreakStatement(SyntaxNode syntax, GeneratedLabelSymbol label)
+        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label)
             : base(BoundKind.BreakStatement, syntax)
         {
 
@@ -3680,12 +3680,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Label = label;
         }
 
-        public GeneratedLabelSymbol Label { get; }
+        public LabelSymbol Label { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBreakStatement(this);
 
-        public BoundBreakStatement Update(GeneratedLabelSymbol label)
+        public BoundBreakStatement Update(LabelSymbol label)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
@@ -3699,7 +3699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundContinueStatement : BoundStatement
     {
-        public BoundContinueStatement(SyntaxNode syntax, GeneratedLabelSymbol label, bool hasErrors)
+        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
             : base(BoundKind.ContinueStatement, syntax, hasErrors)
         {
 
@@ -3708,7 +3708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Label = label;
         }
 
-        public BoundContinueStatement(SyntaxNode syntax, GeneratedLabelSymbol label)
+        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label)
             : base(BoundKind.ContinueStatement, syntax)
         {
 
@@ -3717,12 +3717,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Label = label;
         }
 
-        public GeneratedLabelSymbol Label { get; }
+        public LabelSymbol Label { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitContinueStatement(this);
 
-        public BoundContinueStatement Update(GeneratedLabelSymbol label)
+        public BoundContinueStatement Update(LabelSymbol label)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
             {
@@ -3736,7 +3736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchStatement : BoundStatement
     {
-        public BoundSwitchStatement(SyntaxNode syntax, BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag reachabilityDecisionDag, BoundSwitchLabel? defaultLabel, GeneratedLabelSymbol breakLabel, bool hasErrors = false)
+        public BoundSwitchStatement(SyntaxNode syntax, BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag reachabilityDecisionDag, BoundSwitchLabel? defaultLabel, LabelSymbol breakLabel, bool hasErrors = false)
             : base(BoundKind.SwitchStatement, syntax, hasErrors || expression.HasErrors() || switchSections.HasErrors() || reachabilityDecisionDag.HasErrors() || defaultLabel.HasErrors())
         {
 
@@ -3762,12 +3762,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundSwitchSection> SwitchSections { get; }
         public BoundDecisionDag ReachabilityDecisionDag { get; }
         public BoundSwitchLabel? DefaultLabel { get; }
-        public GeneratedLabelSymbol BreakLabel { get; }
+        public LabelSymbol BreakLabel { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchStatement(this);
 
-        public BoundSwitchStatement Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag reachabilityDecisionDag, BoundSwitchLabel? defaultLabel, GeneratedLabelSymbol breakLabel)
+        public BoundSwitchStatement Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag reachabilityDecisionDag, BoundSwitchLabel? defaultLabel, LabelSymbol breakLabel)
         {
             if (expression != this.Expression || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || reachabilityDecisionDag != this.ReachabilityDecisionDag || defaultLabel != this.DefaultLabel || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel))
             {
@@ -3850,7 +3850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundLoopStatement : BoundStatement
     {
-        protected BoundLoopStatement(BoundKind kind, SyntaxNode syntax, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors)
+        protected BoundLoopStatement(BoundKind kind, SyntaxNode syntax, LabelSymbol breakLabel, LabelSymbol continueLabel, bool hasErrors)
             : base(kind, syntax, hasErrors)
         {
 
@@ -3861,7 +3861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ContinueLabel = continueLabel;
         }
 
-        protected BoundLoopStatement(BoundKind kind, SyntaxNode syntax, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        protected BoundLoopStatement(BoundKind kind, SyntaxNode syntax, LabelSymbol breakLabel, LabelSymbol continueLabel)
             : base(kind, syntax)
         {
 
@@ -3872,13 +3872,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ContinueLabel = continueLabel;
         }
 
-        public GeneratedLabelSymbol BreakLabel { get; }
-        public GeneratedLabelSymbol ContinueLabel { get; }
+        public LabelSymbol BreakLabel { get; }
+        public LabelSymbol ContinueLabel { get; }
     }
 
     internal abstract partial class BoundConditionalLoopStatement : BoundLoopStatement
     {
-        protected BoundConditionalLoopStatement(BoundKind kind, SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        protected BoundConditionalLoopStatement(BoundKind kind, SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel, bool hasErrors = false)
             : base(kind, syntax, breakLabel, continueLabel, hasErrors)
         {
 
@@ -3900,7 +3900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDoStatement : BoundConditionalLoopStatement
     {
-        public BoundDoStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        public BoundDoStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel, bool hasErrors = false)
             : base(BoundKind.DoStatement, syntax, locals, condition, body, breakLabel, continueLabel, hasErrors || condition.HasErrors() || body.HasErrors())
         {
 
@@ -3916,7 +3916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDoStatement(this);
 
-        public BoundDoStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundDoStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel)
         {
             if (locals != this.Locals || condition != this.Condition || body != this.Body || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
@@ -3930,7 +3930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundWhileStatement : BoundConditionalLoopStatement
     {
-        public BoundWhileStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        public BoundWhileStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel, bool hasErrors = false)
             : base(BoundKind.WhileStatement, syntax, locals, condition, body, breakLabel, continueLabel, hasErrors || condition.HasErrors() || body.HasErrors())
         {
 
@@ -3946,7 +3946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWhileStatement(this);
 
-        public BoundWhileStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundWhileStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel)
         {
             if (locals != this.Locals || condition != this.Condition || body != this.Body || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
@@ -3960,7 +3960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForStatement : BoundLoopStatement
     {
-        public BoundForStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        public BoundForStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel, bool hasErrors = false)
             : base(BoundKind.ForStatement, syntax, breakLabel, continueLabel, hasErrors || initializer.HasErrors() || condition.HasErrors() || increment.HasErrors() || body.HasErrors())
         {
 
@@ -3988,7 +3988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitForStatement(this);
 
-        public BoundForStatement Update(ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForStatement Update(ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel)
         {
             if (outerLocals != this.OuterLocals || initializer != this.Initializer || innerLocals != this.InnerLocals || condition != this.Condition || increment != this.Increment || body != this.Body || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
@@ -4002,7 +4002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForEachStatement : BoundLoopStatement
     {
-        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel, bool hasErrors = false)
             : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || elementPlaceholder.HasErrors() || elementConversion.HasErrors() || iterationVariableType.HasErrors() || iterationErrorExpressionOpt.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || awaitOpt.HasErrors() || body.HasErrors())
         {
 
@@ -4039,7 +4039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitForEachStatement(this);
 
-        public BoundForEachStatement Update(ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForEachStatement Update(ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, LabelSymbol breakLabel, LabelSymbol continueLabel)
         {
             if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementPlaceholder != this.ElementPlaceholder || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || iterationErrorExpressionOpt != this.IterationErrorExpressionOpt || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || awaitOpt != this.AwaitOpt || body != this.Body || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
@@ -7554,7 +7554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLambda : BoundExpression
     {
-        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, LambdaSymbol symbol, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? type, bool hasErrors = false)
+        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, MethodSymbol symbol, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.Lambda, syntax, type, hasErrors || unboundLambda.HasErrors() || body.HasErrors())
         {
 
@@ -7571,7 +7571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public UnboundLambda UnboundLambda { get; }
-        public LambdaSymbol Symbol { get; }
+        public MethodSymbol Symbol { get; }
         public new TypeSymbol? Type => base.Type;
         public BoundBlock Body { get; }
         public ReadOnlyBindingDiagnostic<AssemblySymbol> Diagnostics { get; }
@@ -7580,7 +7580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLambda(this);
 
-        public BoundLambda Update(UnboundLambda unboundLambda, LambdaSymbol symbol, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? type)
+        public BoundLambda Update(UnboundLambda unboundLambda, MethodSymbol symbol, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? type)
         {
             if (unboundLambda != this.UnboundLambda || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -10755,17 +10755,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Field, node.Locals, value);
+            FieldSymbol field = this.VisitFieldSymbol(node.Field);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(field, locals, value);
         }
         public override BoundNode? VisitPropertyEqualsValue(BoundPropertyEqualsValue node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Property, node.Locals, value);
+            PropertySymbol property = this.VisitPropertySymbol(node.Property);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(property, locals, value);
         }
         public override BoundNode? VisitParameterEqualsValue(BoundParameterEqualsValue node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Parameter, node.Locals, value);
+            ParameterSymbol parameter = this.VisitParameterSymbol(node.Parameter);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(parameter, locals, value);
         }
         public override BoundNode? VisitGlobalStatementInitializer(BoundGlobalStatementInitializer node)
         {
@@ -10786,7 +10792,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.VariableSymbol, node.IsDiscardExpression, type);
+            Symbol? variableSymbol = this.VisitSymbol(node.VariableSymbol);
+            return node.Update(variableSymbol, node.IsDiscardExpression, type);
         }
         public override BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
         {
@@ -10853,7 +10860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> childBoundNodes = this.VisitList(node.ChildBoundNodes);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ResultKind, node.Symbols, childBoundNodes, type);
+            ImmutableArray<Symbol?> symbols = this.VisitSymbols<Symbol?>(node.Symbols);
+            return node.Update(node.ResultKind, symbols, childBoundNodes, type);
         }
         public override BoundNode? VisitBadStatement(BoundBadStatement node)
         {
@@ -10870,7 +10878,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression? boundContainingTypeOpt = (BoundTypeExpression?)this.Visit(node.BoundContainingTypeOpt);
             ImmutableArray<BoundExpression> boundDimensionsOpt = this.VisitList(node.BoundDimensionsOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.AliasOpt, boundContainingTypeOpt, boundDimensionsOpt, node.TypeWithAnnotations, type);
+            AliasSymbol? aliasOpt = this.VisitAliasSymbol(node.AliasOpt);
+            return node.Update(aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, node.TypeWithAnnotations, type);
         }
         public override BoundNode? VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
@@ -10880,14 +10889,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitNamespaceExpression(BoundNamespaceExpression node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.NamespaceSymbol, node.AliasOpt);
+            NamespaceSymbol namespaceSymbol = this.VisitNamespaceSymbol(node.NamespaceSymbol);
+            AliasSymbol? aliasOpt = this.VisitAliasSymbol(node.AliasOpt);
+            return node.Update(namespaceSymbol, aliasOpt);
         }
         public override BoundNode? VisitUnaryOperator(BoundUnaryOperator node)
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? constrainedToTypeOpt = this.VisitType(node.ConstrainedToTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, constrainedToTypeOpt, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, type);
+            MethodSymbol? methodOpt = this.VisitMethodSymbol(node.MethodOpt);
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = this.VisitSymbols<MethodSymbol>(node.OriginalUserDefinedOperatorsOpt);
+            return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, methodOpt, constrainedToTypeOpt, node.ResultKind, originalUserDefinedOperatorsOpt, type);
         }
         public override BoundNode? VisitIncrementOperator(BoundIncrementOperator node)
         {
@@ -10898,7 +10911,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? resultConversion = node.ResultConversion;
             TypeSymbol? constrainedToTypeOpt = this.VisitType(node.ConstrainedToTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, operand, node.MethodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, type);
+            MethodSymbol? methodOpt = this.VisitMethodSymbol(node.MethodOpt);
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = this.VisitSymbols<MethodSymbol>(node.OriginalUserDefinedOperatorsOpt);
+            return node.Update(node.OperatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, node.ResultKind, originalUserDefinedOperatorsOpt, type);
         }
         public override BoundNode? VisitAddressOfOperator(BoundAddressOfOperator node)
         {
@@ -10916,7 +10931,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol? constrainedToTypeOpt = this.VisitType(node.ConstrainedToTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.TargetMethod, constrainedToTypeOpt, type);
+            MethodSymbol targetMethod = this.VisitMethodSymbol(node.TargetMethod);
+            return node.Update(targetMethod, constrainedToTypeOpt, type);
         }
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
@@ -10942,7 +10958,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(operand, node.GetTypeFromHandle, type);
+            MethodSymbol? getTypeFromHandle = this.VisitMethodSymbol(node.GetTypeFromHandle);
+            return node.Update(operand, getTypeFromHandle, type);
         }
         public override BoundNode? VisitMakeRefOperator(BoundMakeRefOperator node)
         {
@@ -10960,14 +10977,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(operand, node.MethodOpt, type);
+            MethodSymbol? methodOpt = this.VisitMethodSymbol(node.MethodOpt);
+            return node.Update(operand, methodOpt, type);
         }
         public override BoundNode? VisitRangeExpression(BoundRangeExpression node)
         {
             BoundExpression? leftOperandOpt = (BoundExpression?)this.Visit(node.LeftOperandOpt);
             BoundExpression? rightOperandOpt = (BoundExpression?)this.Visit(node.RightOperandOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(leftOperandOpt, rightOperandOpt, node.MethodOpt, type);
+            MethodSymbol? methodOpt = this.VisitMethodSymbol(node.MethodOpt);
+            return node.Update(leftOperandOpt, rightOperandOpt, methodOpt, type);
         }
         public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
@@ -10989,7 +11008,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
             TypeSymbol? constrainedToTypeOpt = this.VisitType(node.ConstrainedToTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, constrainedToTypeOpt, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, left, right, type);
+            MethodSymbol logicalOperator = this.VisitMethodSymbol(node.LogicalOperator);
+            MethodSymbol trueOperator = this.VisitMethodSymbol(node.TrueOperator);
+            MethodSymbol falseOperator = this.VisitMethodSymbol(node.FalseOperator);
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = this.VisitSymbols<MethodSymbol>(node.OriginalUserDefinedOperatorsOpt);
+            return node.Update(node.OperatorKind, logicalOperator, trueOperator, falseOperator, constrainedToTypeOpt, node.ResultKind, originalUserDefinedOperatorsOpt, left, right, type);
         }
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
@@ -11000,7 +11023,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundValuePlaceholder? finalPlaceholder = node.FinalPlaceholder;
             BoundExpression? finalConversion = node.FinalConversion;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, type);
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = this.VisitSymbols<MethodSymbol>(node.OriginalUserDefinedOperatorsOpt);
+            return node.Update(node.Operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, type);
         }
         public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
         {
@@ -11066,7 +11090,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundAwaitableValuePlaceholder? awaitableInstancePlaceholder = (BoundAwaitableValuePlaceholder?)this.Visit(node.AwaitableInstancePlaceholder);
             BoundExpression? getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
-            return node.Update(awaitableInstancePlaceholder, node.IsDynamic, getAwaiter, node.IsCompleted, node.GetResult);
+            PropertySymbol? isCompleted = this.VisitPropertySymbol(node.IsCompleted);
+            MethodSymbol? getResult = this.VisitMethodSymbol(node.GetResult);
+            return node.Update(awaitableInstancePlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
         }
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
@@ -11079,7 +11105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundTypeExpression sourceType = (BoundTypeExpression)this.Visit(node.SourceType);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(sourceType, node.GetTypeFromHandle, type);
+            MethodSymbol? getTypeFromHandle = this.VisitMethodSymbol(node.GetTypeFromHandle);
+            return node.Update(sourceType, getTypeFromHandle, type);
         }
         public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
         {
@@ -11090,17 +11117,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Method, type);
+            MethodSymbol method = this.VisitMethodSymbol(node.Method);
+            return node.Update(method, type);
         }
         public override BoundNode? VisitLocalId(BoundLocalId node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Local, node.HoistedField, type);
+            LocalSymbol local = this.VisitLocalSymbol(node.Local);
+            FieldSymbol? hoistedField = this.VisitFieldSymbol(node.HoistedField);
+            return node.Update(local, hoistedField, type);
         }
         public override BoundNode? VisitParameterId(BoundParameterId node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Parameter, node.HoistedField, type);
+            ParameterSymbol parameter = this.VisitParameterSymbol(node.Parameter);
+            FieldSymbol? hoistedField = this.VisitFieldSymbol(node.HoistedField);
+            return node.Update(parameter, hoistedField, type);
         }
         public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
         {
@@ -11145,12 +11177,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitMethodInfo(BoundMethodInfo node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Method, node.GetMethodFromHandle, type);
+            MethodSymbol method = this.VisitMethodSymbol(node.Method);
+            MethodSymbol? getMethodFromHandle = this.VisitMethodSymbol(node.GetMethodFromHandle);
+            return node.Update(method, getMethodFromHandle, type);
         }
         public override BoundNode? VisitFieldInfo(BoundFieldInfo node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Field, node.GetFieldFromHandle, type);
+            FieldSymbol field = this.VisitFieldSymbol(node.Field);
+            MethodSymbol? getFieldFromHandle = this.VisitMethodSymbol(node.GetFieldFromHandle);
+            return node.Update(field, getFieldFromHandle, type);
         }
         public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
         {
@@ -11189,13 +11225,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, node.OriginalUserDefinedConversionsOpt, type);
+            ImmutableArray<MethodSymbol> originalUserDefinedConversionsOpt = this.VisitSymbols<MethodSymbol>(node.OriginalUserDefinedConversionsOpt);
+            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, originalUserDefinedConversionsOpt, type);
         }
         public override BoundNode? VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(operand, node.ConversionMethod, type);
+            MethodSymbol conversionMethod = this.VisitMethodSymbol(node.ConversionMethod);
+            return node.Update(operand, conversionMethod, type);
         }
         public override BoundNode? VisitArgList(BoundArgList node)
         {
@@ -11215,7 +11253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol? elementPointerType = this.VisitType(node.ElementPointerType);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(elementPointerType, elementPointerPlaceholder, elementPointerConversion, expression, node.GetPinnableOpt, type);
+            MethodSymbol? getPinnableOpt = this.VisitMethodSymbol(node.GetPinnableOpt);
+            return node.Update(elementPointerType, elementPointerPlaceholder, elementPointerConversion, expression, getPinnableOpt, type);
         }
         public override BoundNode? VisitSequencePoint(BoundSequencePoint node)
         {
@@ -11234,24 +11273,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundBlockInstrumentation? instrumentation = (BoundBlockInstrumentation?)this.Visit(node.Instrumentation);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, node.LocalFunctions, node.HasUnsafeModifier, instrumentation, statements);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            ImmutableArray<LocalFunctionSymbol> localFunctions = this.VisitSymbols<LocalFunctionSymbol>(node.LocalFunctions);
+            return node.Update(locals, localFunctions, node.HasUnsafeModifier, instrumentation, statements);
         }
         public override BoundNode? VisitScope(BoundScope node)
         {
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, statements);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, statements);
         }
         public override BoundNode? VisitStateMachineScope(BoundStateMachineScope node)
         {
             BoundStatement statement = (BoundStatement)this.Visit(node.Statement);
-            return node.Update(node.Fields, statement);
+            ImmutableArray<StateMachineFieldSymbol> fields = this.VisitSymbols<StateMachineFieldSymbol>(node.Fields);
+            return node.Update(fields, statement);
         }
         public override BoundNode? VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             BoundTypeExpression? declaredTypeOpt = (BoundTypeExpression?)this.Visit(node.DeclaredTypeOpt);
             BoundExpression? initializerOpt = (BoundExpression?)this.Visit(node.InitializerOpt);
             ImmutableArray<BoundExpression> argumentsOpt = this.VisitList(node.ArgumentsOpt);
-            return node.Update(node.LocalSymbol, declaredTypeOpt, initializerOpt, argumentsOpt, node.InferredType);
+            LocalSymbol localSymbol = this.VisitLocalSymbol(node.LocalSymbol);
+            return node.Update(localSymbol, declaredTypeOpt, initializerOpt, argumentsOpt, node.InferredType);
         }
         public override BoundNode? VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
         {
@@ -11268,7 +11312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundBlock? blockBody = (BoundBlock?)this.Visit(node.BlockBody);
             BoundBlock? expressionBody = (BoundBlock?)this.Visit(node.ExpressionBody);
-            return node.Update(node.Symbol, blockBody, expressionBody);
+            MethodSymbol symbol = this.VisitMethodSymbol(node.Symbol);
+            return node.Update(symbol, blockBody, expressionBody);
         }
         public override BoundNode? VisitNoOpStatement(BoundNoOpStatement node) => node;
         public override BoundNode? VisitReturnStatement(BoundReturnStatement node)
@@ -11300,12 +11345,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections = this.VisitList(node.SwitchSections);
             BoundDecisionDag reachabilityDecisionDag = node.ReachabilityDecisionDag;
             BoundSwitchLabel? defaultLabel = (BoundSwitchLabel?)this.Visit(node.DefaultLabel);
-            return node.Update(expression, node.InnerLocals, node.InnerLocalFunctions, switchSections, reachabilityDecisionDag, defaultLabel, node.BreakLabel);
+            ImmutableArray<LocalSymbol> innerLocals = this.VisitSymbols<LocalSymbol>(node.InnerLocals);
+            ImmutableArray<LocalFunctionSymbol> innerLocalFunctions = this.VisitSymbols<LocalFunctionSymbol>(node.InnerLocalFunctions);
+            LabelSymbol breakLabel = this.VisitLabelSymbol(node.BreakLabel);
+            return node.Update(expression, innerLocals, innerLocalFunctions, switchSections, reachabilityDecisionDag, defaultLabel, breakLabel);
         }
         public override BoundNode? VisitSwitchDispatch(BoundSwitchDispatch node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            return node.Update(expression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
+            LabelSymbol defaultLabel = this.VisitLabelSymbol(node.DefaultLabel);
+            return node.Update(expression, node.Cases, defaultLabel, node.LengthBasedStringSwitchDataOpt);
         }
         public override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
@@ -11318,13 +11367,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.Locals, condition, body, node.BreakLabel, node.ContinueLabel);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            LabelSymbol breakLabel = this.VisitLabelSymbol(node.BreakLabel);
+            LabelSymbol continueLabel = this.VisitLabelSymbol(node.ContinueLabel);
+            return node.Update(locals, condition, body, breakLabel, continueLabel);
         }
         public override BoundNode? VisitWhileStatement(BoundWhileStatement node)
         {
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.Locals, condition, body, node.BreakLabel, node.ContinueLabel);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            LabelSymbol breakLabel = this.VisitLabelSymbol(node.BreakLabel);
+            LabelSymbol continueLabel = this.VisitLabelSymbol(node.ContinueLabel);
+            return node.Update(locals, condition, body, breakLabel, continueLabel);
         }
         public override BoundNode? VisitForStatement(BoundForStatement node)
         {
@@ -11332,7 +11387,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? condition = (BoundExpression?)this.Visit(node.Condition);
             BoundStatement? increment = (BoundStatement?)this.Visit(node.Increment);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.OuterLocals, initializer, node.InnerLocals, condition, increment, body, node.BreakLabel, node.ContinueLabel);
+            ImmutableArray<LocalSymbol> outerLocals = this.VisitSymbols<LocalSymbol>(node.OuterLocals);
+            ImmutableArray<LocalSymbol> innerLocals = this.VisitSymbols<LocalSymbol>(node.InnerLocals);
+            LabelSymbol breakLabel = this.VisitLabelSymbol(node.BreakLabel);
+            LabelSymbol continueLabel = this.VisitLabelSymbol(node.ContinueLabel);
+            return node.Update(outerLocals, initializer, innerLocals, condition, increment, body, breakLabel, continueLabel);
         }
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
@@ -11344,7 +11403,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundForEachDeconstructStep? deconstructionOpt = (BoundForEachDeconstructStep?)this.Visit(node.DeconstructionOpt);
             BoundAwaitableInfo? awaitOpt = (BoundAwaitableInfo?)this.Visit(node.AwaitOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.EnumeratorInfoOpt, elementPlaceholder, elementConversion, iterationVariableType, node.IterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, node.BreakLabel, node.ContinueLabel);
+            ImmutableArray<LocalSymbol> iterationVariables = this.VisitSymbols<LocalSymbol>(node.IterationVariables);
+            LabelSymbol breakLabel = this.VisitLabelSymbol(node.BreakLabel);
+            LabelSymbol continueLabel = this.VisitLabelSymbol(node.ContinueLabel);
+            return node.Update(node.EnumeratorInfoOpt, elementPlaceholder, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, breakLabel, continueLabel);
         }
         public override BoundNode? VisitForEachDeconstructStep(BoundForEachDeconstructStep node)
         {
@@ -11358,13 +11420,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? expressionOpt = (BoundExpression?)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             BoundAwaitableInfo? awaitOpt = (BoundAwaitableInfo?)this.Visit(node.AwaitOpt);
-            return node.Update(node.Locals, declarationsOpt, expressionOpt, body, awaitOpt, node.PatternDisposeInfoOpt);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, declarationsOpt, expressionOpt, body, awaitOpt, node.PatternDisposeInfoOpt);
         }
         public override BoundNode? VisitFixedStatement(BoundFixedStatement node)
         {
             BoundMultipleLocalDeclarations declarations = (BoundMultipleLocalDeclarations)this.Visit(node.Declarations);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.Locals, declarations, body);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, declarations, body);
         }
         public override BoundNode? VisitLockStatement(BoundLockStatement node)
         {
@@ -11377,7 +11441,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock tryBlock = (BoundBlock)this.Visit(node.TryBlock);
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
             BoundBlock? finallyBlockOpt = (BoundBlock?)this.Visit(node.FinallyBlockOpt);
-            return node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
+            LabelSymbol? finallyLabelOpt = this.VisitLabelSymbol(node.FinallyLabelOpt);
+            return node.Update(tryBlock, catchBlocks, finallyBlockOpt, finallyLabelOpt, node.PreferFaultHandler);
         }
         public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
@@ -11386,7 +11451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? exceptionFilterOpt = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
             TypeSymbol? exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
-            return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
         }
         public override BoundNode? VisitLiteral(BoundLiteral node)
         {
@@ -11421,40 +11487,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocal(BoundLocal node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.LocalSymbol, node.DeclarationKind, node.ConstantValueOpt, node.IsNullableUnknown, type);
+            LocalSymbol localSymbol = this.VisitLocalSymbol(node.LocalSymbol);
+            return node.Update(localSymbol, node.DeclarationKind, node.ConstantValueOpt, node.IsNullableUnknown, type);
         }
         public override BoundNode? VisitPseudoVariable(BoundPseudoVariable node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.LocalSymbol, node.EmitExpressions, type);
+            LocalSymbol localSymbol = this.VisitLocalSymbol(node.LocalSymbol);
+            return node.Update(localSymbol, node.EmitExpressions, type);
         }
         public override BoundNode? VisitRangeVariable(BoundRangeVariable node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.RangeVariableSymbol, value, type);
+            RangeVariableSymbol rangeVariableSymbol = this.VisitRangeVariableSymbol(node.RangeVariableSymbol);
+            return node.Update(rangeVariableSymbol, value, type);
         }
         public override BoundNode? VisitParameter(BoundParameter node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ParameterSymbol, type);
+            ParameterSymbol parameterSymbol = this.VisitParameterSymbol(node.ParameterSymbol);
+            return node.Update(parameterSymbol, type);
         }
         public override BoundNode? VisitLabelStatement(BoundLabelStatement node) => node;
         public override BoundNode? VisitGotoStatement(BoundGotoStatement node)
         {
             BoundExpression? caseExpressionOpt = (BoundExpression?)this.Visit(node.CaseExpressionOpt);
             BoundLabel? labelExpressionOpt = (BoundLabel?)this.Visit(node.LabelExpressionOpt);
-            return node.Update(node.Label, caseExpressionOpt, labelExpressionOpt);
+            LabelSymbol label = this.VisitLabelSymbol(node.Label);
+            return node.Update(label, caseExpressionOpt, labelExpressionOpt);
         }
         public override BoundNode? VisitLabeledStatement(BoundLabeledStatement node)
         {
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.Label, body);
+            LabelSymbol label = this.VisitLabelSymbol(node.Label);
+            return node.Update(label, body);
         }
         public override BoundNode? VisitLabel(BoundLabel node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Label, type);
+            LabelSymbol label = this.VisitLabelSymbol(node.Label);
+            return node.Update(label, type);
         }
         public override BoundNode? VisitStatementList(BoundStatementList node)
         {
@@ -11464,14 +11537,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitConditionalGoto(BoundConditionalGoto node)
         {
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
-            return node.Update(condition, node.JumpIfTrue, node.Label);
+            LabelSymbol label = this.VisitLabelSymbol(node.Label);
+            return node.Update(condition, node.JumpIfTrue, label);
         }
         public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Locals, pattern, whenClause, value, node.Label);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            LabelSymbol label = this.VisitLabelSymbol(node.Label);
+            return node.Update(locals, pattern, whenClause, value, label);
         }
         public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
@@ -11479,7 +11555,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
             BoundDecisionDag reachabilityDecisionDag = node.ReachabilityDecisionDag;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+            LabelSymbol? defaultLabel = this.VisitLabelSymbol(node.DefaultLabel);
+            return node.Update(expression, switchArms, reachabilityDecisionDag, defaultLabel, node.ReportedNotExhaustive, type);
         }
         public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
@@ -11488,7 +11565,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag reachabilityDecisionDag = node.ReachabilityDecisionDag;
             TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+            LabelSymbol? defaultLabel = this.VisitLabelSymbol(node.DefaultLabel);
+            return node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, defaultLabel, node.ReportedNotExhaustive, type);
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
         {
@@ -11551,7 +11629,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.DeconstructMethod, input);
+            MethodSymbol deconstructMethod = this.VisitMethodSymbol(node.DeconstructMethod);
+            return node.Update(deconstructMethod, input);
         }
         public override BoundNode? VisitDagTypeEvaluation(BoundDagTypeEvaluation node)
         {
@@ -11562,17 +11641,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagFieldEvaluation(BoundDagFieldEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Field, input);
+            FieldSymbol field = this.VisitFieldSymbol(node.Field);
+            return node.Update(field, input);
         }
         public override BoundNode? VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Property, node.IsLengthOrCount, input);
+            PropertySymbol property = this.VisitPropertySymbol(node.Property);
+            return node.Update(property, node.IsLengthOrCount, input);
         }
         public override BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Property, node.Index, input);
+            PropertySymbol property = this.VisitPropertySymbol(node.Property);
+            return node.Update(property, node.Index, input);
         }
         public override BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node)
         {
@@ -11604,13 +11686,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundSwitchLabel> switchLabels = this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, switchLabels, statements);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, switchLabels, statements);
         }
         public override BoundNode? VisitSwitchLabel(BoundSwitchLabel node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
-            return node.Update(node.Label, pattern, whenClause);
+            LabelSymbol label = this.VisitLabelSymbol(node.Label);
+            return node.Update(label, pattern, whenClause);
         }
         public override BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node)
         {
@@ -11623,14 +11707,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> sideEffects = this.VisitList(node.SideEffects);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Locals, sideEffects, value, type);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, sideEffects, value, type);
         }
         public override BoundNode? VisitSpillSequence(BoundSpillSequence node)
         {
             ImmutableArray<BoundStatement> sideEffects = this.VisitList(node.SideEffects);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Locals, sideEffects, value, type);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, sideEffects, value, type);
         }
         public override BoundNode? VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
         {
@@ -11643,7 +11729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableMethods, expression, arguments, type);
+            ImmutableArray<MethodSymbol> applicableMethods = this.VisitSymbols<MethodSymbol>(node.ApplicableMethods);
+            return node.Update(node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, applicableMethods, expression, arguments, type);
         }
         public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
         {
@@ -11658,7 +11745,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
             BoundExpression? whenNullOpt = (BoundExpression?)this.Visit(node.WhenNullOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, type);
+            MethodSymbol? hasValueMethodOpt = this.VisitMethodSymbol(node.HasValueMethodOpt);
+            return node.Update(receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, type);
         }
         public override BoundNode? VisitConditionalReceiver(BoundConditionalReceiver node)
         {
@@ -11676,34 +11764,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.TypeArgumentsSyntax, node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, node.FunctionType, receiverOpt, node.ResultKind);
+            ImmutableArray<MethodSymbol> methods = this.VisitSymbols<MethodSymbol>(node.Methods);
+            Symbol? lookupSymbolOpt = this.VisitSymbol(node.LookupSymbolOpt);
+            FunctionTypeSymbol? functionType = this.VisitFunctionTypeSymbol(node.FunctionType);
+            return node.Update(node.TypeArgumentsSyntax, node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, functionType, receiverOpt, node.ResultKind);
         }
         public override BoundNode? VisitPropertyGroup(BoundPropertyGroup node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Properties, receiverOpt, node.ResultKind);
+            ImmutableArray<PropertySymbol> properties = this.VisitSymbols<PropertySymbol>(node.Properties);
+            return node.Update(properties, receiverOpt, node.ResultKind);
         }
         public override BoundNode? VisitCall(BoundCall node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
+            MethodSymbol method = this.VisitMethodSymbol(node.Method);
+            ImmutableArray<MethodSymbol> originalMethodsOpt = this.VisitSymbols<MethodSymbol>(node.OriginalMethodsOpt);
+            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, originalMethodsOpt, type);
         }
         public override BoundNode? VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Event, node.IsAddition, node.IsDynamic, receiverOpt, argument, type);
+            EventSymbol @event = this.VisitEventSymbol(node.Event);
+            return node.Update(@event, node.IsAddition, node.IsDynamic, receiverOpt, argument, type);
         }
         public override BoundNode? VisitAttribute(BoundAttribute node)
         {
             ImmutableArray<BoundExpression> constructorArguments = this.VisitList(node.ConstructorArguments);
             ImmutableArray<BoundAssignmentOperator> namedArguments = this.VisitList(node.NamedArguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, type);
+            MethodSymbol? constructor = this.VisitMethodSymbol(node.Constructor);
+            return node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, type);
         }
         public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
@@ -11716,7 +11812,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundObjectInitializerExpressionBase? initializerExpressionOpt = (BoundObjectInitializerExpressionBase?)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, initializerExpressionOpt, node.WasTargetTyped, type);
+            MethodSymbol constructor = this.VisitMethodSymbol(node.Constructor);
+            ImmutableArray<MethodSymbol> constructorsGroup = this.VisitSymbols<MethodSymbol>(node.ConstructorsGroup);
+            return node.Update(constructor, constructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, initializerExpressionOpt, node.WasTargetTyped, type);
         }
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
@@ -11733,7 +11831,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, node.CollectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, unconvertedCollectionExpression, elements, type);
+            MethodSymbol? collectionBuilderMethod = this.VisitMethodSymbol(node.CollectionBuilderMethod);
+            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, unconvertedCollectionExpression, elements, type);
         }
         public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
         {
@@ -11768,7 +11867,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundObjectInitializerExpressionBase? initializerExpressionOpt = (BoundObjectInitializerExpressionBase?)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Name, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, node.ApplicableMethods, node.WasTargetTyped, type);
+            ImmutableArray<MethodSymbol> applicableMethods = this.VisitSymbols<MethodSymbol>(node.ApplicableMethods);
+            return node.Update(node.Name, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, applicableMethods, node.WasTargetTyped, type);
         }
         public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
@@ -11788,7 +11888,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? receiverType = this.VisitType(node.ReceiverType);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, type);
+            Symbol? memberSymbol = this.VisitSymbol(node.MemberSymbol);
+            return node.Update(memberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, type);
         }
         public override BoundNode? VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
@@ -11808,14 +11909,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundExpression? implicitReceiverOpt = (BoundExpression?)this.Visit(node.ImplicitReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, type);
+            MethodSymbol addMethod = this.VisitMethodSymbol(node.AddMethod);
+            return node.Update(addMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, type);
         }
         public override BoundNode? VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ApplicableMethods, expression, arguments, type);
+            ImmutableArray<MethodSymbol> applicableMethods = this.VisitSymbols<MethodSymbol>(node.ApplicableMethods);
+            return node.Update(applicableMethods, expression, arguments, type);
         }
         public override BoundNode? VisitImplicitReceiver(BoundImplicitReceiver node)
         {
@@ -11827,12 +11930,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             ImmutableArray<BoundAnonymousPropertyDeclaration> declarations = this.VisitList(node.Declarations);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, arguments, declarations, type);
+            MethodSymbol constructor = this.VisitMethodSymbol(node.Constructor);
+            return node.Update(constructor, arguments, declarations, type);
         }
         public override BoundNode? VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Property, type);
+            PropertySymbol property = this.VisitPropertySymbol(node.Property);
+            return node.Update(property, type);
         }
         public override BoundNode? VisitNewT(BoundNewT node)
         {
@@ -11844,7 +11949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.WasTargetTyped, type);
+            MethodSymbol? methodOpt = this.VisitMethodSymbol(node.MethodOpt);
+            return node.Update(argument, methodOpt, node.IsExtensionMethod, node.WasTargetTyped, type);
         }
         public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
         {
@@ -11879,31 +11985,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.IsByValue, node.IsDeclaration, type);
+            FieldSymbol fieldSymbol = this.VisitFieldSymbol(node.FieldSymbol);
+            return node.Update(receiverOpt, fieldSymbol, node.ConstantValueOpt, node.ResultKind, node.IsByValue, node.IsDeclaration, type);
         }
         public override BoundNode? VisitHoistedFieldAccess(BoundHoistedFieldAccess node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.FieldSymbol, type);
+            FieldSymbol fieldSymbol = this.VisitFieldSymbol(node.FieldSymbol);
+            return node.Update(fieldSymbol, type);
         }
         public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.PropertySymbol, node.ResultKind, type);
+            PropertySymbol propertySymbol = this.VisitPropertySymbol(node.PropertySymbol);
+            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.ResultKind, type);
         }
         public override BoundNode? VisitEventAccess(BoundEventAccess node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.EventSymbol, node.IsUsableAsField, node.ResultKind, type);
+            EventSymbol eventSymbol = this.VisitEventSymbol(node.EventSymbol);
+            return node.Update(receiverOpt, eventSymbol, node.IsUsableAsField, node.ResultKind, type);
         }
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.OriginalIndexersOpt, type);
+            PropertySymbol indexer = this.VisitPropertySymbol(node.Indexer);
+            ImmutableArray<PropertySymbol> originalIndexersOpt = this.VisitSymbols<PropertySymbol>(node.OriginalIndexersOpt);
+            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, originalIndexersOpt, type);
         }
         public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
@@ -11928,19 +12040,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableIndexers, type);
+            ImmutableArray<PropertySymbol> applicableIndexers = this.VisitSymbols<PropertySymbol>(node.ApplicableIndexers);
+            return node.Update(receiver, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, applicableIndexers, type);
         }
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             UnboundLambda unboundLambda = node.UnboundLambda;
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(unboundLambda, node.Symbol, body, node.Diagnostics, node.Binder, type);
+            MethodSymbol symbol = this.VisitMethodSymbol(node.Symbol);
+            return node.Update(unboundLambda, symbol, body, node.Diagnostics, node.Binder, type);
         }
         public override BoundNode? VisitUnboundLambda(UnboundLambda node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Data, node.FunctionType, node.WithDependencies);
+            FunctionTypeSymbol? functionType = this.VisitFunctionTypeSymbol(node.FunctionType);
+            return node.Update(node.Data, functionType, node.WithDependencies);
         }
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
@@ -11949,7 +12064,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? cast = node.Cast;
             BoundExpression? unoptimizedForm = node.UnoptimizedForm;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(value, node.DefinedSymbol, operation, cast, node.Binder, unoptimizedForm, type);
+            RangeVariableSymbol? definedSymbol = this.VisitRangeVariableSymbol(node.DefinedSymbol);
+            return node.Update(value, definedSymbol, operation, cast, node.Binder, unoptimizedForm, type);
         }
         public override BoundNode? VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
         {
@@ -11998,7 +12114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundDecisionDag reachabilityDecisionDag = node.ReachabilityDecisionDag;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, pattern, node.IsNegated, reachabilityDecisionDag, node.WhenTrueLabel, node.WhenFalseLabel, type);
+            LabelSymbol whenTrueLabel = this.VisitLabelSymbol(node.WhenTrueLabel);
+            LabelSymbol whenFalseLabel = this.VisitLabelSymbol(node.WhenFalseLabel);
+            return node.Update(expression, pattern, node.IsNegated, reachabilityDecisionDag, whenTrueLabel, whenFalseLabel, type);
         }
         public override BoundNode? VisitConstantPattern(BoundConstantPattern node)
         {
@@ -12019,7 +12137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
             TypeSymbol? inputType = this.VisitType(node.InputType);
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
-            return node.Update(declaredType, node.IsVar, node.Variable, variableAccess, inputType, narrowedType);
+            Symbol? variable = this.VisitSymbol(node.Variable);
+            return node.Update(declaredType, node.IsVar, variable, variableAccess, inputType, narrowedType);
         }
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
         {
@@ -12029,7 +12148,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
             TypeSymbol? inputType = this.VisitType(node.InputType);
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
-            return node.Update(declaredType, node.DeconstructMethod, deconstruction, properties, node.IsExplicitNotNullTest, node.Variable, variableAccess, inputType, narrowedType);
+            MethodSymbol? deconstructMethod = this.VisitMethodSymbol(node.DeconstructMethod);
+            Symbol? variable = this.VisitSymbol(node.Variable);
+            return node.Update(declaredType, deconstructMethod, deconstruction, properties, node.IsExplicitNotNullTest, variable, variableAccess, inputType, narrowedType);
         }
         public override BoundNode? VisitListPattern(BoundListPattern node)
         {
@@ -12041,7 +12162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
             TypeSymbol? inputType = this.VisitType(node.InputType);
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
-            return node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, node.Variable, variableAccess, inputType, narrowedType);
+            Symbol? variable = this.VisitSymbol(node.Variable);
+            return node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, variable, variableAccess, inputType, narrowedType);
         }
         public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
         {
@@ -12058,12 +12180,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundPositionalSubpattern> subpatterns = this.VisitList(node.Subpatterns);
             TypeSymbol? inputType = this.VisitType(node.InputType);
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
-            return node.Update(node.GetLengthMethod, node.GetItemMethod, subpatterns, inputType, narrowedType);
+            MethodSymbol getLengthMethod = this.VisitMethodSymbol(node.GetLengthMethod);
+            MethodSymbol getItemMethod = this.VisitMethodSymbol(node.GetItemMethod);
+            return node.Update(getLengthMethod, getItemMethod, subpatterns, inputType, narrowedType);
         }
         public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            return node.Update(node.Symbol, pattern);
+            Symbol? symbol = this.VisitSymbol(node.Symbol);
+            return node.Update(symbol, pattern);
         }
         public override BoundNode? VisitPropertySubpattern(BoundPropertySubpattern node)
         {
@@ -12075,7 +12200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundPropertySubpatternMember? receiver = (BoundPropertySubpatternMember?)this.Visit(node.Receiver);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.Symbol, type);
+            Symbol? symbol = this.VisitSymbol(node.Symbol);
+            return node.Update(receiver, symbol, type);
         }
         public override BoundNode? VisitTypePattern(BoundTypePattern node)
         {
@@ -12121,18 +12247,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.VariableSymbol, receiverOpt);
+            Symbol variableSymbol = this.VisitSymbol(node.VariableSymbol);
+            return node.Update(variableSymbol, receiverOpt);
         }
         public override BoundNode? VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.VariableSymbol, receiverOpt);
+            Symbol variableSymbol = this.VisitSymbol(node.VariableSymbol);
+            return node.Update(variableSymbol, receiverOpt);
         }
         public override BoundNode? VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.VariableSymbol, node.IsDiscardExpression);
+            Symbol? variableSymbol = this.VisitSymbol(node.VariableSymbol);
+            return node.Update(variableSymbol, node.IsDiscardExpression);
         }
         public override BoundNode? VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
         {
@@ -12145,7 +12274,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement? initializer = (BoundStatement?)this.Visit(node.Initializer);
             BoundBlock? blockBody = (BoundBlock?)this.Visit(node.BlockBody);
             BoundBlock? expressionBody = (BoundBlock?)this.Visit(node.ExpressionBody);
-            return node.Update(node.Locals, initializer, blockBody, expressionBody);
+            ImmutableArray<LocalSymbol> locals = this.VisitSymbols<LocalSymbol>(node.Locals);
+            return node.Update(locals, initializer, blockBody, expressionBody);
         }
         public override BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
@@ -12158,7 +12288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
             BoundObjectInitializerExpressionBase initializerExpression = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpression);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.CloneMethod, initializerExpression, type);
+            MethodSymbol? cloneMethod = this.VisitMethodSymbol(node.CloneMethod);
+            return node.Update(receiver, cloneMethod, initializerExpression, type);
         }
     }
 
@@ -13315,7 +13446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            LocalFunctionSymbol symbol = GetUpdatedSymbol(node, node.Symbol);
+            MethodSymbol symbol = GetUpdatedSymbol(node, node.Symbol);
             BoundBlock? blockBody = (BoundBlock?)this.Visit(node.BlockBody);
             BoundBlock? expressionBody = (BoundBlock?)this.Visit(node.ExpressionBody);
             return node.Update(symbol, blockBody, expressionBody);
@@ -14472,7 +14603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
-            LambdaSymbol symbol = GetUpdatedSymbol(node, node.Symbol);
+            MethodSymbol symbol = GetUpdatedSymbol(node, node.Symbol);
             UnboundLambda unboundLambda = node.UnboundLambda;
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
             BoundLambda updatedNode;
