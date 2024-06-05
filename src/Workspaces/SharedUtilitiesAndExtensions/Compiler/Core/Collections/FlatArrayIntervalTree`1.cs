@@ -343,28 +343,29 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                     // Dst: ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞,   ∞, *i*, k, m // i placed right before k in the destination.
                     // Src: a, b, c, d, e, f, g, h, i, j, *h*,   j, l, n // h moved right before where we placed j in the original source.
                     //
-                    // Each iteration takes the next odd element from the end of the source list and places it at the
-                    // next available space from the end of the destination array (effectively building the last row of
-                    // the complete binary tree).
+                    // Each iteration takes the next element at an even index from the end of the source list and places
+                    // it at the next available space from the end of the destination array (effectively building the
+                    // last row of the complete binary tree).
                     //
-                    // It then takes the next even element from the end of the source list and moves it to the next spot
-                    // from the end of the source list.  This makes the end of the source-list contain the original even
-                    // elements (up the perfect-complete count of elements), now abutted against each other.
+                    // It then takes the next element at an odd index from the end of the source list and moves it to
+                    // the next spot from the end of the source list.  This makes the end of the source-list contain the
+                    // original odd-indexed elements (up the perfect-complete count of elements), now abutted against
+                    // each other.
                 }
 
-                // After this, source will be equal to:
+                // After the loop above fully completes, source will be equal to:
                 //
                 // a, b, c, d, e, f, g - b, d, f, h, j, l, n.
                 //
-                // In other words, the last half (after 'g') will be updated to be the even elements from the original
-                // list.  This will be what we'll create the perfect tree from below.  We will not look at the elements
-                // before this in 'source' as they are already either in the correct place in the 'source' *or*
-                // 'destination' arrays.
+                // The last half (after 'g') will be updated to be the odd-indexed elements from the original list.
+                // This will be what we'll create the perfect tree from below.  We will not look at the elements before
+                // this in 'source' as they are already either in the correct place in the 'source' *or* 'destination'
+                // arrays.
                 //
                 // Destination will be equal to:
                 // ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, c, e, g, i, k, m
                 //
-                // which is the odd elements from the original list.
+                // which is the elements at the original even indices from the original list.
 
                 // The above loop will not hit the first element in the list (since we do not want to do a swap for the
                 // root element).  So we have to handle this case specially at the end.
@@ -375,8 +376,8 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             }
 
             // Recursively build the perfect balanced subtree from the remaining elements, storing them into the start
-            // of the array.  In the above example, this is building the perfect balanced tree for the event elements
-            // 8-14.
+            // of the array.  In the above example, this is building the perfect balanced tree for the elements
+            // b, d, f, h, j, l, n.
             BuildCompleteTreeRecursive(
                 source, destination, startInclusive: extraElementsCount, endExclusive: source.Count, destinationIndex: 0);
         }
