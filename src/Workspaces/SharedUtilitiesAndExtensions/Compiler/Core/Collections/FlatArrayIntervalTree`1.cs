@@ -447,37 +447,29 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
+        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, int, FlatArrayIntervalTreeHelper>.GetEnumerator(this, default(FlatArrayIntervalTreeHelper));
+
+    private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeHelper<T, FlatArrayIntervalTree<T>, int>
     {
-        var array = _array;
-        return array.Length == 0 ? SpecializedCollections.EmptyEnumerator<T>() : GetEnumeratorWorker(array);
-
-        static IEnumerator<T> GetEnumeratorWorker(SegmentedArray<Node> array)
+        public bool TryGetRoot(FlatArrayIntervalTree<T> tree, out int root)
         {
-            using var _ = s_stackPool.GetPooledObject(out var candidates);
-            candidates.Push((0, firstTime: true));
-            while (candidates.TryPop(out var tuple))
-            {
-                var (currentNodeIndex, firstTime) = tuple;
-                if (firstTime)
-                {
-                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
-                    // next time we see this node we'll yield it out.
-                    var rightIndex = GetRightChildIndex(currentNodeIndex);
-                    var leftIndex = GetLeftChildIndex(currentNodeIndex);
-
-                    if (rightIndex < array.Length)
-                        candidates.Push((rightIndex, firstTime: true));
-
-                    candidates.Push((currentNodeIndex, firstTime: false));
-
-                    if (leftIndex < array.Length)
-                        candidates.Push((leftIndex, firstTime: true));
-                }
-                else
-                {
-                    yield return array[currentNodeIndex].Value;
-                }
-            }
+            root = 0;
+            return tree._array.Length > 0;
         }
+
+        public bool TryGetLeftNode(FlatArrayIntervalTree<T> tree, int node, out int leftNode)
+        {
+            leftNode = GetLeftChildIndex(node);
+            return leftNode < tree._array.Length;
+        }
+
+        public bool TryGetRightNode(FlatArrayIntervalTree<T> tree, int node, out int rightNode)
+        {
+            rightNode = GetRightChildIndex(node);
+            return rightNode < tree._array.Length;
+        }
+
+        public T GetValue(FlatArrayIntervalTree<T> tree, int node)
+            => tree._array[node].Value;
     }
 }

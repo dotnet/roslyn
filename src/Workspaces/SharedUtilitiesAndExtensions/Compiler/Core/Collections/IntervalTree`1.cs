@@ -6,10 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -239,36 +237,7 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
     }
 
     public IEnumerator<T> GetEnumerator()
-    {
-        return this == Empty || root == null ? SpecializedCollections.EmptyEnumerator<T>() : GetEnumeratorWorker();
-
-        IEnumerator<T> GetEnumeratorWorker()
-        {
-            Contract.ThrowIfNull(root);
-            using var _ = ArrayBuilder<(Node node, bool firstTime)>.GetInstance(out var candidates);
-            candidates.Push((root, firstTime: true));
-            while (candidates.TryPop(out var tuple))
-            {
-                var (currentNode, firstTime) = tuple;
-                if (firstTime)
-                {
-                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
-                    // next time we see this node we'll yield it out.
-                    if (currentNode.Right != null)
-                        candidates.Push((currentNode.Right, firstTime: true));
-
-                    candidates.Push((currentNode, firstTime: false));
-
-                    if (currentNode.Left != null)
-                        candidates.Push((currentNode.Left, firstTime: true));
-                }
-                else
-                {
-                    yield return currentNode.Value;
-                }
-            }
-        }
-    }
+        => IntervalTreeHelpers<T, BinaryIntervalTree<T>, Node, BinaryIntervalTreeHelper>.GetEnumerator(this, default(BinaryIntervalTreeHelper));
 
     IEnumerator IEnumerable.GetEnumerator()
         => this.GetEnumerator();
@@ -286,4 +255,28 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
 
     private static int BalanceFactor(Node? node)
         => node == null ? 0 : Height(node.Left) - Height(node.Right);
+
+    private readonly struct BinaryIntervalTreeHelper : IIntervalTreeHelper<T, BinaryIntervalTree<T>, Node>
+    {
+        public bool TryGetRoot(BinaryIntervalTree<T> tree, [NotNullWhen(true)] out Node? root)
+        {
+            root = tree.root;
+            return root != null;
+        }
+
+        public bool TryGetLeftNode(BinaryIntervalTree<T> tree, Node node, [NotNullWhen(true)] out Node? leftNode)
+        {
+            leftNode = node.Left;
+            return leftNode != null;
+        }
+
+        public bool TryGetRightNode(BinaryIntervalTree<T> tree, Node node, [NotNullWhen(true)] out Node? rightNode)
+        {
+            rightNode = node.Right;
+            return rightNode != null;
+        }
+
+        public T GetValue(BinaryIntervalTree<T> tree, Node node)
+            => node.Value;
+    }
 }
