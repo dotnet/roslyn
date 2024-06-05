@@ -246,10 +246,6 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         where TIntrospector : struct, IIntervalIntrospector<T>
         => introspector.GetSpan(value).End;
 
-    private static int MaxEndValue<TIntrospector>(SegmentedArray<Node> nodes, int index, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => index >= nodes.Length ? 0 : GetEnd(nodes[nodes[index].MaxEndNodeIndex].Value, in introspector);
-
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
     {
         // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
