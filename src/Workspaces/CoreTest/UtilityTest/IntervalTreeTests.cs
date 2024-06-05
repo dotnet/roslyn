@@ -406,12 +406,6 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
     }
 
     [Fact]
-    public void TrivialTest()
-    {
-        var tree = FlatArrayIntervalTree<char>.CreateFromUnsorted(new CharIntervalIntrospector(), new(Enumerable.Range((int)'a', 14).Select(i => (char)i)));
-    }
-
-    [Fact]
     public void TestProperBalancing()
     {
         for (var i = 0; i < 3000; i++)
