@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [return: NotNullIfNotNull(nameof(method))]
-        protected MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
+        protected new MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
         {
             if (method is null)
             {
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [return: NotNullIfNotNull(nameof(property))]
-        private PropertySymbol? VisitPropertySymbol(PropertySymbol? property)
+        private new PropertySymbol? VisitPropertySymbol(PropertySymbol? property)
         {
             if (property is null)
             {
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
-        private FieldSymbol VisitFieldSymbol(FieldSymbol field)
+        private new FieldSymbol VisitFieldSymbol(FieldSymbol field)
         {
             //  Property of a regular type
             return ((FieldSymbol)field.OriginalDefinition)
