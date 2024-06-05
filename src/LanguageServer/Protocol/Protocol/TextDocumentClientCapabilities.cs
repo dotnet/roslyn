@@ -24,7 +24,7 @@ namespace Roslyn.LanguageServer.Protocol
         public SynchronizationSetting? Synchronization { get; set; }
 
         /// <summary>
-        /// Gets or sets the completion setting.
+        /// Capabilities specific to the `textDocument/completion` request.
         /// </summary>
         [JsonPropertyName("completion")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

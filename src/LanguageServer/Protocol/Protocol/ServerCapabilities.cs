@@ -60,7 +60,7 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>? NotebookDocumentSync { get; init; }
 
         /// <summary>
-        /// Gets or sets the value which indicates if completions are supported.
+        /// The server provides completion support.
         /// </summary>
         [JsonPropertyName("completionProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -42,16 +42,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string CodeActionResolveName = "codeAction/resolve";
 
         /// <summary>
-        /// Method name for 'textDocument/completion'.
-        /// </summary>
-        public const string TextDocumentCompletionName = "textDocument/completion";
-
-        /// <summary>
-        /// Method name for 'completionItem/resolve'.
-        /// </summary>
-        public const string TextDocumentCompletionResolveName = "completionItem/resolve";
-
-        /// <summary>
         /// Method name for 'textDocument/diagnostic'.
         /// </summary>
         public const string TextDocumentDiagnosticName = "textDocument/diagnostic";
@@ -170,16 +160,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'codeAction/resolve'.
         /// </summary>
         public static readonly LspRequest<CodeAction, CodeAction> CodeActionResolve = new LspRequest<CodeAction, CodeAction>(CodeActionResolveName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/completion'.
-        /// </summary>
-        public static readonly LspRequest<CompletionParams, SumType<CompletionItem[], CompletionList>?> TextDocumentCompletion = new LspRequest<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextDocumentCompletionName);
-
-        /// <summary>
-        /// Strongly typed message object for 'completionItem/resolve'.
-        /// </summary>
-        public static readonly LspRequest<CompletionItem, CompletionItem> TextDocumentCompletionResolve = new LspRequest<CompletionItem, CompletionItem>(TextDocumentCompletionResolveName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/documentColor'.

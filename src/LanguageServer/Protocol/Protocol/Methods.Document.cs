@@ -362,4 +362,40 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
     public static readonly LspRequest<MonikerParams, Moniker[]?> TextDocumentMoniker = new(TextDocumentMonikerName);
+
+    /// <summary>
+    /// Method name for 'textDocument/completion'.
+    /// <para>
+    /// The Completion request is sent from the client to the server to compute completion items at a given cursor position.
+    /// </para>
+    /// <para>
+    /// If computing full completion items is expensive, servers can additionally provide a handler for the completion
+    /// item resolve request (‘completionItem/resolve’), which is sent when a completion item is selected in the user interface. 
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_completion">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentCompletionName = "textDocument/completion";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/completion'.
+    /// </summary>
+    public static readonly LspRequest<CompletionParams, SumType<CompletionItem[], CompletionList>?> TextDocumentCompletion = new(TextDocumentCompletionName);
+
+    /// <summary>
+    /// Method name for 'completionItem/resolve'.
+    /// <para>
+    /// The request is sent from the client to the server to resolve additional information for a given completion item.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionItem_resolve">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentCompletionResolveName = "completionItem/resolve";
+
+    /// <summary>
+    /// Strongly typed message object for 'completionItem/resolve'.
+    /// </summary>
+    public static readonly LspRequest<CompletionItem, CompletionItem> TextDocumentCompletionResolve = new(TextDocumentCompletionResolveName);
 }
