@@ -251,7 +251,7 @@ internal static partial class ClassifierHelper
             }
         }
 
-        var semanticPartsTree = FlatArrayIntervalTree<TClassifiedSpan>.CreateFromUnsorted(
+        var semanticPartsTree = ImmutableIntervalTree<TClassifiedSpan>.CreateFromUnsorted(
             default(TClassifiedSpanIntervalIntrospector), semanticSpans);
 
         using var tempBuffer = TemporaryArray<TClassifiedSpan>.Empty;

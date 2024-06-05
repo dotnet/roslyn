@@ -475,7 +475,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
     private static void AppendFullLine(StringBuilder builder, TextLine line)
         => builder.Append(line.Text!.ToString(line.SpanIncludingLineBreak));
 
-    private static (FlatArrayIntervalTree<TextSpan> interpolationInteriorSpans, FlatArrayIntervalTree<TextSpan> restrictedSpans) GetInterpolationSpans(
+    private static (ImmutableIntervalTree<TextSpan> interpolationInteriorSpans, ImmutableIntervalTree<TextSpan> restrictedSpans) GetInterpolationSpans(
         InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
     {
         var interpolationInteriorSpans = new SegmentedList<TextSpan>();
@@ -515,8 +515,8 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
         }
 
         return (
-            FlatArrayIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), interpolationInteriorSpans),
-            FlatArrayIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), restrictedSpans));
+            ImmutableIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), interpolationInteriorSpans),
+            ImmutableIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), restrictedSpans));
     }
 
     private static InterpolatedStringExpressionSyntax CleanInterpolatedString(
@@ -630,7 +630,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
 
     private static string ComputeCommonWhitespacePrefix(
         ArrayBuilder<TextLine> lines,
-        FlatArrayIntervalTree<TextSpan> interpolationInteriorSpans)
+        ImmutableIntervalTree<TextSpan> interpolationInteriorSpans)
     {
         string? commonLeadingWhitespace = null;
 
