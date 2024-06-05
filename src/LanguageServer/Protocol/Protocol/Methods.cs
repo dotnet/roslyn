@@ -72,26 +72,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentDiagnosticName = "textDocument/diagnostic";
 
         /// <summary>
-        /// Method name for 'textDocument/didOpen'.
-        /// </summary>
-        public const string TextDocumentDidOpenName = "textDocument/didOpen";
-
-        /// <summary>
-        /// Method name for 'textDocument/didClose'.
-        /// </summary>
-        public const string TextDocumentDidCloseName = "textDocument/didClose";
-
-        /// <summary>
-        /// Method name for 'textDocument/didChange'.
-        /// </summary>
-        public const string TextDocumentDidChangeName = "textDocument/didChange";
-
-        /// <summary>
-        /// Method name for 'textDocument/didSave'.
-        /// </summary>
-        public const string TextDocumentDidSaveName = "textDocument/didSave";
-
-        /// <summary>
         /// Method name for 'textDocument/documentHighlight'.
         /// </summary>
         public const string TextDocumentDocumentHighlightName = "textDocument/documentHighlight";
@@ -200,16 +180,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'textDocument/signatureHelp'.
         /// </summary>
         public const string TextDocumentSignatureHelpName = "textDocument/signatureHelp";
-
-        /// <summary>
-        /// Method name for 'textDocument/willSave'.
-        /// </summary>
-        public const string TextDocumentWillSaveName = "textDocument/willSave";
-
-        /// <summary>
-        /// Method name for 'textDocument/willSaveWaitUntil'.
-        /// </summary>
-        public const string TextDocumentWillSaveWaitUntilName = "textDocument/willSaveWaitUntil";
 
         /// <summary>
         /// Method name for 'textDocument/linkedEditingRange'.
@@ -327,26 +297,6 @@ namespace Roslyn.LanguageServer.Protocol
         public static readonly LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?> TextDocumentDefinition = new LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?>(TextDocumentDefinitionName);
 
         /// <summary>
-        /// Strongly typed message object for 'textDocument/didOpen'.
-        /// </summary>
-        public static readonly LspNotification<DidOpenTextDocumentParams> TextDocumentDidOpen = new LspNotification<DidOpenTextDocumentParams>(TextDocumentDidOpenName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/didClose'.
-        /// </summary>
-        public static readonly LspNotification<DidCloseTextDocumentParams> TextDocumentDidClose = new LspNotification<DidCloseTextDocumentParams>(TextDocumentDidCloseName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/didChange'.
-        /// </summary>
-        public static readonly LspNotification<DidChangeTextDocumentParams> TextDocumentDidChange = new LspNotification<DidChangeTextDocumentParams>(TextDocumentDidChangeName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/didSave'.
-        /// </summary>
-        public static readonly LspNotification<DidSaveTextDocumentParams> TextDocumentDidSave = new LspNotification<DidSaveTextDocumentParams>(TextDocumentDidSaveName);
-
-        /// <summary>
         /// Strongly typed message object for 'textDocument/documentHighlight'.
         /// </summary>
         public static readonly LspRequest<DocumentHighlightParams, DocumentHighlight[]?> TextDocumentDocumentHighlight = new LspRequest<DocumentHighlightParams, DocumentHighlight[]?>(TextDocumentDocumentHighlightName);
@@ -440,16 +390,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'textDocument/signatureHelp'.
         /// </summary>
         public static readonly LspRequest<SignatureHelpParams, SignatureHelp?> TextDocumentSignatureHelp = new LspRequest<SignatureHelpParams, SignatureHelp?>(TextDocumentSignatureHelpName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/willSave'.
-        /// </summary>
-        public static readonly LspNotification<WillSaveTextDocumentParams> TextDocumentWillSave = new LspNotification<WillSaveTextDocumentParams>(TextDocumentWillSaveName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/willSaveWaitUntil'.
-        /// </summary>
-        public static readonly LspRequest<WillSaveTextDocumentParams, TextEdit[]?> TextDocumentWillSaveWaitUntil = new LspRequest<WillSaveTextDocumentParams, TextEdit[]?>(TextDocumentWillSaveWaitUntilName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/linkedEditingRange'.
