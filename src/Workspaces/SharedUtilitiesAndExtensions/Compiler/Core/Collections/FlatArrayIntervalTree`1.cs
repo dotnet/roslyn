@@ -31,7 +31,6 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
     where TIntervalTreeHelper : struct, IIntervalTreeHelper<T, TIntervalTree, TNode>
 {
     private static readonly ObjectPool<Stack<TNode>> s_nodeStackPool = new(() => new(), 128, trimOnFree: false);
-    private static readonly ObjectPool<Stack<(TNode node, bool firstTime)>> s_preorderNodeStackPool = new(() => new(), trimOnFree: false);
 
     public static IEnumerator<T> GetEnumerator(TIntervalTree tree)
     {
@@ -85,45 +84,42 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         if (!helper.TryGetRoot(tree, out var root))
             return 0;
 
-        using var _ = s_preorderNodeStackPool.GetPooledObject(out var candidates);
+        using var _ = s_nodeStackPool.GetPooledObject(out var stack);
+        var current = (Node: root, HasValue: true);
 
         var matches = 0;
         var end = start + length;
 
-        candidates.Push((root, firstTime: true));
-
-        while (candidates.TryPop(out var currentTuple))
+        while (current.HasValue || stack.Count > 0)
         {
-            var (currentNode, firstTime) = currentTuple;
-
-            if (!firstTime)
+            // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
+            while (current.HasValue)
             {
-                // We're seeing this node for the second time (as we walk back up the left
-                // side of it).  Now see if it matches our test, and if so return it out.
-                var currentNodeValue = helper.GetValue(tree, currentNode);
-                if (testInterval(currentNodeValue, start, length, in introspector))
-                {
-                    matches++;
-                    builder.Add(currentNodeValue);
-
-                    if (stopAfterFirst)
-                        return 1;
-                }
+                stack.Push(current.Node);
+                var leftHasValue = helper.TryGetLeftNode(tree, current.Node, out var leftNode);
+                current = (leftNode!, leftHasValue);
             }
-            else
+
+            Contract.ThrowIfTrue(current.HasValue);
+            Contract.ThrowIfTrue(stack.Count == 0);
+            current = (stack.Pop(), HasValue: true);
+
+            // We only get to a node once we've walked the left side of it.  So we can now process the parent node at
+            // that point.
+
+            var currentNodeValue = helper.GetValue(tree, current.Node);
+            if (testInterval(currentNodeValue, start, length, in introspector))
             {
-                // First time we're seeing this node.  In order to see the node 'in-order', we push the right side, then
-                // the node again, then the left side.  This time we mark the current node with 'false' to indicate that
-                // it's the second time we're seeing it the next time it comes around.
+                matches++;
+                builder.Add(currentNodeValue);
 
-                if (ShouldExamineRight(tree, start, end, currentNode, in introspector, out var right))
-                    candidates.Push((right, firstTime: true));
-
-                candidates.Push((currentNode, firstTime: false));
-
-                if (ShouldExamineLeft(tree, start, currentNode, in introspector, out var left))
-                    candidates.Push((left, firstTime: true));
+                if (stopAfterFirst)
+                    return 1;
             }
+
+            // now get the right side and set things up so we can walk into it.
+            var rightHasValue = helper.TryGetRightNode(tree, current.Node, out var right);
+            current = (right!, rightHasValue);
         }
 
         return matches;
