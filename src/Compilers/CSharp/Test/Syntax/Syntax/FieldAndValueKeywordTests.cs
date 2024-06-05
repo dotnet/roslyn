@@ -5,7 +5,6 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -34,9 +33,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class D4 : A { object this[int i] { set { {{identifier}} = 0; } } }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier || languageVersion > LanguageVersion.CSharp12)
+            if (escapeIdentifier)
             {
                 comp.VerifyEmitDiagnostics();
+            }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
+                comp.VerifyEmitDiagnostics(
+                    // (8,41): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                    // class C5 : A { object P { get; set; } = field; }
+                    Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(8, 41));
             }
             else
             {
@@ -102,9 +109,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class D4 : A { object this[int i] { set { this.{{identifier}} = 0; } } }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier || languageVersion > LanguageVersion.CSharp12)
+            if (escapeIdentifier)
             {
                 comp.VerifyEmitDiagnostics();
+            }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,38): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    // class C4 : A { object P { set { this.value = 0; } } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 38),
+                    // (10,48): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    // class D4 : A { object this[int i] { set { this.value = 0; } } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(10, 48));
             }
             else
             {
@@ -234,7 +251,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (14,21): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //         add { _ = C.value ?? C.@value; }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(14, 21),
+                    // (15,36): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //         remove { _ = C.@value ?? C.value; }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(15, 36));
             }
             else
             {
@@ -308,9 +331,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier || languageVersion > LanguageVersion.CSharp12)
+            if (escapeIdentifier)
             {
                 comp.VerifyEmitDiagnostics();
+            }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,52): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object I.P { get => this.value; set { _ = this.value; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(10, 52),
+                    // (11,62): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object I.this[int i] { get => this.value; set { _ = this.value; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(11, 62));
             }
             else
             {
@@ -350,9 +383,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier || identifier == "field" || languageVersion > LanguageVersion.CSharp12)
+            if (escapeIdentifier || identifier == "field")
             {
                 comp.VerifyEmitDiagnostics();
+            }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (12,24): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //         add { _ = this.value; }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(12, 24),
+                    // (13,27): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //         remove { _ = this.value; }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(13, 27));
             }
             else
             {
@@ -386,7 +429,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (6,34): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { return new field(); } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(6, 34),
+                    // (8,31): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { _ = new value(); } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(8, 31));
             }
             else
             {
@@ -420,7 +469,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (6,34): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { return new field<object>(); } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(6, 34),
+                    // (8,31): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { _ = new value<object>(); } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(8, 31));
             }
             else
             {
@@ -450,7 +505,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (4,28): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P3 { set { (int field, int value) t = default; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 28),
+                    // (4,39): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { (int field, int value) t = default; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(4, 39));
             }
             else
             {
@@ -483,6 +544,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { _ = from field in new int[0] select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 32),
+                    // (6,32): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { _ = from value in new int[0] select value; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 32),
                     // (6,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from value in new int[0] select value; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 32),
@@ -533,6 +600,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,52): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 52),
+                    // (6,52): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { _ = from i in new int[0] let value = i select value; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 52),
                     // (6,52): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from i in new int[0] let value = i select value; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 52),
@@ -583,6 +656,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,53): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 53),
+                    // (6,53): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 53),
                     // (6,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 53),
@@ -633,6 +712,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,88): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 88),
+                    // (6,88): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 88),
                     // (6,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 88),
@@ -683,6 +768,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,62): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 62),
+                    // (6,62): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 62),
                     // (6,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 62),
@@ -733,6 +824,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,30): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { object field() => null; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 30),
+                    // (6,28): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { void value() { } } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 28),
                     // (6,28): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P3 { set { void value() { } } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(6, 28),
@@ -777,6 +874,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,27): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { int field = 0; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 27),
+                    // (6,27): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { int value = 0; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 27),
                     // (6,27): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P3 { set { int value = 0; } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(6, 27),
@@ -866,7 +969,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (4,23): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { field: return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 23),
+                    // (6,23): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { value: return; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 23));
             }
             else
             {
@@ -984,6 +1093,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (5,48): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { try { } catch (Exception field) { } return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(5, 48),
+                    // (7,48): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { try { } catch (Exception value) { } } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(7, 48),
                     // (7,48): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P3 { set { try { } catch (Exception value) { } } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(7, 48),
@@ -1027,7 +1142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (4,31): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { void F1<field>() { } return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 31),
+                    // (6,31): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { void F3<value>() { } } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 31));
             }
             else
             {
@@ -1059,7 +1180,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (4,40): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object P1 { get { object F1(object field) => field; return null; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 40),
+                    // (6,40): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //     object P3 { set { object F3(object value) { return value; } } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(6, 40));
             }
             else
             {
@@ -1187,7 +1314,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (14,25): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //             f = () => C.field;
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(14, 25),
+                    // (17,25): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //             f = () => C.value;
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(17, 25));
             }
             else
             {
@@ -1234,7 +1367,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (12,30): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //             object F3() => C.field;
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(12, 30),
+                    // (15,36): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                    //             object G2() { return C.value; }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(15, 36));
             }
             else
             {
@@ -1545,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Attribute_LocalFunction(
+        public void Attribute_LocalFunction_01(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string fieldIdentifier = escapeIdentifier ? "@field" : "field";
@@ -1563,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         get
                         {
-                            [A(nameof({{fieldIdentifier}}))] void F1(int {{fieldIdentifier}}) { }
+                            [A(nameof({{fieldIdentifier}}))] void F1(int @field) { }
                             return null;
                         }
                     }
@@ -1571,7 +1710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         set
                         {
-                            [A(nameof({{valueIdentifier}}))] void F2(int {{valueIdentifier}}) { }
+                            [A(nameof({{valueIdentifier}}))] void F2(int @value) { }
                         }
                     }
                     object P3
@@ -1584,26 +1723,301 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12 || escapeIdentifier)
+            if (escapeIdentifier)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,23): error CS8081: Expression does not have a name.
+                    //             [A(nameof(field))] void F1(int @field) { }
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,23): info CS9258: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //             [A(nameof(field))] void F1(int @field) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
+                    // (21,23): info CS9258: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //             [A(nameof(value))] void F2(int @value) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(21, 23));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Attribute_LocalFunction_02(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+        {
+            string fieldIdentifier = escapeIdentifier ? "@field" : "field";
+            string valueIdentifier = escapeIdentifier ? "@value" : "value";
+            string source = $$$"""
+                #pragma warning disable 649, 8321
+                using System;
+                [AttributeUsage(AttributeTargets.All)]
+                class A : Attribute
+                {
+                    public A(string s) { }
+                }
+                class C
+                {
+                    event EventHandler E
+                    {
+                        add { void F1([A(nameof({{{fieldIdentifier}}}))] int @field) { } }
+                        remove { void F2([A(nameof({{{valueIdentifier}}}))] int @value) { } }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (escapeIdentifier || languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics();
             }
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (13,23): info CS9258: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //             [A(nameof(field))] void F1(int field) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
-                    // (13,40): info CS9258: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //             [A(nameof(field))] void F1(int field) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "int field").WithArguments("field", "preview").WithLocation(13, 40),
-                    // (21,23): info CS9258: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
-                    //             [A(nameof(value))] void F2(int value) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(21, 23),
-                    // (21,40): info CS9258: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
-                    //             [A(nameof(value))] void F2(int value) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "int value").WithArguments("value", "preview").WithLocation(21, 40));
+                    // (13,36): info CS9258: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //         remove { void F2([A(nameof(value))] int @value) { } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(13, 36));
             }
+        }
+
+        [Fact]
+        public void FieldInInitializer_01()
+        {
+            string source = """
+                class C
+                {
+                    object P { get; } = field;
+                }
+                """;
+            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,25): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //     object P { get; } = field;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(3, 25));
+        }
+
+        [Fact]
+        public void FieldInInitializer_02()
+        {
+            string source = """
+                class C
+                {
+                    object P { get => null; } = field;
+                }
+                """;
+            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
+                //     object P { get => null; } = field;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
+                // (3,33): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //     object P { get => null; } = field;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(3, 33));
+        }
+
+        [Fact]
+        public void FieldInInitializer_03()
+        {
+            string source = """
+                class C
+                {
+                    object P { set { } } = field;
+                }
+                """;
+            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
+                //     object P { set { } } = field;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
+                // (3,28): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //     object P { set { } } = field;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(3, 28));
+        }
+
+        [Fact]
+        public void FieldInInitializer_04()
+        {
+            string source = """
+                class C
+                {
+                    object P { get; } = F(field);
+                    static object F(object value) => value;
+                }
+                """;
+            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        // PROTOTYPE: Test the same with DIM.
+        [Fact]
+        public void Field_02()
+        {
+            string source = """
+                class C
+                {
+                    public object P => field = 1;
+                    public object Q { get => field = 2; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        System.Console.WriteLine((c.P, c.Q));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2))");
+            verifier.VerifyIL("C.P", """
+
+                """);
+            verifier.VerifyIL("C.Q", """
+
+                """);
+        }
+
+        [Fact]
+        public void Field_03()
+        {
+            string source = """
+                class C
+                {
+                    public object P => Initialize(out field, 1);
+                    public object Q { get => Initialize(out field, 2); }
+                    static object Initialize(out object field, object value)
+                    {
+                        field = value;
+                        return field;
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        System.Console.WriteLine((c.P, c.Q));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2))");
+            verifier.VerifyIL("C.P", """
+
+                """);
+            verifier.VerifyIL("C.Q", """
+
+                """);
+        }
+
+        [Fact]
+        public void Field_NameOf_01()
+        {
+            string source = """
+                class C
+                {
+                    object P => nameof(field);
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS8081: Expression does not have a name.
+                //     object P => nameof(field);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 24));
+        }
+
+        [Fact]
+        public void Field_NameOf_02()
+        {
+            string source = """
+                class C
+                {
+                    object P { get; set; } = nameof(field);
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,37): error CS8081: Expression does not have a name.
+                //     object P { get; set; } = nameof(field);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 37));
+        }
+
+        [Fact]
+        public void Field_NameOf_03()
+        {
+            string source = """
+                class C
+                {
+                    object P { set { _ = nameof(field); } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,33): error CS8081: Expression does not have a name.
+                //     object P { set { _ = nameof(field); } }
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 33));
+        }
+
+        [Fact]
+        public void FieldReference_01()
+        {
+            string source = """
+                class C
+                {
+                    static C _other = new();
+                    object P => _other.field;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                //     object P => _other.field;
+                Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void FieldReference_02()
+        {
+            string source = """
+                class C
+                {
+                    C P
+                    {
+                        get { return null; }
+                        set { field = value.field; }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,29): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                //         set { field = value.field; }
+                Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(6, 29));
+        }
+
+        [Fact]
+        public void FieldReference_03()
+        {
+            string source = """
+                class C
+                {
+                    int P
+                    {
+                        set { _ = this is { field: 0 }; }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,29): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                //         set { _ = this is { field: 0 }; }
+                Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(5, 29));
         }
     }
 }

@@ -2337,6 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyRequiredDifference = 9257,
 
         INF_IdentifierConflictWithContextualKeyword = 9258,
+        ERR_ContextualKeywordAsIdentifier = 9259,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

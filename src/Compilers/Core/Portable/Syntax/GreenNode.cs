@@ -286,6 +286,9 @@ namespace Microsoft.CodeAnalysis
             ContainsStructuredTrivia = 1 << 9,
 
             InheritMask = IsNotMissing | ContainsAnnotations | ContainsAttributes | ContainsDiagnostics | ContainsDirectives | ContainsSkippedText | ContainsStructuredTrivia,
+
+            FactoryContextIsInFieldKeywordContext = 1 << 10,
+            FactoryContextIsInValueKeywordContext = 1 << 11,
         }
 
         internal NodeFlags Flags
@@ -333,6 +336,22 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return (this.Flags & NodeFlags.FactoryContextIsInIterator) != 0;
+            }
+        }
+
+        internal bool ParsedInFieldKeywordContext
+        {
+            get
+            {
+                return (this.Flags & NodeFlags.FactoryContextIsInFieldKeywordContext) != 0;
+            }
+        }
+
+        internal bool ParsedInValueKeywordContext
+        {
+            get
+            {
+                return (this.Flags & NodeFlags.FactoryContextIsInValueKeywordContext) != 0;
             }
         }
 

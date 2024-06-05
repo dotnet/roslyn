@@ -3781,7 +3781,7 @@ parse_member_name:;
             }
             else
             {
-                accessorList = this.ParseAccessorList(isEvent: false);
+                accessorList = this.ParseAccessorList(AccessorDeclaringKind.Indexer);
                 if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
                     semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
@@ -3835,23 +3835,28 @@ parse_member_name:;
             Debug.Assert(IsStartOfPropertyBody(this.CurrentToken.Kind));
 
             var accessorList = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                ? this.ParseAccessorList(isEvent: false)
+                ? this.ParseAccessorList(AccessorDeclaringKind.Property)
                 : null;
 
             ArrowExpressionClauseSyntax expressionBody = null;
             EqualsValueClauseSyntax initializer = null;
 
-            // Check for expression body
-            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
+            // PROTOTYPE: SyntaxKind.GetAccessorDeclaration does seem correct for an initializer.
+            // PROTOTYPE: Confirm that field should be a keyword, and bind to the backing field, in a property initializer: object P { get; } = field;
+            using (new FieldAndValueKeywordContext(this, GetFieldAndValueKeywordContext(AccessorDeclaringKind.Property, SyntaxKind.GetAccessorDeclaration)))
             {
-                expressionBody = this.ParseArrowExpressionClause();
-            }
-            // Check if we have an initializer
-            else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
-            {
-                var equals = this.EatToken(SyntaxKind.EqualsToken);
-                var value = this.ParseVariableInitializer();
-                initializer = _syntaxFactory.EqualsValueClause(equals, value: value);
+                // Check for expression body
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    expressionBody = this.ParseArrowExpressionClause();
+                }
+                // Check if we have an initializer
+                else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                {
+                    var equals = this.EatToken(SyntaxKind.EqualsToken);
+                    var value = this.ParseVariableInitializer();
+                    initializer = _syntaxFactory.EqualsValueClause(equals, value: value);
+                }
             }
 
             SyntaxToken semicolon = null;
@@ -3876,7 +3881,32 @@ parse_member_name:;
                 semicolon);
         }
 
-        private AccessorListSyntax ParseAccessorList(bool isEvent)
+        private readonly struct FieldAndValueKeywordContext : IDisposable
+        {
+            private readonly LanguageParser _parser;
+            private readonly (bool, bool) _isInFieldAndValueKeywordContext;
+
+            public FieldAndValueKeywordContext(LanguageParser parser, (bool, bool) isInFieldAndValueKeywordContext)
+            {
+                _parser = parser;
+                _isInFieldAndValueKeywordContext = (parser.IsInFieldKeywordContext, parser.IsInValueKeywordContext);
+                (parser.IsInFieldKeywordContext, parser.IsInValueKeywordContext) = isInFieldAndValueKeywordContext;
+            }
+
+            public void Dispose()
+            {
+                (_parser.IsInFieldKeywordContext, _parser.IsInValueKeywordContext) = _isInFieldAndValueKeywordContext;
+            }
+        }
+
+        private enum AccessorDeclaringKind
+        {
+            Property,
+            Indexer,
+            Event,
+        }
+
+        private AccessorListSyntax ParseAccessorList(AccessorDeclaringKind declaringKind)
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
             var accessors = default(SyntaxList<AccessorDeclarationSyntax>);
@@ -3894,11 +3924,11 @@ parse_member_name:;
                     }
                     else if (this.IsPossibleAccessor())
                     {
-                        var acc = this.ParseAccessorDeclaration(isEvent);
+                        var acc = this.ParseAccessorDeclaration(declaringKind);
                         builder.Add(acc);
                     }
                     else if (this.SkipBadAccessorListTokens(ref openBrace, builder,
-                        isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected) == PostSkipAction.Abort)
+                        declaringKind == AccessorDeclaringKind.Event ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected) == PostSkipAction.Abort)
                     {
                         break;
                     }
@@ -4150,7 +4180,7 @@ parse_member_name:;
             return action;
         }
 
-        private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
+        private AccessorDeclarationSyntax ParseAccessorDeclaration(AccessorDeclaringKind declaringKind)
         {
             if (this.IsIncrementalAndFactoryContextMatches && SyntaxFacts.IsAccessorDeclaration(this.CurrentNodeKind))
             {
@@ -4163,7 +4193,7 @@ parse_member_name:;
             this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
-                isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                declaringKind == AccessorDeclaringKind.Event ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
             var accessorKind = GetAccessorKind(accessorName);
 
             // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
@@ -4179,7 +4209,7 @@ parse_member_name:;
                 if (!accessorName.IsMissing)
                 {
                     accessorName = this.AddError(accessorName,
-                        isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                        declaringKind == AccessorDeclaringKind.Event ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
                 }
                 else
                 {
@@ -4190,6 +4220,9 @@ parse_member_name:;
             {
                 accessorName = ConvertToKeyword(accessorName);
             }
+
+            // PROTOTYPE: How should ‘field’ and ‘value’ be interpreted in the attributes, modifiers? Those parts have already been parsed.
+            using var __ = new FieldAndValueKeywordContext(this, GetFieldAndValueKeywordContext(declaringKind, accessorKind));
 
             BlockSyntax blockBody = null;
             ArrowExpressionClauseSyntax expressionBody = null;
@@ -4263,6 +4296,20 @@ parse_member_name:;
                 SyntaxKind.AddKeyword => SyntaxKind.AddAccessorDeclaration,
                 SyntaxKind.RemoveKeyword => SyntaxKind.RemoveAccessorDeclaration,
                 _ => SyntaxKind.UnknownAccessorDeclaration,
+            };
+        }
+
+        private static (bool, bool) GetFieldAndValueKeywordContext(AccessorDeclaringKind declaringKind, SyntaxKind accessorKind)
+        {
+            return accessorKind switch
+            {
+                SyntaxKind.GetAccessorDeclaration => (declaringKind == AccessorDeclaringKind.Property, false),
+                SyntaxKind.SetAccessorDeclaration => (declaringKind == AccessorDeclaringKind.Property, true),
+                SyntaxKind.InitAccessorDeclaration => (declaringKind == AccessorDeclaringKind.Property, true),
+                SyntaxKind.AddAccessorDeclaration => (false, true),
+                SyntaxKind.RemoveAccessorDeclaration => (false, true),
+                SyntaxKind.UnknownAccessorDeclaration => (false, false),
+                _ => throw ExceptionUtilities.UnexpectedValue(accessorKind),
             };
         }
 
@@ -4468,7 +4515,7 @@ parse_member_name:;
             }
             else
             {
-                identifier = this.ParseIdentifierToken();
+                identifier = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
             }
 
             // When the user type "int goo[]", give them a useful error
@@ -4723,7 +4770,7 @@ parse_member_name:;
             }
             else
             {
-                accessorList = this.ParseAccessorList(isEvent: true);
+                accessorList = this.ParseAccessorList(AccessorDeclaringKind.Event);
             }
 
             var decl = _syntaxFactory.EventDeclaration(
@@ -5108,7 +5155,7 @@ parse_member_name:;
             // declaration.  However, in the specific case of variable declarators, Dev10
             // specifically treats it as a variable name, even if it could be interpreted as a
             // keyword.
-            var name = this.ParseIdentifierToken();
+            var name = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
             BracketedArgumentListSyntax argumentList = null;
             EqualsValueClauseSyntax initializer = null;
             TerminatorState saveTerm = _termState;
@@ -5439,7 +5486,7 @@ parse_member_name:;
                 equalsValue = _syntaxFactory.EqualsValueClause(
                     this.EatToken(SyntaxKind.EqualsToken),
                     this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBraceToken
-                        ? this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected)
+                        ? this.ParseIdentifierName(null, ErrorCode.ERR_ConstantExpected)
                         : this.ParseExpressionCore());
             }
 
@@ -5516,7 +5563,11 @@ parse_member_name:;
                 !(this.IsInQuery && IsTokenQueryContextualKeyword(token));
         }
 
-        private IdentifierNameSyntax ParseIdentifierName(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
+        // PROTOTYPE: Test all code paths that hit this, and add cases that allow field or value to the grammar.
+        // PROTOTYPE: Once all code paths are handled, switch from bool? to bool.
+        private IdentifierNameSyntax ParseIdentifierName(
+            bool? reportErrorRatherThanConvertingFieldOrValue = null,
+            ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.IdentifierName)
             {
@@ -5527,10 +5578,14 @@ parse_member_name:;
             }
 
             return SyntaxFactory.IdentifierName(
-                ParseIdentifierToken(code));
+                ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue, code));
         }
 
-        private SyntaxToken ParseIdentifierToken(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
+        // PROTOTYPE: Test all code paths that hit this, and add cases that allow field or value to the grammar.
+        // PROTOTYPE: Once all code paths are handled, switch from bool? to bool.
+        private SyntaxToken ParseIdentifierToken(
+            bool? reportErrorRatherThanConvertingFieldOrValue = null,
+            ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             var ctk = this.CurrentToken.Kind;
             if (ctk == SyntaxKind.IdentifierToken)
@@ -5548,11 +5603,23 @@ parse_member_name:;
                     return result;
                 }
 
+                bool isFieldOrValueInKeywordContext = IsCurrentTokenFieldOrValueInKeywordContext();
                 SyntaxToken identifierToken = this.EatToken();
 
                 if (this.IsInAsync && identifierToken.ContextualKind == SyntaxKind.AwaitKeyword)
                 {
                     identifierToken = this.AddError(identifierToken, ErrorCode.ERR_BadAwaitAsIdentifier);
+                }
+                else if (isFieldOrValueInKeywordContext) // PROTOTYPE: Are we testing this with "value"?
+                {
+                    if (reportErrorRatherThanConvertingFieldOrValue.GetValueOrDefault())
+                    {
+                        identifierToken = this.AddError(identifierToken, ErrorCode.ERR_ContextualKeywordAsIdentifier, identifierToken.Text);
+                    }
+                    else
+                    {
+                        identifierToken = ConvertToKeyword(identifierToken);
+                    }
                 }
 
                 return identifierToken;
@@ -5579,6 +5646,18 @@ parse_member_name:;
             }
 
             return false;
+        }
+
+        private bool IsCurrentTokenFieldOrValueInKeywordContext()
+        {
+            switch (CurrentToken.ContextualKind)
+            {
+                case SyntaxKind.FieldKeyword when IsInFieldKeywordContext:
+                case SyntaxKind.ValueKeyword when IsInValueKeywordContext:
+                    return IsFeatureEnabled(MessageID.IDS_FeatureFieldAndValueKeywords);
+                default:
+                    return false;
+            }
         }
 
         private TypeParameterListSyntax ParseTypeParameterList()
@@ -5657,13 +5736,13 @@ parse_member_name:;
             return _syntaxFactory.TypeParameter(
                 attrs,
                 this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword ? EatToken() : null,
-                this.ParseIdentifierToken());
+                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true));
         }
 
         // Parses the parts of the names between Dots and ColonColons.
         private SimpleNameSyntax ParseSimpleName(NameOptions options = NameOptions.None)
         {
-            var id = this.ParseIdentifierName();
+            var id = this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: true);
             if (id.Identifier.IsMissing)
             {
                 return id;
@@ -7364,7 +7443,7 @@ done:;
         {
             return _syntaxFactory.TupleElement(
                 ParseType(),
-                IsTrueIdentifier() ? this.ParseIdentifierToken() : null);
+                IsTrueIdentifier() ? this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true) : null);
         }
 
         private PostSkipAction SkipBadArrayRankSpecifierTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
@@ -8562,7 +8641,7 @@ done:;
                     return true;
 
                 case SyntaxKind.IdentifierToken:
-                    return IsTrueIdentifier();
+                    return IsTrueIdentifier() || IsCurrentTokenFieldOrValueInKeywordContext();
 
                 // Accessibility modifiers are not legal in a statement,
                 // but a common mistake for local functions. Parse to give a
@@ -8754,7 +8833,7 @@ done:;
                 SyntaxToken name = null;
                 if (this.IsTrueIdentifier())
                 {
-                    name = this.ParseIdentifierToken();
+                    name = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
                 }
 
                 _termState = saveTerm;
@@ -9483,7 +9562,7 @@ done:;
                     {
                         label = _syntaxFactory.CaseSwitchLabel(
                             caseKeyword,
-                            ParseIdentifierName(ErrorCode.ERR_ConstantExpected),
+                            ParseIdentifierName(null, ErrorCode.ERR_ConstantExpected),
                             this.EatToken(SyntaxKind.ColonToken));
                     }
                     else
@@ -9703,7 +9782,7 @@ done:;
 
             return _syntaxFactory.LabeledStatement(
                 attributes,
-                this.ParseIdentifierToken(),
+                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
                 this.EatToken(SyntaxKind.ColonToken),
                 this.ParsePossiblyAttributedStatement() ?? SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken)));
         }
@@ -10323,7 +10402,7 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
-                    return this.IsTrueIdentifier() || this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword;
+                    return this.IsTrueIdentifier() || IsCurrentTokenFieldOrValueInKeywordContext() || this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword;
                 default:
                     return IsPredefinedType(tk)
                         || SyntaxFacts.IsAnyUnaryExpression(tk)
@@ -10511,6 +10590,7 @@ done:;
                 case SyntaxKind.DefaultLiteralExpression:
                 case SyntaxKind.ElementAccessExpression:
                 case SyntaxKind.FalseLiteralExpression:
+                case SyntaxKind.FieldExpression:
                 case SyntaxKind.GenericName:
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.ImplicitArrayCreationExpression:
@@ -10535,6 +10615,7 @@ done:;
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.TupleExpression:
+                case SyntaxKind.ValueExpression:
                     return Precedence.Primary;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(op);
@@ -11102,6 +11183,19 @@ done:;
                             {
                                 return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
                             }
+                            else if (IsCurrentTokenFieldOrValueInKeywordContext())
+                            {
+                                var token = this.EatContextualToken(CurrentToken.ContextualKind);
+                                switch (token.Kind)
+                                {
+                                    case SyntaxKind.FieldKeyword:
+                                        return _syntaxFactory.FieldExpression(token);
+                                    case SyntaxKind.ValueKeyword:
+                                        return _syntaxFactory.ValueExpression(token);
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(token.Kind);
+                                }
+                            }
                             else
                             {
                                 return this.ParseAliasQualifiedName(NameOptions.InExpression);
@@ -11624,11 +11718,11 @@ done:;
 
             if (isIndexer && this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken)
             {
-                expression = this.ParseIdentifierName(ErrorCode.ERR_ValueExpected);
+                expression = this.ParseIdentifierName(null, ErrorCode.ERR_ValueExpected);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                expression = this.ParseIdentifierName(ErrorCode.ERR_MissingArgument);
+                expression = this.ParseIdentifierName(null, ErrorCode.ERR_MissingArgument);
             }
             else
             {
@@ -13328,7 +13422,7 @@ done:;
             }
             else
             {
-                name = this.ParseIdentifierToken();
+                name = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
             }
 
             return _syntaxFactory.FromClause(
@@ -13347,7 +13441,7 @@ done:;
                 type: this.PeekToken(1).Kind != SyntaxKind.InKeyword
                     ? this.ParseType()
                     : null,
-                identifier: this.ParseIdentifierToken(),
+                identifier: this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
                 inKeyword: this.EatToken(SyntaxKind.InKeyword),
                 inExpression: this.ParseExpressionCore(),
                 onKeyword: this.EatContextualToken(SyntaxKind.OnKeyword, ErrorCode.ERR_ExpectedContextualKeywordOn),
@@ -13355,7 +13449,7 @@ done:;
                 equalsKeyword: this.EatContextualToken(SyntaxKind.EqualsKeyword, ErrorCode.ERR_ExpectedContextualKeywordEquals),
                 rightExpression: this.ParseExpressionCore(),
                 into: this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword
-                    ? _syntaxFactory.JoinIntoClause(ConvertToKeyword(this.EatToken()), this.ParseIdentifierToken())
+                    ? _syntaxFactory.JoinIntoClause(ConvertToKeyword(this.EatToken()), this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true))
                     : null);
         }
 
@@ -13364,7 +13458,7 @@ done:;
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword);
             return _syntaxFactory.LetClause(
                 this.EatContextualToken(SyntaxKind.LetKeyword),
-                this.ParseIdentifierToken(),
+                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
                 this.EatToken(SyntaxKind.EqualsToken),
                 this.ParseExpressionCore());
         }
@@ -13463,7 +13557,7 @@ done:;
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword);
             return _syntaxFactory.QueryContinuation(
                 this.EatContextualToken(SyntaxKind.IntoKeyword),
-                this.ParseIdentifierToken(),
+                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
                 this.ParseQueryBody());
         }
 
@@ -13492,7 +13586,9 @@ done:;
         internal static bool MatchesFactoryContext(GreenNode green, SyntaxFactoryContext context)
         {
             return context.IsInAsync == green.ParsedInAsync &&
-                context.IsInQuery == green.ParsedInQuery;
+                context.IsInQuery == green.ParsedInQuery &&
+                context.IsInFieldKeywordContext == green.ParsedInFieldKeywordContext &&
+                context.IsInValueKeywordContext == green.ParsedInValueKeywordContext;
         }
 
         private bool IsInAsync
@@ -13511,6 +13607,18 @@ done:;
         {
             get => _syntaxFactoryContext.IsInQuery;
             set => _syntaxFactoryContext.IsInQuery = value;
+        }
+
+        private bool IsInFieldKeywordContext
+        {
+            get => _syntaxFactoryContext.IsInFieldKeywordContext;
+            set => _syntaxFactoryContext.IsInFieldKeywordContext = value;
+        }
+
+        private bool IsInValueKeywordContext
+        {
+            get => _syntaxFactoryContext.IsInValueKeywordContext;
+            set => _syntaxFactoryContext.IsInValueKeywordContext = value;
         }
 
         private delegate PostSkipAction SkipBadTokens<TNode>(
@@ -13675,7 +13783,9 @@ tryAgain:
                 base.GetResetPoint(),
                 _termState,
                 IsInAsync,
-                IsInQuery);
+                IsInQuery,
+                IsInFieldKeywordContext,
+                IsInValueKeywordContext);
         }
 
         private void Reset(ref ResetPoint state)
@@ -13683,6 +13793,8 @@ tryAgain:
             _termState = state.TerminatorState;
             IsInAsync = state.IsInAsync;
             IsInQuery = state.IsInQuery;
+            IsInFieldKeywordContext = state.IsInFieldKeywordContext;
+            IsInValueKeywordContext = state.IsInValueKeywordContext;
             base.Reset(ref state.BaseResetPoint);
         }
 
@@ -13722,17 +13834,26 @@ tryAgain:
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInAsync;
             internal readonly bool IsInQuery;
+            // PROTOTYPE: Why do we need this? We don't need something similar for 'partial'
+            // for instance (see IsCurrentTokenPartialKeywordOfPartialMethodOrType).
+            // PROTOTYPE: Test cases where this makes a difference. That is, where we need to change this and reset it.
+            internal readonly bool IsInFieldKeywordContext;
+            internal readonly bool IsInValueKeywordContext;
 
             internal ResetPoint(
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
                 bool isInAsync,
-                bool isInQuery)
+                bool isInQuery,
+                bool isInFieldKeywordContext,
+                bool isInValueKeywordContext)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInAsync = isInAsync;
                 this.IsInQuery = isInQuery;
+                this.IsInFieldKeywordContext = isInFieldKeywordContext;
+                this.IsInValueKeywordContext = isInValueKeywordContext;
             }
         }
 

@@ -179,4 +179,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
     }
+
+    internal sealed class SynthesizedBackingEventFieldSymbol : SynthesizedBackingFieldSymbolBase
+    {
+        private readonly SourceCustomEventSymbol _event;
+
+        public SynthesizedBackingEventFieldSymbol(
+            SourceCustomEventSymbol eventSymbol,
+            string name,
+            bool isStatic) :
+            base(name, isReadOnly: false, isStatic)
+        {
+            _event = eventSymbol;
+        }
+
+        public override RefKind RefKind => RefKind.None;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+        public override Symbol AssociatedSymbol => _event;
+
+        public override Symbol ContainingSymbol => _event.ContainingSymbol;
+
+        public override ImmutableArray<Location> Locations => _event.Locations;
+
+        protected override IAttributeTargetSymbol AttributeOwner => _event.AttributesOwner;
+
+        internal override bool HasInitializer => false;
+
+        internal override Location ErrorLocation => _event.Location;
+
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations() => _event.GetAttributeDeclarations();
+
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound) => _event.TypeWithAnnotations;
+    }
 }

@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.EqualsGreaterThanToken:
-                    return _syntaxFactory.ConstantPattern(this.ParseIdentifierName(ErrorCode.ERR_MissingPattern));
+                    return _syntaxFactory.ConstantPattern(this.ParseIdentifierName(null, ErrorCode.ERR_MissingPattern));
             }
 
             if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken)

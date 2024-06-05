@@ -6871,6 +6871,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
     <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
   </data>
+  <data name="ERR_ContextualKeywordAsIdentifier" xml:space="preserve">
+    <value>'{0}' cannot be used as an identifier in this context; use '@{0}' instead.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
