@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 /// Ths is the root type for all interval trees that store their data in a binary tree format.  This format is good for
 /// when mutation of the tree is expected, and a client wants to perform tests before and after such mutation.
 /// </remarks>
-internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
+internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
 {
     public static readonly BinaryIntervalTree<T> Empty = new();
 
@@ -52,57 +52,6 @@ internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
     /// Provides access to lots of common algorithms on this interval tree.
     /// </summary>
     public IntervalTreeAlgorithms<T, BinaryIntervalTree<T>> Algorithms => new(this);
-
-    /// <summary>
-    /// Creates an interval tree from a sorted list of values.  This is more efficient than creating from an unsorted
-    /// list as building doesn't need to figure out where the nodes need to go n-log(n) and doesn't have to rebalance
-    /// anything (again, another n-log(n) operation).  Rebalancing is particularly expensive as it involves tons of
-    /// pointer chasing operations, which is both slow, and which impacts the GC which has to track all those writes.
-    /// </summary>
-    /// <remarks>
-    /// The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a' comes before 'b' in
-    /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
-    /// start position.  This is a requirement for the algorithm to work correctly.
-    /// </remarks>
-    public static BinaryIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-#if DEBUG
-        var localIntrospector = introspector;
-        Debug.Assert(values.IsSorted(Comparer<T>.Create((t1, t2) => localIntrospector.GetSpan(t1).Start - localIntrospector.GetSpan(t2).Start)));
-#endif
-
-        if (values.Count == 0)
-            return Empty;
-
-        return new BinaryIntervalTree<T>
-        {
-            root = CreateFromSortedWorker(values, 0, values.Count, in introspector),
-        };
-    }
-
-    private static Node? CreateFromSortedWorker<TIntrospector>(
-        SegmentedList<T> values, int startInclusive, int endExclusive, in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        var length = endExclusive - startInclusive;
-        if (length <= 0)
-            return null;
-
-        var mid = startInclusive + (length >> 1);
-        var node = new Node(values[mid]);
-        node.SetLeftRight(
-            CreateFromSortedWorker(values, startInclusive, mid, in introspector),
-            CreateFromSortedWorker(values, mid + 1, endExclusive, in introspector),
-            in introspector);
-
-        // Everything is sorted, and we're always building a node up from equal subtrees.  So we're never unbalanced
-        // enough to require balancing here.
-        var balanceFactor = BalanceFactor(node);
-        Debug.Assert(balanceFactor >= -1, "balanceFactor >= -1");
-        Debug.Assert(balanceFactor <= 1, "balanceFactor <= 1");
-
-        return node;
-    }
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
     {

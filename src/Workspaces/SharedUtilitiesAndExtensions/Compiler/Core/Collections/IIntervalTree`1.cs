@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
 /// <summary>
@@ -17,7 +19,10 @@ internal delegate bool TestInterval<T, TIntrospector>(T value, int start, int le
 /// built upon. Consumers of an interval tree should use <c>.Algorithms</c> on the instance to get access to a wealth of
 /// fast operations through the <see cref="IntervalTreeAlgorithms{T, TIntervalTree}"/> type.
 /// </summary>
-internal interface IIntervalTree<T>
+/// <remarks>
+/// Iterating an interval tree will return the intervals in sorted order based on the start point of the interval.
+/// </remarks>
+internal interface IIntervalTree<T> : IEnumerable<T>
 {
     /// <summary>
     /// Adds all intervals within the tree within the given start/length pair that match the given <paramref
