@@ -167,7 +167,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 for (int i = lastElementToSwap, j = 0; i > 1; i -= 2, j++)
                 {
                     var destinationIndex = destination.Length - 1 - j;
-                    destination[destination.Length - 1 - j] = new Node(source[i], MaxEndNodeIndex: destinationIndex);
+                    destination[destinationIndex] = new Node(source[i], MaxEndNodeIndex: destinationIndex);
                     source[lastElementToSwap - j] = source[i - 1];
                 }
 
@@ -218,6 +218,12 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             var leftChildIndex = GetLeftChildIndex(currentElementIndex);
             var rightChildIndex = GetRightChildIndex(currentElementIndex);
 
+            // ensure the left and right trees have their max end nodes computed first.
+            ComputeMaxEndNodes(array, leftChildIndex, in introspector);
+            ComputeMaxEndNodes(array, rightChildIndex, in introspector);
+
+            // Now get the max end of the left and right children and compare to our end.  Whichever is the rightmost
+            // endpoint is considerd the max end index.
             var currentNode = array[currentElementIndex];
             var thisEndValue = GetEnd(currentNode.Value, in introspector);
             var leftEndValue = MaxEndValue(array, leftChildIndex, in introspector);
@@ -244,57 +250,6 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             array[currentElementIndex] = new Node(currentNode.Value, maxEndNodeIndex);
         }
     }
-
-#if false
-    private static void CreateFromSortedWorker<TIntrospector>(
-        SegmentedList<T> values,
-        int startInclusive,
-        int endExclusive,
-        SegmentedArray<Node> destination,
-        int middleElementIndex,
-        in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        var length = endExclusive - startInclusive;
-        if (length <= 0)
-            return;
-
-        // Start in the middle of the range of values we were asked to look at.
-        var mid = startInclusive + (length >> 1);
-        var midValue = values[mid];
-
-        // Process the left side.  Everything from the start up to the mid.
-        var leftChildDestinationIndex = GetLeftChildIndex(middleElementIndex);
-        CreateFromSortedWorker(values, startInclusive, mid, destination, middleElementIndex: leftChildDestinationIndex, in introspector);
-
-        // Process the right side.  Everything after the mid up to the end.
-        var rightChildDestinationIndex = GetRightChildIndex(middleElementIndex);
-        CreateFromSortedWorker(values, mid + 1, endExclusive, destination, middleElementIndex: rightChildDestinationIndex, in introspector);
-
-        var thisEndValue = GetEnd(midValue, in introspector);
-        var leftEndValue = MaxEndValue(destination, leftChildDestinationIndex, in introspector);
-        var rightEndValue = MaxEndValue(destination, rightChildDestinationIndex, in introspector);
-
-        int maxEndNodeIndex;
-        if (thisEndValue >= leftEndValue && thisEndValue >= rightEndValue)
-        {
-            maxEndNodeIndex = middleElementIndex;
-        }
-        else if ((leftEndValue >= rightEndValue) && leftChildDestinationIndex < destination.Length)
-        {
-            maxEndNodeIndex = destination[leftChildDestinationIndex].MaxEndNodeIndex;
-        }
-        else if (rightChildDestinationIndex < destination.Length)
-        {
-            maxEndNodeIndex = destination[rightChildDestinationIndex].MaxEndNodeIndex;
-        }
-        else
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        destination[middleElementIndex] = new Node(midValue, maxEndNodeIndex);
-    }
-#endif
 
     private static int GetLeftChildIndex(int nodeIndex)
         => (2 * nodeIndex) + 1;
