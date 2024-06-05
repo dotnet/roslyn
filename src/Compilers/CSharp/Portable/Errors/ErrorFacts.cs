@@ -2461,6 +2461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyTypeDifference
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
+                or ErrorCode.INF_IdentifierConflictWithContextualKeyword
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
@@ -2482,7 +2483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsWarning(code))
+            if (IsWarning(code) || IsInfo(code) || IsHidden(code))
             {
                 return false;
             }

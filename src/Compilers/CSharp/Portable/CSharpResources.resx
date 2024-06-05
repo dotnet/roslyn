@@ -6865,6 +6865,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
+  <data name="INF_IdentifierConflictWithContextualKeyword" xml:space="preserve">
+    <value>'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</value>
+  </data>
+  <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
+    <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
@@ -7919,6 +7925,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRefUnsafeInIteratorAsync" xml:space="preserve">
     <value>ref and unsafe in async and iterator methods</value>
+  </data>
+  <data name="IDS_FeatureFieldAndValueKeywords" xml:space="preserve">
+    <value>field and value keywords</value>
   </data>
   <data name="ERR_RefLocalAcrossAwait" xml:space="preserve">
     <value>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</value>

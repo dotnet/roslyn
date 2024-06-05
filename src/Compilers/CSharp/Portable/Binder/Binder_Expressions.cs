@@ -1549,6 +1549,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError, qualifierOpt: null);  // reports diagnostics in result.
 
+                if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
+                {
+                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+                }
+
                 if ((object)symbol == null)
                 {
                     Debug.Assert(members.Count > 0);
@@ -1730,6 +1735,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+#nullable enable
+        /// <summary>
+        /// Report a diagnostic for a 'field' or 'value' identifier that the meaning will
+        /// change when the identifier is considered a contextual keyword.
+        /// </summary>
+        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        {
+            string name = identifier.Text;
+            switch (name)
+            {
+                case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
+                case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
+                    {
+                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+                        if (Compilation.LanguageVersion < requiredVersion)
+                        {
+                            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
+                        }
+                    }
+                    break;
+            }
+        }
+#nullable disable
 
         private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -3089,6 +3118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
+
+            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
@@ -7523,6 +7554,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundLeft != null);
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
+
+            ReportFieldOrValueContextualKeywordConflictIfAny(right, right.Identifier, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
 
