@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
@@ -11,26 +12,27 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(VSCodeAnalyzerLoader)), Shared]
-internal class VSCodeAnalyzerLoader
+[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
+internal class VSCodeAnalyzerLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
 {
+    private readonly ExtensionAssemblyManager _extensionAssemblyManager;
+    private readonly ILoggerFactory _loggerFactory;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSCodeAnalyzerLoader()
+    public VSCodeAnalyzerLoaderProvider(
+        ExtensionAssemblyManager extensionAssemblyManager,
+        ILoggerFactory loggerFactory,
+        [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : base(externalResolvers)
     {
+        _extensionAssemblyManager = extensionAssemblyManager;
+        _loggerFactory = loggerFactory;
     }
 
-#pragma warning disable CA1822 // Mark members as static
-    public void InitializeDiagnosticsServices()
-#pragma warning restore CA1822 // Mark members as static
+    protected override IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {
-    }
-
-    public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader(HostWorkspaceServices services, ExtensionAssemblyManager extensionAssemblyManager, ILogger logger)
-    {
-        var analyzerLoaderProvider = services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var loader = analyzerLoaderProvider.GetLoader(shadowCopy: true);
-        return new VSCodeExtensionAssemblyAnalyzerLoader(loader, extensionAssemblyManager, logger);
+        var baseLoader = base.CreateShadowCopyLoader(externalResolvers);
+        return new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, _extensionAssemblyManager, _loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
     }
 
     /// <summary>
