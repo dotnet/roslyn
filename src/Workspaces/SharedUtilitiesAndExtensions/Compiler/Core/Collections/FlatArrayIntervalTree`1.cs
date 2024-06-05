@@ -44,28 +44,30 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         static IEnumerator<T> GetEnumeratorWorker(
             TIntervalTree tree, TIntervalTreeHelper helper, TNode root)
         {
-            using var _ = s_preorderNodeStackPool.GetPooledObject(out var candidates);
-            candidates.Push((root, firstTime: true));
+            using var _ = s_nodeStackPool.GetPooledObject(out var stack);
+            var current = (Node: root, HasValue: true);
 
-            while (candidates.TryPop(out var tuple))
+            while (current.HasValue || stack.Count > 0)
             {
-                var (currentNode, firstTime) = tuple;
-                if (firstTime)
+                // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
+                while (current.HasValue)
                 {
-                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
-                    // next time we see this node we'll yield it out.
-                    if (helper.TryGetRightNode(tree, currentNode, out var rightNode))
-                        candidates.Push((rightNode, firstTime: true));
-
-                    candidates.Push((currentNode, firstTime: false));
-
-                    if (helper.TryGetLeftNode(tree, currentNode, out var leftNode))
-                        candidates.Push((leftNode, firstTime: true));
+                    stack.Push(current.Node);
+                    var leftHasValue = helper.TryGetLeftNode(tree, current.Node, out var leftNode);
+                    current = (leftNode!, leftHasValue);
                 }
-                else
-                {
-                    yield return helper.GetValue(tree, currentNode);
-                }
+
+                Contract.ThrowIfTrue(current.HasValue);
+                Contract.ThrowIfTrue(stack.Count == 0);
+                current = (stack.Pop(), HasValue: true);
+
+                // We only get to a node once we've walked the left side of it.  So we can now return the parent node at
+                // that point.
+                yield return helper.GetValue(tree, current.Node);
+
+                // now get the right side and set things up so we can walk into it.
+                var rightHasValue = helper.TryGetRightNode(tree, current.Node, out var right);
+                current = (right!, rightHasValue);
             }
         }
     }
