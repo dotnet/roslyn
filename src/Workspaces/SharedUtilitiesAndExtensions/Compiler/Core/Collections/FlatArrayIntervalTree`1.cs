@@ -146,6 +146,10 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
 
         return false;
     }
+
+    private static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+        => introspector.GetSpan(value).End;
 }
 
 /// <summary>
