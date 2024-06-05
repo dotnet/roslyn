@@ -19,7 +19,7 @@ internal abstract class AbstractAggregatedFormattingResult : IFormattingResult
     protected readonly SyntaxNode Node;
 
     private readonly IList<AbstractFormattingResult> _formattingResults;
-    private readonly TextSpanIntervalTree? _formattingSpans;
+    private readonly TextSpanMutableIntervalTree? _formattingSpans;
 
     private readonly CancellableLazy<IList<TextChange>> _lazyTextChanges;
     private readonly CancellableLazy<SyntaxNode> _lazyNode;
@@ -27,7 +27,7 @@ internal abstract class AbstractAggregatedFormattingResult : IFormattingResult
     public AbstractAggregatedFormattingResult(
         SyntaxNode node,
         IList<AbstractFormattingResult> formattingResults,
-        TextSpanIntervalTree? formattingSpans)
+        TextSpanMutableIntervalTree? formattingSpans)
     {
         Contract.ThrowIfNull(node);
         Contract.ThrowIfNull(formattingResults);
@@ -45,8 +45,17 @@ internal abstract class AbstractAggregatedFormattingResult : IFormattingResult
     /// </summary>
     protected abstract SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken);
 
+
+/* Unmerged change from project 'Microsoft.CodeAnalysis.CodeStyle'
+Before:
     protected TextSpanIntervalTree GetFormattingSpans()
         => _formattingSpans ?? new TextSpanIntervalTree(_formattingResults.Select(r => r.FormattedSpan));
+After:
+    protected TextSpanMutableIntervalTree GetFormattingSpans()
+        => _formattingSpans ?? new TextSpanIntervalTree(_formattingResults.Select(r => r.FormattedSpan));
+*/
+    protected TextSpanMutableIntervalTree GetFormattingSpans()
+        => _formattingSpans ?? new TextSpanMutableIntervalTree(_formattingResults.Select(r => r.FormattedSpan));
 
     #region IFormattingResult implementation
 

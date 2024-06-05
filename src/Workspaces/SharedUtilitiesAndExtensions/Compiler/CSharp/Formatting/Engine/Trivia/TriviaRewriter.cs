@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 internal class TriviaRewriter : CSharpSyntaxRewriter
 {
     private readonly SyntaxNode _node;
-    private readonly TextSpanIntervalTree _spans;
+    private readonly TextSpanMutableIntervalTree _spans;
     private readonly CancellationToken _cancellationToken;
 
     private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap = [];
@@ -27,7 +27,7 @@ internal class TriviaRewriter : CSharpSyntaxRewriter
 
     public TriviaRewriter(
         SyntaxNode node,
-        TextSpanIntervalTree spanToFormat,
+        TextSpanMutableIntervalTree spanToFormat,
         Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
         CancellationToken cancellationToken)
     {

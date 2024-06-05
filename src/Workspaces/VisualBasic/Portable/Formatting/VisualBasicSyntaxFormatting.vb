@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New VisualBasicSyntaxFormattingOptions(options, DirectCast(fallbackOptions, VisualBasicSyntaxFormattingOptions))
         End Function
 
-        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As TextSpanIntervalTree = Nothing) As IFormattingResult
+        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As TextSpanMutableIntervalTree = Nothing) As IFormattingResult
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 

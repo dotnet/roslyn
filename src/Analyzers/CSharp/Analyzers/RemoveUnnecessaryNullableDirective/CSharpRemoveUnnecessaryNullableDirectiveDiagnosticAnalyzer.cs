@@ -86,14 +86,14 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
         return simplifier.Spans;
     }
 
-    private ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, int positionOfFirstReducingNullableDirective, TextSpanIntervalTree? codeBlockIntervalTree, TextSpanIntervalTree? possibleNullableImpactIntervalTree)
+    private ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, int positionOfFirstReducingNullableDirective, TextSpanMutableIntervalTree? codeBlockIntervalTree, TextSpanMutableIntervalTree? possibleNullableImpactIntervalTree)
     {
         var root = context.SemanticModel.SyntaxTree.GetCompilationUnitRoot(context.CancellationToken);
 
         using (var simplifier = new NullableImpactingSpanWalker(context.SemanticModel, positionOfFirstReducingNullableDirective, ignoredSpans: codeBlockIntervalTree, context.CancellationToken))
         {
             simplifier.Visit(root);
-            possibleNullableImpactIntervalTree ??= new TextSpanIntervalTree();
+            possibleNullableImpactIntervalTree ??= new TextSpanMutableIntervalTree();
             foreach (var interval in simplifier.Spans)
             {
                 possibleNullableImpactIntervalTree.AddIntervalInPlace(interval);
@@ -144,7 +144,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
                 SyntaxKind.ElifDirectiveTrivia or
                 SyntaxKind.ElseDirectiveTrivia)
             {
-                possibleNullableImpactIntervalTree ??= new TextSpanIntervalTree();
+                possibleNullableImpactIntervalTree ??= new TextSpanMutableIntervalTree();
                 possibleNullableImpactIntervalTree.AddIntervalInPlace(directive.Span);
             }
         }
@@ -173,16 +173,16 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
             PositionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
             if (!completed)
             {
-                IntervalTree = new TextSpanIntervalTree();
-                PossibleNullableImpactIntervalTree = new TextSpanIntervalTree();
+                IntervalTree = new TextSpanMutableIntervalTree();
+                PossibleNullableImpactIntervalTree = new TextSpanMutableIntervalTree();
             }
         }
 
         [MemberNotNullWhen(false, nameof(PositionOfFirstReducingNullableDirective), nameof(IntervalTree), nameof(PossibleNullableImpactIntervalTree))]
         public bool Completed { get; private set; }
         public int? PositionOfFirstReducingNullableDirective { get; }
-        public TextSpanIntervalTree? IntervalTree { get; }
-        public TextSpanIntervalTree? PossibleNullableImpactIntervalTree { get; }
+        public TextSpanMutableIntervalTree? IntervalTree { get; }
+        public TextSpanMutableIntervalTree? PossibleNullableImpactIntervalTree { get; }
 
         public static SyntaxTreeState Create(bool defaultCompleted, NullableContextOptions compilationOptions, SyntaxTree tree, CancellationToken cancellationToken)
         {

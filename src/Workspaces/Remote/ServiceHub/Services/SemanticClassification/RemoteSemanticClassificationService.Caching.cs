@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
                 documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
-            var textSpanIntervalTree = new TextSpanIntervalTree(textSpans);
+            var textSpanIntervalTree = new TextSpanMutableIntervalTree(textSpans);
             return classifiedSpans.IsDefault
                 ? null
                 : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => textSpanIntervalTree.HasIntervalThatIntersectsWith(c.TextSpan)));

@@ -25,7 +25,7 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
 
     public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 
-    protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans = null);
+    protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans = null);
 
     protected abstract AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken);
 
