@@ -372,6 +372,7 @@
             {
                 case ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer:
                 case ErrorCode.INF_TooManyBoundLambdas:
+                case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
                     return true;
                 default:
                     return false;

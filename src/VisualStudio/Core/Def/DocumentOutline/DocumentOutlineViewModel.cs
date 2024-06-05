@@ -355,7 +355,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         {
             foreach (var model in viewModels)
             {
-                result.Equals(model);
+                result.Add(model);
                 AddAllModels(model.Children, result);
             }
         }

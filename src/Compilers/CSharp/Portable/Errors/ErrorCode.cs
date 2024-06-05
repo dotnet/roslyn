@@ -2336,6 +2336,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PartialPropertySignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
+        INF_IdentifierConflictWithContextualKeyword = 9258,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 
