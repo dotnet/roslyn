@@ -68,8 +68,7 @@ public abstract partial class CompletionService
          ImmutableHashSet<string>? roles = null,
          CancellationToken cancellationToken = default)
     {
-        // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-        (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+        document = document.WithFrozenPartialSemantics(cancellationToken);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
@@ -114,8 +113,6 @@ public abstract partial class CompletionService
 
         var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
             document, caretPosition, trigger, options, completionListSpan, augmentingProviders, sharedContext, cancellationToken).ConfigureAwait(false);
-
-        GC.KeepAlive(semanticModel);
 
         // Providers are ordered, but we processed them in our own order.  Ensure that the
         // groups are properly ordered based on the original providers.

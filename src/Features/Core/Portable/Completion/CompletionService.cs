@@ -214,6 +214,8 @@ public abstract partial class CompletionService : ILanguageService
 
         var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
 
+        document = document.WithFrozenPartialSemantics(cancellationToken);
+
         var description = await extensionManager.PerformFunctionAsync(
             provider,
             cancellationToken => provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken),
@@ -242,6 +244,8 @@ public abstract partial class CompletionService : ILanguageService
         if (provider != null)
         {
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
+            document = document.WithFrozenPartialSemantics(cancellationToken);
 
             var change = await extensionManager.PerformFunctionAsync(
                 provider,
