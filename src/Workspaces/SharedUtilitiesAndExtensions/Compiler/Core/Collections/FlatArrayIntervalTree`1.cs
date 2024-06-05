@@ -144,14 +144,18 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 }
 
                 // After this, source will be equal to:
-                // 1, 2, 3, 4, 5, 6, 7, 2, 4, 6, 8, 10, 12, 14.
+                // 1, 2, 3, 4, 5, 6, 7 - 2, 4, 6, 8, 10, 12, 14.
                 //
-                // In other words, the last half (after '2') will be updated to be the even elements.  This will be what
-                // we'll create the perfect tree from below.
+                // In other words, the last half (after '7') will be updated to be the even elements from the original
+                // list.  This will be what we'll create the perfect tree from below.
                 //
                 // Destination will be equal to:
                 // ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, 3, 5, 7, 9, 11, 13
+                //
+                // which is the odd elements from the original list.
 
+                // The above loop will not hit the first element in the list (since we do not want to do a swap for the
+                // root element).  So we have to handle this case specially at the end.
                 var firstOddIndex = destination.Length - extraElementsCount;
                 destination[firstOddIndex] = new Node(source[0], MaxEndNodeIndex: firstOddIndex);
                 // Destination will be equal to:
@@ -159,7 +163,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             }
 
             // Recursively build the perfect balanced subtree from the remaining elements, storing them into the start
-            // of the array.  In the above example, this is bulding the perfect balanced tree for the event elements
+            // of the array.  In the above example, this is building the perfect balanced tree for the event elements
             // 8-14.
             BuildCompleteTreeRecursive(
                 source, destination, startInclusive: extraElementsCount, endExclusive: source.Count, destinationIndex: 0);
