@@ -88,40 +88,42 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
         var newRoot = root;
 
         return Balance(newRoot, in introspector);
-    }
 
-    private static Node Balance<TIntrospector>(Node node, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        var balanceFactor = BalanceFactor(node);
-        if (balanceFactor == -2)
+        static Node Balance(Node node, in TIntrospector introspector)
         {
-            var rightBalance = BalanceFactor(node.Right);
-            if (rightBalance == -1)
+            var balanceFactor = BalanceFactor(node);
+            if (balanceFactor == -2)
             {
-                return node.LeftRotation(in introspector);
+                var rightBalance = BalanceFactor(node.Right);
+                if (rightBalance == -1)
+                {
+                    return node.LeftRotation(in introspector);
+                }
+                else
+                {
+                    Debug.Assert(rightBalance == 1);
+                    return node.InnerRightOuterLeftRotation(in introspector);
+                }
             }
-            else
+            else if (balanceFactor == 2)
             {
-                Debug.Assert(rightBalance == 1);
-                return node.InnerRightOuterLeftRotation(in introspector);
+                var leftBalance = BalanceFactor(node.Left);
+                if (leftBalance == 1)
+                {
+                    return node.RightRotation(in introspector);
+                }
+                else
+                {
+                    Debug.Assert(leftBalance == -1);
+                    return node.InnerLeftOuterRightRotation(in introspector);
+                }
             }
-        }
-        else if (balanceFactor == 2)
-        {
-            var leftBalance = BalanceFactor(node.Left);
-            if (leftBalance == 1)
-            {
-                return node.RightRotation(in introspector);
-            }
-            else
-            {
-                Debug.Assert(leftBalance == -1);
-                return node.InnerLeftOuterRightRotation(in introspector);
-            }
+
+            return node;
         }
 
-        return node;
+        static int BalanceFactor(Node? node)
+            => node == null ? 0 : Height(node.Left) - Height(node.Right);
     }
 
     public IEnumerator<T> GetEnumerator()
@@ -140,9 +142,6 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
 
     private static int Height(Node? node)
         => node == null ? 0 : node.Height;
-
-    private static int BalanceFactor(Node? node)
-        => node == null ? 0 : Height(node.Left) - Height(node.Right);
 
     private readonly struct BinaryIntervalTreeHelper : IIntervalTreeHelper<T, BinaryIntervalTree<T>, Node>
     {
