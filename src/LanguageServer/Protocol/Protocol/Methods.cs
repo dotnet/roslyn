@@ -7,17 +7,9 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which contains the string values for all common language protocol methods.
     /// </summary>
-    internal static class Methods
+    internal static partial class Methods
     {
-        /// <summary>
-        /// Method name for 'initialize'.
-        /// </summary>
-        public const string InitializeName = "initialize";
-
-        /// <summary>
-        /// Method name for 'initialized'.
-        /// </summary>
-        public const string InitializedName = "initialized";
+        // NOTE: these are sorted/grouped in the order used by the spec
 
         /// <summary>
         /// Method name for '$/progress' notifications.
@@ -28,11 +20,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Name of the progress token in the request.
         /// </summary>
         public const string PartialResultTokenName = "partialResultToken";
-
-        /// <summary>
-        /// Name of the progress token in the request.
-        /// </summary>
-        public const string PartialResultTokenPropertyName = "PartialResultToken";
 
         /// <summary>
         /// Name of the work done token in the request.
@@ -300,39 +287,9 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WorkspaceInlayHintRefreshName = "workspace/inlayHint/refresh";
 
         /// <summary>
-        /// Method name for 'shutdown'.
-        /// </summary>
-        public const string ShutdownName = "shutdown";
-
-        /// <summary>
-        /// Method name for 'exit'.
-        /// </summary>
-        public const string ExitName = "exit";
-
-        /// <summary>
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
-
-        /// <summary>
-        /// Method name for 'client/registerCapability'.
-        /// </summary>
-        public const string ClientRegisterCapabilityName = "client/registerCapability";
-
-        /// <summary>
-        /// Method name for 'client/unregisterCapability'.
-        /// </summary>
-        public const string ClientUnregisterCapabilityName = "client/unregisterCapability";
-
-        /// <summary>
-        /// Strongly typed message object for 'initialize'.
-        /// </summary>
-        public static readonly LspRequest<InitializeParams, InitializeResult> Initialize = new LspRequest<InitializeParams, InitializeResult>(InitializeName);
-
-        /// <summary>
-        /// Strongly typed message object for 'initialized'.
-        /// </summary>
-        public static readonly LspNotification<InitializedParams> Initialized = new LspNotification<InitializedParams>(InitializedName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/codeAction'.
@@ -560,29 +517,9 @@ namespace Roslyn.LanguageServer.Protocol
         public static readonly LspRequest<object?, object?> WorkspaceInlayHintRefresh = new LspRequest<object?, object?>(WorkspaceInlayHintRefreshName);
 
         /// <summary>
-        /// Strongly typed message object for 'shutdown'.
-        /// </summary>
-        public static readonly LspRequest<object?, object> Shutdown = new LspRequest<object?, object>(ShutdownName);
-
-        /// <summary>
-        /// Strongly typed message object for 'exit'.
-        /// </summary>
-        public static readonly LspNotification<object?> Exit = new LspNotification<object?>(ExitName);
-
-        /// <summary>
         /// Strongly typed message object for 'telemetry/event'.
         /// </summary>
         public static readonly LspNotification<object> TelemetryEvent = new LspNotification<object>(TelemetryEventName);
-
-        /// <summary>
-        /// Strongly typed message object for 'client/registerCapability'.
-        /// </summary>
-        public static readonly LspRequest<RegistrationParams, object> ClientRegisterCapability = new LspRequest<RegistrationParams, object>(ClientRegisterCapabilityName);
-
-        /// <summary>
-        /// Strongly typed message object for 'client/unregisterCapability'.
-        /// </summary>
-        public static readonly LspRequest<UnregistrationParams, object> ClientUnregisterCapability = new LspRequest<UnregistrationParams, object>(ClientUnregisterCapabilityName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/semanticTokens/full'.

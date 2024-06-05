@@ -9,12 +9,27 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents server capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#serverCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class ServerCapabilities
     {
         // NOTE: these are kept in the same order as the spec to make them easier to update
+
+        /// <summary>
+        /// The position encoding the server picked from the encodings offered
+        /// by the client via the client capability `general.positionEncodings`.
+        ///<para>
+        /// If the client didn't provide any position encodings the only valid
+        /// value that a server can return is 'utf-16'.
+        /// If omitted it defaults to 'utf-16'.
+        ///</para>
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("positionEncoding")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public PositionEncodingKind? PositionEncoding { get; init; }
 
         /// <summary>
         /// Gets or sets the value which indicates how text document are synced.
