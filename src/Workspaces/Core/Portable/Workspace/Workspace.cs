@@ -86,7 +86,7 @@ public abstract partial class Workspace : IDisposable
 
         var emptyOptions = new SolutionOptionSet(_legacyOptions);
 
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: []);
+        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: [], fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed
@@ -121,14 +121,14 @@ public abstract partial class Workspace : IDisposable
     protected internal Solution CreateSolution(SolutionInfo solutionInfo)
     {
         var options = new SolutionOptionSet(_legacyOptions);
-        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
+        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences, solutionInfo.FallbackAnalyzerOptions);
     }
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace, and with the given options.
     /// </summary>
-    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-        => new(this, solutionInfo.Attributes, options, analyzerReferences);
+    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences, ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
+        => new(this, solutionInfo.Attributes, options, analyzerReferences, fallbackAnalyzerOptions);
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace.
@@ -929,6 +929,12 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
+    /// Call this method when <see cref="Solution.FallbackAnalyzerOptions"/> change in the host environment.
+    /// </summary>
+    internal void OnSolutionFallbackAnalyzerOptionsChanged(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => SetCurrentSolution(oldSolution => oldSolution.WithFallbackAnalyzerOptions(options), WorkspaceChangeKind.SolutionChanged);
+
+    /// <summary>
     /// Call this method when status of project has changed to incomplete.
     /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
     /// </summary>
@@ -1503,6 +1509,11 @@ public abstract partial class Workspace : IDisposable
             {
                 var changedOptions = newSolution.SolutionState.Options.GetChangedOptions();
                 _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
+            }
+
+            if (CurrentSolution.FallbackAnalyzerOptions != newSolution.FallbackAnalyzerOptions)
+            {
+                OnSolutionFallbackAnalyzerOptionsChanged(newSolution.FallbackAnalyzerOptions);
             }
 
             if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))

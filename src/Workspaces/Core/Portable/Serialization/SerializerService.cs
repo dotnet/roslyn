@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading;
@@ -12,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -80,6 +84,7 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.ParseOptions:
                 case WellKnownSynchronizationKind.ProjectReference:
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                case WellKnownSynchronizationKind.FallbackAnalyzerOptions:
                     return Checksum.Create(value, this, cancellationToken);
 
                 case WellKnownSynchronizationKind.MetadataReference:
@@ -166,12 +171,71 @@ internal partial class SerializerService : ISerializerService
                     ((SourceGeneratorExecutionVersionMap)value).WriteTo(writer);
                     return;
 
+                case WellKnownSynchronizationKind.FallbackAnalyzerOptions:
+                    Write(writer, (ImmutableDictionary<string, StructuredAnalyzerConfigOptions>)value);
+                    return;
+
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
                     // serialize it
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
+    }
+
+    private static void Write(ObjectWriter writer, ImmutableDictionary<string, StructuredAnalyzerConfigOptions> optionsByLanguage)
+    {
+        writer.WriteCompressedUInt((uint)optionsByLanguage.Count);
+        foreach (var (language, options) in optionsByLanguage)
+        {
+            writer.WriteString(language);
+
+            foreach (var key in options.Keys)
+            {
+                if (options.TryGetValue(key, out var value))
+                {
+                    writer.WriteString(key);
+                    writer.WriteString(value);
+                }
+            }
+
+            // terminator:
+            writer.WriteString(null);
+        }
+    }
+
+    private static ImmutableDictionary<string, StructuredAnalyzerConfigOptions> ReadFallbackAnalyzerOptions(ObjectReader reader)
+    {
+        var count = reader.ReadCompressedUInt();
+        if (count == 0)
+        {
+            return ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty;
+        }
+
+        var optionsByLanguage = ImmutableDictionary.CreateBuilder<string, StructuredAnalyzerConfigOptions>();
+        var options = ImmutableDictionary.CreateBuilder<string, string>();
+
+        for (var i = 0; i < count; i++)
+        {
+            var language = reader.ReadRequiredString();
+
+            while (true)
+            {
+                var key = reader.ReadString();
+                if (key == null)
+                {
+                    break;
+                }
+
+                var value = reader.ReadRequiredString();
+                options.Add(key, value);
+            }
+
+            optionsByLanguage.Add(language, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(options.ToImmutable())));
+            options.Clear();
+        }
+
+        return optionsByLanguage.ToImmutable();
     }
 
     public object Deserialize(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
@@ -196,6 +260,7 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken),
                 WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap => SourceGeneratorExecutionVersionMap.Deserialize(reader),
+                WellKnownSynchronizationKind.FallbackAnalyzerOptions => ReadFallbackAnalyzerOptions(reader),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }

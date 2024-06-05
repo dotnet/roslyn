@@ -160,6 +160,80 @@ public class SolutionServiceTests
     }
 
     [Fact]
+    public async Task FallbackAnalyzerOptions()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("");
+
+        static Solution SetSolutionProperties(Solution solution, int version)
+        {
+            return solution.WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty
+                .Add(LanguageNames.CSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                    .Add("cs_optionA", $"csA{version}")
+                    .Add("cs_optionB", $"csB{version}"))))
+                .Add(LanguageNames.VisualBasic, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                    .Add("vb_optionA", $"vbA{version}")
+                    .Add("vb_optionB", $"vbB{version}"))))
+                .Add(LanguageNames.FSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                    .Add("fs_optionA", $"fsA{version}")
+                    .Add("fs_optionB", $"fsB{version}")))));
+        }
+
+        static void ValidateProperties(Solution solution, int version)
+        {
+            AssertEx.SetEqual(
+                [
+                    $"F#: [fs_optionA = fsA{version}, fs_optionB = fsB{version}]",
+                    $"C#: [cs_optionA = csA{version}, cs_optionB = csB{version}]",
+                    $"Visual Basic: [vb_optionA = vbA{version}, vb_optionB = vbB{version}]",
+                ],
+                solution.FallbackAnalyzerOptions.Select(languageOptions =>
+                    $"{languageOptions.Key}: [" +
+                    $"{string.Join(", ", languageOptions.Value.Keys.Order().Select(k => $"{k} = {(languageOptions.Value.TryGetValue(k, out var v) ? v : null)}"))}]"));
+        }
+
+        Assert.True(workspace.SetCurrentSolution(s => SetSolutionProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
+
+        await VerifySolutionUpdate(workspace,
+            newSolutionGetter: s => SetSolutionProperties(s, version: 1),
+            oldSolutionValidator: s => ValidateProperties(s, version: 0),
+            newSolutionValidator: s => ValidateProperties(s, version: 1)).ConfigureAwait(false);
+    }
+
+    [Fact]
+    public async Task ProjectCountsByLanguage()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("");
+
+        static Solution SetSolutionProperties(Solution solution, int version)
+        {
+            foreach (var projectId in solution.ProjectIds)
+                solution = solution.RemoveProject(projectId);
+
+            for (var i = 0; i < version + 2; i++)
+                solution = solution.AddProject("CS" + i, "CS" + i, LanguageNames.CSharp).Solution;
+
+            return solution
+                .AddProject("VB1", "VB1", LanguageNames.VisualBasic).Solution;
+        }
+
+        static void ValidateProperties(Solution solution, int version)
+        {
+            AssertEx.SetEqual(
+            [
+                (LanguageNames.CSharp, version + 2),
+                (LanguageNames.VisualBasic, 1),
+            ], solution.SolutionState.ProjectCountByLanguage.Select(e => (e.Key, e.Value)));
+        }
+
+        Assert.True(workspace.SetCurrentSolution(s => SetSolutionProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
+
+        await VerifySolutionUpdate(workspace,
+            newSolutionGetter: s => SetSolutionProperties(s, version: 1),
+            oldSolutionValidator: s => ValidateProperties(s, version: 0),
+            newSolutionValidator: s => ValidateProperties(s, version: 1)).ConfigureAwait(false);
+    }
+
+    [Fact]
     public async Task ProjectProperties()
     {
         using var workspace = TestWorkspace.CreateCSharp("");

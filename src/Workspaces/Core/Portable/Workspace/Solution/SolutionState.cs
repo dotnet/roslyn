@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -42,6 +43,16 @@ internal sealed partial class SolutionState
     public SolutionOptionSet Options { get; }
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
+    /// <summary>
+    /// Fallback analyzer config options by language. The set of languages does not need to match the set of langauges of projects included in the surrent solution snapshot.
+    /// </summary>
+    public ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions { get; } = ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty;
+
+    /// <summary>
+    /// Number of projects in the solution of the given language.
+    /// </summary>
+    internal ImmutableDictionary<string, int> ProjectCountByLanguage { get; } = ImmutableDictionary<string, int>.Empty;
+
     private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
     private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
     private readonly ProjectDependencyGraph _dependencyGraph;
@@ -59,6 +70,8 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         SolutionOptionSet options,
         IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions,
+        ImmutableDictionary<string, int> projectCountByLanguage,
         ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
         ProjectDependencyGraph dependencyGraph,
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
@@ -70,6 +83,8 @@ internal sealed partial class SolutionState
         ProjectIds = projectIds;
         Options = options;
         AnalyzerReferences = analyzerReferences;
+        FallbackAnalyzerOptions = fallbackAnalyzerOptions;
+        ProjectCountByLanguage = projectCountByLanguage;
         _projectIdToProjectStateMap = idToProjectStateMap;
         _dependencyGraph = dependencyGraph;
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
@@ -91,7 +106,8 @@ internal sealed partial class SolutionState
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         SolutionOptionSet options,
-        IReadOnlyList<AnalyzerReference> analyzerReferences)
+        IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(
             workspaceKind,
             workspaceVersion: 0,
@@ -100,6 +116,8 @@ internal sealed partial class SolutionState
             projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
             options,
             analyzerReferences,
+            fallbackAnalyzerOptions,
+            projectCountByLanguage: ImmutableDictionary<string, int>.Empty,
             idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
             dependencyGraph: ProjectDependencyGraph.Empty,
             lazyAnalyzers: null)
@@ -151,6 +169,8 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId>? projectIds = null,
         SolutionOptionSet? options = null,
         IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions>? fallbackAnalyzerOptions = null,
+        ImmutableDictionary<string, int>? projectCountByLanguage = null,
         ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
         ProjectDependencyGraph? dependencyGraph = null)
     {
@@ -159,6 +179,8 @@ internal sealed partial class SolutionState
         idToProjectStateMap ??= _projectIdToProjectStateMap;
         options ??= Options;
         analyzerReferences ??= AnalyzerReferences;
+        fallbackAnalyzerOptions ??= FallbackAnalyzerOptions;
+        projectCountByLanguage ??= ProjectCountByLanguage;
         dependencyGraph ??= _dependencyGraph;
 
         var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
@@ -167,6 +189,8 @@ internal sealed partial class SolutionState
             projectIds == ProjectIds &&
             options == Options &&
             analyzerReferencesEqual &&
+            fallbackAnalyzerOptions == FallbackAnalyzerOptions &&
+            projectCountByLanguage == ProjectCountByLanguage &&
             idToProjectStateMap == _projectIdToProjectStateMap &&
             dependencyGraph == _dependencyGraph)
         {
@@ -181,6 +205,8 @@ internal sealed partial class SolutionState
             projectIds,
             options,
             analyzerReferences,
+            fallbackAnalyzerOptions,
+            projectCountByLanguage,
             idToProjectStateMap,
             dependencyGraph,
             analyzerReferencesEqual ? _lazyAnalyzers : null);
@@ -213,6 +239,8 @@ internal sealed partial class SolutionState
             ProjectIds,
             Options,
             AnalyzerReferences,
+            FallbackAnalyzerOptions,
+            ProjectCountByLanguage,
             _projectIdToProjectStateMap,
             _dependencyGraph,
             _lazyAnalyzers);
@@ -301,6 +329,8 @@ internal sealed partial class SolutionState
         if (projectInfos.Count == 0)
             return this;
 
+        var langaugeCountDeltas = new TemporaryArray<(string language, int count)>();
+
         using var _ = ArrayBuilder<ProjectState>.GetInstance(projectInfos.Count, out var projectStates);
         foreach (var projectInfo in projectInfos)
             projectStates.Add(CreateProjectState(projectInfo));
@@ -328,7 +358,14 @@ internal sealed partial class SolutionState
             if (languageServices == null)
                 throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
 
-            var newProject = new ProjectState(languageServices, projectInfo);
+            if (!FallbackAnalyzerOptions.TryGetValue(language, out var fallbackAnalyzerOptions))
+            {
+                fallbackAnalyzerOptions = StructuredAnalyzerConfigOptions.Empty;
+            }
+
+            AddLanguageCount(ref langaugeCountDeltas, language, amount: +1);
+
+            var newProject = new ProjectState(languageServices, projectInfo, fallbackAnalyzerOptions);
             return newProject;
         }
 
@@ -378,6 +415,7 @@ internal sealed partial class SolutionState
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
+                projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, langaugeCountDeltas),
                 dependencyGraph: newDependencyGraph);
         }
     }
@@ -413,11 +451,55 @@ internal sealed partial class SolutionState
         foreach (var projectId in projectIds)
             newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
 
+        var languageCountDeltas = new TemporaryArray<(string language, int count)>();
+        foreach (var projectId in projectIds)
+        {
+            AddLanguageCount(ref languageCountDeltas, _projectIdToProjectStateMap[projectId].Language, amount: -1);
+        }
+
         return this.Branch(
             solutionAttributes: newSolutionAttributes,
             projectIds: newProjectIds,
             idToProjectStateMap: newStateMap,
+            projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, languageCountDeltas),
             dependencyGraph: newDependencyGraph);
+    }
+
+    private static void AddLanguageCount(ref TemporaryArray<(string language, int count)> languageCounts, string language, int amount)
+    {
+        var index = languageCounts.IndexOf(static (c, language) => c.language == language, language);
+        if (index < 0)
+        {
+            languageCounts.Add((language, amount));
+        }
+        else
+        {
+            languageCounts[index] = (language, languageCounts[index].count + amount);
+        }
+    }
+
+    private static ImmutableDictionary<string, int> AddLanguageCounts(ImmutableDictionary<string, int> projectCountByLanguage, in TemporaryArray<(string language, int count)> languageCountDeltas)
+    {
+        foreach (var (language, delta) in languageCountDeltas)
+        {
+            if (!projectCountByLanguage.TryGetValue(language, out var currentCount))
+            {
+                currentCount = 0;
+            }
+
+            var newCount = currentCount + delta;
+            if (newCount > 0)
+            {
+                projectCountByLanguage = projectCountByLanguage.SetItem(language, newCount);
+            }
+            else
+            {
+                Debug.Assert(newCount == 0);
+                projectCountByLanguage = projectCountByLanguage.Remove(language);
+            }
+        }
+
+        return projectCountByLanguage;
     }
 
     /// <summary>
@@ -828,6 +910,36 @@ internal sealed partial class SolutionState
         }
 
         return ForkProject(oldProject, newProject);
+    }
+
+    /// <summary>
+    /// Creates a new solution instance with updated analyzer fallback options.
+    /// </summary>
+    public SolutionState WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+    {
+        if (FallbackAnalyzerOptions == options)
+        {
+            return this;
+        }
+
+        var newProjectStatesMap = _projectIdToProjectStateMap.ToImmutableDictionary(
+            keySelector: static entry => entry.Key,
+            elementSelector: entry =>
+            {
+                // If the new options are specified for the project language we use them,
+                // otherwise we clear the options for the project.
+                if (!options.TryGetValue(entry.Value.Language, out var languageOptions))
+                {
+                    languageOptions = StructuredAnalyzerConfigOptions.Empty;
+                }
+
+                return entry.Value.WithFallbackAnalyzerOptions(languageOptions);
+            });
+
+        return Branch(
+            fallbackAnalyzerOptions: options,
+            idToProjectStateMap: newProjectStatesMap);
+
     }
 
     /// <summary>
