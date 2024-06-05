@@ -130,8 +130,8 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             var level = SegmentedArraySortUtils.Log2((uint)source.Count + 1);
 
             // How many extra elements will be on the last level of the binary tree (if this is not a perfect tree).
-            // For the example above, this is 7.  
-            var extraElementsCount = source.Count - (int)(Math.Pow(2, level) - 1);
+            // For the example above, this is 7.
+            var extraElementsCount = source.Count - ((1 << level) - 1);
 
             if (extraElementsCount > 0)
             {
