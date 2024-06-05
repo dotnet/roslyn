@@ -13,6 +13,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
+/// <summary>
+/// Implementation of an <see cref="IIntervalTree{T}"/> backed by a contiguous array of values.  This is a more memory
+/// efficient way to store an interval tree than the traditional binary tree approach.  This should be used when the 
+/// values of the interval tree are known up front and will not change after the tree is created.
+/// </summary>
+/// <typeparam name="T"></typeparam>
 internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 {
     private readonly record struct Node(T Value, int MaxEndNodeIndex);
