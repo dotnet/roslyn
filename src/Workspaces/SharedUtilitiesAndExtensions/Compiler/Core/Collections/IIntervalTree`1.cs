@@ -27,6 +27,9 @@ internal delegate bool TestInterval<T, TIntrospector>(T value, int start, int le
 /// built upon. Consumers of an interval tree should use <c>.Algorithms</c> on the instance to get access to a wealth of
 /// fast operations through the <see cref="IntervalTreeAlgorithms{T, TIntervalTree}"/> type.
 /// </summary>
+/// <remarks>
+/// Iterating an interval tree will return the intervals in sorted order based on the start point of the interval.
+/// </remarks>
 internal interface IIntervalTree<T> : IEnumerable<T>
 {
     /// <summary>
@@ -210,44 +213,51 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             BuildCompleteTreeRecursive(source, destination, midPoint + 1, endExclusive, GetRightChildIndex(destinationIndex));
         }
 
-        static void ComputeMaxEndNodes(SegmentedArray<Node> array, int currentElementIndex, in TIntrospector introspector)
+        // Returns the max end *position* of tree rooted at currentNodeIndex.  If there is no tree here (it refers to a
+        // null child), then this will return -1;
+        static int ComputeMaxEndNodes(SegmentedArray<Node> array, int currentNodeIndex, in TIntrospector introspector)
         {
-            if (currentElementIndex >= array.Length)
-                return;
+            if (currentNodeIndex >= array.Length)
+                return -1;
 
-            var leftChildIndex = GetLeftChildIndex(currentElementIndex);
-            var rightChildIndex = GetRightChildIndex(currentElementIndex);
+            var leftChildIndex = GetLeftChildIndex(currentNodeIndex);
+            var rightChildIndex = GetRightChildIndex(currentNodeIndex);
 
             // ensure the left and right trees have their max end nodes computed first.
-            ComputeMaxEndNodes(array, leftChildIndex, in introspector);
-            ComputeMaxEndNodes(array, rightChildIndex, in introspector);
+            var leftMaxEndValue = ComputeMaxEndNodes(array, leftChildIndex, in introspector);
+            var rightMaxEndValue = ComputeMaxEndNodes(array, rightChildIndex, in introspector);
 
             // Now get the max end of the left and right children and compare to our end.  Whichever is the rightmost
-            // endpoint is considerd the max end index.
-            var currentNode = array[currentElementIndex];
+            // endpoint is considered the max end index.
+            var currentNode = array[currentNodeIndex];
             var thisEndValue = GetEnd(currentNode.Value, in introspector);
-            var leftEndValue = MaxEndValue(array, leftChildIndex, in introspector);
-            var rightEndValue = MaxEndValue(array, rightChildIndex, in introspector);
 
-            int maxEndNodeIndex;
-            if (thisEndValue >= leftEndValue && thisEndValue >= rightEndValue)
+            if (thisEndValue >= leftMaxEndValue && thisEndValue >= rightMaxEndValue)
             {
-                maxEndNodeIndex = currentElementIndex;
+                // The root's end was further to the right than both the left subtree and the right subtree. No need to
+                // change it as that is what we store by default for any node.
+                return thisEndValue;
             }
-            else if ((leftEndValue >= rightEndValue) && leftEndValue < array.Length)
+
+            // One of the left or right subtrees went further to the right.
+            Contract.ThrowIfTrue(leftMaxEndValue < 0 && rightMaxEndValue < 0);
+
+            if (leftMaxEndValue >= rightMaxEndValue)
             {
-                maxEndNodeIndex = array[leftEndValue].MaxEndNodeIndex;
-            }
-            else if (rightChildIndex < array.Length)
-            {
-                maxEndNodeIndex = array[rightChildIndex].MaxEndNodeIndex;
+                // Set this node's max end to be the left subtree's max end.
+                var maxEndNodeIndex = array[leftChildIndex].MaxEndNodeIndex;
+                array[currentNodeIndex] = new Node(currentNode.Value, maxEndNodeIndex);
+                return leftMaxEndValue;
             }
             else
             {
-                throw ExceptionUtilities.Unreachable();
-            }
+                Contract.ThrowIfFalse(rightMaxEndValue > leftMaxEndValue);
 
-            array[currentElementIndex] = new Node(currentNode.Value, maxEndNodeIndex);
+                // Set this node's max end to be the right subtree's max end.
+                var maxEndNodeIndex = array[rightChildIndex].MaxEndNodeIndex;
+                array[currentNodeIndex] = new Node(currentNode.Value, maxEndNodeIndex);
+                return rightMaxEndValue;
+            }
         }
     }
 
