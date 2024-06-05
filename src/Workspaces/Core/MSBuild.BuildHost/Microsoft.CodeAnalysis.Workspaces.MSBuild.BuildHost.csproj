@@ -30,7 +30,9 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.2" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
     <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\*.cs" Link="InternalUtilities\%(FileName).cs" />
