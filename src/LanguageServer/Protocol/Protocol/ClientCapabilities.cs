@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents client capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#clientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class ClientCapabilities
     {
@@ -34,6 +35,21 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// Window specific client capabilities.
+        /// </summary>
+        [JsonPropertyName("window")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public WindowClientCapabilities? Window { get; init; }
+
+        /// <summary>
+        /// Capabilities specific to the notebook document support.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("general")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public GeneralClientCapabilities? General { get; init; }
 
         /// <summary>
         /// Gets or sets the experimental capabilities.
