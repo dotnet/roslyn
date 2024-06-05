@@ -110,21 +110,21 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         static void BuildCompleteTreeTop(SegmentedList<T> source, SegmentedArray<Node> destination)
         {
             // The nature of a complete tree is that the last level always only contains the odd remaining numbers.
-            // For example, given the initial values 1-14:
+            // For example, given the initial values a-n:
             // 
-            // 1, 2,  3, 4, 5,  6,  7, 8, 9, 10, 11, 12, 13, 14.  The final tree will look like:
-            // 8, 4, 12, 2, 6, 10, 14, 1, 3,  5,  7,  9, 11, 13.  Which corresponds to:
+            // a, b, c, d, e, f, g, h, i, j, k, l, m, n.  The final tree will look like:
+            // h, d, l, b, f, j, n, a, c, e, g, i, k, m.  Which corresponds to:
             //
-            //               8
-            //        /            \
-            //       4              12
-            //      / \            /  \
-            //     2   6        10      14
-            //    / \ / \       / \    /
-            //   1  3 5  7     9  11  13
+            //           h
+            //        /     \
+            //       d       l
+            //      / \     / \
+            //     b   f   j   n
+            //    / \ / \ / \ /
+            //    a c e g i k m
             //
-            // Note that 8-14 (the even elements of the original list) form a perfect balanced tree, and the 1-13 (the
-            // odd elements of the original list) are the remaining values on the last level.
+            // Note that the first 3 levels are the even elements of the original list) which end up forming a perfect
+            // balanced tree, and the odd elements of the original list are the remaining values on the last level.
 
             // How many levels will be in the perfect binary tree.  For the example above, this would be 3. 
             var level = SegmentedArraySortUtils.Log2((uint)source.Count + 1);
@@ -145,13 +145,14 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 }
 
                 // After this, source will be equal to:
-                // 1, 2, 3, 4, 5, 6, 7 - 2, 4, 6, 8, 10, 12, 14.
                 //
-                // In other words, the last half (after '7') will be updated to be the even elements from the original
+                // a, b, c, d, e, f, g - b, d, f, h, j, l, n.
+                //
+                // In other words, the last half (after 'g') will be updated to be the even elements from the original
                 // list.  This will be what we'll create the perfect tree from below.
                 //
                 // Destination will be equal to:
-                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, 3, 5, 7, 9, 11, 13
+                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, c, e, g, i, k, m
                 //
                 // which is the odd elements from the original list.
 
@@ -160,7 +161,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 var firstOddIndex = destination.Length - extraElementsCount;
                 destination[firstOddIndex] = new Node(source[0], MaxEndNodeIndex: firstOddIndex);
                 // Destination will be equal to:
-                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, 1, 3, 5, 7, 9, 11, 13
+                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, a, c, e, g, i, k, m
             }
 
             // Recursively build the perfect balanced subtree from the remaining elements, storing them into the start
