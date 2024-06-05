@@ -140,6 +140,9 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
     private static int Height(Node? node)
         => node == null ? 0 : node.Height;
 
+    /// <summary>
+    /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
+    /// </summary>
     private readonly struct BinaryIntervalTreeHelper : IIntervalTreeHelper<T, BinaryIntervalTree<T>, Node>
     {
         public T GetValue(BinaryIntervalTree<T> tree, Node node)
