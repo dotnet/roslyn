@@ -47,7 +47,7 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
     /// <summary>
     /// Mutable.  Must only be accessed from the UI thread.
     /// </summary>
-    private SimpleBinaryIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
+    private SimpleMutableIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
 
     public InheritanceGlyphManager(
         Workspace workspace,
