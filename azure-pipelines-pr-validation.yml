@@ -68,7 +68,7 @@ stages:
         script: |
           Write-Host "##vso[build.addBuildTag]OfficialBuild"
           Write-Host "##vso[build.addBuildTag]${{ parameters.CommitSHA }}"
-          Write-Host "##vso[build.addBuildTag]PRNumber:${{ parameters.PRNumber }}"
+          Write-Host "##vso[build.addBuildTag]PRNumber${{ parameters.PRNumber }}"
       condition: succeeded()
 
     - task: PowerShell@2
