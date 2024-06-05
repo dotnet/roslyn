@@ -11766,7 +11766,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             ImmutableArray<MethodSymbol> methods = this.VisitSymbols<MethodSymbol>(node.Methods);
             Symbol? lookupSymbolOpt = this.VisitSymbol(node.LookupSymbolOpt);
-            return node.Update(node.TypeArgumentsSyntax, node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, node.FunctionType, receiverOpt, node.ResultKind);
+            FunctionTypeSymbol? functionType = this.VisitFunctionTypeSymbol(node.FunctionType);
+            return node.Update(node.TypeArgumentsSyntax, node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, functionType, receiverOpt, node.ResultKind);
         }
         public override BoundNode? VisitPropertyGroup(BoundPropertyGroup node)
         {
@@ -12053,7 +12054,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUnboundLambda(UnboundLambda node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Data, node.FunctionType, node.WithDependencies);
+            FunctionTypeSymbol? functionType = this.VisitFunctionTypeSymbol(node.FunctionType);
+            return node.Update(node.Data, functionType, node.WithDependencies);
         }
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {

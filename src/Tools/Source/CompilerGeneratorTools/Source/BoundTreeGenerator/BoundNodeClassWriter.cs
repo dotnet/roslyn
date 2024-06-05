@@ -1055,7 +1055,7 @@ namespace BoundTreeGenerator
         private static bool TypeIsSymbol(string type) => type.TrimEnd('?').EndsWith("Symbol");
 
         private static bool TypeIsNonTypeSymbol(Field field) => TypeIsNonTypeSymbol(field.Type);
-        private static bool TypeIsNonTypeSymbol(string type) => TypeIsSymbol(type) && !type.TrimEnd('?').EndsWith("TypeSymbol");
+        private static bool TypeIsNonTypeSymbol(string type) => TypeIsSymbol(type) && type.TrimEnd('?') != "TypeSymbol";
 
         private string StripBound(string name)
         {
