@@ -25,11 +25,6 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
 
     private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
-    /// <summary>
-    /// Keep around a fair number of these as we often use them in parallel algorithms.
-    /// </summary>
-    private static readonly ObjectPool<Stack<Node>> s_nodePool = new(() => new(), 128);
-
     protected Node? root;
 
     public static BinaryIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
@@ -52,34 +47,7 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
     public IntervalTreeAlgorithms<T, BinaryIntervalTree<T>> Algorithms => new(this);
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-    {
-        // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
-        if (root is null)
-            return false;
-
-        using var _ = s_nodePool.GetPooledObject(out var candidates);
-
-        var end = start + length;
-
-        candidates.Push(root);
-
-        while (candidates.TryPop(out var currentNode))
-        {
-            // Check the nodes as we go down.  That way we can stop immediately when we find something that matches,
-            // instead of having to do an entire in-order walk, which might end up hitting a lot of nodes we don't care
-            // about and placing a lot into the stack.
-            if (testInterval(currentNode.Value, start, length, in introspector))
-                return true;
-
-            if (ShouldExamineRight(start, end, currentNode, in introspector, out var right))
-                candidates.Push(right);
-
-            if (ShouldExamineLeft(start, currentNode, in introspector, out var left))
-                candidates.Push(left);
-        }
-
-        return false;
-    }
+        => IntervalTreeHelpers<T, BinaryIntervalTree<T>, Node, BinaryIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,

@@ -167,11 +167,6 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     private static readonly ObjectPool<Stack<(int nodeIndex, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
     /// <summary>
-    /// Keep around a fair number of these as we often use them in parallel algorithms.
-    /// </summary>
-    private static readonly ObjectPool<Stack<int>> s_nodeIndexPool = new(() => new(), 128, trimOnFree: false);
-
-    /// <summary>
     /// The nodes of this interval tree flatted into a single array.  The root is as index 0.  The left child of any
     /// node at index <c>i</c> is at <c>2*i + 1</c> and the right child is at <c>2*i + 2</c>. If a left/right child
     /// index is beyond the length of this array, that is equivalent to that node not having such a child.
@@ -407,36 +402,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         => introspector.GetSpan(value).End;
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-    {
-        // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
-        var array = _array;
-        if (array.Length == 0)
-            return false;
-
-        using var _ = s_nodeIndexPool.GetPooledObject(out var candidates);
-
-        var end = start + length;
-
-        candidates.Push(0);
-
-        while (candidates.TryPop(out var currentNodeIndex))
-        {
-            // Check the nodes as we go down.  That way we can stop immediately when we find something that matches,
-            // instead of having to do an entire in-order walk, which might end up hitting a lot of nodes we don't care
-            // about and placing a lot into the stack.
-            var node = array[currentNodeIndex];
-            if (testInterval(node.Value, start, length, in introspector))
-                return true;
-
-            if (ShouldExamineRight(array, start, end, currentNodeIndex, in introspector, out var rightIndex))
-                candidates.Push(rightIndex);
-
-            if (ShouldExamineLeft(array, start, currentNodeIndex, in introspector, out var leftIndex))
-                candidates.Push(leftIndex);
-        }
-
-        return false;
-    }
+        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
@@ -532,7 +498,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, int, FlatArrayIntervalTreeHelper>.GetEnumerator(this);
+        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.GetEnumerator(this);
 
     private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeHelper<T, FlatArrayIntervalTree<T>, int>
     {
