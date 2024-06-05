@@ -80,6 +80,7 @@ extends:
             InsertionBuildPolicy: Request Perf DDRITs
             InsertionReviewers: $(Build.RequestedFor)
             AutoCompletePR: false
+            ShallowClone: true
         - powershell: |
             $insertionPRId = azure-pipelines/Get-InsertionPRId.ps1
             $Markdown = @"
