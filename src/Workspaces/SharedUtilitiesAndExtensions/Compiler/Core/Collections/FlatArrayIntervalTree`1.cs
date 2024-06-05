@@ -296,8 +296,8 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
         static void BuildCompleteTreeTop(SegmentedList<T> source, SegmentedArray<Node> destination)
         {
-            // The nature of a complete tree is that the last level always only contains the odd remaining numbers.
-            // For example, given the initial values a-n:
+            // The nature of a complete tree is that the last level always only contains the elements at the even
+            // indices of the original source. For example, given the initial values a-n:
             // 
             // a, b, c, d, e, f, g, h, i, j, k, l, m, n.  The final tree will look like:
             // h, d, l, b, f, j, n, a, c, e, g, i, k, m.  Which corresponds to:
@@ -310,8 +310,9 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             //    / \ / \ / \ /
             //    a c e g i k m
             //
-            // Note that the first 3 levels are the even elements of the original list) which end up forming a perfect
-            // balanced tree, and the odd elements of the original list are the remaining values on the last level.
+            // Note that the first 3 levels are the elements at the odd indices of the original list) which end up
+            // forming a perfect balanced tree, and the elements at the even indices of the original list are the
+            // remaining values on the last level.
 
             // How many levels will be in the perfect binary tree.  For the example above, this would be 3. 
             var level = SegmentedArraySortUtils.Log2((uint)source.Count + 1);
