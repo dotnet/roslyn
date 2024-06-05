@@ -2676,99 +2676,100 @@ class Program
         public void RefLikeEscapeMixingIndexer(LanguageVersion languageVersion)
         {
             var tree = SyntaxFactory.ParseSyntaxTree("""
-            using System;
-            ref struct S1
-            {
-                public int this[Span<int> span] => 42;
-
-                static void Test()
+                using System;
+                ref struct S1
                 {
-                    Span<int> stackSpan = stackalloc int[] { 13 };
-                    Span<int> heapSpan = default;
-                    S1 local = default;
-                    _ = local[stackSpan]; // 1
-                    _ = local[heapSpan];
-                }
-            }
+                    public int this[Span<int> span] => 42;
 
-            ref struct S2
-            {
-                public readonly int this[Span<int> span] => 42;
-
-                static void Test()
-                {
-                    Span<int> stackSpan = stackalloc int[] { 13 };
-                    Span<int> heapSpan = default;
-                    S2 local = default;
-                    _ = local[stackSpan];
-                    _ = local[heapSpan];
-                }
-            }
-
-            ref struct S3
-            {
-                public int this[Span<int> span]
-                {
-                    get => 42;
-                    set { }
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S1 local = default;
+                        _ = local[stackSpan]; // 1
+                        _ = local[heapSpan];
+                    }
                 }
 
-                static void Test()
+                ref struct S2
                 {
-                    Span<int> stackSpan = stackalloc int[] { 13 };
-                    Span<int> heapSpan = default;
-                    S3 local = default;
-                    _ = local[stackSpan]; // 2
-                    _ = local[heapSpan];
-                    local[stackSpan] = 42; // 3
-                    local[heapSpan] = 42;
-                }
-            }
+                    public readonly int this[Span<int> span] => 42;
 
-            ref struct S4
-            {
-                public int this[Span<int> span]
-                {
-                    readonly get => 42;
-                    set { }
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S2 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                    }
                 }
 
-                static void Test()
+                ref struct S3
                 {
-                    Span<int> stackSpan = stackalloc int[] { 13 };
-                    Span<int> heapSpan = default;
-                    S4 local = default;
-                    _ = local[stackSpan];
-                    _ = local[heapSpan];
-                    local[stackSpan] = 42; // 4
-                    local[heapSpan] = 42;
-                }
-            }
+                    public int this[Span<int> span]
+                    {
+                        get => 42;
+                        set { }
+                    }
 
-            ref struct S5
-            {
-                public int this[Span<int> span]
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S3 local = default;
+                        _ = local[stackSpan]; // 2
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42; // 3
+                        local[heapSpan] = 42;
+                    }
+                }
+
+                ref struct S4
                 {
-                    get => 42;
-                    readonly set { }
+                    public int this[Span<int> span]
+                    {
+                        readonly get => 42;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S4 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42; // 4
+                        local[heapSpan] = 42;
+                    }
                 }
 
-                static void Test()
+                ref struct S5
                 {
-                    Span<int> stackSpan = stackalloc int[] { 13 };
-                    Span<int> heapSpan = default;
-                    S5 local = default;
-                    _ = local[stackSpan]; // 5
-                    _ = local[heapSpan];
-                    local[stackSpan] = 42;
-                    local[heapSpan] = 42;
+                    public int this[Span<int> span]
+                    {
+                        get => 42;
+                        readonly set { }
+                    }
 
-                    local[stackSpan]++; // 6
-                    local[heapSpan]++;
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S5 local = default;
+                        _ = local[stackSpan]; // 5
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42;
+                        local[heapSpan] = 42;
+
+                        local[stackSpan]++; // 6
+                        local[heapSpan]++;
+                    }
                 }
-            }
 
-            """, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+                """, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
             var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (11,13): error CS8350: This combination of arguments to 'S1.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
@@ -2807,6 +2808,32 @@ class Program
                 // (88,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[stackSpan]++; // 6
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(88, 15));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingIndexer2(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S
+                {
+                    int this[Span<byte> span] { readonly get => 0; set {} }
+
+                    static void M(S s)
+                    {
+                        Span<byte> span = stackalloc byte[10];
+
+                        // `span` can't escape into `s` here because the get is readonly
+                        _ = s[span];
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]

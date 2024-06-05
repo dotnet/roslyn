@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Xml.Xsl;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -23,6 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReturnOnly = ReturnOnlyScope,
         }
 
+        /// <summary>
+        /// Encapsulates a property or indexer and the accessor(s) on it that were used. The particular
+        /// indexer used is important as it impacts ref safety analysis
+        /// </summary>
         private readonly struct MethodInfo
         {
             internal Symbol Symbol { get; }
@@ -2344,6 +2347,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static EscapeArgument getReceiver(in MethodInfo methodInfo, BoundExpression receiver)
             {
+                // When there is compound usage the receiver is used once but both the get and 
+                // set methods are invoked. Return the most permissive of the two in order to get
+                // the complete set of ref safety errors.
                 if (methodInfo.IsCompoundUsage)
                 {
                     Debug.Assert(methodInfo.SetMethod is not null);
