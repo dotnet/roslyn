@@ -163,7 +163,7 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             //       __/ \__       / \
             //       b     f      h   j
             //      / \   /
-            //      a c   e 
+            //      a c   e
             // 
             // 13 elements:
             // h, d, l, b, f, j, m, a, c, e, g, i, k
