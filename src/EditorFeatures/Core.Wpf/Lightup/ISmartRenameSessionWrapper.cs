@@ -93,7 +93,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         => s_getSuggestionsAsync(_instance, cancellationToken);
 
     public Task<IReadOnlyList<string>> GetSuggestionsAsync(ImmutableDictionary<string, string[]> context, CancellationToken cancellationToken)
-        => s_getSuggestionsAsync(_instance, context, cancellationToken);
+        => s_getSuggestionsAsync_WithContext(_instance, context, cancellationToken);
 
     public void OnCancel()
         => s_onCancel(_instance);
