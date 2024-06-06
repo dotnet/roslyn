@@ -7,8 +7,9 @@ using System.Collections.Generic;
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
 /// <summary>
-/// Generic function representing the type of interval testing operation that can be performed on an interval tree. For
-/// example checking if an interval 'contains', 'intersects', or 'overlaps' with a requested span.
+/// Generic interface used to pass in the particular interval testing operation to performed on an interval tree. For
+/// example checking if an interval 'contains', 'intersects', or 'overlaps' with a requested span.  Will be erased at 
+/// runtime as it will always be passed through as a generic parameter that is a struct.
 /// </summary>
 internal interface IIntervalTester<T, TIntrospector>
     where TIntrospector : struct, IIntervalIntrospector<T>
