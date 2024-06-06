@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Collections.Internal;
 using Roslyn.Utilities;
@@ -88,116 +90,72 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
         var array = new SegmentedArray<Node>(values.Count);
 
         // Place the values into the array in a way that will create a complete binary tree.
-        BuildCompleteTreeTop(values, array);
+        BuildCompleteTree(values, sourceStartInclusive: 0, sourceEndExclusive: values.Count, array, destinationIndex: 0);
 
         // Next, do a pass over the entire tree, updating each node to point at the max end node in its subtree.
         ComputeMaxEndNodes(array, 0, in introspector);
 
         return new ImmutableIntervalTree<T>(array);
 
-        static void BuildCompleteTreeTop(SegmentedList<T> source, SegmentedArray<Node> destination)
+        static void BuildCompleteTree(
+            SegmentedList<T> source, int sourceStartInclusive, int sourceEndExclusive, SegmentedArray<Node> destination, int destinationIndex)
         {
-            // The nature of a complete tree is that the last level always only contains the elements at the even
-            // indices of the original source. For example, given the initial values a-n:
-            // 
-            // a, b, c, d, e, f, g, h, i, j, k, l, m, n.  The final tree will look like:
-            // h, d, l, b, f, j, n, a, c, e, g, i, k, m.  Which corresponds to:
-            //
-            //           h
-            //        /     \
-            //       d       l
-            //      / \     / \
-            //     b   f   j   n
-            //    / \ / \ / \ /
-            //    a c e g i k m
-            //
-            // Note that the first 3 levels are the elements at the odd indices of the original list) which end up
-            // forming a perfect balanced tree, and the elements at the even indices of the original list are the
-            // remaining values on the last level.
-
-            // How many levels will be in the perfect binary tree.  For the example above, this would be 3. 
-            var level = SegmentedArraySortUtils.Log2((uint)source.Count + 1);
-
-            // How many extra elements will be on the last level of the binary tree (if this is not a perfect tree).
-            // For the example above, this is 7.
-            var extraElementsCount = source.Count - ((1 << level) - 1);
-
-            if (extraElementsCount > 0)
-            {
-                // Where at the end to start swapping elements from.  In the above example, this would be 12.
-                var lastElementToSwap = extraElementsCount * 2 - 2;
-
-                for (int i = lastElementToSwap, j = 0; i > 1; i -= 2, j++)
-                {
-                    var destinationIndex = destination.Length - 1 - j;
-                    destination[destinationIndex] = new Node(source[i], MaxEndNodeIndex: destinationIndex);
-                    source[lastElementToSwap - j] = source[i - 1];
-
-                    // The above loop will do the following over the first few iterations (changes highlighted with *):
-                    //
-                    // Dst: ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞,   ∞, *m* // m placed at the end of the destination.
-                    // Src: a, b, c, d, e, f, g, h, i, j, k, l, *l*,   n // l moved to where m was in the original source.
-                    //
-                    // Dst: ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞,   ∞, *k*, m // k placed right before m in the destination.
-                    // Src: a, b, c, d, e, f, g, h, i, j, k, *j*,   l, n // j moved right before where we placed l in the original source.
-                    //
-                    // Dst: ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞,   ∞, *i*, k, m // i placed right before k in the destination.
-                    // Src: a, b, c, d, e, f, g, h, i, j, *h*,   j, l, n // h moved right before where we placed j in the original source.
-                    //
-                    // Each iteration takes the next element at an even index from the end of the source list and places
-                    // it at the next available space from the end of the destination array (effectively building the
-                    // last row of the complete binary tree).
-                    //
-                    // It then takes the next element at an odd index from the end of the source list and moves it to
-                    // the next spot from the end of the source list.  This makes the end of the source-list contain the
-                    // original odd-indexed elements (up the perfect-complete count of elements), now abutted against
-                    // each other.
-                }
-
-                // After the loop above fully completes, source will be equal to:
-                //
-                // a, b, c, d, e, f, g - b, d, f, h, j, l, n.
-                //
-                // The last half (after 'g') will be updated to be the odd-indexed elements from the original list.
-                // This will be what we'll create the perfect tree from below.  We will not look at the elements before
-                // this in 'source' as they are already either in the correct place in the 'source' *or* 'destination'
-                // arrays.
-                //
-                // Destination will be equal to:
-                // ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, c, e, g, i, k, m
-                //
-                // which is the elements at the original even indices from the original list.
-
-                // The above loop will not hit the first element in the list (since we do not want to do a swap for the
-                // root element).  So we have to handle this case specially at the end.
-                var firstOddIndex = destination.Length - extraElementsCount;
-                destination[firstOddIndex] = new Node(source[0], MaxEndNodeIndex: firstOddIndex);
-                // Destination will be equal to:
-                // ∞, ∞, ∞, ∞, ∞, ∞, ∞, a, c, e, g, i, k, m
-            }
-
-            // Recursively build the perfect balanced subtree from the remaining elements, storing them into the start
-            // of the array.  In the above example, this is building the perfect balanced tree for the elements
-            // b, d, f, h, j, l, n.
-            BuildCompleteTreeRecursive(
-                source, destination, startInclusive: extraElementsCount, endExclusive: source.Count, destinationIndex: 0);
-        }
-
-        static void BuildCompleteTreeRecursive(
-            SegmentedList<T> source,
-            SegmentedArray<Node> destination,
-            int startInclusive,
-            int endExclusive,
-            int destinationIndex)
-        {
-            if (startInclusive >= endExclusive)
+            var length = sourceEndExclusive - sourceStartInclusive;
+            if (length == 0)
                 return;
 
-            var midPoint = (startInclusive + endExclusive) / 2;
-            destination[destinationIndex] = new Node(source[midPoint], MaxEndNodeIndex: destinationIndex);
+            // Find the element we want to make the root of this subtree.
+            //
+            // Note: rootIndex is computed entirely based on the length of the subtree.  So it comes back in the range
+            // [0, length).  
+            //
+            // To then index into source, we need to offset it by sourceStartInclusive as that is the start of the
+            // source corresponding to the subtree we've walked into.
+            var rootIndex = GetRootSourceIndex(length);
 
-            BuildCompleteTreeRecursive(source, destination, startInclusive, midPoint, GetLeftChildIndex(destinationIndex));
-            BuildCompleteTreeRecursive(source, destination, midPoint + 1, endExclusive, GetRightChildIndex(destinationIndex));
+            // Place that element in the appropriate location in the destination.
+            destination[destinationIndex] = new(source[sourceStartInclusive + rootIndex], destinationIndex);
+
+            // Now recurse into the left and right subtrees to the left/right of the root index in this subtree.
+            BuildCompleteTree(source, sourceStartInclusive, sourceStartInclusive + rootIndex, destination, destinationIndex * 2 + 1);
+            BuildCompleteTree(source, sourceStartInclusive + rootIndex + 1, sourceEndExclusive, destination, destinationIndex * 2 + 2);
+        }
+
+        // <param name="subtreeNodeCount">Number of nodes in this particular subtree</param>
+        static int GetRootSourceIndex(int subtreeNodeCount)
+        {
+            // Trivial case.  The tree has one element.  That element will be the root.
+            if (subtreeNodeCount == 1)
+                return 0;
+
+            // A subtree will have some perfect section (an entirely filled binary tree), and some remaining
+            // 'complete' items on the last row.  For example:
+            //
+            //         D
+            //        / \
+            //       B   E
+            //      / \
+            //     A   C
+            //
+            // Here, the perfect portion is D/B/E, with a height of 2.
+            var perfectPortionHeight = SegmentedArraySortUtils.Log2((uint)subtreeNodeCount + 1);
+
+            // Then number of nodes in the perfect section (D/B/E).  Here that value is
+            // 3.  (1 << 2) - 1
+            var perfectSectionNodeCount = (1 << perfectPortionHeight) - 1;
+
+            // If the entire subtree we're looking at is perfect or not.  It's perfect if every layer is full.
+            // In the above example, the tree is not perfect.
+            var isPerfect = perfectSectionNodeCount == subtreeNodeCount;
+
+            // The total tree height.  If we're perfect, it's the height of the perfect portion.  Otherwise
+            // it's one higher (to fit the remaining 'complete' items).
+            var treeHeight = isPerfect ? perfectPortionHeight : perfectPortionHeight + 1;
+
+            // How many nodes would be in the tree was perfect.
+            var nodeCountIfTreeWerePerfect = (1 << treeHeight) - 1;
+
+            return (perfectSectionNodeCount / 2) + Math.Min(subtreeNodeCount - perfectSectionNodeCount, (nodeCountIfTreeWerePerfect - perfectSectionNodeCount) / 2);
         }
 
         // Returns the max end *position* of tree rooted at currentNodeIndex.  If there is no tree here (it refers to a
