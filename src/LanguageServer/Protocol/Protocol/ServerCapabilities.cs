@@ -53,6 +53,13 @@ namespace Roslyn.LanguageServer.Protocol
         };
 
         /// <summary>
+        /// Defines how notebook documents are synced.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("notebookDocumentSync")]
+        public SumType<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>? NotebookDocumentSync { get; init; }
+
+        /// <summary>
         /// Gets or sets the value which indicates if completions are supported.
         /// </summary>
         [JsonPropertyName("completionProvider")]

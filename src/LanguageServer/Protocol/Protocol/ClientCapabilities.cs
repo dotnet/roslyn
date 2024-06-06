@@ -37,6 +37,14 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
+        /// Capabilities specific to the notebook document support.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("notebook")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public NotebookDocumentClientCapabilities? Notebook { get; init; }
+
+        /// <summary>
         /// Window specific client capabilities.
         /// </summary>
         [JsonPropertyName("window")]
