@@ -58,8 +58,7 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
         using var enumerator = new NodeEnumerator<TIntrospector>(tree, start, end, introspector);
         while (enumerator.MoveNext())
         {
-            var currentNode = enumerator.Current;
-            var currentNodeValue = witness.GetValue(tree, currentNode);
+            var currentNodeValue = witness.GetValue(tree, enumerator.Current);
             if (testInterval(currentNodeValue, start, length, in introspector))
             {
                 matchCount++;
