@@ -163,48 +163,24 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var witness = default(TIntervalTreeWitness);
-        if (!witness.TryGetRoot(tree, out var root))
-            return 0;
 
-        using var _ = s_nodeStackPool.GetPooledObject(out var stack);
-        var currentNode = root;
-        var currentNodeHasValue = true;
-
-        var matches = 0;
+        var matchCount = 0;
         var end = start + length;
 
-        while (currentNodeHasValue || stack.Count > 0)
+        foreach (var currentNode in GetNodeEnumerator(tree, start, end, in introspector))
         {
-            // Traverse down the left side of the tree, as long as the left node as long as it overlaps 'start' in some
-            // way, pushing nodes onto the stack as we go.
-            while (currentNodeHasValue)
-            {
-                stack.Push(currentNode!);
-                currentNodeHasValue = ShouldExamineLeft(tree, start, currentNode!, in introspector, out currentNode);
-            }
-
-            Contract.ThrowIfTrue(currentNodeHasValue);
-            Contract.ThrowIfTrue(stack.Count == 0);
-            currentNode = stack.Pop();
-
-            // We only get to a node once we've finished walking the left side of it.  So we can now process the parent
-            // node at that point.
-
             var currentNodeValue = witness.GetValue(tree, currentNode);
             if (testInterval(currentNodeValue, start, length, in introspector))
             {
-                matches++;
+                matchCount++;
                 builder.Add(currentNodeValue);
 
                 if (stopAfterFirst)
                     return 1;
             }
-
-            // Now traverse down the right side as long as it could overlap start/end in some way.
-            currentNodeHasValue = ShouldExamineRight(tree, start, end, currentNode, introspector, out currentNode);
         }
 
-        return matches;
+        return matchCount;
     }
 
     public static bool Any<TIntrospector>(TIntervalTree tree, int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
