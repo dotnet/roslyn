@@ -4,16 +4,24 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Roslyn.Test.Utilities;
-
-[Export, Shared, PartNotDiscoverable]
-[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TestWorkspaceConfigurationService() : IWorkspaceConfigurationService
+namespace Roslyn.Test.Utilities
 {
-    public WorkspaceConfigurationOptions Options { get; set; }
+    [Export]
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test)]
+    [Shared]
+    [PartNotDiscoverable]
+    internal sealed class TestWorkspaceConfigurationService : IWorkspaceConfigurationService
+    {
+        public WorkspaceConfigurationOptions Options { get; set; }
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestWorkspaceConfigurationService()
+        {
+        }
+    }
 }
