@@ -65,7 +65,7 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
             // After we're called once, we're in the started point.
             _started = true;
 
-            while (_currentNodeHasValue || _stack.Count > 0)
+            if (_currentNodeHasValue || _stack.Count > 0)
             {
                 // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
                 while (_currentNodeHasValue)
