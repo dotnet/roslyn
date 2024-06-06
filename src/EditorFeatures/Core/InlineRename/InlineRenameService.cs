@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Navigation;
@@ -84,6 +85,12 @@ internal sealed class InlineRenameService(
         {
             return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
         }
+
+        var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+            document, textSpan.Start, cancellationToken).ConfigureAwait(false);
+
+        var docComment = symbol.GetDocumentationCommentXml();
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var snapshot = text.FindCorrespondingEditorTextSnapshot();

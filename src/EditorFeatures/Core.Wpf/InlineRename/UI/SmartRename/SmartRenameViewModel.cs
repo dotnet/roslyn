@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,7 +122,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
 
         BaseViewModel = baseViewModel;
-        this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
+        BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
         GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
 
@@ -150,7 +153,30 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
 
-            _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+            var allRenameLocations = BaseViewModel.Session.AllRenameLocationsTask.Join();
+            ImmutableDictionary<string, string[]> context = default;
+            if (allRenameLocations.Locations.Count > 0)
+            {
+                var references = new List<string>();
+                foreach (var renameLocation in allRenameLocations.Locations)
+                {
+                    var syntaxTree = renameLocation.Document.GetSyntaxTreeSynchronously(_cancellationTokenSource.Token);
+                    var text = syntaxTree.GetText(_cancellationTokenSource.Token);
+                    var lineSpan = syntaxTree.GetLineSpan(renameLocation.TextSpan, _cancellationTokenSource.Token);
+
+                    var startLine = lineSpan.StartLinePosition.Line;
+                    var endLine = lineSpan.EndLinePosition.Line;
+
+                    var documentContent = string.Join(
+                        Environment.NewLine,
+                        text.Lines.Skip(startLine).Take(endLine - startLine + 1).Select(l => l.ToString()));
+                    references.Add(documentContent);
+                }
+                var contextBuilder = ImmutableDictionary.CreateBuilder<string, string[]>();
+                contextBuilder.Add("Reference", references.ToArray());
+                context = contextBuilder.ToImmutableDictionary();
+            }
+            _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(context, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
     }
 
@@ -196,7 +222,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         // The previous element of first element is the last one. And the next element of the last element is the first one.
         var currentIndex = SuggestedNames.IndexOf(currentIdentifier);
         currentIndex += down ? 1 : -1;
-        var count = this.SuggestedNames.Count;
+        var count = SuggestedNames.Count;
         currentIndex = (currentIndex + count) % count;
         return SuggestedNames[currentIndex];
     }
