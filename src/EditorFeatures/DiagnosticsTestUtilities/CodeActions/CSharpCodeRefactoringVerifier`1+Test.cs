@@ -124,14 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             private static readonly TestComposition s_editorFeaturesOOPComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
-            protected override Task<Workspace> CreateWorkspaceImplAsync()
+            protected override Workspace CreateWorkspaceImpl()
             {
                 if (TestHost == TestHost.InProcess)
-                    return base.CreateWorkspaceImplAsync();
+                    return base.CreateWorkspaceImpl();
 
                 var hostServices = s_editorFeaturesOOPComposition.GetHostServices();
                 var workspace = new AdhocWorkspace(hostServices);
-                return Task.FromResult<Workspace>(workspace);
+                return workspace;
             }
 #endif
         }

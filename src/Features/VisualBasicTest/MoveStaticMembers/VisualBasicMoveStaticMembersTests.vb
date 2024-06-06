@@ -3065,7 +3065,7 @@ End Namespace"
 
             Private ReadOnly _newType As Boolean
 
-            Protected Overrides Function CreateWorkspaceImplAsync() As Task(Of Workspace)
+            Protected Overrides Function CreateWorkspaceImpl() As Workspace
                 Dim hostServices = s_testServices.GetHostServices()
                 Dim workspace = New AdhocWorkspace(hostServices)
                 Dim optionsService = DirectCast(workspace.Services.GetRequiredService(Of IMoveStaticMembersOptionsService)(), TestMoveStaticMembersService)
@@ -3079,7 +3079,7 @@ End Namespace"
                 End If
                 optionsService.CreateNew = _newType
 
-                Return Task.FromResult(Of Workspace)(workspace)
+                Return workspace
             End Function
         End Class
 

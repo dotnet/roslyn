@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
@@ -4543,23 +4542,37 @@ namespace N
 
         #endregion
 
+        private static void AddSolutionTransform(List<Func<Solution, ProjectId, Solution>> solutionTransforms)
+        {
+            solutionTransforms.Add((solution, projectId) =>
+            {
+                var project = solution.GetProject(projectId)!;
+
+                var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
+                // enable nullable
+                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+                solution = solution
+                    .WithProjectCompilationOptions(projectId, compilationOptions)
+                    .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
+
+                return solution;
+            });
+        }
+
         private class RefactoringTest : VerifyCSRefactoring.Test
         {
             public RefactoringTest()
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
                 LanguageVersion = LanguageVersion.CSharp10;
+                AddSolutionTransform(SolutionTransforms);
                 MarkupOptions = MarkupOptions.UseFirstDescriptor;
             }
 
-            protected override CompilationOptions CreateCompilationOptions()
+            protected override Workspace CreateWorkspaceImpl()
             {
-                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+                var workspace = new AdhocWorkspace();
 
-                // enable nullable
-                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
-
-                return compilationOptions;
+                return workspace;
             }
         }
 
@@ -4583,18 +4596,8 @@ namespace N
         {
             public CodeFixTest()
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
                 LanguageVersion = LanguageVersion.CSharp10;
-            }
-
-            protected override CompilationOptions CreateCompilationOptions()
-            {
-                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
-
-                // enable nullable
-                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
-
-                return compilationOptions;
+                AddSolutionTransform(SolutionTransforms);
             }
         }
 

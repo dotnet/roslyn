@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
                 return SpecializedCollections.SingletonEnumerable(new CSharpExtractClassCodeRefactoringProvider(service));
             }
 
-            protected override Task<Workspace> CreateWorkspaceImplAsync()
+            protected override Workspace CreateWorkspaceImpl()
             {
                 var unusedCompilationOptions = new CSharpCompilationOptions(OutputKind.NetModule);
                 var unusedParseOptions = new CSharpParseOptions(LanguageVersion.CSharp1);
-                return Task.FromResult<Workspace>(TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, unusedCompilationOptions, unusedParseOptions));
+                return TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, unusedCompilationOptions, unusedParseOptions);
             }
         }
 
