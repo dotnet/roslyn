@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4501,8 +4502,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ParseAttributeWithLambaPathological()
         {
             // Ensure we can parse this pathological lambda attribute code without getting into exponential time.
-            var tree = ParseTree(Resources.PathologicalLambdaAttributeCode, CSharpParseOptions.Default);
-            var root = tree.GetRoot();
+            int n = 30;
+            var builder = new StringBuilder();
+            for (int i = 0; i < n; i++)
+                builder.Append("[A(");
+            for (int i = 0; i < n; i++)
+                builder.Append(")]");
+            builder.Append("class C { }");
+
+            var tree = ParseTree(builder.ToString(), CSharpParseOptions.Default);
         }
     }
 }
