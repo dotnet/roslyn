@@ -4124,6 +4124,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }
