@@ -1,15 +1,15 @@
 {
   "sdk": {
-    "version": "8.0.301",
+    "version": "8.0.101",
     "allowPrerelease": false,
-    "rollForward": "latestPatch"
+    "rollForward": "disable"
   },
   "tools": {
-    "dotnet": "8.0.301",
+    "dotnet": "8.0.101",
     "vs": {
-      "version": "17.6.0"
+      "version": "17.8.0"
     },
-    "xcopy-msbuild": "17.6.0-2"
+    "xcopy-msbuild": "17.8.1-2"
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.24270.4",
