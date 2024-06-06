@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -107,16 +108,18 @@ internal class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDi
 
     private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
     {
-        if (e.Option == StackTraceExplorerOptionsStorage.OpenOnFocus && e.Value is not null)
+        foreach (var (key, newValue) in e.ChangedOptions)
         {
-            var enabled = (bool)e.Value;
-            if (enabled)
+            if (key.Option.Equals(StackTraceExplorerOptionsStorage.OpenOnFocus) && newValue is bool enabled)
             {
-                AdviseBroadcastMessages();
-            }
-            else
-            {
-                UnadviseBroadcastMessages();
+                if (enabled)
+                {
+                    AdviseBroadcastMessages();
+                }
+                else
+                {
+                    UnadviseBroadcastMessages();
+                }
             }
         }
     }
