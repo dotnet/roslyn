@@ -1891,7 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 node,
                 locals,
-                GetDeclaredLocalFunctionsForScope(node),
+                ImmutableArray<MethodSymbol>.CastUp(GetDeclaredLocalFunctionsForScope(node)),
                 hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
                 instrumentation: null,
                 boundStatements);

@@ -521,6 +521,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
+            return Block(locals, ImmutableArray<MethodSymbol>.CastUp(localFunctions), statements);
+        }
+
+        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<MethodSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
+        {
             return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, instrumentation: null, statements) { WasCompilerGenerated = true };
         }
 
