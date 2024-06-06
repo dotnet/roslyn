@@ -125,8 +125,8 @@ internal sealed class InheritanceMarginViewMargin : IWpfTextViewMargin
     private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
     {
         if (e.HasOption(option =>
-            option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
-            option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)))
+                option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
+                option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)))
         {
             UpdateMarginVisibility();
         }

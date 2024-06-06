@@ -34,18 +34,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
         {
             if (e.HasOption(static option =>
-                option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
-                option.Equals(InlineHintsOptionsStorage.ForIndexerParameters) ||
-                option.Equals(InlineHintsOptionsStorage.ForLiteralParameters) ||
-                option.Equals(InlineHintsOptionsStorage.ForOtherParameters) ||
-                option.Equals(InlineHintsOptionsStorage.ForObjectCreationParameters) ||
-                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix) ||
-                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName) ||
-                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent) ||
-                option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
-                option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
-                option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
-                option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation)))
+                    option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
+                    option.Equals(InlineHintsOptionsStorage.ForIndexerParameters) ||
+                    option.Equals(InlineHintsOptionsStorage.ForLiteralParameters) ||
+                    option.Equals(InlineHintsOptionsStorage.ForOtherParameters) ||
+                    option.Equals(InlineHintsOptionsStorage.ForObjectCreationParameters) ||
+                    option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix) ||
+                    option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName) ||
+                    option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent) ||
+                    option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
+                    option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
+                    option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
+                    option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation)))
             {
                 EnqueueRefreshNotification(documentUri: null);
             }

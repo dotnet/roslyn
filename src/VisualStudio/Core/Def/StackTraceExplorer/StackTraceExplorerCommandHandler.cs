@@ -108,18 +108,25 @@ internal class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDi
 
     private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
     {
+        bool? enabled = null;
         foreach (var (key, newValue) in e.ChangedOptions)
         {
-            if (key.Option.Equals(StackTraceExplorerOptionsStorage.OpenOnFocus) && newValue is bool enabled)
+            if (key.Option.Equals(StackTraceExplorerOptionsStorage.OpenOnFocus))
             {
-                if (enabled)
-                {
-                    AdviseBroadcastMessages();
-                }
-                else
-                {
-                    UnadviseBroadcastMessages();
-                }
+                Contract.ThrowIfNull(newValue);
+                enabled = (bool)newValue;
+            }
+        }
+
+        if (enabled.HasValue)
+        {
+            if (enabled.Value)
+            {
+                AdviseBroadcastMessages();
+            }
+            else
+            {
+                UnadviseBroadcastMessages();
             }
         }
     }
