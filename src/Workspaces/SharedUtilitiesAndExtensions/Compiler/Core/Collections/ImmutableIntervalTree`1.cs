@@ -134,8 +134,25 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             //
             // The perfect case is trivial.  We simply take the middle element of the array and make it the root, and
             // then recurse into the left and right halves of the array.
-            //
-            // The interesting cases case be demonstrated with the following examples:
+
+            // The height of the perfect portion of the tree (the rows that are completely full from left to right).
+            // This is '3' in both of the examples below.  It will be the height of the whole tree if the whole tree is
+            // perfect itself.
+            var perfectPortionHeight = SegmentedArraySortUtils.Log2((uint)subtreeNodeCount + 1);
+
+            // Then number of nodes in the perfect portion.  For the example trees below this is 7.
+            var perfectPortionNodeCount = PerfectTreeNodeCount(perfectPortionHeight);
+
+            // If the entire subtree we're looking at is perfect or not.  It's perfect if every layer is full.
+            // In the above example, both trees are not perfect.
+            var wholeSubtreeIsPerfect = perfectPortionNodeCount == subtreeNodeCount;
+
+            // If we do have a perfect tree, the root item trivially the s the middle element of that tree.
+            var perfectPortionMidwayPoint = perfectPortionNodeCount / 2;
+            if (wholeSubtreeIsPerfect)
+                return perfectPortionMidwayPoint;
+
+            // The interesting, imperfect, cases case be demonstrated with the following examples:
             //
             //             10 elements:
             // g, d, i, b, f, h, j, a, c, e
@@ -161,37 +178,20 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             //
             // The difference in these cases is the 'd' subtree.  We either have:
             //
-            // 1. enough elements to fill it and start filling its right sibling ('l').  This is the case in the 13
-            //    element tree.
-            //
-            // 2. not enough elements to start filling the right sibling ('i').  This is the case in the 10 element
+            // 1. not enough elements to start filling the right sibling ('i').  This is the case in the 10 element
             //    tree.
             //
+            // 2. enough elements to fill it and start filling its right sibling ('l').  This is the case in the 13
+            //    element tree.
+            //
             // In both cases, one of the two children of the root will be a perfect tree (the right child in the 10
-            // element case, and the left element in the 13 element case). From the initial discussion, we know that
-            // perfect trees are trivial to handle when we recurse into them.  For the other side, we will get a tree
-            // that we can then recursively apply the more complex logic to.  And the process repeats downwards.
+            // element case, and the left element in the 13 element case).  So, when we recurse into either, we either
+            // recurse into a perfect tree (which we know is trivial to handle).  Or we will recurse into another tree
+            // that we can handle using the balancing logic below.
 
-            // The height of the perfect portion of the tree (the rows that are completely full from left to right).
-            // This is '3' in both of the examples above.
-            var perfectPortionHeight = SegmentedArraySortUtils.Log2((uint)subtreeNodeCount + 1);
-
-            // Then number of nodes in the perfect portion.  For both trees above this is 7.
-            var perfectPortionNodeCount = PerfectTreeNodeCount(perfectPortionHeight);
-
-            // If the entire subtree we're looking at is perfect or not.  It's perfect if every layer is full.
-            // In the above example, both trees are not perfect.
-            var wholeSubtreeIsPerfect = perfectPortionNodeCount == subtreeNodeCount;
-
-            // If we do have a perfect tree, the root item trivially the s the middle element of that tree.
-            var perfectPortionMidwayPoint = perfectPortionNodeCount / 2;
-            if (wholeSubtreeIsPerfect)
-                return perfectPortionMidwayPoint;
-
-            // The total tree height.  Since we know we're not perfect, it's one greater than the perfect-portion height.
-            var treeHeight = perfectPortionHeight + 1;
-
-            var nodeCountIfTreeWerePerfect = PerfectTreeNodeCount(treeHeight);
+            // The total tree height.  Since we know we're not perfect, we computed based on one greater than than the
+            // perfect-portion height.
+            var nodeCountIfTreeWerePerfect = PerfectTreeNodeCount(height: perfectPortionHeight + 1);
 
             var elementsInLastIncompleteRow = subtreeNodeCount - perfectPortionNodeCount;
             var elementsInLastRowIfTreeWerePerfect = nodeCountIfTreeWerePerfect - perfectPortionNodeCount;
