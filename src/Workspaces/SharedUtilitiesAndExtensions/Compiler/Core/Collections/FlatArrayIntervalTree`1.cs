@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 /// values of the interval tree are known up front and will not change after the tree is created.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
+internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
 {
     private readonly record struct Node(T Value, int MaxEndNodeIndex);
 
-    public static readonly FlatArrayIntervalTree<T> Empty = new(new SegmentedArray<Node>(0));
+    public static readonly ImmutableIntervalTree<T> Empty = new(new SegmentedArray<Node>(0));
 
     /// <summary>
     /// The nodes of this interval tree flatted into a single array.  The root is as index 0.  The left child of any
@@ -35,23 +35,23 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     /// </remarks>
     private readonly SegmentedArray<Node> _array;
 
-    private FlatArrayIntervalTree(SegmentedArray<Node> array)
+    private ImmutableIntervalTree(SegmentedArray<Node> array)
         => _array = array;
 
     /// <summary>
     /// Provides access to lots of common algorithms on this interval tree.
     /// </summary>
-    public IntervalTreeAlgorithms<T, FlatArrayIntervalTree<T>> Algorithms => new(this);
+    public IntervalTreeAlgorithms<T, ImmutableIntervalTree<T>> Algorithms => new(this);
 
     /// <summary>
-    /// Creates a <see cref="FlatArrayIntervalTree{T}"/> from an unsorted list of <paramref name="values"/>.  This will
+    /// Creates a <see cref="ImmutableIntervalTree{T}"/> from an unsorted list of <paramref name="values"/>.  This will
     /// incur a delegate allocation to sort the values.  If callers can avoid that allocation by pre-sorting the values,
     /// they should do so and call <see cref="CreateFromSorted"/> instead.
     /// </summary>
     /// <remarks>
     /// <paramref name="values"/> will be sorted in place.
     /// </remarks>
-    public static FlatArrayIntervalTree<T> CreateFromUnsorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
+    public static ImmutableIntervalTree<T> CreateFromUnsorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var localIntrospector = introspector;
@@ -73,7 +73,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     /// <list type="bullet">The <paramref name="values"/> list will be mutated as part of this operation.
     /// </list>
     /// </remarks>
-    public static FlatArrayIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
+    public static ImmutableIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
 #if DEBUG
@@ -93,7 +93,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         // Next, do a pass over the entire tree, updating each node to point at the max end node in its subtree.
         ComputeMaxEndNodes(array, 0, in introspector);
 
-        return new FlatArrayIntervalTree<T>(array);
+        return new ImmutableIntervalTree<T>(array);
 
         static void BuildCompleteTreeTop(SegmentedList<T> source, SegmentedArray<Node> destination)
         {
@@ -255,14 +255,14 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         => (2 * nodeIndex) + 2;
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
+        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
     {
-        return IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.FillWithIntervalsThatMatch(
+        return IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.FillWithIntervalsThatMatch(
             this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
     }
 
@@ -270,32 +270,32 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.GetEnumerator(this);
+        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.GetEnumerator(this);
 
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeHelper<T, FlatArrayIntervalTree<T>, int>
+    private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
     {
-        public T GetValue(FlatArrayIntervalTree<T> tree, int node)
+        public T GetValue(ImmutableIntervalTree<T> tree, int node)
             => tree._array[node].Value;
 
-        public int GetMaxEndNode(FlatArrayIntervalTree<T> tree, int node)
+        public int GetMaxEndNode(ImmutableIntervalTree<T> tree, int node)
             => tree._array[node].MaxEndNodeIndex;
 
-        public bool TryGetRoot(FlatArrayIntervalTree<T> tree, out int root)
+        public bool TryGetRoot(ImmutableIntervalTree<T> tree, out int root)
         {
             root = 0;
             return tree._array.Length > 0;
         }
 
-        public bool TryGetLeftNode(FlatArrayIntervalTree<T> tree, int node, out int leftNode)
+        public bool TryGetLeftNode(ImmutableIntervalTree<T> tree, int node, out int leftNode)
         {
             leftNode = GetLeftChildIndex(node);
             return leftNode < tree._array.Length;
         }
 
-        public bool TryGetRightNode(FlatArrayIntervalTree<T> tree, int node, out int rightNode)
+        public bool TryGetRightNode(ImmutableIntervalTree<T> tree, int node, out int rightNode)
         {
             rightNode = GetRightChildIndex(node);
             return rightNode < tree._array.Length;

@@ -264,8 +264,8 @@ public abstract class IntervalTreeTests
             => new(value, 0);
     }
 
-    private static BinaryIntervalTree<int> CreateIntTree(params int[] values)
-        => BinaryIntervalTree<int>.Create(new Int32Introspector(), values);
+    private static MutableIntervalTree<int> CreateIntTree(params int[] values)
+        => MutableIntervalTree<int>.Create(new Int32Introspector(), values);
 
     [Fact]
     public void TestSortedEnumerable1()
@@ -304,7 +304,7 @@ public abstract class IntervalTreeTests
     [Fact]
     public void TestSortedEnumerable2()
     {
-        var tree = BinaryIntervalTree<int>.Create(new Int32Introspector(), new[] { 1, 0 });
+        var tree = MutableIntervalTree<int>.Create(new Int32Introspector(), new[] { 1, 0 });
 
         Assert.Equal(tree, new[] { 0, 1 });
     }
@@ -357,17 +357,17 @@ public sealed class BinaryIntervalTreeTests : IntervalTreeTests
 
     private protected override bool HasIntervalThatIntersectsWith(IIntervalTree<Tuple<int, int, string>> tree, int position)
     {
-        return ((BinaryIntervalTree<Tuple<int, int, string>>)tree).Algorithms.HasIntervalThatIntersectsWith(position, new TupleIntrospector<string>());
+        return ((MutableIntervalTree<Tuple<int, int, string>>)tree).Algorithms.HasIntervalThatIntersectsWith(position, new TupleIntrospector<string>());
     }
 
     private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatIntersectWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
     {
-        return ((BinaryIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatIntersectWith(start, length, new TupleIntrospector<string>());
+        return ((MutableIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatIntersectWith(start, length, new TupleIntrospector<string>());
     }
 
     private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
     {
-        return ((BinaryIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
+        return ((MutableIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
     }
 }
 
@@ -375,22 +375,22 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
 {
     private protected override IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
     {
-        yield return FlatArrayIntervalTree<Tuple<int, int, string>>.CreateFromUnsorted(new TupleIntrospector<string>(), new SegmentedList<Tuple<int, int, string>>(values));
+        yield return ImmutableIntervalTree<Tuple<int, int, string>>.CreateFromUnsorted(new TupleIntrospector<string>(), new SegmentedList<Tuple<int, int, string>>(values));
     }
 
     private protected override bool HasIntervalThatIntersectsWith(IIntervalTree<Tuple<int, int, string>> tree, int position)
     {
-        return ((FlatArrayIntervalTree<Tuple<int, int, string>>)tree).Algorithms.HasIntervalThatIntersectsWith(position, new TupleIntrospector<string>());
+        return ((ImmutableIntervalTree<Tuple<int, int, string>>)tree).Algorithms.HasIntervalThatIntersectsWith(position, new TupleIntrospector<string>());
     }
 
     private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatIntersectWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
     {
-        return ((FlatArrayIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatIntersectWith(start, length, new TupleIntrospector<string>());
+        return ((ImmutableIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatIntersectWith(start, length, new TupleIntrospector<string>());
     }
 
     private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
     {
-        return ((FlatArrayIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
+        return ((ImmutableIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
     }
 
     private readonly struct Int32IntervalIntrospector : IIntervalIntrospector<int>
@@ -410,7 +410,7 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
     {
         for (var i = 0; i < 3000; i++)
         {
-            var tree = FlatArrayIntervalTree<int>.CreateFromUnsorted(new Int32IntervalIntrospector(), new(Enumerable.Range(1, i)));
+            var tree = ImmutableIntervalTree<int>.CreateFromUnsorted(new Int32IntervalIntrospector(), new(Enumerable.Range(1, i)));
 
             // Ensure that the tree produces the same elements in sorted order.
             AssertEx.Equal(tree, Enumerable.Range(1, i));

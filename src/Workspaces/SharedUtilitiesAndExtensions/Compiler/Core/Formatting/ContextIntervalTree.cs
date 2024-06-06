@@ -15,19 +15,19 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// it now has an ability to return a smallest span that contains a position rather than
 /// all Intersecting or overlapping spans
 /// </summary>
-internal sealed class ContextIntervalTree<T, TIntrospector> : SimpleBinaryIntervalTree<T, TIntrospector>
+internal sealed class ContextMutableIntervalTree<T, TIntrospector> : SimpleMutableIntervalTree<T, TIntrospector>
     where TIntrospector : struct, IIntervalIntrospector<T>
 {
     private readonly Func<T, int, int, bool> _edgeExclusivePredicate;
     private readonly Func<T, int, int, bool> _edgeInclusivePredicate;
     private readonly Func<T, int, int, bool> _containPredicate;
 
-    public ContextIntervalTree(in TIntrospector introspector)
+    public ContextMutableIntervalTree(in TIntrospector introspector)
         : base(introspector, values: null)
     {
         _edgeExclusivePredicate = ContainsEdgeExclusive;
         _edgeInclusivePredicate = ContainsEdgeInclusive;
-        _containPredicate = (value, start, end) => IntervalTreeAlgorithms<T, ContextIntervalTree<T, TIntrospector>>.Contains(value, start, end, in Introspector);
+        _containPredicate = (value, start, end) => IntervalTreeAlgorithms<T, ContextMutableIntervalTree<T, TIntrospector>>.Contains(value, start, end, in Introspector);
     }
 
     public T? GetSmallestEdgeExclusivelyContainingInterval(int start, int length)

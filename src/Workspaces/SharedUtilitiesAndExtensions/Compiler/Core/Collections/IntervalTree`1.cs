@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 /// Ths is the root type for all interval trees that store their data in a binary tree format.  This format is good for
 /// when mutation of the tree is expected, and a client wants to perform tests before and after such mutation.
 /// </remarks>
-internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
+internal partial class MutableIntervalTree<T> : IIntervalTree<T>
 {
-    public static readonly BinaryIntervalTree<T> Empty = new();
+    public static readonly MutableIntervalTree<T> Empty = new();
 
     protected Node? root;
 
-    public static BinaryIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
+    public static MutableIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        var result = new BinaryIntervalTree<T>();
+        var result = new MutableIntervalTree<T>();
 
         foreach (var value in values)
             result.root = Insert(result.root, new Node(value), in introspector);
@@ -37,17 +37,17 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
     /// <summary>
     /// Provides access to lots of common algorithms on this interval tree.
     /// </summary>
-    public IntervalTreeAlgorithms<T, BinaryIntervalTree<T>> Algorithms => new(this);
+    public IntervalTreeAlgorithms<T, MutableIntervalTree<T>> Algorithms => new(this);
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        => IntervalTreeHelpers<T, BinaryIntervalTree<T>, Node, BinaryIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
+        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
     {
-        return IntervalTreeHelpers<T, BinaryIntervalTree<T>, Node, BinaryIntervalTreeHelper>.FillWithIntervalsThatMatch(
+        return IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeHelper>.FillWithIntervalsThatMatch(
             this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
     }
 
@@ -124,7 +124,7 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
     }
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, BinaryIntervalTree<T>, Node, BinaryIntervalTreeHelper>.GetEnumerator(this);
+        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeHelper>.GetEnumerator(this);
 
     IEnumerator IEnumerable.GetEnumerator()
         => this.GetEnumerator();
@@ -143,27 +143,27 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct BinaryIntervalTreeHelper : IIntervalTreeHelper<T, BinaryIntervalTree<T>, Node>
+    private readonly struct BinaryIntervalTreeHelper : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
     {
-        public T GetValue(BinaryIntervalTree<T> tree, Node node)
+        public T GetValue(MutableIntervalTree<T> tree, Node node)
             => node.Value;
 
-        public Node GetMaxEndNode(BinaryIntervalTree<T> tree, Node node)
+        public Node GetMaxEndNode(MutableIntervalTree<T> tree, Node node)
             => node.MaxEndNode;
 
-        public bool TryGetRoot(BinaryIntervalTree<T> tree, [NotNullWhen(true)] out Node? root)
+        public bool TryGetRoot(MutableIntervalTree<T> tree, [NotNullWhen(true)] out Node? root)
         {
             root = tree.root;
             return root != null;
         }
 
-        public bool TryGetLeftNode(BinaryIntervalTree<T> tree, Node node, [NotNullWhen(true)] out Node? leftNode)
+        public bool TryGetLeftNode(MutableIntervalTree<T> tree, Node node, [NotNullWhen(true)] out Node? leftNode)
         {
             leftNode = node.Left;
             return leftNode != null;
         }
 
-        public bool TryGetRightNode(BinaryIntervalTree<T> tree, Node node, [NotNullWhen(true)] out Node? rightNode)
+        public bool TryGetRightNode(MutableIntervalTree<T> tree, Node node, [NotNullWhen(true)] out Node? rightNode)
         {
             rightNode = node.Right;
             return rightNode != null;

@@ -13,14 +13,14 @@ internal readonly struct TextSpanIntervalIntrospector : IIntervalIntrospector<Te
         => value;
 }
 
-internal sealed class TextSpanIntervalTree(IEnumerable<TextSpan>? values)
-    : SimpleBinaryIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values)
+internal sealed class TextSpanMutableIntervalTree(IEnumerable<TextSpan>? values)
+    : SimpleMutableIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values)
 {
-    public TextSpanIntervalTree() : this(null)
+    public TextSpanMutableIntervalTree() : this(null)
     {
     }
 
-    public TextSpanIntervalTree(params TextSpan[]? values) : this((IEnumerable<TextSpan>?)values)
+    public TextSpanMutableIntervalTree(params TextSpan[]? values) : this((IEnumerable<TextSpan>?)values)
     {
     }
 
