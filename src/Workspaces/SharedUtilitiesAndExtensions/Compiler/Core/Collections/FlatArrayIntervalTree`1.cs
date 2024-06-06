@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Numerics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Collections.Internal;
 using Roslyn.Utilities;
