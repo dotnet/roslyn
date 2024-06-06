@@ -119,7 +119,7 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<bool, ReferenceOptions>? ReferencesProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the server supports document highlight.
+        /// The server provides Document Highlight support.
         /// </summary>
         [JsonPropertyName("documentHighlightProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

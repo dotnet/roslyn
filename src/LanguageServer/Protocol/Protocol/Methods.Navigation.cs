@@ -221,4 +221,58 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
     public static readonly LspRequest<TypeHierarchySubtypesParams, TypeHierarchyItem[]?> TypeHierarchySubtypes = new(TypeHierarchySubtypesName);
+
+    /// <summary>
+    /// Method name for 'textDocument/documentHighlight'.
+    /// <para>
+    /// The document highlight request is sent from the client to the server to resolve document highlights for a given text document position.
+    /// For programming languages this usually highlights all references to the symbol scoped to this file.
+    /// </para>
+    /// <para>
+    /// However, we kept ‘textDocument/documentHighlight’ and ‘textDocument/references’ separate requests since the first one is allowed to be
+    /// more fuzzy. Symbol matches usually have a <see cref="DocumentHighlightKind"/> of <see cref="DocumentHighlightKind.Read"/> or
+    /// <see cref="DocumentHighlightKind.Write"/> whereas fuzzy or textual matches use <see cref="DocumentHighlightKind.Text"/> as the kind.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_documentHighlight">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentDocumentHighlightName = "textDocument/documentHighlight";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/documentHighlight'.
+    /// </summary>
+    public static readonly LspRequest<DocumentHighlightParams, DocumentHighlight[]?> TextDocumentDocumentHighlight = new(TextDocumentDocumentHighlightName);
+
+    /// <summary>
+    /// Method name for 'textDocument/documentLink'.
+    /// <para>
+    /// The document links request is sent from the client to the server to request the location of links in a document.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_documentLink">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentDocumentLinkName = "textDocument/documentLink";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/documentLink'.
+    /// </summary>
+    public static readonly LspRequest<DocumentLinkParams, DocumentLink[]?> TextDocumentDocumentLink = new(TextDocumentDocumentLinkName);
+
+    /// <summary>
+    /// Method name for 'documentLink/resolve'.
+    /// <para>
+    /// The document link resolve request is sent from the client to the server to resolve the target of a given document link.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLink_resolve">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string DocumentLinkResolveName = "documentLink/resolve";
+
+    /// <summary>
+    /// Strongly typed message object for 'documentLink/resolve'.
+    /// </summary>
+    public static readonly LspRequest<DocumentLink, DocumentLink> DocumentLinkResolve = new(DocumentLinkResolveName);
 }

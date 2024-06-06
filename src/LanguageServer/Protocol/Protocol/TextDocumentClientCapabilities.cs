@@ -83,11 +83,11 @@ namespace Roslyn.LanguageServer.Protocol
         public ReferenceClientCapabilities? References { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if document highlight can be dynamically registered.
+        /// Capabilities specific to the `textDocument/documentHighlight` request.
         /// </summary>
         [JsonPropertyName("documentHighlight")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? DocumentHighlight { get; set; }
+        public DocumentHighlightClientCapabilities? DocumentHighlight { get; set; }
 
         /// <summary>
         /// Gets or sets the setting which determines if document symbol can be dynamically registered.
@@ -111,11 +111,11 @@ namespace Roslyn.LanguageServer.Protocol
         public DynamicRegistrationSetting? CodeLens { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if document link can be dynamically registered.
+        /// Capabilities specific to the `textDocument/documentLink` request.
         /// </summary>
         [JsonPropertyName("documentLink")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? DocumentLink { get; set; }
+        public DocumentLinkClientCapabilities? DocumentLink { get; set; }
 
         /// <summary>
         /// Gets or sets the setting which determines if formatting can be dynamically registered.

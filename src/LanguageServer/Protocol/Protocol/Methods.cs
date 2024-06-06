@@ -67,21 +67,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentDiagnosticName = "textDocument/diagnostic";
 
         /// <summary>
-        /// Method name for 'textDocument/documentHighlight'.
-        /// </summary>
-        public const string TextDocumentDocumentHighlightName = "textDocument/documentHighlight";
-
-        /// <summary>
-        /// Method name for 'textDocument/documentLink'.
-        /// </summary>
-        public const string TextDocumentDocumentLinkName = "textDocument/documentLink";
-
-        /// <summary>
-        /// Method name for 'documentLink/resolve'.
-        /// </summary>
-        public const string DocumentLinkResolveName = "documentLink/resolve";
-
-        /// <summary>
         /// Method name for 'textDocument/documentColor'.
         /// </summary>
         public const string TextDocumentDocumentColorName = "textDocument/documentColor";
@@ -270,21 +255,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'completionItem/resolve'.
         /// </summary>
         public static readonly LspRequest<CompletionItem, CompletionItem> TextDocumentCompletionResolve = new LspRequest<CompletionItem, CompletionItem>(TextDocumentCompletionResolveName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/documentHighlight'.
-        /// </summary>
-        public static readonly LspRequest<DocumentHighlightParams, DocumentHighlight[]?> TextDocumentDocumentHighlight = new LspRequest<DocumentHighlightParams, DocumentHighlight[]?>(TextDocumentDocumentHighlightName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/documentLink'.
-        /// </summary>
-        public static readonly LspRequest<DocumentLinkParams, DocumentLink[]?> TextDocumentDocumentLink = new LspRequest<DocumentLinkParams, DocumentLink[]?>(TextDocumentDocumentLinkName);
-
-        /// <summary>
-        /// Strongly typed message object for 'documentLink/resolve'.
-        /// </summary>
-        public static readonly LspRequest<DocumentLink, DocumentLink> DocumentLinkResolve = new LspRequest<DocumentLink, DocumentLink>(DocumentLinkResolveName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/documentColor'.
