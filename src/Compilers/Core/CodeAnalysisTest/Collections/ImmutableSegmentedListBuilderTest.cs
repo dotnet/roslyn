@@ -381,6 +381,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             ref readonly var safeRef = ref builder.ItemRef(1);
             ref var unsafeRef = ref Unsafe.AsRef(in safeRef);
+
             Assert.Equal(2, builder.ItemRef(1));
 
             unsafeRef = 4;
