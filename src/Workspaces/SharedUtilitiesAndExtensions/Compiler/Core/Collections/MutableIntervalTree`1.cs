@@ -40,14 +40,14 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
     public IntervalTreeAlgorithms<T, MutableIntervalTree<T>> Algorithms => new(this);
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
+        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.Any(this, start, length, testInterval, in introspector);
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
     {
-        return IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeHelper>.FillWithIntervalsThatMatch(
+        return IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.FillWithIntervalsThatMatch(
             this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
     }
 
@@ -124,7 +124,7 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
     }
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeHelper>.GetEnumerator(this);
+        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.GetEnumerator(this);
 
     IEnumerator IEnumerable.GetEnumerator()
         => this.GetEnumerator();
@@ -143,7 +143,7 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct BinaryIntervalTreeHelper : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
+    private readonly struct BinaryIntervalTreeWitness : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
     {
         public T GetValue(MutableIntervalTree<T> tree, Node node)
             => node.Value;

@@ -265,14 +265,14 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
         => (2 * nodeIndex) + 2;
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
+        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.Any(this, start, length, testInterval, in introspector);
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
     {
-        return IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.FillWithIntervalsThatMatch(
+        return IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.FillWithIntervalsThatMatch(
             this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
     }
 
@@ -280,12 +280,12 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
         => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.GetEnumerator(this);
+        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.GetEnumerator(this);
 
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
+    private readonly struct FlatArrayIntervalTreeWitness : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
     {
         public T GetValue(ImmutableIntervalTree<T> tree, int node)
             => tree._array[node].Value;
