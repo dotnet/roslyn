@@ -146,23 +146,23 @@ internal static class LightupHelpers
             throw new InvalidOperationException($"Property '{property}' produces a value of type '{property.PropertyType}', which is not assignable to type '{typeof(TValue)}'");
         }
 
-        var parameter = Expression.Parameter(typeof(TValue), GenerateParameterName(typeof(TValue)));
-        var argument = Expression.Parameter(typeof(TValue), parameters[0].Name);
+        var instanceParameter = Expression.Parameter(typeof(T), GenerateParameterName(typeof(T)));
         var instance =
             type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
-            ? (Expression)parameter
-            : Expression.Convert(parameter, type);
+            ? (Expression)instanceParameter
+            : Expression.Convert(instanceParameter, type);
 
+        var parameter = Expression.Parameter(typeof(TValue), parameters[0].Name);
         var convertedArgument =
             valueType.GetTypeInfo().IsAssignableFrom(typeof(TValue).GetTypeInfo())
-            ? (Expression)argument
-            : Expression.Convert(argument, valueType);
+            ? (Expression)parameter
+            : Expression.Convert(parameter, valueType);
 
         var expression =
             Expression.Lambda<Action<T, TValue>>(
                 Expression.Call(instance, property.SetMethod, convertedArgument),
-                parameter,
-                argument);
+                instanceParameter,
+                parameter);
         return expression.Compile();
     }
 
