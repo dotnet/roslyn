@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
-internal class BinaryIntervalTree
+internal static class SimpleMutableIntervalTree
 {
     public static SimpleMutableIntervalTree<T, TIntrospector> Create<T, TIntrospector>(in TIntrospector introspector, params T[] values)
         where TIntrospector : struct, IIntervalIntrospector<T>

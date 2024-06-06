@@ -67,12 +67,9 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
     /// pointer chasing operations, which is both slow, and which impacts the GC which has to track all those writes.
     /// </summary>
     /// <remarks>
-    /// <list type="bullet">The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a'
-    /// comes before 'b' in the list, then it's "start position" (as determined by the introspector) must be less than
-    /// or equal to 'b's start position.  This is a requirement for the algorithm to work correctly.
-    /// </list>
-    /// <list type="bullet">The <paramref name="values"/> list will be mutated as part of this operation.
-    /// </list>
+    /// The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a' comes before 'b' in
+    /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
+    /// start position.  This is a requirement for the algorithm to work correctly.
     /// </remarks>
     public static ImmutableIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
@@ -134,8 +131,25 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             //
             // The perfect case is trivial.  We simply take the middle element of the array and make it the root, and
             // then recurse into the left and right halves of the array.
-            //
-            // The interesting cases case be demonstrated with the following examples:
+
+            // The height of the perfect portion of the tree (the rows that are completely full from left to right).
+            // This is '3' in both of the examples below.  It will be the height of the whole tree if the whole tree is
+            // perfect itself.
+            var perfectPortionHeight = SegmentedArraySortUtils.Log2((uint)subtreeNodeCount + 1);
+
+            // Then number of nodes in the perfect portion.  For the example trees below this is 7.
+            var perfectPortionNodeCount = PerfectTreeNodeCount(perfectPortionHeight);
+
+            // If the entire subtree we're looking at is perfect or not.  It's perfect if every layer is full.
+            // In the above example, both trees are not perfect.
+            var wholeSubtreeIsPerfect = perfectPortionNodeCount == subtreeNodeCount;
+
+            // If we do have a perfect tree, the root item trivially the s the middle element of that tree.
+            var perfectPortionMidwayPoint = perfectPortionNodeCount / 2;
+            if (wholeSubtreeIsPerfect)
+                return perfectPortionMidwayPoint;
+
+            // The interesting, imperfect, cases case be demonstrated with the following examples:
             //
             //             10 elements:
             // g, d, i, b, f, h, j, a, c, e
@@ -146,7 +160,7 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             //       __/ \__       / \
             //       b     f      h   j
             //      / \   /
-            //      a c   e 
+            //      a c   e
             // 
             // 13 elements:
             // h, d, l, b, f, j, m, a, c, e, g, i, k
@@ -161,50 +175,37 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             //
             // The difference in these cases is the 'd' subtree.  We either have:
             //
-            // 1. enough elements to fill it and start filling its right sibling ('l').  This is the case in the 13
-            //    element tree.
-            //
-            // 2. not enough elements to start filling the right sibling ('i').  This is the case in the 10 element
+            // 1. not enough elements to start filling the right sibling ('i').  This is the case in the 10 element
             //    tree.
             //
-            // In both cases, one of the two children of the root will be a perfect tree (the right child in the 10
-            // element case, and the left element in the 13 element case). From the initial discussion, we know that
-            // perfect trees are trivial to handle when we recurse into them.  For the other side, we will get a tree
-            // that we can then recursively apply the more complex logic to.  And the process repeats downwards.
-
-            // The height of the perfect portion of the tree (the rows that are completely full from left to right).
-            // This is '3' in both of the examples above.
-            var perfectPortionHeight = SegmentedArraySortUtils.Log2((uint)subtreeNodeCount + 1);
-
-            // Then number of nodes in the perfect section.  For both trees above this is 7.
-            var perfectSectionNodeCount = (1 << perfectPortionHeight) - 1;
-
-            // If the entire subtree we're looking at is perfect or not.  It's perfect if every layer is full.
-            // In the above example, both trees are not perfect.
-            var isPerfect = perfectSectionNodeCount == subtreeNodeCount;
-
-            // The total tree height.  If we're perfect, it's the height of the perfect portion.  Otherwise
-            // it's one higher (to fit the remaining incomplete row).
-            var treeHeight = isPerfect ? perfectPortionHeight : perfectPortionHeight + 1;
-
-            // How many nodes would be in the tree if it was perfect.
-            var nodeCountIfTreeWerePerfect = (1 << treeHeight) - 1;
-
-            // Here we can figure out which case we have, and where the pivot is.  First, we start with
+            // 2. enough elements to fill it and start filling its right sibling ('l').  This is the case in the 13
+            //    element tree.
             //
-            // 1. `a = subtreeNodeCount - perfectSectionNodeCount`.  The number of elements in the 'incomplete' last row.
-            // 2. `b = nodeCountIfTreeWerePerfect - perfectSectionNodeCount`. The number of elements in the last row if
-            //    it were entirely complete.
-            // 3. `c = b / 2`.  Half the number of elements in the last row if it were entirely complete.
-            // 4. `d = Min(a, c)`.  The min point in the last row.  If we have it filled less than half full, it's the
-            //    number of elements.  If it is more than half full, it's the midway point.
-            // 5. `e = perfectSectionNodeCount / 2`. Halfway through the perfect top section.
-            // 6. `f = e + d`.  The pivot point in the array. While filling up the first half of the final row, we're
-            //    continually incrementing the pivot point (so we include more elements in the left tree).  Once we hit
-            //    the halfway point in the last row, then we want to stop incrementing the pivot point (so that we
-            //    include more elements in the right tree).
-            return (perfectSectionNodeCount / 2) + Math.Min(subtreeNodeCount - perfectSectionNodeCount, (nodeCountIfTreeWerePerfect - perfectSectionNodeCount) / 2);
+            // In both cases, one of the two children of the root will be a perfect tree (the right child in the 10
+            // element case, and the left element in the 13 element case).  So, when we recurse into either, we either
+            // recurse into a perfect tree (which we know is trivial to handle).  Or we will recurse into another tree
+            // that we can handle using the balancing logic below.
+
+            // The total tree height.  Since we know we're not perfect, we computed based on one greater than than the
+            // perfect-portion height.
+            var nodeCountIfTreeWerePerfect = PerfectTreeNodeCount(height: perfectPortionHeight + 1);
+
+            var elementsInLastIncompleteRow = subtreeNodeCount - perfectPortionNodeCount;
+            var elementsInLastRowIfTreeWerePerfect = nodeCountIfTreeWerePerfect - perfectPortionNodeCount;
+
+            // The min point in the last row.  If we have it filled less than half full, it's the number of elements.
+            // If it is more than half full, it's the midway point.
+            var elementsInLastRowCappedAtMidwayPoint = Math.Min(elementsInLastIncompleteRow, elementsInLastRowIfTreeWerePerfect / 2);
+
+            // The pivot point in the array. While filling up the first half of the final row, we're continually
+            // incrementing the pivot point (so we include more elements in the left tree).  Once we hit the halfway
+            // point in the last row, then we want to stop incrementing the pivot point (so that we include more
+            // elements in the right tree).
+            return perfectPortionMidwayPoint + elementsInLastRowCappedAtMidwayPoint;
         }
+
+        static int PerfectTreeNodeCount(int height)
+            => (1 << height) - 1;
 
         // Returns the max end *position* of tree rooted at currentNodeIndex.  If there is no tree here (it refers to a
         // null child), then this will return -1;
@@ -261,14 +262,14 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
         => (2 * nodeIndex) + 2;
 
     bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.Any(this, start, length, testInterval, in introspector);
+        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.Any(this, start, length, testInterval, in introspector);
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
     {
-        return IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.FillWithIntervalsThatMatch(
+        return IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.FillWithIntervalsThatMatch(
             this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
     }
 
@@ -276,12 +277,12 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
         => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
-        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.GetEnumerator(this);
+        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.GetEnumerator(this);
 
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
+    private readonly struct FlatArrayIntervalTreeWitness : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
     {
         public T GetValue(ImmutableIntervalTree<T> tree, int node)
             => tree._array[node].Value;

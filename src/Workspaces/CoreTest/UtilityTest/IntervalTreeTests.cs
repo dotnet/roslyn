@@ -352,7 +352,7 @@ public sealed class BinaryIntervalTreeTests : IntervalTreeTests
 {
     private protected override IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
     {
-        yield return BinaryIntervalTree.Create(new TupleIntrospector<string>(), values);
+        yield return SimpleMutableIntervalTree.Create(new TupleIntrospector<string>(), values);
     }
 
     private protected override bool HasIntervalThatIntersectsWith(IIntervalTree<Tuple<int, int, string>> tree, int position)
