@@ -45,15 +45,6 @@ internal abstract class AbstractAggregatedFormattingResult : IFormattingResult
     /// </summary>
     protected abstract SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken);
 
-
-/* Unmerged change from project 'Microsoft.CodeAnalysis.CodeStyle'
-Before:
-    protected TextSpanIntervalTree GetFormattingSpans()
-        => _formattingSpans ?? new TextSpanIntervalTree(_formattingResults.Select(r => r.FormattedSpan));
-After:
-    protected TextSpanMutableIntervalTree GetFormattingSpans()
-        => _formattingSpans ?? new TextSpanIntervalTree(_formattingResults.Select(r => r.FormattedSpan));
-*/
     protected TextSpanMutableIntervalTree GetFormattingSpans()
         => _formattingSpans ?? new TextSpanMutableIntervalTree(_formattingResults.Select(r => r.FormattedSpan));
 
