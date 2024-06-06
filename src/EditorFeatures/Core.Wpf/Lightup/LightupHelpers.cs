@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Microsoft.Build.Framework.XamlTypes;
 
 namespace Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 
@@ -109,7 +110,7 @@ internal static class LightupHelpers
     /// <param name="propertyName">The name of the property to access.</param>
     /// <param name="value">The value to set.</param>
     /// <returns>An accessor method to access the specified runtime property.</returns>
-    public static Func<T, TValue, object> CreatePropertySetter<T, TValue>(Type? type, string propertyName, Type valueType, Type returnType)
+    public static Action<T, TValue> CreatePropertySetter<T, TValue>(Type? type, string propertyName, Type valueType)
     {
         if (propertyName is null)
         {
@@ -134,21 +135,34 @@ internal static class LightupHelpers
             //return CreateFallbackAccessor<T, TValue>(defaultValue);
         }
 
+        var parameters = property.GetSetMethod().GetParameters();
+        if (valueType != parameters[0].ParameterType)
+        {
+            throw new ArgumentException($"Type '{valueType}' was expected to match parameter type '{parameters[0].ParameterType}'", nameof(valueType));
+        }
+
         if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
         {
             throw new InvalidOperationException($"Property '{property}' produces a value of type '{property.PropertyType}', which is not assignable to type '{typeof(TValue)}'");
         }
 
         var parameter = Expression.Parameter(typeof(TValue), GenerateParameterName(typeof(TValue)));
+        var argument = Expression.Parameter(typeof(TValue), parameters[0].Name);
         var instance =
-            valueType.GetTypeInfo().IsAssignableFrom(typeof(TValue).GetTypeInfo())
+            type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
             ? (Expression)parameter
             : Expression.Convert(parameter, type);
 
+        var convertedArgument =
+            valueType.GetTypeInfo().IsAssignableFrom(typeof(TValue).GetTypeInfo())
+            ? (Expression)argument
+            : Expression.Convert(argument, valueType);
+
         var expression =
-            Expression.Lambda<Func<T, TValue, object>>(
-                Expression.Convert(Expression.Call(instance, property.SetMethod), typeof(TValue)),
-                parameter);
+            Expression.Lambda<Action<T, TValue>>(
+                Expression.Call(instance, property.SetMethod, convertedArgument),
+                parameter,
+                argument);
         return expression.Compile();
     }
 
