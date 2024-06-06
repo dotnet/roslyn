@@ -82,29 +82,29 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
             return 0;
 
         using var _ = s_nodeStackPool.GetPooledObject(out var stack);
-        var current = (Node: root, HasValue: true);
+        var currentNode = root;
+        var currentNodeHasValue = true;
 
         var matches = 0;
         var end = start + length;
 
-        while (current.HasValue || stack.Count > 0)
+        while (currentNodeHasValue || stack.Count > 0)
         {
             // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
-            while (current.HasValue)
+            while (currentNodeHasValue)
             {
-                stack.Push(current.Node);
-                var leftHasValue = helper.TryGetLeftNode(tree, current.Node, out var leftNode);
-                current = (leftNode!, leftHasValue);
+                stack.Push(currentNode!);
+                currentNodeHasValue = helper.TryGetLeftNode(tree, currentNode!, out currentNode);
             }
 
-            Contract.ThrowIfTrue(current.HasValue);
+            Contract.ThrowIfTrue(currentNodeHasValue);
             Contract.ThrowIfTrue(stack.Count == 0);
-            current = (stack.Pop(), HasValue: true);
+            currentNode = stack.Pop();
 
             // We only get to a node once we've walked the left side of it.  So we can now process the parent node at
             // that point.
 
-            var currentNodeValue = helper.GetValue(tree, current.Node);
+            var currentNodeValue = helper.GetValue(tree, currentNode);
             if (testInterval(currentNodeValue, start, length, in introspector))
             {
                 matches++;
@@ -115,8 +115,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
             }
 
             // now get the right side and set things up so we can walk into it.
-            var rightHasValue = helper.TryGetRightNode(tree, current.Node, out var right);
-            current = (right!, rightHasValue);
+            currentNodeHasValue = helper.TryGetRightNode(tree, currentNode, out currentNode);
         }
 
         return matches;
