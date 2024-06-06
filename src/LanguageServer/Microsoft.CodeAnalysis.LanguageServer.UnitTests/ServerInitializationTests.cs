@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -53,5 +54,16 @@ public class ServerInitializationTests : AbstractLanguageServerHostTests
 
         // These are notifications so we should get a null response (but no exceptions).
         Assert.Null(response);
+    }
+
+    [Fact]
+    public async Task TestOnAutoInsertCapabilitiesSerializedCorrectly()
+    {
+        await using var server = await CreateLanguageServerAsync();
+
+        var capabilities = server.ServerCapabilities as VSInternalServerCapabilities;
+        AssertEx.NotNull(capabilities);
+        AssertEx.NotNull(capabilities.OnAutoInsertProvider);
+        Assert.NotEmpty(capabilities.OnAutoInsertProvider.TriggerCharacters);
     }
 }

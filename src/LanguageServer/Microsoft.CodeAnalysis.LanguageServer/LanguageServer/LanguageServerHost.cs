@@ -29,7 +29,7 @@ internal sealed class LanguageServerHost
 
     public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger, AbstractTypeRefResolver typeRefResolver)
     {
-        var messageFormatter = CreateJsonMessageFormatter();
+        var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
         var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
 
@@ -54,14 +54,6 @@ internal sealed class LanguageServerHost
             lspLogger,
             hostServices,
             typeRefResolver);
-    }
-
-    internal static SystemTextJsonFormatter CreateJsonMessageFormatter()
-    {
-        var messageFormatter = new SystemTextJsonFormatter();
-        messageFormatter.JsonSerializerOptions.AddVSCodeInternalExtensionConverters();
-        messageFormatter.JsonSerializerOptions.Converters.Add(new NaturalObjectConverter());
-        return messageFormatter;
     }
 
     public void Start()
