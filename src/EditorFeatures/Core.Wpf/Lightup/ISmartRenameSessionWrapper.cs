@@ -25,6 +25,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     private static readonly Func<object, bool> s_isInProgressAccessor;
     private static readonly Func<object, string> s_statusMessageAccessor;
     private static readonly Func<object, bool> s_statusMessageVisibilityAccessor;
+    private static readonly Func<object, string, object> s_promptOverrideSetter;
     private static readonly Func<object, IReadOnlyList<string>> s_suggestedNamesAccessor;
 
     private static readonly Func<object, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync;
@@ -43,6 +44,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         s_isInProgressAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsInProgress), false);
         s_statusMessageAccessor = LightupHelpers.CreatePropertyAccessor<object, string>(s_wrappedType, nameof(StatusMessage), "");
         s_statusMessageVisibilityAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(StatusMessageVisibility), false);
+        s_promptOverrideSetter = LightupHelpers.CreatePropertySetter<object, string>(s_wrappedType, nameof(PromptOverride), typeof(string), typeof(object));
         s_suggestedNamesAccessor = LightupHelpers.CreatePropertyAccessor<object, IReadOnlyList<string>>(s_wrappedType, nameof(SuggestedNames), []);
 
         s_getSuggestionsAsync = LightupHelpers.CreateFunctionAccessor<object, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
@@ -61,6 +63,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     public bool IsInProgress => s_isInProgressAccessor(_instance);
     public string StatusMessage => s_statusMessageAccessor(_instance);
     public bool StatusMessageVisibility => s_statusMessageVisibilityAccessor(_instance);
+    public string PromptOverride { set { s_promptOverrideSetter(_instance, value); } }
     public IReadOnlyList<string> SuggestedNames => s_suggestedNamesAccessor(_instance);
 
     public event PropertyChangedEventHandler PropertyChanged

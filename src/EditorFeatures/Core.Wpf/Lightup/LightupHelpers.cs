@@ -97,6 +97,62 @@ internal static class LightupHelpers
     }
 
     /// <summary>
+    /// Generates a compiled setter method for a property which cannot be bound at compile time.
+    /// </summary>
+    /// <typeparam name="T">The compile-time type representing the instance on which the property is defined. This
+    /// may be a superclass of the actual type on which the property is declared if the declaring type is not
+    /// available at compile time.</typeparam>
+    /// <typeparam name="TValue">The compile-type type representing the type of the property. This may be a
+    /// superclass of the actual type of the property if the property type is not available at compile
+    /// time.</typeparam>
+    /// <param name="type">The runtime time on which the property is defined.</param>
+    /// <param name="propertyName">The name of the property to access.</param>
+    /// <param name="value">The value to set.</param>
+    /// <returns>An accessor method to access the specified runtime property.</returns>
+    public static Func<T, TValue, object> CreatePropertySetter<T, TValue>(Type? type, string propertyName, Type valueType, Type returnType)
+    {
+        if (propertyName is null)
+        {
+            throw new ArgumentNullException(nameof(propertyName));
+        }
+
+        if (type == null)
+        {
+            throw new NotImplementedException();
+            //return CreateFallbackAccessor<T, TResult>(defaultValue);
+        }
+
+        if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
+        {
+            throw new InvalidOperationException($"Type '{type}' is not assignable to type '{typeof(T)}'");
+        }
+
+        var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
+        if (property == null)
+        {
+            throw new NotImplementedException();
+            //return CreateFallbackAccessor<T, TValue>(defaultValue);
+        }
+
+        if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
+        {
+            throw new InvalidOperationException($"Property '{property}' produces a value of type '{property.PropertyType}', which is not assignable to type '{typeof(TValue)}'");
+        }
+
+        var parameter = Expression.Parameter(typeof(TValue), GenerateParameterName(typeof(TValue)));
+        var instance =
+            valueType.GetTypeInfo().IsAssignableFrom(typeof(TValue).GetTypeInfo())
+            ? (Expression)parameter
+            : Expression.Convert(parameter, type);
+
+        var expression =
+            Expression.Lambda<Func<T, TValue, object>>(
+                Expression.Convert(Expression.Call(instance, property.SetMethod), typeof(TValue)),
+                parameter);
+        return expression.Compile();
+    }
+
+    /// <summary>
     /// Generates a compiled accessor method for a method with a signature compatible with <see cref="Action"/> which
     /// cannot be bound at compile time.
     /// </summary>
