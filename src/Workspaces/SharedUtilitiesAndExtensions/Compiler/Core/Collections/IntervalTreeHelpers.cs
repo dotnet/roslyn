@@ -151,19 +151,20 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
 
         while (currentNodeHasValue || stack.Count > 0)
         {
-            // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
+            // Traverse down the left side of the tree, as long as the left node as long as it overlaps 'start' in some
+            // way, pushing nodes onto the stack as we go.
             while (currentNodeHasValue)
             {
                 stack.Push(currentNode!);
-                currentNodeHasValue = witness.TryGetLeftNode(tree, currentNode!, out currentNode);
+                currentNodeHasValue = ShouldExamineLeft(tree, start, currentNode!, in introspector, out currentNode);
             }
 
             Contract.ThrowIfTrue(currentNodeHasValue);
             Contract.ThrowIfTrue(stack.Count == 0);
             currentNode = stack.Pop();
 
-            // We only get to a node once we've walked the left side of it.  So we can now process the parent node at
-            // that point.
+            // We only get to a node once we've finished walking the left side of it.  So we can now process the parent
+            // node at that point.
 
             var currentNodeValue = witness.GetValue(tree, currentNode);
             if (testInterval(currentNodeValue, start, length, in introspector))
@@ -175,8 +176,8 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
                     return 1;
             }
 
-            // now get the right side and set things up so we can walk into it.
-            currentNodeHasValue = witness.TryGetRightNode(tree, currentNode, out currentNode);
+            // Now traverse down the right side as long as it could overlap start/end in some way.
+            currentNodeHasValue = ShouldExamineRight(tree, start, end, currentNode, introspector, out currentNode);
         }
 
         return matches;
