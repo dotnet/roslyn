@@ -129,33 +129,81 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             if (subtreeNodeCount == 1)
                 return 0;
 
-            // A subtree will have some perfect section (an entirely filled binary tree), and some remaining
-            // 'complete' items on the last row.  For example:
+            // We are building a complete binary tree.  By definition, this means that we either have a perfect tree
+            // (where every level is full).  Or we have a tree where every level is full except the last level which is
+            // filled from left to right.
             //
-            //         D
-            //        / \
-            //       B   E
-            //      / \
-            //     A   C
+            // The perfect case is trivial.  We simply take the middle element of the array and make it the root, and
+            // then recurse into the left and right halves of the array.
             //
-            // Here, the perfect portion is D/B/E, with a height of 2.
+            // The interesting cases case be demonstrated with the following examples:
+            //
+            //             10 elements:
+            // g, d, i, b, f, h, j, a, c, e
+            // 
+            //                g
+            //          _____/ \_____
+            //          d           i
+            //       __/ \__       / \
+            //       b     f      h   j
+            //      / \   /
+            //      a c   e 
+            // 
+            // 13 elements:
+            // h, d, l, b, f, j, m, a, c, e, g, i, k
+            // 
+            //                h
+            //          _____/ \_____
+            //          d           l
+            //       __/ \__       / \
+            //       b     f      j   m
+            //      / \   / \    / \
+            //      a c   e g    i k
+            //
+            // The difference in these cases is the 'd' subtree.  We either have:
+            //
+            // 1. enough elements to fill it and start filling its right sibling ('l').  This is the case in the 13
+            //    element tree.
+            //
+            // 2. not enough elements to start filling the right sibling ('i').  This is the case in the 10 element
+            //    tree.
+            //
+            // In both cases, one of the two children of the root will be a perfect tree (the right child in the 10
+            // element case, and the left element in the 13 element case). From the initial discussion, we know that
+            // perfect trees are trivial to handle when we recurse into them.  For the other side, we will get a tree
+            // that we can then recursively apply the more complex logic to.  And the process repeats downwards.
+
+            // The height of the perfect portion of the tree (the rows that are completely full from left to right).
+            // This is '3' in both of the examples above.
             var perfectPortionHeight = SegmentedArraySortUtils.Log2((uint)subtreeNodeCount + 1);
 
-            // Then number of nodes in the perfect section (D/B/E).  Here that value is
-            // 3.  (1 << 2) - 1
+            // Then number of nodes in the perfect section.  For both trees above this is 7.
             var perfectSectionNodeCount = (1 << perfectPortionHeight) - 1;
 
             // If the entire subtree we're looking at is perfect or not.  It's perfect if every layer is full.
-            // In the above example, the tree is not perfect.
+            // In the above example, both trees are not perfect.
             var isPerfect = perfectSectionNodeCount == subtreeNodeCount;
 
             // The total tree height.  If we're perfect, it's the height of the perfect portion.  Otherwise
-            // it's one higher (to fit the remaining 'complete' items).
+            // it's one higher (to fit the remaining incomplete row).
             var treeHeight = isPerfect ? perfectPortionHeight : perfectPortionHeight + 1;
 
             // How many nodes would be in the tree was perfect.
             var nodeCountIfTreeWerePerfect = (1 << treeHeight) - 1;
 
+            // Here we can figure out which case we have, and where the pivot it.  First, we start with
+            //
+            // 1. `a = subtreeNodeCount - perfectSectionNodeCount`.  The number of elements in the 'incomplete' last row.
+            // 2. `b = nodeCountIfTreeWerePerfect - perfectSectionNodeCount`. The number of elements in the last row if
+            //    it were entirely complete.
+            // 3. `c = b / 2`.  Half the number of elements in the last row if it were entirely complete.
+            // 4. `d = Min(a, c)`.  The min point in the last row.  If we have it filled less than half full, it's the
+            //    number of elements.  If it is more than half full, it's the midway point.
+            // 5. `e = perfectSectionNodeCount / 2`. Halfway through the perfect top section.
+            // 6. `f = e + d`.  The pivot point in the array. While filling up the first half of the final row, we're
+            //    continually incrementing the pivot point (so we include more elements in the left tree).  Once we hit
+            //    the halfway point in the last row, then we want to stop incrementing the pivot point (so that we
+            //    include more elements in the right tree).
             return (perfectSectionNodeCount / 2) + Math.Min(subtreeNodeCount - perfectSectionNodeCount, (nodeCountIfTreeWerePerfect - perfectSectionNodeCount) / 2);
         }
 
