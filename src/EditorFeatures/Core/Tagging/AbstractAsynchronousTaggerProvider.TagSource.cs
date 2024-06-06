@@ -49,7 +49,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </summary>
         private const int CoalesceDifferenceCount = 10;
 
-        private static readonly ObjectPool<SegmentedList<TagSpan<TTag>>> s_tagSpanListPool = new(() => new(), trimOnFree: false);
         private readonly ObjectPool<HashSet<TagSpan<TTag>>> _tagSpanSetPool;
 
         #region Fields that can be accessed from either thread

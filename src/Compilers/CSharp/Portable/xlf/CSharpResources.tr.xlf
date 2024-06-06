@@ -2377,6 +2377,11 @@
         <target state="translated">genişletilmiş özellik desenleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
+        <source>field and value keywords</source>
+        <target state="new">field and value keywords</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">dosya kapsamlı ad alanı</target>
@@ -2600,6 +2605,16 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">işaretçi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
+        <source>'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</source>
+        <target state="new">'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
+        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
+        <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">

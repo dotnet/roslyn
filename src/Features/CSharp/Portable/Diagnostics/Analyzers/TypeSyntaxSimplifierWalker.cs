@@ -42,7 +42,7 @@ internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     private readonly SemanticModel _semanticModel;
     private readonly CSharpSimplifierOptions _options;
     private readonly AnalyzerOptions _analyzerOptions;
-    private readonly TextSpanIntervalTree? _ignoredSpans;
+    private readonly TextSpanMutableIntervalTree? _ignoredSpans;
     private readonly CancellationToken _cancellationToken;
 
     private ImmutableArray<Diagnostic>.Builder? _diagnostics;
@@ -70,7 +70,7 @@ internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
         }
     }
 
-    public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierOptions options, AnalyzerOptions analyzerOptions, TextSpanIntervalTree? ignoredSpans, CancellationToken cancellationToken)
+    public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierOptions options, AnalyzerOptions analyzerOptions, TextSpanMutableIntervalTree? ignoredSpans, CancellationToken cancellationToken)
         : base(SyntaxWalkerDepth.StructuredTrivia)
     {
         _analyzer = analyzer;

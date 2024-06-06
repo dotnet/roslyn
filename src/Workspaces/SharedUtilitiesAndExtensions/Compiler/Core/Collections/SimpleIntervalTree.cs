@@ -6,17 +6,17 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
-internal class SimpleIntervalTree
+internal class BinaryIntervalTree
 {
-    public static SimpleIntervalTree<T, TIntrospector> Create<T, TIntrospector>(in TIntrospector introspector, params T[] values)
+    public static SimpleMutableIntervalTree<T, TIntrospector> Create<T, TIntrospector>(in TIntrospector introspector, params T[] values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         return Create(in introspector, (IEnumerable<T>)values);
     }
 
-    public static SimpleIntervalTree<T, TIntrospector> Create<T, TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
+    public static SimpleMutableIntervalTree<T, TIntrospector> Create<T, TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return new SimpleIntervalTree<T, TIntrospector>(in introspector, values);
+        return new SimpleMutableIntervalTree<T, TIntrospector>(in introspector, values);
     }
 }
