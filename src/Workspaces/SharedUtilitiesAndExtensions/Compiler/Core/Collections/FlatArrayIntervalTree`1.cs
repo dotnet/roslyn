@@ -190,7 +190,7 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             // How many nodes would be in the tree if it was perfect.
             var nodeCountIfTreeWerePerfect = (1 << treeHeight) - 1;
 
-            // Here we can figure out which case we have, and where the pivot it.  First, we start with
+            // Here we can figure out which case we have, and where the pivot is.  First, we start with
             //
             // 1. `a = subtreeNodeCount - perfectSectionNodeCount`.  The number of elements in the 'incomplete' last row.
             // 2. `b = nodeCountIfTreeWerePerfect - perfectSectionNodeCount`. The number of elements in the last row if
