@@ -436,7 +436,7 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
             for (var j = -3; j <= 2; j++)
             {
                 var allInts = Enumerable.Range(1, totalCount + j);
-                var tree = ImmutableIntervalTree<int>.CreateFromUnsorted(new Int32IntervalIntrospector(), new(allInts));
+                var tree = ImmutableIntervalTree<int>.CreateFromSorted(new Int32IntervalIntrospector(), new(allInts));
 
                 // Ensure that the tree produces the same elements in sorted order.
                 Assert.True(tree.SequenceEqual(allInts));
