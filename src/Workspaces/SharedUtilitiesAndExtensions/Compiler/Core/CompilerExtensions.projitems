@@ -210,7 +210,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasic\VisualBasicCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasic\VisualBasicIdeCodeStyleOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\FlatArrayIntervalTree`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableIntervalTree`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IIntervalTree`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeAlgorithms`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.cs" />
@@ -289,12 +289,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedValuePreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IIntervalIntrospector.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTree`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTree`1.Node.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\MutableIntervalTree`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\MutableIntervalTree`1.Node.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\NormalizedTextSpanCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleIntervalTree.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleIntervalTree`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\TextSpanIntervalIntrospector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleMutableIntervalTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleMutableIntervalTree`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\TextSpanMutableIntervalTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editing\GenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AnalyzerConfigOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ChildSyntaxListExtensions.cs" />
@@ -320,7 +320,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractSyntaxFormatting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\BottomUpBaseIndentationFinder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ContextIntervalTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ContextMutableIntervalTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Context\FormattingContext.AnchorData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Context\FormattingContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Context\FormattingContext.IndentationData.cs" />
