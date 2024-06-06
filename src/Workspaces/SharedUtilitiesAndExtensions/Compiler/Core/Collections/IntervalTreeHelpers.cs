@@ -167,8 +167,10 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         var matchCount = 0;
         var end = start + length;
 
-        foreach (var currentNode in GetNodeEnumerator(tree, start, end, in introspector))
+        using var enumerator = GetNodeEnumerator(tree, start, end, in introspector);
+        while (enumerator.MoveNext())
         {
+            var currentNode = enumerator.Current;
             var currentNodeValue = witness.GetValue(tree, currentNode);
             if (testInterval(currentNodeValue, start, length, in introspector))
             {
