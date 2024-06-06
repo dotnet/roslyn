@@ -2839,6 +2839,54 @@ class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeEscapePropertyAssignment(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+                ref struct S1
+                {
+                    public Span<int> P
+                    {
+                        get => default;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S1 local = default;
+                        local.P = stackSpan; // 1
+                        local.P = heapSpan;
+                    }
+                }
+
+                ref struct S2
+                {
+                    public Span<int> P
+                    {
+                        get => default;
+                        readonly set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S1 local = default;
+                        local.P = stackSpan;
+                        local.P = heapSpan;
+                    }
+                }
+                """, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void RefLikeObjInitializers(LanguageVersion languageVersion)
         {
             var text = @"

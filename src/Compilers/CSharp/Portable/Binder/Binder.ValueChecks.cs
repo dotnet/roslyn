@@ -71,6 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Create(indexer);
                     }
 
+                    // For properties the compiler prefers the `get` method over the `set` irrespective
+                    // of which one is actually used in the code. This simplification does lead to 
+                    // one case where the compiler incorrectly flags code as a ref safety error 
+                    // when it's not (when a readonly set) is involved. That is tracked by the following
+                    // issue.
+                    //
+                    // If that issue raises to a high enough priority then likely it should take a similar
+                    // approach as BoundIndexerAccess.AccessKind
+                    //
+                    // https://github.com/dotnet/roslyn/issues/73872
                     return new MethodInfo(
                         symbol,
                         property.GetOwnOrInheritedGetMethod() ?? property.GetOwnOrInheritedSetMethod(),
@@ -396,6 +406,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (false, BindValueKind.CompoundAssignment) => AccessorKind.Both,
                 (false, BindValueKind.Assignable) => AccessorKind.Set,
                 (false, BindValueKind.RValue) => AccessorKind.Get,
+
+                // These combinations of not returns by ref but having a ref accessor kind 
+                // occur in error scenarios.
+                (false, BindValueKind.RefOrOut) => AccessorKind.Get,
+                (false, BindValueKind.RefAssignable) => AccessorKind.Get,
                 _ => AccessorKind.Unknown,
             };
             Debug.Assert(kind != AccessorKind.Unknown);
