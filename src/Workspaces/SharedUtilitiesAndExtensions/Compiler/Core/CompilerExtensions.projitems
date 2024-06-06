@@ -213,6 +213,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\FlatArrayIntervalTree`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IIntervalTree`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeAlgorithms`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
