@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 /// </summary>
 internal readonly struct IntervalTreeAlgorithms<T, TIntervalTree>(TIntervalTree tree) where TIntervalTree : IIntervalTree<T>
 {
-    public ImmutableArray<T> GetIntervalsThatMatch<TIntrospector>(
-        int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
+    public ImmutableArray<T> GetIntervalsThatMatch<TIntrospector, TIntervalTester>(
+        int start, int length, in TIntrospector introspector, in TIntervalTester intervalTester)
         where TIntrospector : struct, IIntervalIntrospector<T>
+        where TIntervalTester : struct, IIntervalTester<T, TIntrospector>
     {
         using var result = TemporaryArray<T>.Empty;
-        tree.FillWithIntervalsThatMatch(start, length, testInterval, ref result.AsRef(), in introspector, stopAfterFirst: false);
+        tree.FillWithIntervalsThatMatch(start, length, ref result.AsRef(), in introspector, in intervalTester, stopAfterFirst: false);
         return result.ToImmutableAndClear();
     }
 
@@ -28,42 +29,42 @@ internal readonly struct IntervalTreeAlgorithms<T, TIntervalTree>(TIntervalTree 
         int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return GetIntervalsThatMatch(start, length, Tests<TIntrospector>.OverlapsWithTest, in introspector);
+        return GetIntervalsThatMatch(start, length, in introspector, default(Tests<TIntrospector>.OverlapsWithIntervalTester));
     }
 
     public ImmutableArray<T> GetIntervalsThatIntersectWith<TIntrospector>(
         int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return GetIntervalsThatMatch(start, length, Tests<TIntrospector>.IntersectsWithTest, in introspector);
+        return GetIntervalsThatMatch(start, length, in introspector, default(Tests<TIntrospector>.IntersectsWithIntervalTester));
     }
 
     public ImmutableArray<T> GetIntervalsThatContain<TIntrospector>(
         int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return GetIntervalsThatMatch(start, length, Tests<TIntrospector>.ContainsTest, in introspector);
+        return GetIntervalsThatMatch(start, length, in introspector, default(Tests<TIntrospector>.ContainsIntervalTester));
     }
 
     public void FillWithIntervalsThatOverlapWith<TIntrospector>(
         int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        tree.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.OverlapsWithTest, ref builder, in introspector, stopAfterFirst: false);
+        tree.FillWithIntervalsThatMatch(start, length, ref builder, in introspector, default(Tests<TIntrospector>.OverlapsWithIntervalTester),stopAfterFirst: false);
     }
 
     public void FillWithIntervalsThatIntersectWith<TIntrospector>(
         int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        tree.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.IntersectsWithTest, ref builder, in introspector, stopAfterFirst: false);
+        tree.FillWithIntervalsThatMatch(start, length, ref builder, in introspector, default(Tests<TIntrospector>.IntersectsWithIntervalTester), stopAfterFirst: false);
     }
 
     public void FillWithIntervalsThatContain<TIntrospector>(
         int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        tree.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.ContainsTest, ref builder, in introspector, stopAfterFirst: false);
+        tree.FillWithIntervalsThatMatch(start, length, ref builder, in introspector, default(Tests<TIntrospector>.ContainsIntervalTester), stopAfterFirst: false);
     }
 
     public bool HasIntervalThatIntersectsWith<TIntrospector>(
@@ -77,21 +78,21 @@ internal readonly struct IntervalTreeAlgorithms<T, TIntervalTree>(TIntervalTree 
         int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return tree.Any(start, length, Tests<TIntrospector>.IntersectsWithTest, in introspector);
+        return tree.Any(start, length, in introspector, default(Tests<TIntrospector>.IntersectsWithIntervalTester));
     }
 
     public bool HasIntervalThatOverlapsWith<TIntrospector>(
         int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return tree.Any(start, length, Tests<TIntrospector>.OverlapsWithTest, in introspector);
+        return tree.Any(start, length, in introspector, default(Tests<TIntrospector>.OverlapsWithIntervalTester));
     }
 
     public bool HasIntervalThatContains<TIntrospector>(
         int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return tree.Any(start, length, Tests<TIntrospector>.ContainsTest, in introspector);
+        return tree.Any(start, length, in introspector, default(Tests<TIntrospector>.ContainsIntervalTester));
     }
 
     public static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
@@ -151,8 +152,22 @@ internal readonly struct IntervalTreeAlgorithms<T, TIntervalTree>(TIntervalTree 
     private static class Tests<TIntrospector>
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        public static readonly TestInterval<T, TIntrospector> ContainsTest = Contains;
-        public static readonly TestInterval<T, TIntrospector> IntersectsWithTest = IntersectsWith;
-        public static readonly TestInterval<T, TIntrospector> OverlapsWithTest = OverlapsWith;
+        public readonly struct ContainsIntervalTester : IIntervalTester<T, TIntrospector>
+        {
+            public bool Test(T value, int start, int length, in TIntrospector introspector)
+                => Contains(value, start, length, in introspector);
+        }
+
+        public readonly struct IntersectsWithIntervalTester : IIntervalTester<T, TIntrospector>
+        {
+            public bool Test(T value, int start, int length, in TIntrospector introspector)
+                => IntersectsWith(value, start, length, in introspector);
+        }
+
+        public readonly struct OverlapsWithIntervalTester : IIntervalTester<T, TIntrospector>
+        {
+            public bool Test(T value, int start, int length, in TIntrospector introspector)
+                => OverlapsWith(value, start, length, in introspector);
+        }
     }
 }

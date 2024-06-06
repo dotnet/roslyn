@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -42,13 +39,14 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
     public static Enumerator GetEnumerator(TIntervalTree tree)
         => new(tree);
 
-    public static int FillWithIntervalsThatMatch<TIntrospector>(
+    public static int FillWithIntervalsThatMatch<TIntrospector, TIntervalTester>(
         TIntervalTree tree, int start, int length,
-        TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder,
         in TIntrospector introspector,
+        in TIntervalTester intervalTester,
         bool stopAfterFirst)
         where TIntrospector : struct, IIntervalIntrospector<T>
+        where TIntervalTester : struct, IIntervalTester<T, TIntrospector>
     {
         var witness = default(TIntervalTreeWitness);
 
@@ -59,7 +57,7 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
         while (enumerator.MoveNext())
         {
             var currentNodeValue = witness.GetValue(tree, enumerator.Current);
-            if (testInterval(currentNodeValue, start, length, in introspector))
+            if (intervalTester.Test(currentNodeValue, start, length, in introspector))
             {
                 matchCount++;
                 builder.Add(currentNodeValue);
@@ -72,8 +70,10 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
         return matchCount;
     }
 
-    public static bool Any<TIntrospector>(TIntervalTree tree, int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
+    public static bool Any<TIntrospector, TIntervalTester>(
+        TIntervalTree tree, int start, int length, in TIntrospector introspector, in TIntervalTester intervalTester)
         where TIntrospector : struct, IIntervalIntrospector<T>
+        where TIntervalTester : struct, IIntervalTester<T, TIntrospector>
     {
         // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
 
@@ -92,7 +92,7 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
             // Check the nodes as we go down.  That way we can stop immediately when we find something that matches,
             // instead of having to do an entire in-order walk, which might end up hitting a lot of nodes we don't care
             // about and placing a lot into the stack.
-            if (testInterval(witness.GetValue(tree, currentNode), start, length, in introspector))
+            if (intervalTester.Test(witness.GetValue(tree, currentNode), start, length, in introspector))
                 return true;
 
             if (ShouldExamineRight(tree, start, end, currentNode, in introspector, out var right))
