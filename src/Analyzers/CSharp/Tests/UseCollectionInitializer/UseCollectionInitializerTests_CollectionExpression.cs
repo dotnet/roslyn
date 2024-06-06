@@ -702,30 +702,32 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73879")]
-    public async Task TestOnVariableDeclaratorDifferentType_Interface_LooseMatch_MutableInterface()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/73879")]
+    [InlineData("IList")]
+    [InlineData("ICollection")]
+    public async Task TestOnVariableDeclaratorDifferentType_Interface_LooseMatch_MutableInterface(string collectionType)
     {
         await TestInRegularAndScriptAsync(
-            """
+            $$"""
             using System.Collections.Generic;
 
             class C
             {
                 void M()
                 {
-                    IList<int> c = [|new|] List<int>();
+                    {{collectionType}}<int> c = [|new|] List<int>();
                     [|c.Add(|]1);
                 }
             }
             """,
-            """
+            $$"""
             using System.Collections.Generic;
 
             class C
             {
                 void M()
                 {
-                    IList<int> c = [1];
+                    {{collectionType}}<int> c = [1];
                 }
             }
             """);
