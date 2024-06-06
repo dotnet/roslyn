@@ -809,17 +809,6 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     void M()
                     {
-                        IReadOnlyList<int> c = [|new|] List<int>();
-                    }
-                }
-                """,
-            FixedCode = """
-                using System.Collections.Generic;
-
-                class C
-                {
-                    void M()
-                    {
                         IReadOnlyList<int> c = new List<int>();
                     }
                 }

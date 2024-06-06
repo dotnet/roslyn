@@ -202,7 +202,7 @@ internal static class UseCollectionExpressionHelpers
             var isWellKnownCollectionReadWriteInterface = IsWellKnownCollectionReadWriteInterface(convertedType);
             if (isWellKnownCollectionReadWriteInterface &&
                 Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
-                Equals(type.GetTypeArguments()[0], convertedType.GetTypeArguments()[0]))
+                type.AllInterfaces.Contains(convertedType))
             {
                 return true;
             }
