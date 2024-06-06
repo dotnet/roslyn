@@ -416,4 +416,31 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
             AssertEx.Equal(tree, Enumerable.Range(1, i));
         }
     }
+
+    [Fact]
+    public void TestVeryLargeBalancing()
+    {
+        for (var i = 10; i < 20; i++)
+        {
+            var totalCount = 1 << i;
+
+            // Test the values where we have almost filled the tree, to having slightly more than a filled tree.
+            Iterate(totalCount);
+
+            // Also test the values where the last row is almost 50% full to more than 50% full.
+            Iterate(totalCount - (totalCount >> 2));
+        }
+
+        static void Iterate(int totalCount)
+        {
+            for (var j = -3; j <= 2; j++)
+            {
+                var allInts = Enumerable.Range(1, totalCount + j);
+                var tree = ImmutableIntervalTree<int>.CreateFromSorted(new Int32IntervalIntrospector(), new(allInts));
+
+                // Ensure that the tree produces the same elements in sorted order.
+                Assert.True(tree.SequenceEqual(allInts));
+            }
+        }
+    }
 }
