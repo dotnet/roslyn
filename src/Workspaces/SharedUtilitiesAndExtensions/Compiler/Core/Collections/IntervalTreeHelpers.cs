@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
@@ -38,13 +39,19 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
 {
     private static readonly ObjectPool<Stack<TNode>> s_nodeStackPool = new(() => new(), 128, trimOnFree: false);
 
-    public static NodeEnumerator GetNodeEnumerator(TIntervalTree tree)
-        => new(tree);
+    public static NodeEnumerator<TIntrospector> GetNodeEnumerator<TIntrospector>(TIntervalTree tree, int start, int end, in TIntrospector introspector)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+        => new(tree, start, end, introspector);
 
-    public struct NodeEnumerator : IEnumerator<TNode>
+    public struct NodeEnumerator<TIntrospector> : IEnumerator<TNode>
+        where TIntrospector : struct, IIntervalIntrospector<T>
     {
         private readonly TIntervalTree _tree;
         private readonly TIntervalTreeWitness _witness;
+        private readonly TIntrospector _introspector;
+        private readonly int _start;
+        private readonly int _end;
+
         private readonly PooledObject<Stack<TNode>> _pooledStack;
         private readonly Stack<TNode>? _stack;
 
@@ -52,9 +59,12 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         private TNode? _currentNode;
         private bool _currentNodeHasValue;
 
-        public NodeEnumerator(TIntervalTree tree)
+        public NodeEnumerator(TIntervalTree tree, int start, int end, in TIntrospector introspector)
         {
             _tree = tree;
+            _start = start;
+            _end = end;
+            _introspector = introspector;
 
             _currentNodeHasValue = _witness.TryGetRoot(_tree, out _currentNode);
 
@@ -79,7 +89,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
             // The first time through, we just want to start processing with the root node.  Every other time through,
             // after we've yielded the current element, we  want to walk down the right side of it.
             if (_started)
-                _currentNodeHasValue = _witness.TryGetRightNode(_tree, _currentNode!, out _currentNode);
+                _currentNodeHasValue = ShouldExamineRight(_tree, _start, _end, _currentNode!, _introspector, out _currentNode);
 
             // After we're called once, we're in the started point.
             _started = true;
@@ -90,7 +100,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
                 while (_currentNodeHasValue)
                 {
                     _stack.Push(_currentNode!);
-                    _currentNodeHasValue = _witness.TryGetLeftNode(_tree, _currentNode!, out _currentNode);
+                    _currentNodeHasValue = ShouldExamineLeft(_tree, _start, _currentNode!, _introspector, out _currentNode);
                 }
 
                 Contract.ThrowIfTrue(_currentNodeHasValue);
@@ -109,12 +119,26 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
             => throw new System.NotImplementedException();
     }
 
+    /// <summary>
+    /// An introspector that always throws.  Used when we need to call an api that takes this, but we know will never
+    /// call into it due to other arguments we pass along.
+    /// </summary>
+    private readonly struct AlwaysThrowIntrospector : IIntervalIntrospector<T>
+    {
+        public TextSpan GetSpan(T value) => throw new System.NotImplementedException();
+    }
+
     public struct Enumerator(TIntervalTree tree) : IEnumerator<T>
     {
         private readonly TIntervalTree _tree = tree;
         private readonly TIntervalTreeWitness _witness;
 
-        private NodeEnumerator _nodeEnumerator = GetNodeEnumerator(tree);
+        /// <summary>
+        /// Because we're passing the full span of all ints, we know that we'll never call into the introspector.  Since
+        /// all intervals will always be in that span.
+        /// </summary>
+        private NodeEnumerator<AlwaysThrowIntrospector> _nodeEnumerator =
+            GetNodeEnumerator(tree, start: int.MinValue, end: int.MaxValue, default(AlwaysThrowIntrospector));
 
         readonly object IEnumerator.Current => this.Current!;
 
@@ -226,6 +250,9 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
     {
         var witness = default(TIntervalTreeWitness);
 
+        if (start == int.MinValue && end == int.MaxValue)
+            return witness.TryGetRightNode(tree, currentNode, out right);
+
         // right children's starts will never be to the left of the parent's start so we should consider right
         // subtree only if root's start overlaps with interval's End, 
         if (introspector.GetSpan(witness.GetValue(tree, currentNode)).Start <= end)
@@ -250,6 +277,10 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         [NotNullWhen(true)] out TNode? left) where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var witness = default(TIntervalTreeWitness);
+
+        if (start == int.MinValue)
+            return witness.TryGetLeftNode(tree, currentNode, out left);
+
         // only if left's maxVal overlaps with interval's start, we should consider 
         // left subtree
         if (witness.TryGetLeftNode(tree, currentNode, out left) &&
