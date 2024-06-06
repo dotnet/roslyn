@@ -176,35 +176,39 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             // This is '3' in both of the examples above.
             var perfectPortionHeight = SegmentedArraySortUtils.Log2((uint)subtreeNodeCount + 1);
 
-            // Then number of nodes in the perfect section.  For both trees above this is 7.
-            var perfectSectionNodeCount = (1 << perfectPortionHeight) - 1;
+            // Then number of nodes in the perfect portion.  For both trees above this is 7.
+            var perfectPortionNodeCount = PerfectTreeNodeCount(perfectPortionHeight);
 
             // If the entire subtree we're looking at is perfect or not.  It's perfect if every layer is full.
             // In the above example, both trees are not perfect.
-            var isPerfect = perfectSectionNodeCount == subtreeNodeCount;
+            var wholeSubtreeIsPerfect = perfectPortionNodeCount == subtreeNodeCount;
 
-            // The total tree height.  If we're perfect, it's the height of the perfect portion.  Otherwise
-            // it's one higher (to fit the remaining incomplete row).
-            var treeHeight = isPerfect ? perfectPortionHeight : perfectPortionHeight + 1;
+            // If we do have a perfect tree, the root item trivially the s the middle element of that tree.
+            var perfectPortionMidwayPoint = perfectPortionNodeCount / 2;
+            if (wholeSubtreeIsPerfect)
+                return perfectPortionMidwayPoint;
 
-            // How many nodes would be in the tree if it was perfect.
-            var nodeCountIfTreeWerePerfect = (1 << treeHeight) - 1;
+            // The total tree height.  Since we know we're not perfect, it's one greater than the perfect-portion height.
+            var treeHeight = perfectPortionHeight + 1;
 
-            // Here we can figure out which case we have, and where the pivot is.  First, we start with
-            //
-            // 1. `a = subtreeNodeCount - perfectSectionNodeCount`.  The number of elements in the 'incomplete' last row.
-            // 2. `b = nodeCountIfTreeWerePerfect - perfectSectionNodeCount`. The number of elements in the last row if
-            //    it were entirely complete.
-            // 3. `c = b / 2`.  Half the number of elements in the last row if it were entirely complete.
-            // 4. `d = Min(a, c)`.  The min point in the last row.  If we have it filled less than half full, it's the
-            //    number of elements.  If it is more than half full, it's the midway point.
-            // 5. `e = perfectSectionNodeCount / 2`. Halfway through the perfect top section.
-            // 6. `f = e + d`.  The pivot point in the array. While filling up the first half of the final row, we're
-            //    continually incrementing the pivot point (so we include more elements in the left tree).  Once we hit
-            //    the halfway point in the last row, then we want to stop incrementing the pivot point (so that we
-            //    include more elements in the right tree).
-            return (perfectSectionNodeCount / 2) + Math.Min(subtreeNodeCount - perfectSectionNodeCount, (nodeCountIfTreeWerePerfect - perfectSectionNodeCount) / 2);
+            var nodeCountIfTreeWerePerfect = PerfectTreeNodeCount(treeHeight);
+
+            var elementsInLastIncompleteRow = subtreeNodeCount - perfectPortionNodeCount;
+            var elementsInLastRowIfTreeWerePerfect = nodeCountIfTreeWerePerfect - perfectPortionNodeCount;
+
+            // The min point in the last row.  If we have it filled less than half full, it's the number of elements.
+            // If it is more than half full, it's the midway point.
+            var elementsInLastRowCappedAtMidwayPoint = Math.Min(elementsInLastIncompleteRow, elementsInLastRowIfTreeWerePerfect / 2);
+
+            // The pivot point in the array. While filling up the first half of the final row, we're continually
+            // incrementing the pivot point (so we include more elements in the left tree).  Once we hit the halfway
+            // point in the last row, then we want to stop incrementing the pivot point (so that we include more
+            // elements in the right tree).
+            return perfectPortionMidwayPoint + elementsInLastRowCappedAtMidwayPoint;
         }
+
+        static int PerfectTreeNodeCount(int height)
+            => (1 << height) - 1;
 
         // Returns the max end *position* of tree rooted at currentNodeIndex.  If there is no tree here (it refers to a
         // null child), then this will return -1;
