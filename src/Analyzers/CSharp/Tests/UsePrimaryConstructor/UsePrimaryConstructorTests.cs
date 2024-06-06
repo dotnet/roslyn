@@ -4100,4 +4100,30 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73614")]
+    public async Task TestNotWithRefStruct()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                ref struct Sample
+                {
+                    private ReadOnlySpan<char> _str;
+                
+                    public Sample(ReadOnlySpan<char> str)
+                    {
+                        _str = str;
+                    }
+                
+                    public void MoveNext()
+                    {
+                        var span = _str;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

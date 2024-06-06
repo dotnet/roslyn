@@ -366,6 +366,10 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                         if (primaryConstructor != null)
                             return false;
 
+                        // Check if any of the parameters is a ref-like type
+                        if (constructor.Parameters.Any(p => p.Type.IsRefLikeType))
+                            return false;
+
                         primaryConstructor = constructor;
                         primaryConstructorDeclaration = constructorDeclaration;
                     }
