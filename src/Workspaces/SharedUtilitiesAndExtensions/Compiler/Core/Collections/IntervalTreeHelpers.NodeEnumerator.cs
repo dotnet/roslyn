@@ -54,33 +54,31 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
         public bool MoveNext()
         {
             // Trivial empty case
-            if (_stack is not null)
+            if (_stack is null)
+                return false;
+
+            // The first time through, we just want to start processing with the root node.  Every other time through,
+            // after we've yielded the current element, we  want to walk down the right side of it.
+            if (_started)
+                _currentNodeHasValue = ShouldExamineRight(_tree, _start, _end, _currentNode!, _introspector, out _currentNode);
+
+            // After we're called once, we're in the started point.
+            _started = true;
+
+            if (!_currentNodeHasValue && _stack.Count <= 0)
+                return false;
+
+            // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
+            while (_currentNodeHasValue)
             {
-                // The first time through, we just want to start processing with the root node.  Every other time through,
-                // after we've yielded the current element, we  want to walk down the right side of it.
-                if (_started)
-                    _currentNodeHasValue = ShouldExamineRight(_tree, _start, _end, _currentNode!, _introspector, out _currentNode);
-
-                // After we're called once, we're in the started point.
-                _started = true;
-
-                if (_currentNodeHasValue || _stack.Count > 0)
-                {
-                    // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
-                    while (_currentNodeHasValue)
-                    {
-                        _stack.Push(_currentNode!);
-                        _currentNodeHasValue = ShouldExamineLeft(_tree, _start, _currentNode!, _introspector, out _currentNode);
-                    }
-
-                    Contract.ThrowIfTrue(_currentNodeHasValue);
-                    Contract.ThrowIfTrue(_stack.Count == 0);
-                    _currentNode = _stack.Pop();
-                    return true;
-                }
+                _stack.Push(_currentNode!);
+                _currentNodeHasValue = ShouldExamineLeft(_tree, _start, _currentNode!, _introspector, out _currentNode);
             }
 
-            return false;
+            Contract.ThrowIfTrue(_currentNodeHasValue);
+            Contract.ThrowIfTrue(_stack.Count == 0);
+            _currentNode = _stack.Pop();
+            return true;
         }
 
         public readonly void Dispose()
