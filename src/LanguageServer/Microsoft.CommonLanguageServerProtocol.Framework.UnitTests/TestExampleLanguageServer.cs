@@ -7,6 +7,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework.Example;
 using Microsoft.Extensions.DependencyInjection;
 using Nerdbank.Streams;
@@ -105,7 +106,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
     private static SystemTextJsonFormatter CreateJsonMessageFormatter()
     {
         var messageFormatter = new SystemTextJsonFormatter();
-        messageFormatter.JsonSerializerOptions.AddVSCodeInternalExtensionConverters();
+        messageFormatter.JsonSerializerOptions.AddLspSerializerOptions();
         return messageFormatter;
     }
 
