@@ -33,103 +33,23 @@ internal interface IIntervalTreeWitness<T, TIntervalTree, TNode>
 /// <summary>
 /// Utility helpers used to allow code sharing for the different implementations of <see cref="IIntervalTree{T}"/>s.
 /// </summary>
-internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTreeWitness>
+internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTreeWitness>
     where TIntervalTree : IIntervalTree<T>
     where TIntervalTreeWitness : struct, IIntervalTreeWitness<T, TIntervalTree, TNode>
 {
     private static readonly ObjectPool<Stack<TNode>> s_nodeStackPool = new(() => new(), 128, trimOnFree: false);
 
-    public static NodeEnumerator<TIntrospector> GetNodeEnumerator<TIntrospector>(TIntervalTree tree, int start, int end, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => new(tree, start, end, introspector);
-
-    public struct NodeEnumerator<TIntrospector> : IEnumerator<TNode>
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        private readonly TIntervalTree _tree;
-        private readonly TIntervalTreeWitness _witness;
-        private readonly TIntrospector _introspector;
-        private readonly int _start;
-        private readonly int _end;
-
-        private readonly PooledObject<Stack<TNode>> _pooledStack;
-        private readonly Stack<TNode>? _stack;
-
-        private bool _started;
-        private TNode? _currentNode;
-        private bool _currentNodeHasValue;
-
-        public NodeEnumerator(TIntervalTree tree, int start, int end, in TIntrospector introspector)
-        {
-            _tree = tree;
-            _start = start;
-            _end = end;
-            _introspector = introspector;
-
-            _currentNodeHasValue = _witness.TryGetRoot(_tree, out _currentNode);
-
-            // Avoid any pooling work if we don't even have a root.
-            if (_currentNodeHasValue)
-            {
-                _pooledStack = s_nodeStackPool.GetPooledObject();
-                _stack = _pooledStack.Object;
-            }
-        }
-
-        readonly object IEnumerator.Current => this.Current!;
-
-        public readonly TNode Current => _currentNode!;
-
-        public bool MoveNext()
-        {
-            // Trivial empty case
-            if (_stack is null)
-                return false;
-
-            // The first time through, we just want to start processing with the root node.  Every other time through,
-            // after we've yielded the current element, we  want to walk down the right side of it.
-            if (_started)
-                _currentNodeHasValue = ShouldExamineRight(_tree, _start, _end, _currentNode!, _introspector, out _currentNode);
-
-            // After we're called once, we're in the started point.
-            _started = true;
-
-            while (_currentNodeHasValue || _stack.Count > 0)
-            {
-                // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
-                while (_currentNodeHasValue)
-                {
-                    _stack.Push(_currentNode!);
-                    _currentNodeHasValue = ShouldExamineLeft(_tree, _start, _currentNode!, _introspector, out _currentNode);
-                }
-
-                Contract.ThrowIfTrue(_currentNodeHasValue);
-                Contract.ThrowIfTrue(_stack.Count == 0);
-                _currentNode = _stack.Pop();
-                return true;
-            }
-
-            return false;
-        }
-
-        public readonly void Dispose()
-            => _pooledStack.Dispose();
-
-        public readonly void Reset()
-            => throw new System.NotImplementedException();
-    }
-
-    /// <summary>
-    /// An introspector that always throws.  Used when we need to call an api that takes this, but we know will never
-    /// call into it due to other arguments we pass along.
-    /// </summary>
-    private readonly struct AlwaysThrowIntrospector : IIntervalIntrospector<T>
-    {
-        public TextSpan GetSpan(T value) => throw new System.NotImplementedException();
-    }
-
     public struct Enumerator(TIntervalTree tree) : IEnumerator<T>
     {
+        /// <summary>
+        /// An introspector that always throws.  Used when we need to call an api that takes this, but we know will never
+        /// call into it due to other arguments we pass along.
+        /// </summary>
+        private readonly struct AlwaysThrowIntrospector : IIntervalIntrospector<T>
+        {
+            public TextSpan GetSpan(T value) => throw new System.NotImplementedException();
+        }
+
         private readonly TIntervalTree _tree = tree;
         private readonly TIntervalTreeWitness _witness;
 
@@ -137,8 +57,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         /// Because we're passing the full span of all ints, we know that we'll never call into the introspector.  Since
         /// all intervals will always be in that span.
         /// </summary>
-        private NodeEnumerator<AlwaysThrowIntrospector> _nodeEnumerator =
-            GetNodeEnumerator(tree, start: int.MinValue, end: int.MaxValue, default(AlwaysThrowIntrospector));
+        private NodeEnumerator<AlwaysThrowIntrospector> _nodeEnumerator = new(tree, start: int.MinValue, end: int.MaxValue, default(AlwaysThrowIntrospector));
 
         readonly object IEnumerator.Current => this.Current!;
 
@@ -167,7 +86,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         var matchCount = 0;
         var end = start + length;
 
-        using var enumerator = GetNodeEnumerator(tree, start, end, in introspector);
+        using var enumerator = new NodeEnumerator<TIntrospector>(tree, start, end, introspector);
         while (enumerator.MoveNext())
         {
             var currentNode = enumerator.Current;
