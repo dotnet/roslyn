@@ -19,7 +19,6 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         private readonly TIntervalTree _tree;
-        private readonly TIntervalTreeWitness _witness;
         private readonly TIntrospector _introspector;
         private readonly int _start;
         private readonly int _end;
@@ -38,7 +37,7 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
             _end = end;
             _introspector = introspector;
 
-            _currentNodeHasValue = _witness.TryGetRoot(_tree, out _currentNode);
+            _currentNodeHasValue = default(TIntervalTreeWitness).TryGetRoot(_tree, out _currentNode);
 
             // Avoid any pooling work if we don't even have a root.
             if (_currentNodeHasValue)
