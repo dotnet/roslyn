@@ -23,15 +23,13 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
             public TextSpan GetSpan(T value) => throw new System.NotImplementedException();
         }
 
-        private readonly TIntervalTree _tree = tree;
-
         /// <summary>
         /// Because we're passing the full span of all ints, we know that we'll never call into the introspector.  Since
         /// all intervals will always be in that span.
         /// </summary>
         private NodeEnumerator<AlwaysThrowIntrospector> _nodeEnumerator = new(tree, start: int.MinValue, end: int.MaxValue, default);
 
-        public readonly T Current => default(TIntervalTreeWitness).GetValue(_tree, _nodeEnumerator.Current);
+        public readonly T Current => default(TIntervalTreeWitness).GetValue(tree, _nodeEnumerator.Current);
 
         readonly object IEnumerator.Current => this.Current!;
 
