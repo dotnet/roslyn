@@ -276,13 +276,16 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-    public IEnumerator<T> GetEnumerator()
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        => GetEnumerator();
+
+    public IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.Enumerator GetEnumerator()
         => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.GetEnumerator(this);
 
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct FlatArrayIntervalTreeWitness : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
+    internal readonly struct FlatArrayIntervalTreeWitness : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
     {
         public T GetValue(ImmutableIntervalTree<T> tree, int node)
             => tree._array[node].Value;

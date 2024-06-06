@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -37,43 +38,97 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
 {
     private static readonly ObjectPool<Stack<TNode>> s_nodeStackPool = new(() => new(), 128, trimOnFree: false);
 
-    public static IEnumerator<T> GetEnumerator(TIntervalTree tree)
+    public static NodeEnumerator GetNodeEnumerator(TIntervalTree tree)
+        => new(tree);
+
+    public struct NodeEnumerator : IEnumerator<TNode>
     {
-        var witness = default(TIntervalTreeWitness);
-        if (!witness.TryGetRoot(tree, out var root))
-            return SpecializedCollections.EmptyEnumerator<T>();
+        private readonly TIntervalTree _tree;
+        private readonly TIntervalTreeWitness _witness;
+        private readonly PooledObject<Stack<TNode>> _pooledStack;
+        private readonly Stack<TNode>? _stack;
 
-        return GetEnumeratorWorker(tree, witness, root);
+        private bool _started;
+        private TNode? _currentNode;
+        private bool _currentNodeHasValue;
 
-        static IEnumerator<T> GetEnumeratorWorker(
-            TIntervalTree tree, TIntervalTreeWitness witness, TNode root)
+        public NodeEnumerator(TIntervalTree tree)
         {
-            using var _ = s_nodeStackPool.GetPooledObject(out var stack);
-            var currentNode = root;
-            var currentNodeHasValue = true;
+            _tree = tree;
 
-            while (currentNodeHasValue || stack.Count > 0)
+            _currentNodeHasValue = _witness.TryGetRoot(_tree, out _currentNode);
+
+            // Avoid any pooling work if we don't even have a root.
+            if (_currentNodeHasValue)
             {
-                // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
-                while (currentNodeHasValue)
-                {
-                    stack.Push(currentNode!);
-                    currentNodeHasValue = witness.TryGetLeftNode(tree, currentNode!, out currentNode);
-                }
-
-                Contract.ThrowIfTrue(currentNodeHasValue);
-                Contract.ThrowIfTrue(stack.Count == 0);
-                currentNode = stack.Pop();
-
-                // We only get to a node once we've walked the left side of it.  So we can now return the parent node at
-                // that point.
-                yield return witness.GetValue(tree, currentNode);
-
-                // now get the right side and set things up so we can walk into it.
-                currentNodeHasValue = witness.TryGetRightNode(tree, currentNode, out currentNode);
+                _pooledStack = s_nodeStackPool.GetPooledObject();
+                _stack = _pooledStack.Object;
             }
         }
+
+        readonly object IEnumerator.Current => this.Current!;
+
+        public readonly TNode Current => _currentNode!;
+
+        public bool MoveNext()
+        {
+            // Trivial empty case
+            if (_stack is null)
+                return false;
+
+            // The first time through, we just want to start processing with the root node.  Every other time through,
+            // after we've yielded the current element, we  want to walk down the right side of it.
+            if (_started)
+                _currentNodeHasValue = _witness.TryGetRightNode(_tree, _currentNode!, out _currentNode);
+
+            // After we're called once, we're in the started point.
+            _started = true;
+
+            while (_currentNodeHasValue || _stack.Count > 0)
+            {
+                // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
+                while (_currentNodeHasValue)
+                {
+                    _stack.Push(_currentNode!);
+                    _currentNodeHasValue = _witness.TryGetLeftNode(_tree, _currentNode!, out _currentNode);
+                }
+
+                Contract.ThrowIfTrue(_currentNodeHasValue);
+                Contract.ThrowIfTrue(_stack.Count == 0);
+                _currentNode = _stack.Pop();
+                return true;
+            }
+
+            return false;
+        }
+
+        public readonly void Dispose()
+            => _pooledStack.Dispose();
+
+        public readonly void Reset()
+            => throw new System.NotImplementedException();
     }
+
+    public struct Enumerator(TIntervalTree tree) : IEnumerator<T>
+    {
+        private readonly TIntervalTree _tree = tree;
+        private readonly TIntervalTreeWitness _witness;
+
+        private NodeEnumerator _nodeEnumerator = GetNodeEnumerator(tree);
+
+        readonly object IEnumerator.Current => this.Current!;
+
+        public readonly T Current => _witness.GetValue(_tree, _nodeEnumerator.Current);
+
+        public bool MoveNext() => _nodeEnumerator.MoveNext();
+
+        public readonly void Reset() => _nodeEnumerator.Reset();
+
+        public readonly void Dispose() => _nodeEnumerator.Dispose();
+    }
+
+    public static Enumerator GetEnumerator(TIntervalTree tree)
+        => new(tree);
 
     public static int FillWithIntervalsThatMatch<TIntrospector>(
         TIntervalTree tree, int start, int length,

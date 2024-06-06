@@ -123,10 +123,13 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
             => node == null ? 0 : Height(node.Left) - Height(node.Right);
     }
 
-    public IEnumerator<T> GetEnumerator()
+    public IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.Enumerator GetEnumerator()
         => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.GetEnumerator(this);
 
     IEnumerator IEnumerable.GetEnumerator()
+        => this.GetEnumerator();
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
         => this.GetEnumerator();
 
     protected static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
@@ -143,7 +146,7 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct BinaryIntervalTreeWitness : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
+    internal readonly struct BinaryIntervalTreeWitness : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
     {
         public T GetValue(MutableIntervalTree<T> tree, Node node)
             => node.Value;
