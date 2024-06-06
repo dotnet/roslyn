@@ -67,12 +67,9 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
     /// pointer chasing operations, which is both slow, and which impacts the GC which has to track all those writes.
     /// </summary>
     /// <remarks>
-    /// <list type="bullet">The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a'
-    /// comes before 'b' in the list, then it's "start position" (as determined by the introspector) must be less than
-    /// or equal to 'b's start position.  This is a requirement for the algorithm to work correctly.
-    /// </list>
-    /// <list type="bullet">The <paramref name="values"/> list will be mutated as part of this operation.
-    /// </list>
+    /// The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a' comes before 'b' in
+    /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
+    /// start position.  This is a requirement for the algorithm to work correctly.
     /// </remarks>
     public static ImmutableIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
