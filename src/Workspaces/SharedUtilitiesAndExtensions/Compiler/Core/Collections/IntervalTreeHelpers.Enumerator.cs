@@ -24,7 +24,6 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
         }
 
         private readonly TIntervalTree _tree = tree;
-        private readonly TIntervalTreeWitness _witness;
 
         /// <summary>
         /// Because we're passing the full span of all ints, we know that we'll never call into the introspector.  Since
@@ -32,7 +31,7 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
         /// </summary>
         private NodeEnumerator<AlwaysThrowIntrospector> _nodeEnumerator = new(tree, start: int.MinValue, end: int.MaxValue, default);
 
-        public readonly T Current => _witness.GetValue(_tree, _nodeEnumerator.Current);
+        public readonly T Current => default(TIntervalTreeWitness).GetValue(_tree, _nodeEnumerator.Current);
 
         readonly object IEnumerator.Current => this.Current!;
 
