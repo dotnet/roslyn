@@ -112,13 +112,14 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             // To then index into source, we need to offset it by sourceStartInclusive as that is the start of the
             // source corresponding to the subtree we've walked into.
             var rootIndex = GetRootSourceIndex(length);
+            var rootIndexInSource = sourceStartInclusive + rootIndex;
 
             // Place that element in the appropriate location in the destination.
-            destination[destinationIndex] = new(source[sourceStartInclusive + rootIndex], destinationIndex);
+            destination[destinationIndex] = new(source[rootIndexInSource], destinationIndex);
 
             // Now recurse into the left and right subtrees to the left/right of the root index in this subtree.
-            BuildCompleteTree(source, sourceStartInclusive, sourceStartInclusive + rootIndex, destination, destinationIndex * 2 + 1);
-            BuildCompleteTree(source, sourceStartInclusive + rootIndex + 1, sourceEndExclusive, destination, destinationIndex * 2 + 2);
+            BuildCompleteTree(source, sourceStartInclusive, rootIndexInSource, destination, destinationIndex * 2 + 1);
+            BuildCompleteTree(source, rootIndexInSource + 1, sourceEndExclusive, destination, destinationIndex * 2 + 2);
         }
 
         // <param name="subtreeNodeCount">Number of nodes in this particular subtree</param>
