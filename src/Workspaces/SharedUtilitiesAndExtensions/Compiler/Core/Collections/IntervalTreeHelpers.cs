@@ -234,7 +234,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         if (introspector.GetSpan(witness.GetValue(tree, currentNode)).Start <= end)
         {
             if (witness.TryGetRightNode(tree, currentNode, out var rightNode) &&
-                GetEnd(witness.GetValue(tree, witness.GetMaxEndNode(tree, rightNode)), in introspector) >= start)
+                introspector.GetSpan(witness.GetValue(tree, witness.GetMaxEndNode(tree, rightNode))).End >= start)
             {
                 right = rightNode;
                 return true;
@@ -260,15 +260,11 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         // only if left's maxVal overlaps with interval's start, we should consider 
         // left subtree
         if (witness.TryGetLeftNode(tree, currentNode, out left) &&
-            GetEnd(witness.GetValue(tree, witness.GetMaxEndNode(tree, left)), in introspector) >= start)
+            introspector.GetSpan(witness.GetValue(tree, witness.GetMaxEndNode(tree, left))).End >= start)
         {
             return true;
         }
 
         return false;
     }
-
-    private static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => introspector.GetSpan(value).End;
 }
