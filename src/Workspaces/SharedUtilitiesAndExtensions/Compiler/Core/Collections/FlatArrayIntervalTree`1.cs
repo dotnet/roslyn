@@ -187,7 +187,7 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
             // it's one higher (to fit the remaining incomplete row).
             var treeHeight = isPerfect ? perfectPortionHeight : perfectPortionHeight + 1;
 
-            // How many nodes would be in the tree was perfect.
+            // How many nodes would be in the tree if it was perfect.
             var nodeCountIfTreeWerePerfect = (1 << treeHeight) - 1;
 
             // Here we can figure out which case we have, and where the pivot it.  First, we start with
