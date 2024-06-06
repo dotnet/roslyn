@@ -815,7 +815,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var list = new[] { 1, 2, 3 }.ToImmutableSegmentedList();
 
             ref readonly var safeRef = ref list.ItemRef(1);
+#pragma warning disable CS1620 // Argument 1 must be passed with the 'ref' keyword
             ref var unsafeRef = ref Unsafe.AsRef(in safeRef);
+#pragma warning restore CS1620
 
             Assert.Equal(2, list.ItemRef(1));
 
