@@ -12,6 +12,9 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
     where TIntervalTree : IIntervalTree<T>
     where TIntervalTreeWitness : struct, IIntervalTreeWitness<T, TIntervalTree, TNode>
 {
+    /// <summary>
+    /// Struct based enumerator, so we can iterate an interval tree without allocating.
+    /// </summary>
     private struct NodeEnumerator<TIntrospector> : IEnumerator<TNode>
         where TIntrospector : struct, IIntervalIntrospector<T>
     {

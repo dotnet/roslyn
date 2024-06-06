@@ -39,37 +39,6 @@ internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TInte
 {
     private static readonly ObjectPool<Stack<TNode>> s_nodeStackPool = new(() => new(), 128, trimOnFree: false);
 
-    public struct Enumerator(TIntervalTree tree) : IEnumerator<T>
-    {
-        /// <summary>
-        /// An introspector that always throws.  Used when we need to call an api that takes this, but we know will never
-        /// call into it due to other arguments we pass along.
-        /// </summary>
-        private readonly struct AlwaysThrowIntrospector : IIntervalIntrospector<T>
-        {
-            public TextSpan GetSpan(T value) => throw new System.NotImplementedException();
-        }
-
-        private readonly TIntervalTree _tree = tree;
-        private readonly TIntervalTreeWitness _witness;
-
-        /// <summary>
-        /// Because we're passing the full span of all ints, we know that we'll never call into the introspector.  Since
-        /// all intervals will always be in that span.
-        /// </summary>
-        private NodeEnumerator<AlwaysThrowIntrospector> _nodeEnumerator = new(tree, start: int.MinValue, end: int.MaxValue, default(AlwaysThrowIntrospector));
-
-        readonly object IEnumerator.Current => this.Current!;
-
-        public readonly T Current => _witness.GetValue(_tree, _nodeEnumerator.Current);
-
-        public bool MoveNext() => _nodeEnumerator.MoveNext();
-
-        public readonly void Reset() => _nodeEnumerator.Reset();
-
-        public readonly void Dispose() => _nodeEnumerator.Dispose();
-    }
-
     public static Enumerator GetEnumerator(TIntervalTree tree)
         => new(tree);
 
