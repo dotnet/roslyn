@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents text document capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class TextDocumentClientCapabilities
     {
@@ -44,32 +45,42 @@ namespace Roslyn.LanguageServer.Protocol
         public SignatureHelpSetting? SignatureHelp { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if definition can be dynamically registered.
+        /// Capabilities specific to the `textDocument/declaration` request
+        /// </summary>
+        /// <remarks>Since LSP 3.14</remarks>
+        [JsonPropertyName("declaration")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DeclarationClientCapabilities? Declaration { get; init; }
+
+        /// <summary>
+        /// Capabilities specific to the `textDocument/definition` request
         /// </summary>
         [JsonPropertyName("definition")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? Definition { get; set; }
+        public DefinitionClientCapabilities? Definition { get; set; }
 
         /// <summary>
-        /// Gets or sets the settings which determines if type definition can be dynamically registered.
+        /// Capabilities specific to the `textDocument/typeDefinition` request.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("typeDefinition")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? TypeDefinition { get; set; }
+        public TypeDefinitionClientCapabilities? TypeDefinition { get; set; }
 
         /// <summary>
-        /// Gets or sets the settings which determines if implementation can be dynamically registered.
+        /// Capabilities specific to the `textDocument/implementation` request.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("implementation")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? Implementation { get; set; }
+        public ImplementationClientCapabilities? Implementation { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if references can be dynamically registered.
+        /// Capabilities specific to the `textDocument/references` request.
         /// </summary>
         [JsonPropertyName("references")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? References { get; set; }
+        public ReferenceClientCapabilities? References { get; set; }
 
         /// <summary>
         /// Gets or sets the setting which determines if document highlight can be dynamically registered.
@@ -155,11 +166,27 @@ namespace Roslyn.LanguageServer.Protocol
         public DynamicRegistrationSetting LinkedEditingRange { get; set; }
 
         /// <summary>
+        /// Capabilities specific to the various call hierarchy requests.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("callHierarchy")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public CallHierarchyClientCapabilities CallHierarchy { get; init; }
+
+        /// <summary>
         /// Gets or sets a setting indicating whether semantic tokens is supported.
         /// </summary>
         [JsonPropertyName("semanticTokens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SemanticTokensSetting? SemanticTokens { get; set; }
+
+        /// <summary>
+        /// Capabilities specific to the various type hierarchy requests.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("typeHierarchy")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public TypeHierarchyClientCapabilities? TypeHierarchy { get; init; }
 
         /// <summary>
         /// Gets or sets the setting which determines what support the client has for pull diagnostics.

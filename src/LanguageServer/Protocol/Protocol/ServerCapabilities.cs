@@ -81,28 +81,38 @@ namespace Roslyn.LanguageServer.Protocol
         public SignatureHelpOptions? SignatureHelpProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether go to definition is supported.
+        /// The server provides Go to Declaration support.
+        /// </summary>
+        /// <remarks>Since LSP 3.14</remarks>
+        [JsonPropertyName("declarationProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SumType<bool, DeclarationOptions, DeclarationRegistrationOptions>? DeclarationProvider { get; init; }
+
+        /// <summary>
+        /// The server provides Go to Definition support.
         /// </summary>
         [JsonPropertyName("definitionProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, DefinitionOptions>? DefinitionProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether go to type definition is supported.
+        /// The server provides Go to Type Definition support.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("typeDefinitionProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SumType<bool, TypeDefinitionOptions>? TypeDefinitionProvider { get; set; }
+        public SumType<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>? TypeDefinitionProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether go to implementation is supported.
+        /// The server provides Go to Implementation support.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("implementationProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SumType<bool, ImplementationOptions>? ImplementationProvider { get; set; }
+        public SumType<bool, ImplementationOptions, ImplementationRegistrationOptions>? ImplementationProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether find all references is supported.
+        /// The server provides Find References support.
         /// </summary>
         [JsonPropertyName("referencesProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -200,11 +210,27 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<bool, LinkedEditingRangeOptions>? LinkedEditingRangeProvider { get; set; }
 
         /// <summary>
+        /// The server provides call hierarchy support.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("callHierarchyProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SumType<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>? CallHierarchyProvider { get; init; }
+
+        /// <summary>
         /// Gets or sets the value which indicates if semantic tokens is supported.
         /// </summary>
         [JsonPropertyName("semanticTokensProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SemanticTokensOptions? SemanticTokensOptions { get; set; }
+
+        /// <summary>
+        /// The server provides type hierarchy support.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("typeHierarchyProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>? TypeHierarchyProvider { get; init; }
 
         /// <summary>
         /// Gets or sets the value which indicates what support the server has for inlay hints.

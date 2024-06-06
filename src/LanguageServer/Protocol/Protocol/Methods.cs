@@ -62,11 +62,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentCompletionResolveName = "completionItem/resolve";
 
         /// <summary>
-        /// Method name for 'textDocument/definition'.
-        /// </summary>
-        public const string TextDocumentDefinitionName = "textDocument/definition";
-
-        /// <summary>
         /// Method name for 'textDocument/diagnostic'.
         /// </summary>
         public const string TextDocumentDiagnosticName = "textDocument/diagnostic";
@@ -127,11 +122,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentPublishDiagnosticsName = "textDocument/publishDiagnostics";
 
         /// <summary>
-        /// Method name for 'textDocument/implementation'.
-        /// </summary>
-        public const string TextDocumentImplementationName = "textDocument/implementation";
-
-        /// <summary>
         /// Method name for 'textDocument/inlayHint'.
         /// </summary>
         public const string TextDocumentInlayHintName = "textDocument/inlayHint";
@@ -140,16 +130,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'inlayHint/resolve'.
         /// </summary>
         public const string InlayHintResolveName = "inlayHint/resolve";
-
-        /// <summary>
-        /// Method name for 'textDocument/typeDefinition'.
-        /// </summary>
-        public const string TextDocumentTypeDefinitionName = "textDocument/typeDefinition";
-
-        /// <summary>
-        /// Method name for 'textDocument/references'.
-        /// </summary>
-        public const string TextDocumentReferencesName = "textDocument/references";
 
         /// <summary>
         /// Method name for 'textDocument/rename'.
@@ -292,11 +272,6 @@ namespace Roslyn.LanguageServer.Protocol
         public static readonly LspRequest<CompletionItem, CompletionItem> TextDocumentCompletionResolve = new LspRequest<CompletionItem, CompletionItem>(TextDocumentCompletionResolveName);
 
         /// <summary>
-        /// Strongly typed message object for 'textDocument/definition'.
-        /// </summary>
-        public static readonly LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?> TextDocumentDefinition = new LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?>(TextDocumentDefinitionName);
-
-        /// <summary>
         /// Strongly typed message object for 'textDocument/documentHighlight'.
         /// </summary>
         public static readonly LspRequest<DocumentHighlightParams, DocumentHighlight[]?> TextDocumentDocumentHighlight = new LspRequest<DocumentHighlightParams, DocumentHighlight[]?>(TextDocumentDocumentHighlightName);
@@ -352,11 +327,6 @@ namespace Roslyn.LanguageServer.Protocol
         public static readonly LspNotification<PublishDiagnosticParams> TextDocumentPublishDiagnostics = new LspNotification<PublishDiagnosticParams>(TextDocumentPublishDiagnosticsName);
 
         /// <summary>
-        /// Strongly typed message object for 'textDocument/implementation'.
-        /// </summary>
-        public static readonly LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?> TextDocumentImplementation = new LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?>(TextDocumentImplementationName);
-
-        /// <summary>
         /// Strongly typed message object for 'textDocument/inlayHint'.
         /// </summary>
         public static readonly LspRequest<InlayHintParams, InlayHint[]?> TextDocumentInlayHint = new LspRequest<InlayHintParams, InlayHint[]?>(TextDocumentInlayHintName);
@@ -365,16 +335,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'inlayHint/resolve'.
         /// </summary>
         public static readonly LspRequest<InlayHint, InlayHint> InlayHintResolve = new LspRequest<InlayHint, InlayHint>(InlayHintResolveName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/typeDefinition'.
-        /// </summary>
-        public static readonly LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?> TextDocumentTypeDefinition = new LspRequest<TextDocumentPositionParams, SumType<Location, Location[]>?>(TextDocumentTypeDefinitionName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/references'.
-        /// </summary>
-        public static readonly LspRequest<ReferenceParams, Location[]?> TextDocumentReferences = new LspRequest<ReferenceParams, Location[]?>(TextDocumentReferencesName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/rename'.

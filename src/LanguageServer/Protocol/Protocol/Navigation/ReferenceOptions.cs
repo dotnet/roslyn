@@ -7,11 +7,11 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents workspace symbols capabilities.
+    /// Server capabilities specific to Find References.
     ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#implementationOptions">Language Server Protocol specification</see> for additional information.
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class ImplementationOptions : IWorkDoneProgressOptions
+    internal class ReferenceOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
