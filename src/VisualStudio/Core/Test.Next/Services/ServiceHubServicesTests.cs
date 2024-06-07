@@ -1432,22 +1432,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             if (enqueueChangeBeforeEdit || enqueueChangeAfterEdit)
             {
-                // in balanced mode, if we hear about a save/build, we do want to regenerate.  No matter if it was forced or not.
+                // In balanced mode, if we hear about a save/build, we do want to regenerate.
                 Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
             }
             else
             {
-                if (forceRegeneration)
-                {
-                    // we didn't hear about a save/build.  But if we still got a request to force regenerate then we should regenerated
-                    Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
-                }
-                else
-                {
-                    // We didn't hear about a save/build, and there was no ask to force.  As we only got a text change,
-                    // we should *not* regenerate.
-                    Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
-                }
+                // In balanced mode. We didn't hear about a save/build .  As we only got a text change, we should *not* regenerate.
+                Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
             }
         }
 
