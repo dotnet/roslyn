@@ -292,7 +292,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer 
         => expression switch
         {
             AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters ?? default,
-            SimpleLambdaExpressionSyntax simpleLambda => [simpleLambda.Parameter],
+            SimpleLambdaExpressionSyntax simpleLambda => SyntaxFactory.SeparatedList<ParameterSyntax>().Add(simpleLambda.Parameter),
             ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters,
             _ => throw ExceptionUtilities.UnexpectedValue(expression.Kind()),
         };

@@ -121,7 +121,7 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
         private readonly LocalDeclarationStatementSyntax _localDeclarationStatement;
         private readonly SyntaxEditor _editor;
         private readonly ArrayBuilder<StatementSyntax> _statementsBuilder;
-        private SeparatedSyntaxList<VariableDeclaratorSyntax> _currentNonDiscardVariables = [];
+        private SeparatedSyntaxList<VariableDeclaratorSyntax> _currentNonDiscardVariables;
 
         private RemoveDiscardHelper(LocalDeclarationStatementSyntax localDeclarationStatement, SyntaxEditor editor)
         {
@@ -229,7 +229,7 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
                                     VariableDeclaration(_localDeclarationStatement.Declaration.Type, _currentNonDiscardVariables))
                                 .WithAdditionalAnnotations(Formatter.Annotation);
                 _statementsBuilder.Add(statement);
-                _currentNonDiscardVariables = [];
+                _currentNonDiscardVariables = SeparatedList<VariableDeclaratorSyntax>();
             }
         }
 

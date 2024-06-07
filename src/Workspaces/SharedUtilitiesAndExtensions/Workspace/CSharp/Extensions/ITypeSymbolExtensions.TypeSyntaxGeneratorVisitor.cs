@@ -92,7 +92,7 @@ internal partial class ITypeSymbolExtensions
             while (arrayType != null && !arrayType.Equals(underlyingType))
             {
                 ranks.Add(ArrayRankSpecifier(
-                    [.. Enumerable.Repeat<ExpressionSyntax>(OmittedArraySizeExpression(), arrayType.Rank)]));
+                    SeparatedList(Enumerable.Repeat<ExpressionSyntax>(OmittedArraySizeExpression(), arrayType.Rank))));
 
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
@@ -154,7 +154,7 @@ internal partial class ITypeSymbolExtensions
                 callingConventionSyntax = FunctionPointerCallingConvention(
                     UnmanagedKeyword,
                     conventionsList is object
-                        ? FunctionPointerUnmanagedCallingConventionList([.. conventionsList])
+                        ? FunctionPointerUnmanagedCallingConventionList(SeparatedList(conventionsList))
                         : null);
 
                 static FunctionPointerUnmanagedCallingConventionSyntax GetConventionForString(string identifier)
@@ -168,7 +168,7 @@ internal partial class ITypeSymbolExtensions
                 .SelectAsArray(t => FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
             return AddInformationTo(
-                FunctionPointerType(callingConventionSyntax, FunctionPointerParameterList([.. parameters])), symbol);
+                FunctionPointerType(callingConventionSyntax, FunctionPointerParameterList(SeparatedList(parameters))), symbol);
         }
 
         public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
@@ -206,7 +206,7 @@ internal partial class ITypeSymbolExtensions
 
             return GenericName(
                 symbol.Name.ToIdentifierToken(),
-                TypeArgumentList([.. typeArguments]));
+                TypeArgumentList(SeparatedList(typeArguments)));
         }
 
         public static QualifiedNameSyntax CreateSystemObject()

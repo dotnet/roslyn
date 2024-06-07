@@ -68,8 +68,8 @@ internal partial class CSharpUseTupleSwapCodeFixProvider : SyntaxEditorBasedCode
 
         var tupleAssignmentStatement = ExpressionStatement(AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
-            TupleExpression([Argument(exprB), Argument(exprA)]),
-            TupleExpression([Argument(exprA), Argument(exprB)])));
+            TupleExpression(SeparatedList([Argument(exprB), Argument(exprA)])),
+            TupleExpression(SeparatedList([Argument(exprA), Argument(exprB)]))));
 
         editor.ReplaceNode(localDeclarationStatement, tupleAssignmentStatement.WithTriviaFrom(localDeclarationStatement));
     }

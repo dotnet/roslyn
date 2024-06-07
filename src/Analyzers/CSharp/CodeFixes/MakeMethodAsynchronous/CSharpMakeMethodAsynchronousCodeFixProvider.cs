@@ -159,7 +159,7 @@ internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodA
         {
             var result = GenericName(
                 Identifier(type),
-                TypeArgumentList([typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax()]));
+                TypeArgumentList(SeparatedList<TypeSyntax>().Add(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
 
             return result.WithAdditionalAnnotations(Simplifier.Annotation);
         }

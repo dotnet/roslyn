@@ -239,7 +239,7 @@ internal static class MethodGenerator
 
             listOfClauses.Add(TypeParameterConstraintClause(
                 typeParameter.Name.ToIdentifierName(),
-                [constraint]));
+                SeparatedList<TypeParameterConstraintSyntax>().Add(constraint)));
         }
 
         return [.. listOfClauses];

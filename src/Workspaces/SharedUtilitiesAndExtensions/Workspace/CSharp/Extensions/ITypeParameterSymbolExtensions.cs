@@ -87,6 +87,6 @@ internal static class ITypeParameterSymbolExtensions
 
         clauses.Add(TypeParameterConstraintClause(
             typeParameter.Name.ToIdentifierName(),
-            [.. constraints]));
+            SeparatedList(constraints)));
     }
 }

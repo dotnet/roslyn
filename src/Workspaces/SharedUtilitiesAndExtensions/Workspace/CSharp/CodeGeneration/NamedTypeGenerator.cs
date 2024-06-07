@@ -246,7 +246,7 @@ internal static class NamedTypeGenerator
         CSharpCodeGenerationContextInfo info)
     {
         var baseList = namedType.EnumUnderlyingType != null && namedType.EnumUnderlyingType.SpecialType != SpecialType.System_Int32
-            ? BaseList([SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())])
+            ? BaseList(SeparatedList<BaseTypeSyntax>().Add(SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())))
             : null;
 
         return EnumDeclaration(
@@ -325,7 +325,7 @@ internal static class NamedTypeGenerator
         if (types.Count == 0)
             return null;
 
-        return BaseList([.. types]);
+        return BaseList(SeparatedList(types));
     }
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(INamedTypeSymbol namedType)

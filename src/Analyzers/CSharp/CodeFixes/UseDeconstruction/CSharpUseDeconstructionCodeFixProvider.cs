@@ -164,8 +164,8 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBased
     private static DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
         => DeclarationExpression(
             typeNode, ParenthesizedVariableDesignation(
-                [.. tupleType.TupleElements.Select(
-                    e => SingleVariableDesignation(Identifier(e.Name.EscapeIdentifier())))]));
+                SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(
+                    e => SingleVariableDesignation(Identifier(e.Name.EscapeIdentifier()))))));
 
     private TupleExpressionSyntax CreateTupleExpression(TupleTypeSyntax typeNode)
         => TupleExpression(

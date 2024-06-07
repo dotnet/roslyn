@@ -102,7 +102,7 @@ internal static class FieldGenerator
             GenerateModifiers(field, info),
             VariableDeclaration(
                 field.Type.GenerateTypeSyntax(),
-                [AddAnnotationsTo(field, VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer))]));
+                SeparatedList<VariableDeclaratorSyntax>().Add(AddAnnotationsTo(field, VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, info, cancellationToken));

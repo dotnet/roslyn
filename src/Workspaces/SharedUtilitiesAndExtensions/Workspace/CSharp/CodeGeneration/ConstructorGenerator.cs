@@ -102,7 +102,7 @@ internal static class ConstructorGenerator
     }
 
     private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
-        => ArgumentList([.. arguments.Select(ArgumentGenerator.GenerateArgument)]);
+        => ArgumentList(SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
 
     private static BlockSyntax GenerateBlock(
         IMethodSymbol constructor)

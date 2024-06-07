@@ -113,10 +113,10 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
             return LocalDeclarationStatement(
                 VariableDeclaration(
                     type,
-                    variables: [VariableDeclarator(
+                    variables: SeparatedList<VariableDeclaratorSyntax>().Add(VariableDeclarator(
                         identifier: ((IdentifierNameSyntax)_assignmentTarget).Identifier,
                         argumentList: null,
-                        initializer: EqualsValueClause(switchExpression))]));
+                        initializer: EqualsValueClause(switchExpression)))));
         }
 
         private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)

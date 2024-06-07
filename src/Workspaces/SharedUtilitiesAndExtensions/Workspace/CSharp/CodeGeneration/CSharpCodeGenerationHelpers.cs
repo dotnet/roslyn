@@ -282,7 +282,7 @@ internal static class CSharpCodeGenerationHelpers
             {
                 return RemoveLeadingDirectiveTrivia(
                     fieldDeclarationNode.WithDeclaration(
-                        variableDeclarationNode.WithVariables([variableDeclaratorNode]))) as T;
+                        variableDeclarationNode.WithVariables(SeparatedList<VariableDeclaratorSyntax>().Add(variableDeclaratorNode)))) as T;
             }
 
             return RemoveLeadingDirectiveTrivia(reusableSyntaxNode) as T;

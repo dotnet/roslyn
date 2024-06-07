@@ -25,7 +25,7 @@ internal static class ParameterGenerator
     {
         var parameters = GetParameters(parameterDefinitions, isExplicit, info);
 
-        return ParameterList([.. parameters]);
+        return ParameterList(SeparatedList(parameters));
     }
 
     public static BracketedParameterListSyntax GenerateBracketedParameterList(
@@ -37,7 +37,7 @@ internal static class ParameterGenerator
         // could never have a typeParameterMapping.
         var parameters = GetParameters(parameterDefinitions, isExplicit, info);
 
-        return BracketedParameterList([.. parameters]);
+        return BracketedParameterList(SeparatedList(parameters));
     }
 
     internal static ImmutableArray<ParameterSyntax> GetParameters(

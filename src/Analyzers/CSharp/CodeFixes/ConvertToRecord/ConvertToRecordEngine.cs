@@ -191,7 +191,7 @@ internal static class ConvertToRecordEngine
                         .RemoveNodes(expressionStatementsToRemove, RemovalOptions)!
                         .WithInitializer(ConstructorInitializer(
                             SyntaxKind.ThisConstructorInitializer,
-                                ArgumentList([.. expressions.Select(Argument)])));
+                                ArgumentList(SeparatedList(expressions.Select(Argument)))));
 
                     documentEditor.ReplaceNode(constructor, modifiedConstructor);
                 }
@@ -319,7 +319,7 @@ internal static class ConvertToRecordEngine
 
                     typeList = typeList.Replace(baseRecord,
                         PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
-                            ArgumentList([.. inheritedPositionalParams])
+                            ArgumentList(SeparatedList(inheritedPositionalParams))
                             .WithTrailingTrivia(baseTrailingTrivia)));
                 }
 
@@ -425,7 +425,7 @@ internal static class ConvertToRecordEngine
             // remove trailing trivia from places where we would want to insert the parameter list before a line break
             typeDeclaration.Identifier.WithTrailingTrivia(ElasticMarker),
             typeDeclaration.TypeParameterList?.WithTrailingTrivia(ElasticMarker),
-            ParameterList([.. propertiesToAddAsParams])
+            ParameterList(SeparatedList(propertiesToAddAsParams))
                 .WithAppendedTrailingTrivia(constructorTrivia),
             baseList,
             typeDeclaration.ConstraintClauses,
@@ -559,7 +559,7 @@ internal static class ConvertToRecordEngine
                     return ObjectCreationExpression(
                         updatedObjectCreation.NewKeyword,
                         updatedObjectCreation.Type.WithoutTrailingTrivia(),
-                        ArgumentList([.. updatedExpressions.Select(expression => Argument(expression.WithoutTrivia()))]),
+                        ArgumentList(SeparatedList(updatedExpressions.Select(expression => Argument(expression.WithoutTrivia())))),
                         newInitializer);
                 });
             }

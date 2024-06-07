@@ -41,7 +41,7 @@ internal static class ExpressionGenerator
                     ? GenerateNullLiteral()
                     : ImplicitArrayCreationExpression(
                         InitializerExpression(SyntaxKind.ArrayInitializerExpression,
-                            [.. typedConstant.Values.Select(v => GenerateExpression(generator, v))]));
+                            SeparatedList(typedConstant.Values.Select(v => GenerateExpression(generator, v)))));
 
             default:
                 return GenerateNullLiteral();

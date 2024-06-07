@@ -21,7 +21,7 @@ internal static class TypeParameterGenerator
         return typeParameters.Length == 0
             ? null
             : TypeParameterList(
-                [.. typeParameters.Select(t => GenerateTypeParameter(t, info))]);
+                SeparatedList(typeParameters.Select(t => GenerateTypeParameter(t, info))));
     }
 
     private static TypeParameterSyntax GenerateTypeParameter(ITypeParameterSymbol symbol, CSharpCodeGenerationContextInfo info)

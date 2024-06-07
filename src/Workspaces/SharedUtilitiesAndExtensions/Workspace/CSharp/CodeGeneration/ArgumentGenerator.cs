@@ -21,8 +21,8 @@ internal static class ArgumentGenerator
     }
 
     public static ArgumentListSyntax GenerateArgumentList(IList<SyntaxNode> arguments)
-        => SyntaxFactory.ArgumentList([.. arguments.Select(GenerateArgument)]);
+        => SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(GenerateArgument)));
 
     public static BracketedArgumentListSyntax GenerateBracketedArgumentList(IList<SyntaxNode> arguments)
-        => SyntaxFactory.BracketedArgumentList([.. arguments.Select(GenerateArgument)]);
+        => SyntaxFactory.BracketedArgumentList(SyntaxFactory.SeparatedList(arguments.Select(GenerateArgument)));
 }

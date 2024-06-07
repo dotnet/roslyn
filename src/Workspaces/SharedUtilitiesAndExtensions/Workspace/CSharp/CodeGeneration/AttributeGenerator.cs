@@ -33,7 +33,7 @@ internal static class AttributeGenerator
                 ? default
                 : [AttributeList(
                     target.HasValue ? AttributeTargetSpecifier(target.Value) : null,
-                    [.. attributeNodes])];
+                    SeparatedList(attributeNodes))];
         }
         else
         {
@@ -55,7 +55,7 @@ internal static class AttributeGenerator
                 target.HasValue
                     ? AttributeTargetSpecifier(target.Value)
                     : null,
-                [attributeSyntax]);
+                SeparatedList<AttributeSyntax>().Add(attributeSyntax));
     }
 
     private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CSharpCodeGenerationContextInfo info)
@@ -95,6 +95,6 @@ internal static class AttributeGenerator
                 NameEquals(IdentifierName(kvp.Key)), null,
                 ExpressionGenerator.GenerateExpression(generator, kvp.Value))));
 
-        return AttributeArgumentList([.. arguments]);
+        return AttributeArgumentList(SeparatedList(arguments));
     }
 }

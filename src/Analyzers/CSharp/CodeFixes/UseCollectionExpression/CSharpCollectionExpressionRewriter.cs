@@ -103,10 +103,10 @@ internal static class CSharpCollectionExpressionRewriter
                 //
                 // For that sort of case.  Single element collections should stay closely associated with the original
                 // expression.
-                return CollectionExpression([
+                return CollectionExpression(SeparatedList<CollectionElementSyntax>().Add(
                     match.UseSpread
                         ? SpreadElement(expression.WithoutTrivia())
-                        : ExpressionElement(expression.WithoutTrivia())]).WithTriviaFrom(expressionToReplace);
+                        : ExpressionElement(expression.WithoutTrivia()))).WithTriviaFrom(expressionToReplace);
             }
             else if (makeMultiLineCollectionExpression)
             {
@@ -119,7 +119,7 @@ internal static class CSharpCollectionExpressionRewriter
                 var initializer = InitializerExpression(
                     SyntaxKind.CollectionInitializerExpression,
                     OpenBraceToken.WithAdditionalAnnotations(openBraceTokenAnnotation),
-                    [LiteralExpression(SyntaxKind.NullLiteralExpression, NullKeyword.WithAdditionalAnnotations(nullTokenAnnotation))],
+                    SeparatedList<ExpressionSyntax>().Add(LiteralExpression(SyntaxKind.NullLiteralExpression, NullKeyword.WithAdditionalAnnotations(nullTokenAnnotation))),
                     CloseBraceToken);
 
                 // Update the doc with the new object (now with initializer).
@@ -464,8 +464,8 @@ internal static class CSharpCollectionExpressionRewriter
                     // Create: `x ? [y] : []` for `if (x) collection.Add(y)`
                     var expression = ConditionalExpression(
                         condition,
-                        CollectionExpression([
-                            ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null))]),
+                        CollectionExpression(SeparatedList<CollectionElementSyntax>().Add(
+                            ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null)))),
                         CollectionExpression());
                     yield return CreateCollectionElement(match.UseSpread, expression);
                 }

@@ -52,9 +52,9 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     {
         return SyntaxFactory.VariableDeclaration(
             type == null ? SyntaxFactory.IdentifierName("var") : (TypeSyntax)type,
-                [SyntaxFactory.VariableDeclarator(
+                SyntaxFactory.SeparatedList<VariableDeclaratorSyntax>().Add(SyntaxFactory.VariableDeclarator(
                     name, argumentList: null,
-                    expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))]);
+                    expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))));
     }
 
     public override SyntaxToken Identifier(string identifier)
@@ -114,7 +114,7 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
                 SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
     public override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
-        => SyntaxFactory.TypeParameterList([.. typeParameterNames.Select(SyntaxFactory.TypeParameter)]);
+        => SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameterNames.Select(SyntaxFactory.TypeParameter)));
 
     internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
         => refKind switch

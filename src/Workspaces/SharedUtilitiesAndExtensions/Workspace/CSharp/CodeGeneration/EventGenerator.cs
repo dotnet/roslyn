@@ -120,7 +120,7 @@ internal static class EventGenerator
                     GenerateModifiers(@event, destination, info),
                     VariableDeclaration(
                         @event.Type.GenerateTypeSyntax(),
-                        [VariableDeclarator(@event.Name.ToIdentifierToken())]))));
+                        SeparatedList<VariableDeclaratorSyntax>().Add(VariableDeclarator(@event.Name.ToIdentifierToken()))))));
     }
 
     private static MemberDeclarationSyntax GenerateEventDeclarationWorker(

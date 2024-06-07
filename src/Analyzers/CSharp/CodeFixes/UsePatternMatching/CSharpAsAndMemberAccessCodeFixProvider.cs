@@ -69,9 +69,9 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
         // { X.Y: pattern }
         var propertyPattern = PropertyPatternClause(
             OpenBraceToken.WithoutTrivia().WithAppendedTrailingTrivia(Space),
-            [Subpattern(
+            SeparatedList<SubpatternSyntax>().Add(Subpattern(
                 CreateExpressionColon(conditionalAccessExpression),
-                CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))],
+                CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))),
             CloseBraceToken.WithoutTrivia());
 
         // T { X.Y: pattern }

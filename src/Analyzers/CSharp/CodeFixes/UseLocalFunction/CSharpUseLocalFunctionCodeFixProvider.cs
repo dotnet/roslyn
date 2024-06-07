@@ -254,8 +254,8 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
 
         return parameterList != null
             ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(generator, parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
-            : ParameterList([.. delegateMethod.Parameters.Select(parameter =>
-                PromoteParameter(generator, Parameter(parameter.Name.ToIdentifierToken()), parameter))]);
+            : ParameterList(SeparatedList(delegateMethod.Parameters.Select(parameter =>
+                PromoteParameter(generator, Parameter(parameter.Name.ToIdentifierToken()), parameter))));
 
         static ParameterSyntax PromoteParameter(SyntaxGenerator generator, ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
         {
@@ -281,7 +281,7 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
         switch (anonymousFunction)
         {
             case SimpleLambdaExpressionSyntax simpleLambda:
-                return ParameterList([simpleLambda.Parameter]);
+                return ParameterList(SeparatedList<ParameterSyntax>().Add(simpleLambda.Parameter));
             case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
                 return parenthesizedLambda.ParameterList;
             case AnonymousMethodExpressionSyntax anonymousMethod:

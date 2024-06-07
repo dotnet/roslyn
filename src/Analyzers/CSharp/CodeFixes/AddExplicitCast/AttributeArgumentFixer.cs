@@ -21,7 +21,7 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider
             => oldArgument.WithExpression(oldArgument.Expression.Cast(conversionType));
 
         protected override AttributeArgumentListSyntax GenerateNewArgumentList(AttributeArgumentListSyntax oldArgumentList, ArrayBuilder<AttributeArgumentSyntax> newArguments)
-            => oldArgumentList.WithArguments([.. newArguments]);
+            => oldArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
 
         protected override SeparatedSyntaxList<AttributeArgumentSyntax> GetArgumentsOfArgumentList(AttributeArgumentListSyntax argumentList)
             => argumentList.Arguments;
