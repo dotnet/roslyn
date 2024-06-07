@@ -1349,6 +1349,108 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_NoChange_ButExternalUpdateSignal(bool forceRegeneration)
+        {
+            using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+
+            var callCount = 0;
+            AddSimpleDocument(workspace, new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)));
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            var document = Assert.Single(documents);
+            Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+
+            workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+
+            project = workspace.CurrentSolution.Projects.Single();
+            documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            document = Assert.Single(documents);
+
+            if (forceRegeneration)
+            {
+                // We were asked to force regeneration.  So that should be respected.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+            }
+            else
+            {
+                // Nothing changed.  So we should not have regenerated.
+                Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+            }
+        }
+
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_DocumentChange_ButExternalUpdateSignal(
+            SourceGeneratorExecutionPreference executionPreference,
+            bool forceRegeneration,
+            bool enqueueChangeBeforeEdit,
+            bool enqueueChangeAfterEdit)
+        {
+            using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+            var callCount = 0;
+            var normalDocId = AddSimpleDocument(workspace, new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)));
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            var document = Assert.Single(documents);
+            Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+
+            if (enqueueChangeBeforeEdit)
+                workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+
+            // Now, make a simple edit to the main document.
+            Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(normalDocId, SourceText.From("// new text"))));
+
+            if (enqueueChangeAfterEdit)
+                workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+
+            project = workspace.CurrentSolution.Projects.Single();
+            documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            document = Assert.Single(documents);
+
+            if (executionPreference == SourceGeneratorExecutionPreference.Automatic)
+            {
+                // in automatic mode we always rerun after a doc edit.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+                return;
+            }
+
+            if (enqueueChangeBeforeEdit || enqueueChangeAfterEdit)
+            {
+                // in balanced mode, if we hear about a save/build, we do want to regenerate.  No matter if it was forced or not.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+            }
+            else
+            {
+                if (forceRegeneration)
+                {
+                    // we didn't hear about a save/build.  But if we still got a request to force regenerate then we should regenerated
+                    Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+                }
+                else
+                {
+                    // We didn't hear about a save/build, and there was no ask to force.  As we only got a text change,
+                    // we should *not* regenerate.
+                    Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+                }
+            }
+        }
+
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
             TestWorkspace localWorkspace,
             Workspace remoteWorkspace,
