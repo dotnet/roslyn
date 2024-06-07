@@ -39830,4 +39830,24 @@ object.M();
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
     }
+
+    [Fact]
+    public void StaticInvocationOnDynamic()
+    {
+        var source = """
+object.M();
+dynamic.M();
+
+static implicit extension E for object
+{
+    public static void M() => throw null;
+}
+""";
+        // PROTOTYPE this should probably bind "dynamic" identifier to `dynamic` type and fail in a better way
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (2,1): error CS0103: The name 'dynamic' does not exist in the current context
+            // dynamic.M();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(2, 1));
+    }
 }
