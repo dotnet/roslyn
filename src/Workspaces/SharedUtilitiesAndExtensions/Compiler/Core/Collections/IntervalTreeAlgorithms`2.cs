@@ -50,7 +50,7 @@ internal readonly struct IntervalTreeAlgorithms<T, TIntervalTree>(TIntervalTree 
         int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        tree.FillWithIntervalsThatMatch(start, length, ref builder, in introspector, default(Tests<TIntrospector>.OverlapsWithIntervalTester),stopAfterFirst: false);
+        tree.FillWithIntervalsThatMatch(start, length, ref builder, in introspector, default(Tests<TIntrospector>.OverlapsWithIntervalTester), stopAfterFirst: false);
     }
 
     public void FillWithIntervalsThatIntersectWith<TIntrospector>(
