@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private readonly bool _includeSuppressedDiagnostics;
         private readonly bool _includeNonLocalDocumentDiagnostics;
 
-        internal readonly IGlobalOptionService GlobalOptions;
         internal readonly CodeActionOptionsProvider FallbackOptions;
 
         public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false, bool includeNonLocalDocumentDiagnostics = false)
@@ -34,8 +33,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             _diagnosticAnalyzerService = Assert.IsType<DiagnosticAnalyzerService>(mefServices.GetExportedValue<IDiagnosticAnalyzerService>());
 
-            GlobalOptions = mefServices.GetExportedValue<IGlobalOptionService>();
-            FallbackOptions = GlobalOptions.CreateProvider();
+#pragma warning disable LAYERING_IGlobalOptionService // TODO: remove once fallback options are available via editorconfig (https://github.com/dotnet/roslyn/issues/73898)
+            FallbackOptions = mefServices.GetExportedValue<IGlobalOptionService>().CreateProvider();
+#pragma warning restore LAYERING_IGlobalOptionService 
 
             _diagnosticAnalyzerService.CreateIncrementalAnalyzer(workspace);
             _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
