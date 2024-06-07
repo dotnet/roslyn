@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.CodeRefactori
 {
     [Shared]
     [ExportWorkspaceService(typeof(ISymbolRenamedCodeActionOperationFactoryWorkspaceService))]
-    class OmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService : ISymbolRenamedCodeActionOperationFactoryWorkspaceService
+    internal sealed class OmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService : ISymbolRenamedCodeActionOperationFactoryWorkspaceService
     {
         private readonly IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService _service;
 

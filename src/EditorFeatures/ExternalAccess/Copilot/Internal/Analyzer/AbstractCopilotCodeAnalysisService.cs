@@ -55,7 +55,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         return await GetAvailablePromptTitlesCoreAsync(document, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<bool> ShouldSkipAnalysisAsync(Document document, CancellationToken cancellationToken)
+    private static async Task<bool> ShouldSkipAnalysisAsync(Document document, CancellationToken cancellationToken)
     {
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } service)
             return true;

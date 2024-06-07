@@ -30,7 +30,7 @@ internal sealed class AspNetCoreCSharpRouteSyntaxDetector
     {
     }
 
-    public bool IsEmbeddedLanguageToken(
+    public static bool IsEmbeddedLanguageToken(
         SyntaxToken token,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,

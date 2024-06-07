@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
             => _provider;
 
         /// TODO: remove. https://github.com/dotnet/roslyn/issues/57283
+#pragma warning disable CA1822 // Mark members as static
         public bool InlineHintsOptionsDisplayAllOverride
+#pragma warning restore CA1822
         {
             get => false;
             set { }

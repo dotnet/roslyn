@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints
 {
     /// <inheritdoc cref="IInlineHintsService"/>
-    interface IFSharpInlineHintsService
+    internal interface IFSharpInlineHintsService
     {
         /// <inheritdoc cref="IInlineHintsService.GetInlineHintsAsync"/>
         Task<ImmutableArray<FSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
