@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis
                     // First If we're *already* in the state where we are running generators and skeletons we don't need
                     // to do anything and can just return ourselves. The next request to create the compilation will do
                     // so fully.
-                    if (state.CreationPolicy == desiredCreationPolicy && !forceRegeneration)
+                    if (state.CreationPolicy == desiredCreationPolicy)
                         return this;
 
                     // Second, if we know we are already in a final compilation state where the generated documents were
