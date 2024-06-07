@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -76,7 +77,7 @@ public sealed class CSharpSemanticSearchServiceTests
         var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = results.Add };
         var traceSource = new TraceSource("test");
 
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var options = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
 
         Assert.Null(result.ErrorMessage);
@@ -125,7 +126,7 @@ public sealed class CSharpSemanticSearchServiceTests
         };
 
         var traceSource = new TraceSource("test");
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var options = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
 
         await Assert.ThrowsAsync<OperationCanceledException>(
             () => service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, cancellationSource.Token));
@@ -171,7 +172,7 @@ public sealed class CSharpSemanticSearchServiceTests
         };
 
         var traceSource = new TraceSource("test");
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var options = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
 
         var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
         var expectedMessage = new InsufficientExecutionStackException().Message;
@@ -229,7 +230,7 @@ public sealed class CSharpSemanticSearchServiceTests
         };
 
         var traceSource = new TraceSource("test");
-        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var options = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
 
         var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
         var expectedMessage = new NullReferenceException().Message;
