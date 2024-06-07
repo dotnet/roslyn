@@ -84,8 +84,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, loggerFactory);
-    // Ensure the ExtensionAssemblyManager is available before we initialize anything else.
-    exportProvider.GetExportedValue<ExtensionAssemblyManagerMefProvider>().SetMefExtensionAssemblyManager(extensionManager);
 
     // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
     // 'automatic' for now.

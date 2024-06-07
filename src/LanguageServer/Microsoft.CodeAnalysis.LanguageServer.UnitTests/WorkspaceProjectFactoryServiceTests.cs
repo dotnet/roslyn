@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -23,8 +22,6 @@ public class WorkspaceProjectFactoryServiceTests
         exportProvider.GetExportedValue<ServerConfigurationFactory>()
             .InitializeConfiguration(serverConfiguration);
         await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
-        var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
-        exportProvider.GetExportedValue<ExtensionAssemblyManagerMefProvider>().SetMefExtensionAssemblyManager(extensionManager);
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
         var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider

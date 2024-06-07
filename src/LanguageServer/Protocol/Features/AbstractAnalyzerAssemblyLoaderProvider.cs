@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Host;
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
     private readonly DefaultAnalyzerAssemblyLoader _loader;
-
     private readonly Lazy<IAnalyzerAssemblyLoader> _shadowCopyLoader;
 
     public AbstractAnalyzerAssemblyLoaderProvider([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
