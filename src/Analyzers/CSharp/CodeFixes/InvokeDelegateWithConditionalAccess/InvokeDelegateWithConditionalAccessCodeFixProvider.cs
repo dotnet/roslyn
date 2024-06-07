@@ -107,7 +107,7 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
         if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
             ifStatement.Statement is BlockSyntax block)
         {
-            newStatement = block.WithStatements([newStatement]);
+            newStatement = block.WithStatements(List<StatementSyntax>().Add(newStatement));
         }
 
         newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);

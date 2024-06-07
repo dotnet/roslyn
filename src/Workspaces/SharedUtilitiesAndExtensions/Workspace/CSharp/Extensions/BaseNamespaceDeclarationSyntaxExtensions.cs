@@ -26,7 +26,7 @@ internal static class BaseNamespaceDeclarationSyntaxExtensions
         newUsings.SortUsingDirectives(namespaceDeclaration.Usings, placeSystemNamespaceFirst);
         newUsings = newUsings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
 
-        var newNamespace = namespaceDeclaration.WithUsings([.. newUsings]);
+        var newNamespace = namespaceDeclaration.WithUsings(SyntaxFactory.List(newUsings));
         return (TNamespaceDeclarationSyntax)newNamespace;
     }
 }

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -108,11 +109,11 @@ internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixPro
             var singleLineInheritdocComment = DocumentationCommentTrivia(
                 kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
                 content:
-                [
+                List<XmlNodeSyntax>([
                     XmlText(xmlSpaceAfterTripleSlash),
                     XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
                     XmlText(xmlNewLineToken),
-                ],
+                ]),
                 endOfComment: EndOfDocumentationCommentToken.WithoutTrivia());
 
             sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

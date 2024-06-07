@@ -46,7 +46,7 @@ internal class CSharpUseNullPropagationCodeFixProvider : AbstractUseNullPropagat
     }
 
     protected override StatementSyntax ReplaceBlockStatements(StatementSyntax block, StatementSyntax newInnerStatement)
-        => ((BlockSyntax)block).WithStatements([newInnerStatement]);
+        => ((BlockSyntax)block).WithStatements(SyntaxFactory.List<StatementSyntax>().Add(newInnerStatement));
 
     protected override SyntaxNode PostProcessElseIf(IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
     {

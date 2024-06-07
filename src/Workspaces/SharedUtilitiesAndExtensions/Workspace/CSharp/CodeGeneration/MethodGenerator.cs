@@ -36,7 +36,7 @@ internal static class MethodGenerator
         var declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, info, cancellationToken);
 
         var members = Insert(destination.Members, declaration, info, availableIndices, after: LastMethod);
-        return destination.WithMembers([.. members]);
+        return destination.WithMembers(List(members));
     }
 
     internal static CompilationUnitSyntax AddMethodTo(
@@ -51,7 +51,7 @@ internal static class MethodGenerator
             cancellationToken);
 
         var members = Insert(destination.Members, declaration, info, availableIndices, after: LastMethod);
-        return destination.WithMembers([.. members]);
+        return destination.WithMembers(List(members));
     }
 
     internal static TypeDeclarationSyntax AddMethodTo(
@@ -202,7 +202,7 @@ internal static class MethodGenerator
             attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
         }
 
-        return [.. attributes];
+        return List(attributes);
     }
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
@@ -242,7 +242,7 @@ internal static class MethodGenerator
                 SeparatedList<TypeParameterConstraintSyntax>().Add(constraint)));
         }
 
-        return [.. listOfClauses];
+        return List(listOfClauses);
     }
 
     private static TypeParameterListSyntax? GenerateTypeParameterList(

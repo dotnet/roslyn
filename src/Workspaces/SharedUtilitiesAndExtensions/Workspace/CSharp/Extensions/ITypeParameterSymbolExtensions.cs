@@ -30,7 +30,7 @@ internal static class ITypeParameterSymbolExtensions
             AddConstraintClauses(clauses, typeParameter);
         }
 
-        return [.. clauses];
+        return List(clauses);
     }
 
     private static void AddConstraintClauses(

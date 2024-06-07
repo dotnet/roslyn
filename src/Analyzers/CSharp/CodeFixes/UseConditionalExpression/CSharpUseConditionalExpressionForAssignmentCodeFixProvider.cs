@@ -47,7 +47,7 @@ internal sealed class CSharpUseConditionalExpressionForAssignmentCodeFixProvider
         if (ifStatement.Parent is ElseClauseSyntax &&
             ifStatement.Statement is BlockSyntax block)
         {
-            return block.WithStatements([statement])
+            return block.WithStatements(SyntaxFactory.List<StatementSyntax>().Add(statement))
                         .WithAdditionalAnnotations(Formatter.Annotation);
         }
 

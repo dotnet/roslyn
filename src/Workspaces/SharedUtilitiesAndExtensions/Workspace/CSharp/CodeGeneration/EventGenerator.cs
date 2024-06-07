@@ -72,7 +72,7 @@ internal static class EventGenerator
         // style events go with properties.  If there 
         var members = Insert(destination.Members, declaration, info, availableIndices,
             after: list => AfterMember(list, declaration), before: list => BeforeMember(list, declaration));
-        return destination.WithMembers([.. members]);
+        return destination.WithMembers(List(members));
     }
 
     internal static TypeDeclarationSyntax AddEventTo(
@@ -146,7 +146,7 @@ internal static class EventGenerator
             GenerateAccessorDeclaration(@event, @event.RemoveMethod, SyntaxKind.RemoveAccessorDeclaration, destination, info),
         };
 
-        return AccessorList([.. accessors.WhereNotNull()]);
+        return AccessorList(List(accessors.WhereNotNull()));
     }
 
     private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(

@@ -90,7 +90,7 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     public override bool RequiresLocalDeclarationType() => true;
 
     public override SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
-        => SyntaxFactory.InterpolatedStringExpression(startToken, [.. content.Cast<InterpolatedStringContentSyntax>()], endToken);
+        => SyntaxFactory.InterpolatedStringExpression(startToken, SyntaxFactory.List(content.Cast<InterpolatedStringContentSyntax>()), endToken);
 
     public override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
         => SyntaxFactory.InterpolatedStringText(textToken);

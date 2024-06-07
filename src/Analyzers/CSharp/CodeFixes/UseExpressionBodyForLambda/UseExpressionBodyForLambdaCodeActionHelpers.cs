@@ -71,7 +71,7 @@ internal static class UseExpressionBodyForLambdaCodeActionHelpers
         // for them to do so.
         return currentDeclaration.WithBody(Block(
             OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed),
-            [statement],
+            List<StatementSyntax>().Add(statement),
             CloseBraceToken));
     }
 

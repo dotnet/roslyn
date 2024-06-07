@@ -134,7 +134,7 @@ internal static partial class CompilationUnitSyntaxExtensions
         }
 
         var rootWithNewUsings = root.WithUsings(
-            [.. usings.Select(u => u.WithAdditionalAnnotations(annotations))]);
+            SyntaxFactory.List(usings.Select(u => u.WithAdditionalAnnotations(annotations))));
         if (addBlankLine)
         {
             var lastUsing = rootWithNewUsings.Usings.Last();

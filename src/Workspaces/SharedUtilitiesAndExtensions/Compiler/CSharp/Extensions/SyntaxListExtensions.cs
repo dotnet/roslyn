@@ -16,9 +16,9 @@ internal static class SyntaxListExtensions
     {
         var result = new List<T>(syntaxList);
         result.RemoveRange(index, count);
-        return [.. result];
+        return SyntaxFactory.List(result);
     }
 
     public static SyntaxList<T> Insert<T>(this SyntaxList<T> list, int index, T item) where T : SyntaxNode
-        => [.. list.Take(index).Concat(item).Concat(list.Skip(index))];
+        => SyntaxFactory.List(list.Take(index).Concat(item).Concat(list.Skip(index)));
 }

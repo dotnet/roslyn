@@ -469,7 +469,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
                 }
 
                 triviaOfRemovedNode = trivia.ToSyntaxTriviaList();
-                return [.. newAttributeLists];
+                return List(newAttributeLists);
             }
         }
 

@@ -12,6 +12,6 @@ internal static partial class MemberDeclarationSyntaxExtensions
 {
     public static SyntaxList<AttributeListSyntax> GetAttributes(this MemberDeclarationSyntax member)
     {
-        return member != null ? member.AttributeLists : [];
+        return member != null ? member.AttributeLists : SyntaxFactory.List<AttributeListSyntax>();
     }
 }

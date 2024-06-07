@@ -64,7 +64,7 @@ internal static class FieldGenerator
         // declaration.
         var members = Insert(destination.Members, declaration, info, availableIndices,
             after: m => LastField(m, declaration), before: FirstMember);
-        return destination.WithMembers([.. members]);
+        return destination.WithMembers(List(members));
     }
 
     internal static TypeDeclarationSyntax AddFieldTo(

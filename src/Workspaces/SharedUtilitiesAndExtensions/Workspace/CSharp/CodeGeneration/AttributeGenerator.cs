@@ -31,9 +31,9 @@ internal static class AttributeGenerator
                           .WhereNotNull().ToList();
             return attributeNodes.Count == 0
                 ? default
-                : [AttributeList(
+                : List<AttributeListSyntax>().Add(AttributeList(
                     target.HasValue ? AttributeTargetSpecifier(target.Value) : null,
-                    SeparatedList(attributeNodes))];
+                    SeparatedList(attributeNodes)));
         }
         else
         {
@@ -41,7 +41,7 @@ internal static class AttributeGenerator
                 attributes.OrderBy(a => a.AttributeClass?.Name)
                           .Select(a => TryGenerateAttributeDeclaration(a, target, info))
                           .WhereNotNull().ToList();
-            return [.. attributeDeclarations];
+            return List(attributeDeclarations);
         }
     }
 

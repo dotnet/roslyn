@@ -120,7 +120,7 @@ internal partial class CSharpRemoveUnnecessaryImportsService
                 }
             }
 
-            finalUsings = [.. currentUsings.WhereNotNull()];
+            finalUsings = SyntaxFactory.List(currentUsings.WhereNotNull());
         }
 
         private static bool ShouldPreserveTrivia(SyntaxTriviaList trivia)

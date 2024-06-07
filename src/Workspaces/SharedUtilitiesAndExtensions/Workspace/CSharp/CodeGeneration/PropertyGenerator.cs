@@ -270,7 +270,7 @@ internal static class PropertyGenerator
 
         return accessors[0] == null && accessors[1] == null
             ? null
-            : AccessorList([.. accessors.WhereNotNull()]);
+            : AccessorList(List(accessors.WhereNotNull()));
     }
 
     private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(

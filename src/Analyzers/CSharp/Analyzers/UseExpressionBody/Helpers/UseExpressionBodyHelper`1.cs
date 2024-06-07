@@ -304,7 +304,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
             : accessor.WithExpressionBody(expressionBody)
                       .WithSemicolonToken(semicolonToken);
 
-        return WithAccessorList(declaration, AccessorList([accessor]));
+        return WithAccessorList(declaration, AccessorList(List<AccessorDeclarationSyntax>().Add(accessor)));
     }
 
     protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)

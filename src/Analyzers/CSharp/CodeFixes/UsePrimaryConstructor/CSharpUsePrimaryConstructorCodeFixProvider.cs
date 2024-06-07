@@ -588,7 +588,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 {
                     var paramRefTag = seeTag
                         .ReplaceToken(seeTag.Name.LocalName, Identifier("paramref").WithTriviaFrom(seeTag.Name.LocalName))
-                        .WithAttributes([XmlNameAttribute(parameterName)]);
+                        .WithAttributes(List<XmlAttributeSyntax>().Add(XmlNameAttribute(parameterName)));
 
                     documentEditor.ReplaceNode(seeTag, paramRefTag);
                 }

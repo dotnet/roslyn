@@ -157,7 +157,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
             return Trivia(DocumentationCommentTrivia(
                 SyntaxKind.SingleLineDocumentationCommentTrivia,
-                [.. content],
+                List(content),
                 typeStructure.EndOfComment));
         }
 
@@ -217,7 +217,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
             return InsertOrReplaceDocComments(
                 typeDeclarationLeadingTrivia,
-                Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, [.. allContent])));
+                Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent))));
         }
     }
 }

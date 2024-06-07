@@ -97,7 +97,7 @@ internal partial class ITypeSymbolExtensions
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
 
-            TypeSyntax arrayTypeSyntax = ArrayType(elementTypeSyntax, [.. ranks]);
+            TypeSyntax arrayTypeSyntax = ArrayType(elementTypeSyntax, List(ranks));
 
             if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
             {

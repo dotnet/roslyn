@@ -144,7 +144,7 @@ internal static class NamespaceGenerator
                                        .WhereNotNull()
                                        .ToList();
 
-        return [.. usingDirectives];
+        return List(usingDirectives);
     }
 
     private static UsingDirectiveSyntax? GenerateUsingDirective(ISymbol symbol)

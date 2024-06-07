@@ -451,10 +451,10 @@ internal static class ConvertToRecordEngine
             // but then decide that we want to keep the definition, then the attribute can stay on the original
             // definition, and our primary constructor param can associate that attribute when we add:
             // public int Foo { get; private set; } = Foo;
-            return [];
+            return List<AttributeListSyntax>();
         }
 
-        return [.. result.Declaration.AttributeLists.SelectAsArray(attributeList =>
+        return List(result.Declaration.AttributeLists.SelectAsArray(attributeList =>
         {
             if (attributeList.Target == null)
             {
@@ -467,7 +467,7 @@ internal static class ConvertToRecordEngine
             {
                 return attributeList.WithoutTrivia();
             }
-        })];
+        }));
     }
 
     private static async Task RefactorInitializersAsync(
@@ -653,11 +653,11 @@ internal static class ConvertToRecordEngine
                     // Our parameter method gives a newline (without leading trivia) to start
                     // because we assume we're following some other comment, we replace that newline to add
                     // the start of comment leading trivia as well since we're not following another comment
-                    [.. propertyParamComments.Skip(1)
+                    List(propertyParamComments.Skip(1)
                         .Prepend(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)
                             .WithLeadingTrivia(DocumentationCommentExterior("/**"))
                             .WithTrailingTrivia(exteriorTrivia)))
-                        .Append(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
+                        .Append(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))),
                         EndOfDocumentationCommentToken
                             .WithTrailingTrivia(DocumentationCommentExterior("*/"), ElasticCarriageReturnLineFeed));
             }
@@ -667,8 +667,8 @@ internal static class ConvertToRecordEngine
                 // also skip first newline and replace with non-newline
                 newClassDocComment = DocumentationCommentTrivia(
                     SyntaxKind.MultiLineDocumentationCommentTrivia,
-                    [.. propertyParamComments.Skip(1)
-                        .Prepend(XmlText(XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))])
+                    List(propertyParamComments.Skip(1)
+                        .Prepend(XmlText(XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))))
                     .WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
             }
         }

@@ -132,12 +132,12 @@ internal static partial class UsingsAndExternAliasesOrganizer
                     finalList[0] = finalList[0].WithPrependedLeadingTrivia(leadingTrivia);
 
                     // Now split out the externs and usings back into two separate lists.
-                    organizedExternAliasList = [.. finalList
+                    organizedExternAliasList = SyntaxFactory.List(finalList
                         .Where(t => t is ExternAliasDirectiveSyntax)
-                        .Cast<ExternAliasDirectiveSyntax>()];
-                    organizedUsingList = [.. finalList
+                        .Cast<ExternAliasDirectiveSyntax>());
+                    organizedUsingList = SyntaxFactory.List(finalList
                         .Where(t => t is UsingDirectiveSyntax)
-                        .Cast<UsingDirectiveSyntax>()];
+                        .Cast<UsingDirectiveSyntax>());
                     return;
                 }
             }
