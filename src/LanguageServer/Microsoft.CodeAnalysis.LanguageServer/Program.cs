@@ -111,7 +111,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // Include analyzers from extension assemblies.
     analyzerPaths = analyzerPaths.AddRange(extensionManager.ExtensionAssemblyPaths);
 
-    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths, extensionManager);
+    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
     StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
