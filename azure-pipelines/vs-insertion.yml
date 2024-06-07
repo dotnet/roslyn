@@ -57,6 +57,7 @@ extends:
             InsertionReviewers: $(Build.RequestedFor) # Append `,Your team name` (without quotes)
             AutoCompletePR: true
             AutoCompleteMergeStrategy: Squash
+            ShallowClone: true
         - powershell: |
             $contentType = 'application/json';
             $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
