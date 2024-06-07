@@ -212,8 +212,8 @@
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>17.1.11-preview-0002</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>5.0.0</MicrosoftWin32RegistryVersion>
-    <MSBuildLocatorVersion>1.6.10</MSBuildLocatorVersion>
-    <MSBuildStructuredLoggerVersion>2.2.100</MSBuildStructuredLoggerVersion>
+    <MicrosoftBuildLocatorVersion>1.6.10</MicrosoftBuildLocatorVersion>
+    <MSBuildStructuredLoggerVersion>2.2.155</MSBuildStructuredLoggerVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
