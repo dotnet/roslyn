@@ -20,7 +20,6 @@ namespace IdeBenchmarks.Lsp
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
         private TestLspServer? _testServer;
-        private IGlobalOptionService? _globalOptionService;
         private LSP.CompletionParams? _completionParams;
 
         public LspCompletionBenchmarks() : base(null)
@@ -92,8 +91,6 @@ class A
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
                 triggerCharacter: "T",
                 triggerKind: LSP.CompletionTriggerKind.Invoked);
-
-            _globalOptionService = _testServer.TestWorkspace.GetService<IGlobalOptionService>();
         }
 
         [Benchmark]

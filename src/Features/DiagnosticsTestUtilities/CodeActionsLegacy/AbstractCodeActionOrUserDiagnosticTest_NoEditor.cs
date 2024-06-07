@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-#pragma warning disable LAYERING_IGlobalOptionsService
+#pragma warning disable LAYERING_IGlobalOptionService
             if (parameters.globalOptions != null)
             {
                 foreach (var (optionKey, value) in parameters.globalOptions.Options)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     workspace.GlobalOptions.SetGlobalOption(optionKey, value);
                 }
             }
-#pragma warning restore LAYERING_IGlobalOptionsService
+#pragma warning restore LAYERING_IGlobalOptionService
 #endif
             return workspace;
         }

@@ -132,7 +132,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var a = compilation.Assembly;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(a, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -168,7 +168,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var m = compilation.GetReferencedAssemblySymbols().Single(a => a.Name == "mscorlib");
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(m, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -210,7 +210,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var m = compilation.Assembly.Modules.Single();
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(m, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -246,7 +246,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var m = compilation.GetReferencedAssemblySymbols().Single(a => a.Name == "mscorlib").Modules.Single();
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(m, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -288,7 +288,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var symbol = compilation.GetMember("N");
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(symbol, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -330,7 +330,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var n = compilation.GetMember("System");
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(n, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -383,7 +383,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var n = compilation.GetMember("System");
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(n, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -437,7 +437,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var symbol = compilation.Assembly.GlobalNamespace;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(symbol, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -477,7 +477,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var symbol = compilation.GlobalNamespace;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(symbol, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -517,7 +517,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var c = compilation.GetMember("C");
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(c, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -559,7 +559,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var c = compilation.GetMember("System.Activator");
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(c, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -617,7 +617,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var c = compilation.GetMember("C");
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(c, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -663,7 +663,7 @@ public class DefinitionItemFactoryTests
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
         var c = compilation.GetMember<IFieldSymbol>("C.F").Type;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(c, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -703,7 +703,7 @@ public class DefinitionItemFactoryTests
         var t1 = tuple.TypeParameters[0];
         var t2 = tuple.TypeParameters[1];
         var genericTuple = tuple.OriginalDefinition;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(tuple, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -765,7 +765,7 @@ public class DefinitionItemFactoryTests
         var t1 = tuple.TypeParameters[0];
         var t2 = tuple.TypeParameters[1];
         var genericTuple = tuple.OriginalDefinition;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(tuple, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -821,7 +821,7 @@ public class DefinitionItemFactoryTests
         var t1 = type.TypeParameters[0];
         var t2 = type.TypeParameters[1];
         var genericType = type.OriginalDefinition;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(type, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -875,7 +875,7 @@ public class DefinitionItemFactoryTests
         var t1 = type.TypeParameters[0];
         var t2 = type.TypeParameters[1];
         var genericType = type.OriginalDefinition;
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(type, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -936,7 +936,7 @@ public class DefinitionItemFactoryTests
         var c = compilation.GetMember("C");
         var p = c.GetTypeParameters().Single();
 
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(p, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
@@ -979,7 +979,7 @@ public class DefinitionItemFactoryTests
         var m = compilation.GetMember("C.M");
         var c = m.ContainingType;
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(m, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -1034,7 +1034,7 @@ public class DefinitionItemFactoryTests
         var m = compilation.GetMember("C.M");
         var c = m.ContainingType;
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(m, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -1086,7 +1086,7 @@ public class DefinitionItemFactoryTests
         var p = compilation.GetMember("C.P");
         var c = p.ContainingType;
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(p, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -1150,7 +1150,7 @@ public class DefinitionItemFactoryTests
         Contract.ThrowIfNull(g);
         var c = p.ContainingType;
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(g, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -1207,7 +1207,7 @@ public class DefinitionItemFactoryTests
         Contract.ThrowIfNull(g);
         var c = p.ContainingType;
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(g, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -1262,7 +1262,7 @@ public class DefinitionItemFactoryTests
         var p = compilation.GetMember("C.this[]");
         var c = p.ContainingType;
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(p, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
@@ -1343,7 +1343,7 @@ public class DefinitionItemFactoryTests
         var p = m.GetParameters().Single();
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
 
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(p, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
@@ -1402,7 +1402,7 @@ public class DefinitionItemFactoryTests
         var c = m.ContainingType;
         var p = m.GetTypeParameters().Single();
 
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(p, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
@@ -1454,7 +1454,7 @@ public class DefinitionItemFactoryTests
 
         var c = compilation.GetMember("C");
 
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(f, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
@@ -1521,7 +1521,7 @@ public class DefinitionItemFactoryTests
         var c = compilation.GetMember("C");
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
 
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(x, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
@@ -1592,7 +1592,7 @@ public class DefinitionItemFactoryTests
         var c = compilation.GetMember("C");
         var i = compilation.GetSpecialType(SpecialType.System_Int32);
 
-        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var classificationOptions = EmptyOptionsReader.Instance.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(r, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
