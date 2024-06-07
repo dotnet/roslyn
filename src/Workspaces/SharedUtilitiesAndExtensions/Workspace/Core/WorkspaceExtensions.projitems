@@ -9,6 +9,21 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\CodeGenerationSymbolMappingFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationArrayTypeSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationEventSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationFieldSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationMethodSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationNamedTypeSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationNamespaceOrTypeSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationNamespaceSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationParameterSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationPointerTypeSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationPropertySymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationTypeParameterSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\ICodeGenerationTypeSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\SymbolMappingFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\CodeAnalysisProgressWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)lightup\FixAllContextExtensions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)lightup\FixAllContextWrapper.cs" />

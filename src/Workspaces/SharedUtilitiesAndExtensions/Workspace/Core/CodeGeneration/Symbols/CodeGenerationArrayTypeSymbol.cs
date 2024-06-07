@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation nullableAnnotation) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, nullableAnnotation), IArrayTypeSymbol
+internal abstract class CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation nullableAnnotation) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, nullableAnnotation), ICodeGenerationArrayTypeSymbol
 {
     public ITypeSymbol ElementType { get; } = elementType;
 
@@ -38,21 +38,21 @@ internal class CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank, 
     }
 
     protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
-        => new CodeGenerationArrayTypeSymbol(this.ElementType, this.Rank, nullableAnnotation);
+        => (CodeGenerationTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateArrayTypeSymbol(this.ElementType, this.Rank, nullableAnnotation);
 
     public override TypeKind TypeKind => TypeKind.Array;
 
     public override SymbolKind Kind => SymbolKind.ArrayType;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitArrayType(this);
+        => visitor.VisitArrayType((IArrayTypeSymbol)this);
 
     public override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
         where TResult : default
-        => visitor.VisitArrayType(this);
+        => visitor.VisitArrayType((IArrayTypeSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitArrayType(this, argument);
+        => visitor.VisitArrayType((IArrayTypeSymbol)this, argument);
 
     public ImmutableArray<CustomModifier> CustomModifiers
     {
@@ -65,5 +65,5 @@ internal class CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank, 
     public NullableAnnotation ElementNullableAnnotation => ElementType.NullableAnnotation;
 
     public bool Equals(IArrayTypeSymbol? other)
-        => SymbolEquivalenceComparer.Instance.Equals(this, other);
+        => SymbolEquivalenceComparer.Instance.Equals((IArrayTypeSymbol)this, other);
 }

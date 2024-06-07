@@ -132,6 +132,29 @@ public partial class CodeGenerationTests
             CancellationToken.None);
     }
 
+    internal static async Task TestAddDestructorAsync(
+        string initial,
+        string expected,
+        string name = "C",
+        ImmutableArray<SyntaxNode> statements = default,
+        CodeGenerationContext context = null)
+    {
+        using var testContext = await TestContext.CreateAsync(initial, expected);
+        var dtor = CodeGenerationSymbolFactory.CreateDestructorSymbol(
+            attributes: default,
+            name,
+            statements);
+
+        testContext.Result = await testContext.Service.AddMethodAsync(
+            new CodeGenerationSolutionContext(
+                testContext.Solution,
+                context ?? CodeGenerationContext.Default,
+                testContext.Workspace.GlobalOptions.CreateProvider()),
+            (INamedTypeSymbol)testContext.GetDestination(),
+            dtor,
+            CancellationToken.None);
+    }
+
     internal static async Task TestAddMethodAsync(
         string initial,
         string expected,
@@ -368,7 +391,7 @@ public partial class CodeGenerationTests
                 context ?? CodeGenerationContext.Default,
                 testContext.Workspace.GlobalOptions.CreateProvider()),
             (INamedTypeSymbol)testContext.GetDestination(),
-            type,
+            (INamedTypeSymbol)type,
             CancellationToken.None);
     }
 
@@ -729,10 +752,27 @@ public partial class CodeGenerationTests
     }
 
     private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(Type type)
-        => GetTypeSymbol(type.FullName);
+    {
+        return semanticModel =>
+        {
+            if (semanticModel is null)
+                return null;
 
-    private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(string typeMetadataName)
-        => s => s?.Compilation.GetTypeByMetadataName(typeMetadataName);
+            if (!type.IsGenericType || type.IsGenericTypeDefinition)
+            {
+                return semanticModel.Compilation.GetTypeByMetadataName(type.FullName);
+            }
+
+            var typeArguments = type.GenericTypeArguments.SelectAsArray(
+                argument => (ITypeSymbol)GetTypeSymbol(argument)(semanticModel));
+
+            var genericTypeDefinition = semanticModel.Compilation.GetTypeByMetadataName(type.GetGenericTypeDefinition().FullName);
+            return CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
+                (CodeGenerationNamedTypeSymbol)genericTypeDefinition.ToCodeGenerationSymbol(),
+                typeArguments,
+                typeMembers: ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>.Empty);
+        };
+    }
 
     internal static IEnumerable<SyntaxToken> CreateModifierTokens(Editing.DeclarationModifiers modifiers, string language)
     {
@@ -961,7 +1001,7 @@ public partial class CodeGenerationTests
         {
             try
             {
-                if (!_ignoreResult)
+                if (!_ignoreResult && this.Result is not null)
                 {
                     this.Document = this.Result;
 

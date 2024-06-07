@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationPropertySymbol(
+internal abstract class CodeGenerationPropertySymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility declaredAccessibility,
@@ -26,7 +26,7 @@ internal class CodeGenerationPropertySymbol(
     bool isIndexer,
     ImmutableArray<IParameterSymbol> parametersOpt,
     IMethodSymbol getMethod,
-    IMethodSymbol setMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), IPropertySymbol
+    IMethodSymbol setMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), ICodeGenerationPropertySymbol
 {
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
@@ -40,29 +40,29 @@ internal class CodeGenerationPropertySymbol(
 
     protected override CodeGenerationSymbol Clone()
     {
-        var result = new CodeGenerationPropertySymbol(
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreatePropertySymbol(
             this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.Type, this.RefKind, this.ExplicitInterfaceImplementations,
             this.Name, this.IsIndexer, this.Parameters,
             this.GetMethod, this.SetMethod);
         CodeGenerationPropertyInfo.Attach(result,
-            CodeGenerationPropertyInfo.GetIsNew(this),
-            CodeGenerationPropertyInfo.GetIsUnsafe(this),
-            CodeGenerationPropertyInfo.GetInitializer(this));
+            CodeGenerationPropertyInfo.GetIsNew((IPropertySymbol)this),
+            CodeGenerationPropertyInfo.GetIsUnsafe((IPropertySymbol)this),
+            CodeGenerationPropertyInfo.GetInitializer((IPropertySymbol)this));
 
-        return result;
+        return (CodeGenerationSymbol)result;
     }
 
     public override SymbolKind Kind => SymbolKind.Property;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitProperty(this);
+        => visitor.VisitProperty((IPropertySymbol)this);
 
     public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        => visitor.VisitProperty(this);
+        => visitor.VisitProperty((IPropertySymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitProperty(this, argument);
+        => visitor.VisitProperty((IPropertySymbol)this, argument);
 
     public bool IsReadOnly => this.GetMethod != null && this.SetMethod == null;
 
@@ -70,7 +70,7 @@ internal class CodeGenerationPropertySymbol(
 
     public bool IsRequired => Modifiers.IsRequired && !IsIndexer;
 
-    public new IPropertySymbol OriginalDefinition => this;
+    public new IPropertySymbol OriginalDefinition => (IPropertySymbol)this;
 
     public RefKind RefKind => refKind;
 

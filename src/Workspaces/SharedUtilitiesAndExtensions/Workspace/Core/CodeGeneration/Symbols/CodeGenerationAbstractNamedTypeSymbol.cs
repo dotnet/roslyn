@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTypeSymbol, INamedTypeSymbol
+internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTypeSymbol, ICodeGenerationNamedTypeSymbol
 {
     public new INamedTypeSymbol OriginalDefinition { get; protected set; }
 
@@ -40,35 +40,35 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
 
         foreach (var member in typeMembers)
         {
-            member.ContainingType = this;
+            member.ContainingType = (INamedTypeSymbol)this;
         }
     }
 
     public override SymbolKind Kind => SymbolKind.NamedType;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitNamedType(this);
+        => visitor.VisitNamedType((INamedTypeSymbol)this);
 
     public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        => visitor.VisitNamedType(this);
+        => visitor.VisitNamedType((INamedTypeSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitNamedType(this, argument);
+        => visitor.VisitNamedType((INamedTypeSymbol)this, argument);
 
     public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
     {
         if (typeArguments.Length == 0)
         {
-            return this;
+            return (INamedTypeSymbol)this;
         }
 
-        return new CodeGenerationConstructedNamedTypeSymbol(
+        return CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
             ConstructedFrom, [.. typeArguments], this.TypeMembers);
     }
 
     public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
     {
-        return new CodeGenerationConstructedNamedTypeSymbol(
+        return CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
             ConstructedFrom, typeArguments, this.TypeMembers);
     }
 
@@ -81,7 +81,7 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
     public abstract IMethodSymbol DelegateInvokeMethod { get; }
     public abstract INamedTypeSymbol EnumUnderlyingType { get; }
     protected abstract CodeGenerationNamedTypeSymbol ConstructedFrom { get; }
-    INamedTypeSymbol INamedTypeSymbol.ConstructedFrom => this.ConstructedFrom;
+    INamedTypeSymbol ICodeGenerationNamedTypeSymbol.ConstructedFrom => (INamedTypeSymbol)this.ConstructedFrom;
     public abstract INamedTypeSymbol ConstructUnboundGenericType();
     public abstract ImmutableArray<IMethodSymbol> InstanceConstructors { get; }
     public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }

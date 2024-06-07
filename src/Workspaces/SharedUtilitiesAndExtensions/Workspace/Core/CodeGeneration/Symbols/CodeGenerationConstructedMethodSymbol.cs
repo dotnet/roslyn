@@ -8,12 +8,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConstructedMethodSymbol : CodeGenerationAbstractMethodSymbol
+internal abstract class CodeGenerationConstructedMethodSymbol : CodeGenerationAbstractMethodSymbol
 {
     private readonly CodeGenerationAbstractMethodSymbol _constructedFrom;
     private readonly ImmutableArray<ITypeSymbol> _typeArguments;
 
-    public CodeGenerationConstructedMethodSymbol(
+    protected CodeGenerationConstructedMethodSymbol(
         CodeGenerationAbstractMethodSymbol constructedFrom,
         ImmutableArray<ITypeSymbol> typeArguments)
         : base(constructedFrom.ContainingType,
@@ -66,7 +66,7 @@ internal class CodeGenerationConstructedMethodSymbol : CodeGenerationAbstractMet
         }
     }
 
-    public override IMethodSymbol ConstructedFrom => _constructedFrom;
+    public override IMethodSymbol ConstructedFrom => (IMethodSymbol)_constructedFrom;
 
     public override bool IsReadOnly => _constructedFrom.IsReadOnly;
     public override bool IsInitOnly => _constructedFrom.IsInitOnly;
@@ -105,5 +105,5 @@ internal class CodeGenerationConstructedMethodSymbol : CodeGenerationAbstractMet
     public override bool IsPartialDefinition => _constructedFrom.IsPartialDefinition;
 
     protected override CodeGenerationSymbol Clone()
-        => new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);
+        => (CodeGenerationSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateConstructedMethodSymbol(_constructedFrom, _typeArguments);
 }

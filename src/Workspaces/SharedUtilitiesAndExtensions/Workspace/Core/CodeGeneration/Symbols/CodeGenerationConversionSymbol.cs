@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConversionSymbol(
+internal abstract class CodeGenerationConversionSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility declaredAccessibility,

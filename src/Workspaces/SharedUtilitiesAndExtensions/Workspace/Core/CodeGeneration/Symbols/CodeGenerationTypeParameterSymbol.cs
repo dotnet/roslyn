@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationTypeParameterSymbol(
+internal abstract class CodeGenerationTypeParameterSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     VarianceKind varianceKind,
@@ -21,7 +21,7 @@ internal class CodeGenerationTypeParameterSymbol(
     bool hasUnmanagedConstraint,
     bool hasNotNullConstraint,
     bool allowsRefLikeType,
-    int ordinal) : CodeGenerationTypeSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None, nullableAnnotation), ITypeParameterSymbol
+    int ordinal) : CodeGenerationTypeSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None, nullableAnnotation), ICodeGenerationTypeParameterSymbol
 {
     public VarianceKind Variance { get; } = varianceKind;
     public ImmutableArray<ITypeSymbol> ConstraintTypes { get; internal set; } = constraintTypes;
@@ -35,27 +35,27 @@ internal class CodeGenerationTypeParameterSymbol(
 
     protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
     {
-        return new CodeGenerationTypeParameterSymbol(
+        return (CodeGenerationTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateTypeParameterSymbol(
             this.ContainingType, this.GetAttributes(), this.Variance, this.Name, nullableAnnotation,
             this.ConstraintTypes, this.HasConstructorConstraint, this.HasReferenceTypeConstraint,
             this.HasValueTypeConstraint, this.HasUnmanagedTypeConstraint, this.HasNotNullConstraint,
             this.AllowsRefLikeType, this.Ordinal);
     }
 
-    public new ITypeParameterSymbol OriginalDefinition => this;
+    public new ITypeParameterSymbol OriginalDefinition => (ITypeParameterSymbol)this;
 
     public ITypeParameterSymbol ReducedFrom => null;
 
     public override SymbolKind Kind => SymbolKind.TypeParameter;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitTypeParameter(this);
+        => visitor.VisitTypeParameter((ITypeParameterSymbol)this);
 
     public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        => visitor.VisitTypeParameter(this);
+        => visitor.VisitTypeParameter((ITypeParameterSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitTypeParameter(this, argument);
+        => visitor.VisitTypeParameter((ITypeParameterSymbol)this, argument);
 
     public override TypeKind TypeKind => TypeKind.TypeParameter;
 

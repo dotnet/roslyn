@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal abstract class CodeGenerationSymbol : ISymbol
+internal abstract class CodeGenerationSymbol : ICodeGenerationSymbol
 {
     protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable = new();
 
@@ -174,7 +174,7 @@ internal abstract class CodeGenerationSymbol : ISymbol
     {
         get
         {
-            return this;
+            return (ISymbol)this;
         }
     }
 

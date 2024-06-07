@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 attributes:=ImmutableArray(Of AttributeData).Empty,
                 accessibility:=Accessibility.Public, modifiers:=Nothing,
                 explicitInterfaceImplementations:=Nothing,
-                type:=delegateType, name:=actualEventName)
+                type:=CType(delegateType, INamedTypeSymbol), name:=actualEventName)
 
             ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
             ' instead of an 'As' clause.
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
                 Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                     boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
-                    modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceImplementations:=Nothing,
+                    modifiers:=Nothing, type:=CType(eventHandlerType, INamedTypeSymbol), explicitInterfaceImplementations:=Nothing,
                     name:=actualEventName)
 
                 ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 explicitInterfaceImplementations:=Nothing,
-                type:=delegateType, name:=actualEventName)
+                type:=CType(delegateType, INamedTypeSymbol), name:=actualEventName)
 
             ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
             ' instead of an 'As' clause.

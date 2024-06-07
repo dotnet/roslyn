@@ -167,6 +167,19 @@ class C
                 modifiers: new Editing.DeclarationModifiers(isStatic: true));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task AddDestructor()
+        {
+            var input = "class [|C|] { }";
+            var expected = @"class C
+{
+    ~C()
+    {
+    }
+}";
+            await TestAddDestructorAsync(input, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544082")]
         public async Task AddClass()
         {
@@ -507,6 +520,20 @@ class C
 }";
             await TestAddMethodAsync(input, expected,
                 returnType: typeof(void));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task AddMethodToClassWithConstructedGenericReturnType()
+        {
+            var input = "class [|C|] { }";
+            var expected = @"class C
+{
+    public Action<int> M()
+    {
+    }
+}";
+            await TestAddMethodAsync(input, expected,
+                returnType: typeof(Action<int>));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1330,7 +1357,7 @@ class D { }";
         {
             var input = "[|class C { } class D {} |]";
             var expected = "";
-            await Assert.ThrowsAsync<AggregateException>(async () =>
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), RefKeyword));
         }
 

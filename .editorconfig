@@ -237,6 +237,10 @@ dotnet_diagnostic.IDE0060.severity = warning
 # IDE0060: Remove unused parameter
 dotnet_diagnostic.IDE0060.severity = none
 
+[src/Features/**/*.{cs,vb}]
+# RS1009: Only internal implementations of this interface are allowed
+dotnet_diagnostic.RS1009.severity = none
+
 [src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio}/**/*.{cs,vb}]
 
 # IDE0011: Add braces

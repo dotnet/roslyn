@@ -21,6 +21,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Reflection.Emit" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" PrivateAssets="all" Condition="'$(DotNetBuildFromSource)' != 'true'" />

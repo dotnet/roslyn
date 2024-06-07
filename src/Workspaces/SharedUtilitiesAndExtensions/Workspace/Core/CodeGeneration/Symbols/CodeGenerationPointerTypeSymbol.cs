@@ -6,14 +6,14 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None), IPointerTypeSymbol
+internal abstract class CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None), ICodeGenerationPointerTypeSymbol
 {
     public ITypeSymbol PointedAtType { get; } = pointedAtType;
 
     protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
     {
         // We ignore the nullableAnnotation parameter because pointer types can't be nullable.
-        return new CodeGenerationPointerTypeSymbol(this.PointedAtType);
+        return (CodeGenerationTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreatePointerTypeSymbol(this.PointedAtType);
     }
 
     public override TypeKind TypeKind => TypeKind.Pointer;
@@ -21,14 +21,14 @@ internal class CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType) : Code
     public override SymbolKind Kind => SymbolKind.PointerType;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitPointerType(this);
+        => visitor.VisitPointerType((IPointerTypeSymbol)this);
 
     public override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
         where TResult : default
-        => visitor.VisitPointerType(this);
+        => visitor.VisitPointerType((IPointerTypeSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitPointerType(this, argument);
+        => visitor.VisitPointerType((IPointerTypeSymbol)this, argument);
 
     public ImmutableArray<CustomModifier> CustomModifiers
     {

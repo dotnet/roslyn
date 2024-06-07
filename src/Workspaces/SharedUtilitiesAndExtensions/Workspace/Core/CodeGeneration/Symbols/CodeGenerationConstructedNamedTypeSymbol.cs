@@ -10,12 +10,12 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
+internal abstract class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
 {
     private readonly CodeGenerationNamedTypeSymbol _constructedFrom;
     private readonly ImmutableArray<ITypeSymbol> _typeArguments;
 
-    public CodeGenerationConstructedNamedTypeSymbol(
+    protected CodeGenerationConstructedNamedTypeSymbol(
         CodeGenerationNamedTypeSymbol constructedFrom,
         ImmutableArray<ITypeSymbol> typeArguments,
         ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
@@ -94,7 +94,7 @@ internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstract
 
     protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
     {
-        return new CodeGenerationConstructedNamedTypeSymbol(
+        return (CodeGenerationTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
             (CodeGenerationNamedTypeSymbol)_constructedFrom.WithNullableAnnotation(nullableAnnotation),
             _typeArguments,
             this.TypeMembers);

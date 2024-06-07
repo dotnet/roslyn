@@ -45,7 +45,6 @@ dotnet_diagnostic.RS1004.severity = none
 dotnet_diagnostic.RS1005.severity = none
 dotnet_diagnostic.RS1006.severity = none
 dotnet_diagnostic.RS1008.severity = none
-dotnet_diagnostic.RS1009.severity = none
 dotnet_diagnostic.RS1010.severity = none
 dotnet_diagnostic.RS1011.severity = none
 dotnet_diagnostic.RS1012.severity = none

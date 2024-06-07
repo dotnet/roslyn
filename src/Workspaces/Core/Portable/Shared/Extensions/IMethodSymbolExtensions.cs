@@ -124,7 +124,7 @@ internal static partial class IMethodSymbolExtensions
         {
             var typeParameter = typeParameters[i];
 
-            var newTypeParameter = new CodeGenerationTypeParameterSymbol(
+            var newTypeParameter = CodeGenerationSymbolMappingFactory.Instance.CreateTypeParameterSymbol(
                 typeParameter.ContainingType,
                 typeParameter.GetAttributes(),
                 typeParameter.Variance,
@@ -139,7 +139,7 @@ internal static partial class IMethodSymbolExtensions
                 typeParameter.AllowsRefLikeType,
                 typeParameter.Ordinal);
 
-            newTypeParameters.Add(newTypeParameter);
+            newTypeParameters.Add((CodeGenerationTypeParameterSymbol)newTypeParameter);
             mapping[typeParameter] = newTypeParameter;
         }
 

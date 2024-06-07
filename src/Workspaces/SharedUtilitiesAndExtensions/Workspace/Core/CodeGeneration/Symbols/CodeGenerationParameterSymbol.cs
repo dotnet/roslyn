@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationParameterSymbol(
+internal abstract class CodeGenerationParameterSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     RefKind refKind,
@@ -23,14 +23,12 @@ internal class CodeGenerationParameterSymbol(
     string name,
     bool isOptional,
     bool hasDefaultValue,
-    object defaultValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name), IParameterSymbol
+    object defaultValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name), ICodeGenerationParameterSymbol
 {
     public RefKind RefKind { get; } = refKind;
     public bool IsParams { get; } = isParams;
-#if !CODE_STYLE
-    bool IParameterSymbol.IsParamsArray => IsParams;
-    bool IParameterSymbol.IsParamsCollection => false;
-#endif
+    bool ICodeGenerationParameterSymbol.IsParamsArray => IsParams;
+    bool ICodeGenerationParameterSymbol.IsParamsCollection => false;
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
     public bool IsOptional { get; } = isOptional;
@@ -41,24 +39,24 @@ internal class CodeGenerationParameterSymbol(
 
     protected override CodeGenerationSymbol Clone()
     {
-        return new CodeGenerationParameterSymbol(
+        return (CodeGenerationSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateParameterSymbol(
             this.ContainingType, this.GetAttributes(), this.RefKind,
             this.IsParams, this.Type, this.Name, this.IsOptional, this.HasExplicitDefaultValue,
             this.ExplicitDefaultValue);
     }
 
-    public new IParameterSymbol OriginalDefinition => this;
+    public new IParameterSymbol OriginalDefinition => (IParameterSymbol)this;
 
     public override SymbolKind Kind => SymbolKind.Parameter;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitParameter(this);
+        => visitor.VisitParameter((IParameterSymbol)this);
 
     public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        => visitor.VisitParameter(this);
+        => visitor.VisitParameter((IParameterSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitParameter(this, argument);
+        => visitor.VisitParameter((IParameterSymbol)this, argument);
 
     public bool IsThis => false;
 

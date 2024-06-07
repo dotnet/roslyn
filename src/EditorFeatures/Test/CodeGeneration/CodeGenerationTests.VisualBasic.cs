@@ -408,8 +408,8 @@ End Class";
 End Class";
             static ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
             {
-                return ImmutableArray.Create<IEventSymbol>(
-                    new CodeGenerationEventSymbol(
+                return ImmutableArray.Create(
+                    CodeGenerationSymbolMappingFactory.Instance.CreateEventSymbol(
                         GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel),
                         attributes: default,
                         Accessibility.Public,
@@ -492,6 +492,18 @@ End Class";
 End Class";
             await TestAddMethodAsync(input, expected,
                 returnType: typeof(void));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task AddMethodToClassWithConstructedGenericReturnType()
+        {
+            var input = "Class [|C|]\n End Class";
+            var expected = @"Class C
+    Public Function M() As Action(Of Integer)
+    End Function
+End Class";
+            await TestAddMethodAsync(input, expected,
+                returnType: typeof(Action<int>));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1397,7 +1409,7 @@ End Class";
         {
             var input = "[|Class C \n End Class \n Class D \n End Class|]";
             var expected = "<Assembly: Serializable> Class C \n End Class \n Class D \n End Class";
-            await Assert.ThrowsAsync<AggregateException>(async () =>
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.ReturnKeyword)));
         }
 

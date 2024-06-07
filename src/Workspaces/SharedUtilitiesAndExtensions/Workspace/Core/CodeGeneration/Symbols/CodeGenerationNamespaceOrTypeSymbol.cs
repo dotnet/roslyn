@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal abstract class CodeGenerationNamespaceOrTypeSymbol : CodeGenerationSymbol, INamespaceOrTypeSymbol
+internal abstract class CodeGenerationNamespaceOrTypeSymbol : CodeGenerationSymbol, ICodeGenerationNamespaceOrTypeSymbol
 {
     protected CodeGenerationNamespaceOrTypeSymbol(
         IAssemblySymbol containingAssembly,

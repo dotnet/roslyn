@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConstructorSymbol(
+internal abstract class CodeGenerationConstructorSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,
@@ -35,16 +35,16 @@ internal class CodeGenerationConstructorSymbol(
 
     protected override CodeGenerationSymbol Clone()
     {
-        var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
 
         CodeGenerationConstructorInfo.Attach(result,
-            CodeGenerationConstructorInfo.GetIsPrimaryConstructor(this),
-            CodeGenerationConstructorInfo.GetIsUnsafe(this),
-            CodeGenerationConstructorInfo.GetTypeName(this),
-            CodeGenerationConstructorInfo.GetStatements(this),
-            CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(this),
-            CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(this));
+            CodeGenerationConstructorInfo.GetIsPrimaryConstructor((IMethodSymbol)this),
+            CodeGenerationConstructorInfo.GetIsUnsafe((IMethodSymbol)this),
+            CodeGenerationConstructorInfo.GetTypeName((IMethodSymbol)this),
+            CodeGenerationConstructorInfo.GetStatements((IMethodSymbol)this),
+            CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt((IMethodSymbol)this),
+            CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt((IMethodSymbol)this));
 
-        return result;
+        return (CodeGenerationSymbol)result;
     }
 }

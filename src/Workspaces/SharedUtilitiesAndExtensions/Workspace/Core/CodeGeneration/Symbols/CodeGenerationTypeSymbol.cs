@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrTypeSymbol, ITypeSymbol
+internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrTypeSymbol, ICodeGenerationTypeSymbol
 {
     public SpecialType SpecialType { get; protected set; }
 
@@ -57,7 +57,7 @@ internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrType
 
     public static ImmutableArray<string> TupleElementNames => default;
 
-    public new ITypeSymbol OriginalDefinition => this;
+    public new ITypeSymbol OriginalDefinition => (ITypeSymbol)this;
 
     public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
 
@@ -77,11 +77,11 @@ internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrType
 
     public override bool IsType => true;
 
-    bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
+    bool ICodeGenerationTypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
 
-    bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
+    bool ICodeGenerationTypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
 
-    bool ITypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
+    bool ICodeGenerationTypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
 
     public virtual bool IsRecord => false;
 
@@ -91,10 +91,10 @@ internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrType
     {
         if (this.NullableAnnotation == nullableAnnotation)
         {
-            return this;
+            return (ITypeSymbol)this;
         }
 
-        return CloneWithNullableAnnotation(nullableAnnotation);
+        return (ITypeSymbol)CloneWithNullableAnnotation(nullableAnnotation);
     }
 
     protected sealed override CodeGenerationSymbol Clone()

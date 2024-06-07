@@ -18,13 +18,13 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
+internal abstract class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
 {
     private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
     private readonly ImmutableArray<INamedTypeSymbol> _interfaces;
     private readonly ImmutableArray<ISymbol> _members;
 
-    public CodeGenerationNamedTypeSymbol(
+    protected CodeGenerationNamedTypeSymbol(
         IAssemblySymbol containingAssembly,
         INamedTypeSymbol containingType,
         ImmutableArray<AttributeData> attributes,
@@ -51,12 +51,12 @@ internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSy
         _members = members.NullToEmpty();
         EnumUnderlyingType = enumUnderlyingType;
 
-        this.OriginalDefinition = this;
+        this.OriginalDefinition = (INamedTypeSymbol)this;
     }
 
     protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
     {
-        return new CodeGenerationNamedTypeSymbol(
+        return (CodeGenerationTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateNamedTypeSymbol(
             this.ContainingAssembly, this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.IsRecord, this.TypeKind, this.Name, _typeParameters, this.BaseType,
             _interfaces, this.SpecialType, nullableAnnotation, _members, this.TypeMembers,
@@ -160,7 +160,7 @@ internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSy
     }
 
     public override ImmutableArray<ISymbol> GetMembers()
-        => ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
+        => ImmutableArray.CreateRange(_members.Concat(this.TypeMembers.Cast<ISymbol>()));
 
     public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
         => ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());

@@ -15,7 +15,7 @@ internal static class INamedTypeSymbolExtensions
             return typeSymbol;
         }
 
-        return new CodeGenerationNamedTypeSymbol(
+        return (CodeGenerationAbstractNamedTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateNamedTypeSymbol(
             namedType.ContainingAssembly,
             namedType.ContainingType,
             namedType.GetAttributes(),
