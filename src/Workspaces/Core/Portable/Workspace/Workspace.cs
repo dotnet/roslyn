@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -92,7 +93,7 @@ public abstract partial class Workspace : IDisposable
             TimeSpan.FromMilliseconds(1500),
             ProcessUpdateSourceGeneratorRequestAsync,
             EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
-            listenerProvider.GetListener(),
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _updateSourceGeneratorsQueueTokenSource.Token);
     }
 
