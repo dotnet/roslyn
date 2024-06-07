@@ -85,11 +85,9 @@ internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptio
             UpdateRegisteredWorkspaces();
         }
 
-#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
         // Update global options after updating registered workspaces,
         // so that the handler of the changed event has access to the updated values through the current solution.
         GlobalOptions.SetGlobalOptions(internallyDefinedOptions);
-#pragma warning restore
     }
 
     public void UpdateRegisteredWorkspaces()
