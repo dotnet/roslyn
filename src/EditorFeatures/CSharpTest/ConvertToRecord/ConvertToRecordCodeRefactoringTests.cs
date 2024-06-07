@@ -4542,37 +4542,23 @@ namespace N
 
         #endregion
 
-        private static void AddSolutionTransform(List<Func<Solution, ProjectId, Solution>> solutionTransforms)
-        {
-            solutionTransforms.Add((solution, projectId) =>
-            {
-                var project = solution.GetProject(projectId)!;
-
-                var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
-                // enable nullable
-                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
-                solution = solution
-                    .WithProjectCompilationOptions(projectId, compilationOptions)
-                    .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
-
-                return solution;
-            });
-        }
-
         private class RefactoringTest : VerifyCSRefactoring.Test
         {
             public RefactoringTest()
             {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
                 LanguageVersion = LanguageVersion.CSharp10;
-                AddSolutionTransform(SolutionTransforms);
                 MarkupOptions = MarkupOptions.UseFirstDescriptor;
             }
 
-            protected override Workspace CreateWorkspaceImpl()
+            protected override CompilationOptions CreateCompilationOptions()
             {
-                var workspace = new AdhocWorkspace();
+                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
 
-                return workspace;
+                // enable nullable
+                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+
+                return compilationOptions;
             }
         }
 
@@ -4596,8 +4582,18 @@ namespace N
         {
             public CodeFixTest()
             {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
                 LanguageVersion = LanguageVersion.CSharp10;
-                AddSolutionTransform(SolutionTransforms);
+            }
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+
+                // enable nullable
+                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+
+                return compilationOptions;
             }
         }
 
