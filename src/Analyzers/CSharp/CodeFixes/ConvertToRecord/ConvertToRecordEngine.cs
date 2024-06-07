@@ -618,7 +618,7 @@ internal static class ConvertToRecordEngine
         if (exteriorTrivia == null)
         {
             // we didn't find any substantive doc comments, just give the current non-doc comments
-            return [.. classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic())];
+            return TriviaList(classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic()));
         }
 
         var propertyParamComments = CreateParamComments(propertyResults, exteriorTrivia!.Value, lineFormattingOptions);
@@ -677,19 +677,19 @@ internal static class ConvertToRecordEngine
         if (classDocComment == null || lastComment == classDocComment)
         {
             // doc comment was last non-whitespace/newline trivia or there was no class doc comment originally
-            return [.. classTrivia
+            return TriviaList(classTrivia
                 .Where(trivia => !trivia.IsDocComment())
                 .Concat(propertyNonDocComments)
                 .Append(Trivia(newClassDocComment))
-                .Select(trivia => trivia.AsElastic())];
+                .Select(trivia => trivia.AsElastic()));
         }
         else
         {
             // there were comments after doc comment
-            return [.. classTrivia
+            return TriviaList(classTrivia
                 .Replace(classDocComment.Value, Trivia(newClassDocComment))
                 .Concat(propertyNonDocComments)
-                .Select(trivia => trivia.AsElastic())];
+                .Select(trivia => trivia.AsElastic()));
         }
     }
 

@@ -24,12 +24,12 @@ internal static class MemberAccessExpressionSyntaxExtensions
         // However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering
         // aggressive formatting. Otherwise, formatter will see this elastic trivia added by the expander and use that as a cue to introduce unnecessary blank lines
         // etc. around the user's original code.
-        return [.. WithoutElasticTrivia(
+        return SyntaxFactory.TriviaList(WithoutElasticTrivia(
             memberAccess.GetLeadingTrivia()
                 .AddRange(memberAccess.Expression.GetTrailingTrivia())
                 .AddRange(memberAccess.OperatorToken.LeadingTrivia)
                 .AddRange(memberAccess.OperatorToken.TrailingTrivia)
-                .AddRange(memberAccess.Name.GetLeadingTrivia()))];
+                .AddRange(memberAccess.Name.GetLeadingTrivia())));
     }
 
     private static IEnumerable<SyntaxTrivia> WithoutElasticTrivia(IEnumerable<SyntaxTrivia> list)

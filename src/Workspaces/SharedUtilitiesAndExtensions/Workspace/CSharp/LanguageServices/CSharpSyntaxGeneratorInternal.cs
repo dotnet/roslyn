@@ -97,10 +97,10 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
 
     public override SyntaxToken InterpolatedStringTextToken(string content, string value)
         => SyntaxFactory.Token(
-            [],
+            SyntaxTriviaList.Empty,
             SyntaxKind.InterpolatedStringTextToken,
             content, value,
-            []);
+            SyntaxTriviaList.Empty);
 
     public override SyntaxNode Interpolation(SyntaxNode syntaxNode)
         => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);

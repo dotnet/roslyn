@@ -101,7 +101,7 @@ internal class CSharpUsePatternCombinatorsCodeFixProvider : SyntaxEditorBasedCod
                 p.IsDisjunctive ? SyntaxKind.OrPattern : SyntaxKind.AndPattern,
                 AsPatternSyntax(p.Left).Parenthesize(),
                 Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
-                    [.. p.Token.GetAllTrailingTrivia()]),
+                    TriviaList(p.Token.GetAllTrailingTrivia())),
                 AsPatternSyntax(p.Right).Parenthesize()),
             Constant p => ConstantPattern(AsExpressionSyntax(p.ExpressionSyntax, p)),
             Source p => p.PatternSyntax,

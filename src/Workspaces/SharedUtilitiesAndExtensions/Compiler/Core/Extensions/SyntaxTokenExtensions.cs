@@ -104,7 +104,7 @@ internal static class SyntaxTokenExtensions
             return token;
         }
 
-        return token.With([], []);
+        return token.With(SyntaxTriviaList.Empty, SyntaxTriviaList.Empty);
     }
 
     public static SyntaxToken With(this SyntaxToken token, SyntaxTriviaList leading, SyntaxTriviaList trailing)
