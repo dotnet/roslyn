@@ -151,9 +151,11 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             => [new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false))];
 
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
-            return base.ComputeOperationsAsync(cancellationToken);
+            var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            var codeAction = new ApplyChangesOperation(newSolution);
+            return [codeAction];
         }
 #else
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
