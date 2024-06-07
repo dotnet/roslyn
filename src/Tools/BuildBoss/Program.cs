@@ -31,8 +31,8 @@ namespace BuildBoss
 
         private static bool MainCore(string[] args)
         {
-            MSBuildLocator.RegisterDefaults();
-
+            VisualStudioInstance instance = MSBuildLocator.RegisterDefaults();
+            Console.WriteLine($"Version: {instance.Version}");
             string repositoryDirectory = null;
             string configuration = "Debug";
             string primarySolution = null;
