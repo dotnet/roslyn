@@ -13501,9 +13501,6 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (32,22): error CS0121: The call is ambiguous between the following methods or properties: 'IMyAsyncDisposable1.DisposeAsync()' and 'IMyAsyncDisposable2.DisposeAsync()'
-                //         await using (new T())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(32, 22),
                 // (32,22): error CS8410: 'T': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new T())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new T()").WithArguments("T").WithLocation(32, 22)
@@ -13514,6 +13511,8 @@ class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
         public void AwaitUsing_08()
         {
+            // 'System.Activator.CreateInstance<T>' will be changed to include 'allows ref struct' constraint,
+            // see https://github.com/dotnet/runtime/issues/65112.
             var src = @"
 using System;
 using System.Threading.Tasks;
@@ -13555,12 +13554,22 @@ class C
         }
     }
 }
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics(
-                // (36,22): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
-                //         await using (new T())
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "new T()").WithArguments("System.Activator.CreateInstance<T>()", "T", "T").WithLocation(36, 22));
+            comp.VerifyEmitDiagnostics();
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563

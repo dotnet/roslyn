@@ -2645,13 +2645,9 @@ public class C
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
-                // (6,22): error CS0122: 'C.DisposeAsync()' is inaccessible due to its protection level
+                // 0.cs(6,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAccess, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
-                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
-                );
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -3575,10 +3571,7 @@ internal static class EnumerableExtensions
             comp.VerifyEmitDiagnostics(
                 // (5,1): error CS8410: 'Class1': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 // await using var x = new Class1();
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new Class1();").WithArguments("Class1").WithLocation(5, 1),
-                // (5,1): error CS1929: 'Class1' does not contain a definition for 'DisposeAsync' and the best extension method overload 'EnumerableExtensions.DisposeAsync(IEnumerable<object>)' requires a receiver of type 'System.Collections.Generic.IEnumerable<object>'
-                // await using var x = new Class1();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "await using var x = new Class1();").WithArguments("Class1", "DisposeAsync", "EnumerableExtensions.DisposeAsync(System.Collections.Generic.IEnumerable<object>)", "System.Collections.Generic.IEnumerable<object>").WithLocation(5, 1));
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new Class1();").WithArguments("Class1").WithLocation(5, 1));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
@@ -3656,10 +3649,7 @@ namespace System.Threading.Tasks
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
                 // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
                 //         await using var x = new Class1();
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
-                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
-                //         await using var x = new Class1();
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
         }
     }
 }
