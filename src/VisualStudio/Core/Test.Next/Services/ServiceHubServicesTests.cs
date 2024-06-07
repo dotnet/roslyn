@@ -1350,12 +1350,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Theory, CombinatorialData]
-        internal async Task TestSourceGenerationExecution_NoChange_ButExternalUpdateSignal(bool forceRegeneration)
+        internal async Task TestSourceGenerationExecution_NoChange_ButExternalUpdateSignal(
+            SourceGeneratorExecutionPreference executionPreference,
+            bool forceRegeneration)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
 
             var callCount = 0;
             AddSimpleDocument(workspace, new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)));
@@ -1376,12 +1378,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             if (forceRegeneration)
             {
-                // We were asked to force regeneration.  So that should be respected.
+                // In balanced/automatic mode, we were asked to force regenerate.  So that should be respected.
                 Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
             }
             else
             {
-                // Nothing changed.  So we should not have regenerated.
+                // In balanced or automatic mode, since nothing happened and we were not forced, we should not regenerate.
                 Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
             }
         }
@@ -1430,14 +1432,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 return;
             }
 
-            if (enqueueChangeBeforeEdit || enqueueChangeAfterEdit)
+            if (forceRegeneration && (enqueueChangeBeforeEdit || enqueueChangeAfterEdit))
             {
-                // In balanced mode, if we hear about a save/build, we do want to regenerate.
+                // If a force-regenerate notification came through either before or after the edit, we should regenerate.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+                return;
+            }
+
+            if (enqueueChangeAfterEdit)
+            {
+                // In balanced mode, if we hear about a save/build after a the last change to a project, we do want to regenerate.
                 Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
             }
             else
             {
-                // In balanced mode. We didn't hear about a save/build .  As we only got a text change, we should *not* regenerate.
+                // In balanced mode, if there was no save/build after the last change, we want to reuse whatever we produced last time.
                 Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
             }
         }
