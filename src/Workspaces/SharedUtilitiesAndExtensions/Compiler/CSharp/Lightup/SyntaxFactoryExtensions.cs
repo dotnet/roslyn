@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal static class SyntaxFactoryExtensions
 {
-    public static AllowsConstraintClauseSyntaxWrapper AllowsConstraintClause(SeparatedSyntaxList<AllowsConstraintSyntaxWrapper> constraints = default)
+    public static AllowsConstraintClauseSyntaxWrapper AllowsConstraintClause(SeparatedSyntaxListWrapper<AllowsConstraintSyntaxWrapper> constraints = default)
         => throw new NotImplementedException();
 
     public static RefStructConstraintSyntaxWrapper RefStructConstraint()
