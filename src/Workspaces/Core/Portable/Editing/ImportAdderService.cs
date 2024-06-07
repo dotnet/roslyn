@@ -42,7 +42,7 @@ internal abstract class ImportAdderService : ILanguageService
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         // Create a simple interval tree for simplification spans.
-        var spansTree = new TextSpanIntervalTree(spans);
+        var spansTree = new TextSpanMutableIntervalTree(spans);
 
         // Only dive deeper into nodes that actually overlap with the span we care about.  And also only include
         // those child nodes that themselves overlap with the span.  i.e. if we have:

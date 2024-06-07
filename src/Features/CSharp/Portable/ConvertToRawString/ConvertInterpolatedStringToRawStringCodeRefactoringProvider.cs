@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -296,7 +297,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
             {
                 var line = text.Lines[i];
 
-                if (restrictedSpans.HasIntervalThatIntersectsWith(line.Start))
+                if (restrictedSpans.Algorithms.HasIntervalThatIntersectsWith(line.Start, new TextSpanIntervalIntrospector()))
                 {
                     // Inside something we must not touch.  Include the line verbatim.
                     AppendFullLine(builder, line);
@@ -474,18 +475,18 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
     private static void AppendFullLine(StringBuilder builder, TextLine line)
         => builder.Append(line.Text!.ToString(line.SpanIncludingLineBreak));
 
-    private static (TextSpanIntervalTree interpolationInteriorSpans, TextSpanIntervalTree restrictedSpans) GetInterpolationSpans(
+    private static (ImmutableIntervalTree<TextSpan> interpolationInteriorSpans, ImmutableIntervalTree<TextSpan> restrictedSpans) GetInterpolationSpans(
         InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
     {
-        var interpolationInteriorSpans = new TextSpanIntervalTree();
-        var restrictedSpans = new TextSpanIntervalTree();
+        var interpolationInteriorSpans = new SegmentedList<TextSpan>();
+        var restrictedSpans = new SegmentedList<TextSpan>();
 
         SourceText? text = null;
         foreach (var content in stringExpression.Contents)
         {
             if (content is InterpolationSyntax interpolation)
             {
-                interpolationInteriorSpans.AddIntervalInPlace(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
+                interpolationInteriorSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
 
                 // We don't want to touch any nested strings within us, mark them as off limits.  note, we only care if
                 // the nested strings actually span multiple lines.  A nested string on a single line is safe to move
@@ -506,14 +507,16 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
                             var start = startLine.GetFirstNonWhitespacePosition() == descendantSpan.Start
                                 ? startLine.Start
                                 : descendantSpan.Start;
-                            restrictedSpans.AddIntervalInPlace(TextSpan.FromBounds(start, descendantSpan.End));
+                            restrictedSpans.Add(TextSpan.FromBounds(start, descendantSpan.End));
                         }
                     }
                 }
             }
         }
 
-        return (interpolationInteriorSpans, restrictedSpans);
+        return (
+            ImmutableIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), interpolationInteriorSpans),
+            ImmutableIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), restrictedSpans));
     }
 
     private static InterpolatedStringExpressionSyntax CleanInterpolatedString(
@@ -559,7 +562,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
             // ignore any blank lines we see.
             var line = lines[i];
 
-            if (restrictedSpans.HasIntervalThatIntersectsWith(line.Start))
+            if (restrictedSpans.Algorithms.HasIntervalThatIntersectsWith(line.Start, new TextSpanIntervalIntrospector()))
             {
                 // Inside something we must not touch.  Include the line verbatim.
                 AppendFullLine(builder, line);
@@ -627,7 +630,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
 
     private static string ComputeCommonWhitespacePrefix(
         ArrayBuilder<TextLine> lines,
-        TextSpanIntervalTree interpolationInteriorSpans)
+        ImmutableIntervalTree<TextSpan> interpolationInteriorSpans)
     {
         string? commonLeadingWhitespace = null;
 

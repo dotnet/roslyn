@@ -85,7 +85,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
         {
-            Debug.Assert(option is { Definition.DefaultValue: ICodeStyleOption } == descriptor.CustomTags.Contains(WellKnownDiagnosticTagsEx.CustomSeverityConfigurable));
+            Debug.Assert(option is { Definition.DefaultValue: ICodeStyleOption2 } == descriptor.CustomTags.Contains(WellKnownDiagnosticTagsEx.CustomSeverityConfigurable));
             AddDiagnosticIdToOptionMapping(descriptor.Id, option);
         }
     }

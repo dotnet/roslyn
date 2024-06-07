@@ -157,14 +157,15 @@ internal abstract partial class AbstractStructureTaggerProvider(
             TaggerEventSources.OnTextChanged(subjectBuffer),
             TaggerEventSources.OnParseOptionChanged(subjectBuffer),
             TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions)));
     }
 
     protected sealed override async Task ProduceTagsAsync(

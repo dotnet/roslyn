@@ -708,18 +708,20 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithDocumentFilePath(documentId, filePath), documentId);
     }
 
-    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
+    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
         => WithDocumentContents(
             texts, SourceTextIsUnchanged,
-            static (documentState, text, mode) => documentState.UpdateText(text, mode));
+            static (documentState, text, mode) => documentState.UpdateText(text, mode),
+            data: mode);
 
-    private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
+    private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text, PreservationMode mode)
         => oldDocument.TryGetText(out var oldText) && text == oldText;
 
-    private SolutionCompilationState WithDocumentContents<TContent>(
-        ImmutableArray<(DocumentId documentId, TContent content, PreservationMode mode)> texts,
-        Func<DocumentState, TContent, bool> isUnchanged,
-        Func<DocumentState, TContent, PreservationMode, DocumentState> updateContent)
+    private SolutionCompilationState WithDocumentContents<TContent, TData>(
+        ImmutableArray<(DocumentId documentId, TContent content)> texts,
+        Func<DocumentState, TContent, TData, bool> isUnchanged,
+        Func<DocumentState, TContent, TData, DocumentState> updateContent,
+        TData data)
     {
         return UpdateDocumentsInMultipleProjects(
              texts.GroupBy(d => d.documentId.ProjectId).Select(g =>
@@ -728,13 +730,13 @@ internal sealed partial class SolutionCompilationState
                  var projectState = this.SolutionState.GetRequiredProjectState(projectId);
 
                  using var _ = ArrayBuilder<DocumentState>.GetInstance(out var newDocumentStates);
-                 foreach (var (documentId, content, mode) in g)
+                 foreach (var (documentId, content) in g)
                  {
                      var documentState = projectState.DocumentStates.GetRequiredState(documentId);
-                     if (isUnchanged(documentState, content))
+                     if (isUnchanged(documentState, content, data))
                          continue;
 
-                     newDocumentStates.Add(updateContent(documentState, content, mode));
+                     newDocumentStates.Add(updateContent(documentState, content, data));
                  }
 
                  return (projectId, newDocumentStates.ToImmutableAndClear());
@@ -794,14 +796,15 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode, PreservationMode}})"/>
-    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
+    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode}}, PreservationMode)"/>
+    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
         return WithDocumentContents(
             syntaxRoots, IsUnchanged,
-            static (documentState, root, mode) => documentState.UpdateTree(root, mode));
+            static (documentState, root, mode) => documentState.UpdateTree(root, mode),
+            data: mode);
 
-        static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root)
+        static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root, PreservationMode _)
         {
             return oldDocument.TryGetSyntaxTree(out var oldTree) &&
                 oldTree.TryGetRoot(out var oldRoot) &&
@@ -810,10 +813,18 @@ internal sealed partial class SolutionCompilationState
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
-        DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
+        ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer), documentId);
+        return WithDocumentContents(
+            documentIdsAndStates,
+            isUnchanged: static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
+            {
+                return oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource
+                    && oldDocumentState.TreeSource == documentState.TreeSource;
+            },
+            static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
+                oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
+            data: forceEvenIfTreesWouldDiffer);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -1391,8 +1402,8 @@ internal sealed partial class SolutionCompilationState
         // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
         // there is no additional cost processing the initiating document in this loop.
         var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-        foreach (var siblingId in allDocumentIds)
-            currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+        var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(static (docId, currentDocumentState) => (docId, currentDocumentState), currentDocumentState);
+        currentCompilationState = currentCompilationState.WithDocumentContentsFrom(allDocumentIdsWithCurrentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
         return WithFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
 
@@ -1651,7 +1662,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     public SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
     {
-        using var _ = ArrayBuilder<(DocumentId, SourceText, PreservationMode)>.GetInstance(out var changedDocuments);
+        using var _ = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(out var changedDocuments);
 
         foreach (var documentId in documentIds)
         {
@@ -1670,15 +1681,15 @@ internal sealed partial class SolutionCompilationState
                 // the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is called.
                 //
                 // The use of GetRequiredState mirrors what happens in WithDocumentTexts
-                if (!SourceTextIsUnchanged(documentState, text))
-                    changedDocuments.Add((documentId, text, mode));
+                if (!SourceTextIsUnchanged(documentState, text, mode))
+                    changedDocuments.Add((documentId, text));
             }
         }
 
         if (changedDocuments.Count == 0)
             return this;
 
-        return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear());
+        return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear(), mode);
     }
 
     internal TestAccessor GetTestAccessor()
