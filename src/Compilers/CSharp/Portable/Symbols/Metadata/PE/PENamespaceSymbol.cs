@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, calculateMembers());
             }
 
-            return StaticCast<Symbol>.From(_lazyFlattenedNamespacesAndTypes);
+            return _lazyFlattenedNamespacesAndTypes;
 
             ImmutableArray<Symbol> calculateMembers()
             {

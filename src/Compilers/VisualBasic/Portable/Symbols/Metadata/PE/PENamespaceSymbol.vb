@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public NotOverridable Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
             If _lazyFlattenedNamespacesAndTypes.IsDefault Then
                 EnsureAllMembersLoaded()
-                _lazyFlattenedNamespacesAndTypes = m_lazyMembers.Flatten()
+                ImmutableInterlocked.InterlockedExchange(_lazyFlattenedNamespacesAndTypes, m_lazyMembers.Flatten())
             End If
 
             Return _lazyFlattenedNamespacesAndTypes
