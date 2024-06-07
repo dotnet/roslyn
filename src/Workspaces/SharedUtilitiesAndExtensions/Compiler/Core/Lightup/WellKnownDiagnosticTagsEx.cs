@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class WellKnownDiagnosticTagsEx
 {
-    public static string CustomSeverityConfigurable => throw new NotImplementedException();
+    public static string CustomSeverityConfigurable => nameof(CustomSeverityConfigurable);
 }

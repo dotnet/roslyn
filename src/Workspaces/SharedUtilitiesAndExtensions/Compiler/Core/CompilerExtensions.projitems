@@ -269,6 +269,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\AnalysisContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)lightup\IPropertySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)lightup\ITypeParameterSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)lightup\LightupHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)lightup\SuppressionInfoExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)lightup\WellKnownDiagnosticTagsEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\InternalOptionStorageMapping.cs" />

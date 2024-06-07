@@ -3,11 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Lightup;
 
 namespace Microsoft.CodeAnalysis;
 
 internal static class ITypeParameterSymbolExtensions
 {
+    private static readonly Func<ITypeParameterSymbol, bool> s_allowsRefLikeType
+        = LightupHelpers.CreatePropertyAccessor<ITypeParameterSymbol, bool>(typeof(ITypeParameterSymbol), nameof(AllowsRefLikeType), defaultValue: false);
+
     public static bool AllowsRefLikeType(this ITypeParameterSymbol symbol)
-        => throw new NotImplementedException();
+        => s_allowsRefLikeType(symbol);
 }
