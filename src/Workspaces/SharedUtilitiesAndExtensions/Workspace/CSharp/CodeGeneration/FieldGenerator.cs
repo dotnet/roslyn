@@ -143,6 +143,6 @@ internal static class FieldGenerator
         if (CodeGenerationFieldInfo.GetIsUnsafe(field))
             tokens.Add(UnsafeKeyword);
 
-        return [.. tokens];
+        return TokenList(tokens);
     }
 }

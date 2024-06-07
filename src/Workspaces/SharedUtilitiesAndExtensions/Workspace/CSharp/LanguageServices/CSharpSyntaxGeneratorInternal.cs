@@ -38,7 +38,7 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     public override SyntaxNode LocalDeclarationStatement(SyntaxNode? type, SyntaxToken name, SyntaxNode? initializer, bool isConst)
     {
         return SyntaxFactory.LocalDeclarationStatement(
-            isConst ? [ConstKeyword] : default,
+            isConst ? SyntaxTokenList.Create(ConstKeyword) : default,
              VariableDeclaration(type, name, initializer));
     }
 
@@ -119,15 +119,15 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
         => refKind switch
         {
-            RefKind.None => [],
-            RefKind.Out => [OutKeyword],
-            RefKind.Ref => [RefKeyword],
+            RefKind.None => SyntaxFactory.TokenList(),
+            RefKind.Out => SyntaxFactory.TokenList(OutKeyword),
+            RefKind.Ref => SyntaxFactory.TokenList(RefKeyword),
             // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
             // ref kind syntax when generating for the return parameter vs other parameters.
             // The return parameter must use ref readonly, like regular methods.
-            RefKind.In when !forFunctionPointerReturnParameter => [InKeyword],
-            RefKind.RefReadOnly when forFunctionPointerReturnParameter => [RefKeyword, ReadOnlyKeyword],
-            RefKind.RefReadOnlyParameter => [RefKeyword, ReadOnlyKeyword],
+            RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(InKeyword),
+            RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(RefKeyword, ReadOnlyKeyword),
+            RefKind.RefReadOnlyParameter => SyntaxFactory.TokenList(RefKeyword, ReadOnlyKeyword),
             _ => throw ExceptionUtilities.UnexpectedValue(refKind),
         };
 

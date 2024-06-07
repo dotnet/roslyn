@@ -104,7 +104,7 @@ internal static class ConversionGenerator
     {
         // If these appear in interfaces they must be static abstract
         return destination is CodeGenerationDestination.InterfaceType
-            ? ([StaticKeyword, AbstractKeyword])
-            : ([PublicKeyword, StaticKeyword]);
+            ? TokenList(StaticKeyword, AbstractKeyword)
+            : TokenList(PublicKeyword, StaticKeyword);
     }
 }

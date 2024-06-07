@@ -240,6 +240,6 @@ internal static class EventGenerator
         if (CodeGenerationEventInfo.GetIsUnsafe(@event))
             tokens.Add(UnsafeKeyword);
 
-        return [.. tokens];
+        return TokenList(tokens);
     }
 }

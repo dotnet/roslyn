@@ -16,7 +16,7 @@ internal static class ArgumentSyntaxExtensions
     {
         if (argument.RefKindKeyword != default)
         {
-            return [SyntaxFactory.Token(argument.RefKindKeyword.Kind())];
+            return SyntaxTokenList.Create(SyntaxFactory.Token(argument.RefKindKeyword.Kind()));
         }
 
         return default;

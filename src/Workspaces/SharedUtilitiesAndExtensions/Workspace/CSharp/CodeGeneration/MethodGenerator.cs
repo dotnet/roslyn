@@ -329,6 +329,6 @@ internal static class MethodGenerator
         if (CodeGenerationMethodInfo.GetIsPartial(method) && method.IsAsync)
             tokens.Add(PartialKeyword);
 
-        return [.. tokens];
+        return TokenList(tokens);
     }
 }

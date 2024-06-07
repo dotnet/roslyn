@@ -130,6 +130,6 @@ internal static class ConstructorGenerator
         if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
             tokens.Add(UnsafeKeyword);
 
-        return [.. tokens];
+        return TokenList(tokens);
     }
 }

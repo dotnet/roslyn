@@ -816,7 +816,7 @@ internal static class ConvertToRecordEngine
                                     tokens = tokens.Replace(tokens[^1], tokens[^1].WithoutLeadingTrivia());
                                 }
 
-                                return text.WithTextTokens([.. tokens]);
+                                return text.WithTextTokens(TokenList(tokens));
                             }
                             return node;
                         }).AsImmutable();

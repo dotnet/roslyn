@@ -729,7 +729,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
 
     public override TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
-        return UpdateDeclarationModifiers(declaration, _ => [.. newModifiers]);
+        return UpdateDeclarationModifiers(declaration, _ => TokenList(newModifiers));
     }
 
     public override TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)

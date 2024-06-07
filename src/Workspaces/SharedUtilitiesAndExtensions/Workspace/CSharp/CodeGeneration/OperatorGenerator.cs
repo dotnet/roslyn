@@ -121,6 +121,6 @@ internal static class OperatorGenerator
         if (method.IsAbstract)
             tokens.Add(AbstractKeyword);
 
-        return [.. tokens.ToImmutableAndClear()];
+        return TokenList(tokens.ToImmutableAndClear());
     }
 }

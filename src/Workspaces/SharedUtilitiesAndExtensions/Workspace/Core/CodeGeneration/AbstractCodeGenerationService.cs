@@ -589,6 +589,6 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             updatedModifiersList.AddRange(newModifierTokens);
         }
 
-        return [.. updatedModifiersList];
+        return default(SyntaxTokenList).AddRange(updatedModifiersList);
     }
 }

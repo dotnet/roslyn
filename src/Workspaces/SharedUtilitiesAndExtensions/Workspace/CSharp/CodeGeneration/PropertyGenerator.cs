@@ -339,7 +339,7 @@ internal static class PropertyGenerator
         if (hasNonReadOnlyAccessor && accessor.IsReadOnly)
             modifiers.Add(ReadOnlyKeyword);
 
-        return [.. modifiers];
+        return TokenList(modifiers);
     }
 
     private static SyntaxTokenList GenerateModifiers(
@@ -402,6 +402,6 @@ internal static class PropertyGenerator
         if (CodeGenerationPropertyInfo.GetIsUnsafe(property))
             tokens.Add(UnsafeKeyword);
 
-        return [.. tokens];
+        return TokenList(tokens);
     }
 }
