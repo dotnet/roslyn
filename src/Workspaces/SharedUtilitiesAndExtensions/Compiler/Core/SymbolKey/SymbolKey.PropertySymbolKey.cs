@@ -17,7 +17,7 @@ internal partial struct SymbolKey
             visitor.WriteString(symbol.MetadataName);
             visitor.WriteSymbolKey(symbol.ContainingSymbol);
             visitor.WriteBoolean(symbol.IsIndexer);
-            visitor.WriteBoolean(symbol.PartialDefinitionPart != null);
+            visitor.WriteBoolean(symbol.PartialDefinitionPart() != null);
             visitor.WriteRefKindArray(symbol.Parameters);
             visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
         }
