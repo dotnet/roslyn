@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -31,105 +30,50 @@ internal interface IIntervalTreeWitness<T, TIntervalTree, TNode>
 /// <summary>
 /// Utility helpers used to allow code sharing for the different implementations of <see cref="IIntervalTree{T}"/>s.
 /// </summary>
-internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTreeWitness>
+internal static partial class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTreeWitness>
     where TIntervalTree : IIntervalTree<T>
     where TIntervalTreeWitness : struct, IIntervalTreeWitness<T, TIntervalTree, TNode>
 {
     private static readonly ObjectPool<Stack<TNode>> s_nodeStackPool = new(() => new(), 128, trimOnFree: false);
 
-    public static IEnumerator<T> GetEnumerator(TIntervalTree tree)
-    {
-        var witness = default(TIntervalTreeWitness);
-        if (!witness.TryGetRoot(tree, out var root))
-            return SpecializedCollections.EmptyEnumerator<T>();
+    public static Enumerator GetEnumerator(TIntervalTree tree)
+        => new(tree);
 
-        return GetEnumeratorWorker(tree, witness, root);
-
-        static IEnumerator<T> GetEnumeratorWorker(
-            TIntervalTree tree, TIntervalTreeWitness witness, TNode root)
-        {
-            using var _ = s_nodeStackPool.GetPooledObject(out var stack);
-            var currentNode = root;
-            var currentNodeHasValue = true;
-
-            while (currentNodeHasValue || stack.Count > 0)
-            {
-                // Traverse all the way down the left side of the tree, pushing nodes onto the stack as we go.
-                while (currentNodeHasValue)
-                {
-                    stack.Push(currentNode!);
-                    currentNodeHasValue = witness.TryGetLeftNode(tree, currentNode!, out currentNode);
-                }
-
-                Contract.ThrowIfTrue(currentNodeHasValue);
-                Contract.ThrowIfTrue(stack.Count == 0);
-                currentNode = stack.Pop();
-
-                // We only get to a node once we've walked the left side of it.  So we can now return the parent node at
-                // that point.
-                yield return witness.GetValue(tree, currentNode);
-
-                // now get the right side and set things up so we can walk into it.
-                currentNodeHasValue = witness.TryGetRightNode(tree, currentNode, out currentNode);
-            }
-        }
-    }
-
-    public static int FillWithIntervalsThatMatch<TIntrospector>(
+    public static int FillWithIntervalsThatMatch<TIntrospector, TIntervalTester>(
         TIntervalTree tree, int start, int length,
-        TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder,
         in TIntrospector introspector,
+        in TIntervalTester intervalTester,
         bool stopAfterFirst)
         where TIntrospector : struct, IIntervalIntrospector<T>
+        where TIntervalTester : struct, IIntervalTester<T, TIntrospector>
     {
         var witness = default(TIntervalTreeWitness);
-        if (!witness.TryGetRoot(tree, out var root))
-            return 0;
 
-        using var _ = s_nodeStackPool.GetPooledObject(out var stack);
-        var currentNode = root;
-        var currentNodeHasValue = true;
-
-        var matches = 0;
+        var matchCount = 0;
         var end = start + length;
 
-        while (currentNodeHasValue || stack.Count > 0)
+        using var enumerator = new NodeEnumerator<TIntrospector>(tree, start, end, introspector);
+        while (enumerator.MoveNext())
         {
-            // Traverse down the left side of the tree, as long as the left node as long as it overlaps 'start' in some
-            // way, pushing nodes onto the stack as we go.
-            while (currentNodeHasValue)
+            var currentNodeValue = witness.GetValue(tree, enumerator.Current);
+            if (intervalTester.Test(currentNodeValue, start, length, in introspector))
             {
-                stack.Push(currentNode!);
-                currentNodeHasValue = ShouldExamineLeft(tree, start, currentNode!, in introspector, out currentNode);
-            }
-
-            Contract.ThrowIfTrue(currentNodeHasValue);
-            Contract.ThrowIfTrue(stack.Count == 0);
-            currentNode = stack.Pop();
-
-            // We only get to a node once we've finished walking the left side of it.  So we can now process the parent
-            // node at that point.
-
-            var currentNodeValue = witness.GetValue(tree, currentNode);
-            if (testInterval(currentNodeValue, start, length, in introspector))
-            {
-                matches++;
+                matchCount++;
                 builder.Add(currentNodeValue);
 
                 if (stopAfterFirst)
                     return 1;
             }
-
-            // Now traverse down the right side as long as it could overlap start/end in some way.
-            currentNodeHasValue = ShouldExamineRight(tree, start, end, currentNode, introspector, out currentNode);
         }
 
-        return matches;
+        return matchCount;
     }
 
-    public static bool Any<TIntrospector>(TIntervalTree tree, int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
+    public static bool Any<TIntrospector, TIntervalTester>(
+        TIntervalTree tree, int start, int length, in TIntrospector introspector, in TIntervalTester intervalTester)
         where TIntrospector : struct, IIntervalIntrospector<T>
+        where TIntervalTester : struct, IIntervalTester<T, TIntrospector>
     {
         // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
 
@@ -148,7 +92,7 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
             // Check the nodes as we go down.  That way we can stop immediately when we find something that matches,
             // instead of having to do an entire in-order walk, which might end up hitting a lot of nodes we don't care
             // about and placing a lot into the stack.
-            if (testInterval(witness.GetValue(tree, currentNode), start, length, in introspector))
+            if (intervalTester.Test(witness.GetValue(tree, currentNode), start, length, in introspector))
                 return true;
 
             if (ShouldExamineRight(tree, start, end, currentNode, in introspector, out var right))
@@ -171,12 +115,15 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
     {
         var witness = default(TIntervalTreeWitness);
 
+        if (start == int.MinValue && end == int.MaxValue)
+            return witness.TryGetRightNode(tree, currentNode, out right);
+
         // right children's starts will never be to the left of the parent's start so we should consider right
         // subtree only if root's start overlaps with interval's End, 
         if (introspector.GetSpan(witness.GetValue(tree, currentNode)).Start <= end)
         {
             if (witness.TryGetRightNode(tree, currentNode, out var rightNode) &&
-                GetEnd(witness.GetValue(tree, witness.GetMaxEndNode(tree, rightNode)), in introspector) >= start)
+                introspector.GetSpan(witness.GetValue(tree, witness.GetMaxEndNode(tree, rightNode))).End >= start)
             {
                 right = rightNode;
                 return true;
@@ -195,18 +142,18 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         [NotNullWhen(true)] out TNode? left) where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var witness = default(TIntervalTreeWitness);
+
+        if (start == int.MinValue)
+            return witness.TryGetLeftNode(tree, currentNode, out left);
+
         // only if left's maxVal overlaps with interval's start, we should consider 
         // left subtree
         if (witness.TryGetLeftNode(tree, currentNode, out left) &&
-            GetEnd(witness.GetValue(tree, witness.GetMaxEndNode(tree, left)), in introspector) >= start)
+            introspector.GetSpan(witness.GetValue(tree, witness.GetMaxEndNode(tree, left))).End >= start)
         {
             return true;
         }
 
         return false;
     }
-
-    private static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => introspector.GetSpan(value).End;
 }

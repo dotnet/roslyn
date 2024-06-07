@@ -261,28 +261,31 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
     private static int GetRightChildIndex(int nodeIndex)
         => (2 * nodeIndex) + 2;
 
-    bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.Any(this, start, length, testInterval, in introspector);
+    bool IIntervalTree<T>.Any<TIntrospector, TIntervalTester>(int start, int length, in TIntrospector introspector, in TIntervalTester intervalTester)
+        => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.Any(this, start, length, introspector, intervalTester);
 
-    int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
-        int start, int length, TestInterval<T, TIntrospector> testInterval,
-        ref TemporaryArray<T> builder, in TIntrospector introspector,
+    int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector, TIntervalTester>(
+        int start, int length, ref TemporaryArray<T> builder,
+        in TIntrospector introspector, in TIntervalTester intervalTester,
         bool stopAfterFirst)
     {
         return IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.FillWithIntervalsThatMatch(
-            this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
+            this, start, length, ref builder, in introspector, in intervalTester, stopAfterFirst);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-    public IEnumerator<T> GetEnumerator()
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        => GetEnumerator();
+
+    public IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.Enumerator GetEnumerator()
         => IntervalTreeHelpers<T, ImmutableIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeWitness>.GetEnumerator(this);
 
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct FlatArrayIntervalTreeWitness : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
+    internal readonly struct FlatArrayIntervalTreeWitness : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
     {
         public T GetValue(ImmutableIntervalTree<T> tree, int node)
             => tree._array[node].Value;

@@ -39,16 +39,16 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
     /// </summary>
     public IntervalTreeAlgorithms<T, MutableIntervalTree<T>> Algorithms => new(this);
 
-    bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.Any(this, start, length, testInterval, in introspector);
+    bool IIntervalTree<T>.Any<TIntrospector, TIntervalTester>(int start, int length, in TIntrospector introspector, in TIntervalTester intervalTester)
+        => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.Any(this, start, length, in introspector, in intervalTester);
 
-    int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
-        int start, int length, TestInterval<T, TIntrospector> testInterval,
-        ref TemporaryArray<T> builder, in TIntrospector introspector,
+    int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector, TIntervalTester>(
+        int start, int length, ref TemporaryArray<T> builder,
+        in TIntrospector introspector, in TIntervalTester intervalTester,
         bool stopAfterFirst)
     {
         return IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.FillWithIntervalsThatMatch(
-            this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
+            this, start, length, ref builder, in introspector, in intervalTester, stopAfterFirst);
     }
 
     public bool IsEmpty() => this.root == null;
@@ -123,10 +123,13 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
             => node == null ? 0 : Height(node.Left) - Height(node.Right);
     }
 
-    public IEnumerator<T> GetEnumerator()
+    public IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.Enumerator GetEnumerator()
         => IntervalTreeHelpers<T, MutableIntervalTree<T>, Node, BinaryIntervalTreeWitness>.GetEnumerator(this);
 
     IEnumerator IEnumerable.GetEnumerator()
+        => this.GetEnumerator();
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
         => this.GetEnumerator();
 
     protected static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
@@ -143,7 +146,7 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct BinaryIntervalTreeWitness : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
+    internal readonly struct BinaryIntervalTreeWitness : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
     {
         public T GetValue(MutableIntervalTree<T> tree, Node node)
             => node.Value;

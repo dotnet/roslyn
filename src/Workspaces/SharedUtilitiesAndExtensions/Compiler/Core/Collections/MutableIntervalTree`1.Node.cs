@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 
 internal partial class MutableIntervalTree<T>
 {
-    protected sealed class Node
+    internal sealed class Node
     {
         internal T Value { get; }
 
