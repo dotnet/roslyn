@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.OmniSharp</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp</PackageId>
     <PackageDescription>
       A supporting package for OmniSharp:
       https://github.com/OmniSharp/omnisharp-roslyn
@@ -12,12 +12,10 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
     <!--
       ⚠ ONLY OMNISHARP ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="OmniSharp.Roslyn" Key="$(OmniSharpKey)" />
     <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp" Key="$(OmniSharpKey)" />
     <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp.Tests" Key="$(OmniSharpKey)" />
     <InternalsVisibleTo Include="OmniSharp.DotNetTest" Key="$(OmniSharpKey)" />
@@ -33,10 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\OmniSharp\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
