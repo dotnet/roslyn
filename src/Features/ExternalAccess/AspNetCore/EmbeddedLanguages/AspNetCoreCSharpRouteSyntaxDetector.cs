@@ -30,7 +30,8 @@ internal sealed class AspNetCoreCSharpRouteSyntaxDetector
     {
     }
 
-    public static bool IsEmbeddedLanguageToken(
+#pragma warning disable CA1822 // Mark members as static
+    public bool IsEmbeddedLanguageToken(
         SyntaxToken token,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
@@ -39,4 +40,5 @@ internal sealed class AspNetCoreCSharpRouteSyntaxDetector
     {
         return s_detector.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out identifier, out options);
     }
+#pragma warning restore CA1822
 }
