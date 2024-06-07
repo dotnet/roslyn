@@ -158,6 +158,24 @@
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(ImportPrivateAnalyzers)' != 'false' AND '$(DotNetBuildFromSource)' != 'true'">
+    <ProjectReference Condition="'$(Language)' == 'C#'" Include="$(MSBuildThisFileDirectory)..\..\src\Tools\PrivateAnalyzers\CSharp\Microsoft.CodeAnalysis.PrivateAnalyzers.CSharp.csproj">
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Condition="'$(Language)' == 'VB'" Include="$(MSBuildThisFileDirectory)..\..\src\Tools\PrivateAnalyzers\VisualBasic\Microsoft.CodeAnalysis.PrivateAnalyzers.VisualBasic.csproj">
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\src\Tools\PrivateAnalyzers\CodeFixes\Microsoft.CodeAnalysis.PrivateAnalyzers.CodeFixes.csproj">
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
   <!-- Disable SDK supplied netanalyzers as we reference them from nugets instead -->
   <PropertyGroup>
     <EnableNetAnalyzers>false</EnableNetAnalyzers>
