@@ -1369,7 +1369,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
 
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             project = workspace.CurrentSolution.Projects.Single();
             documents = await project.GetSourceGeneratedDocumentsAsync();
@@ -1411,14 +1411,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             if (enqueueChangeBeforeEdit)
                 workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             // Now, make a simple edit to the main document.
             Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(normalDocId, SourceText.From("// new text"))));
 
             if (enqueueChangeAfterEdit)
                 workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             project = workspace.CurrentSolution.Projects.Single();
             documents = await project.GetSourceGeneratedDocumentsAsync();
