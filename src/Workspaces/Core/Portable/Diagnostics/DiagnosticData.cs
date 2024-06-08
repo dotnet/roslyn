@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 [DataContract]
-internal sealed class DiagnosticData(
+public sealed class DiagnosticData(
     string id,
     string category,
     string? message,

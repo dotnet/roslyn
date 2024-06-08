@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal readonly record struct SyntaxMaps
+public readonly record struct SyntaxMaps
 {
     /// <summary>
     /// The tree the maps operate on (the new tree, since the maps are mapping from new nodes to old nodes/rude edits).
@@ -36,7 +36,7 @@ internal readonly record struct SyntaxMaps
     public bool HasMap => MatchingNodes != null;
 }
 
-internal readonly struct SemanticEditInfo
+public readonly struct SemanticEditInfo
 {
     public SemanticEditInfo(
         SemanticEditKind kind,

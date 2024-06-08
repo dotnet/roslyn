@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis;
 /// </para>
 /// </summary>
 [DataContract]
-internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
+public partial struct SymbolKey(string data) : IEquatable<SymbolKey>
 {
     /// <summary>
     /// Current format version.  Any time we change anything about our format, we should
@@ -159,9 +159,24 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
         return true;
     }
 
+    public static SymbolKeyResolution ResolveString(string symbolKey, Compilation compilation)
+    {
+        return ResolveString(symbolKey, compilation, false, out _, default);
+    }
+
+    public static SymbolKeyResolution ResolveString(string symbolKey, Compilation compilation, CancellationToken cancellationToken)
+    {
+        return ResolveString(symbolKey, compilation, false, out _, cancellationToken);
+    }
+
+    public static SymbolKeyResolution ResolveString(string symbolKey, Compilation compilation, bool ignoreAssemblyKey)
+    {
+        return ResolveString(symbolKey, compilation, ignoreAssemblyKey, out _, default);
+    }
+
     public static SymbolKeyResolution ResolveString(
         string symbolKey, Compilation compilation,
-        bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
+        bool ignoreAssemblyKey, CancellationToken cancellationToken)
     {
         return ResolveString(symbolKey, compilation, ignoreAssemblyKey, out _, cancellationToken);
     }

@@ -7,5 +7,5 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [DataContract]
-internal readonly record struct ActiveStatementId([property: DataMember(Order = 0)] int Ordinal);
+public readonly record struct ActiveStatementId([property: DataMember(Order = 0)] int Ordinal);
 

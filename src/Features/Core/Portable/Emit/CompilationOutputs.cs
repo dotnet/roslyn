@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Emit;
 /// <summary>
 /// Reads compilation outputs such as output assembly and PDB.
 /// </summary>
-internal abstract class CompilationOutputs
+public abstract class CompilationOutputs
 {
     /// <summary>
     /// String describing the assembly to be used in user facing error messages (e.g. file path).

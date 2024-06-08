@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <param name="span">The span.</param>
 /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
 [DataContract]
-internal readonly struct SourceFileSpan(string path, LinePositionSpan span) : IEquatable<SourceFileSpan>
+public readonly struct SourceFileSpan(string path, LinePositionSpan span) : IEquatable<SourceFileSpan>
 {
     /// <summary>
     /// Path, or null if the span represents an invalid value.

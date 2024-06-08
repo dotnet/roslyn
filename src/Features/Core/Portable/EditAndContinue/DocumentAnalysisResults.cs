@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class DocumentAnalysisResults
+public sealed class DocumentAnalysisResults
 {
     /// <summary>
     /// The state of the document the results are calculated for.

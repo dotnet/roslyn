@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// Flags regarding active statements information.
 /// </summary>
 [Flags]
-internal enum ActiveStatementFlags
+public enum ActiveStatementFlags
 {
     None = 0,
 

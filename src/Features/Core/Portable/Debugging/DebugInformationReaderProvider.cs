@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Debugging;
 /// An abstraction of a symbol reader that provides a reader of Edit and Continue debug information.
 /// Owns the underlying PDB reader.
 /// </summary>
-internal abstract class DebugInformationReaderProvider : IDisposable
+public abstract class DebugInformationReaderProvider : IDisposable
 {
     private sealed class DummySymReaderMetadataProvider : ISymReaderMetadataProvider
     {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// <param name="sourceSpan">Location of the closest non-hidden sequence point from the active statement.</param>
 /// <param name="flags">Active statement flags shared across all threads that own the active statement.</param>
 [DataContract]
-internal readonly struct ManagedActiveStatementDebugInfo(
+public readonly struct ManagedActiveStatementDebugInfo(
     ManagedInstructionId activeInstruction,
     string? documentName,
     SourceSpan sourceSpan,

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// <param name="fileName">Name of the file which was modified.</param>
 /// <param name="lineUpdates">Collection of the file lines affected by the update.</param>
 [DataContract]
-internal readonly struct SequencePointUpdates(
+public readonly struct SequencePointUpdates(
     string fileName,
     ImmutableArray<SourceLineUpdate> lineUpdates)
 {

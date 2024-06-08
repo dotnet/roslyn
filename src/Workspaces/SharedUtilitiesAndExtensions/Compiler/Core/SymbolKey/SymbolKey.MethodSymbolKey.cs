@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial struct SymbolKey
+public partial struct SymbolKey
 {
     private sealed class ReducedExtensionMethodSymbolKey : AbstractSymbolKey<IMethodSymbol>
     {
@@ -51,7 +51,7 @@ internal partial struct SymbolKey
     }
 }
 
-internal partial struct SymbolKey
+public partial struct SymbolKey
 {
     private sealed class ConstructedMethodSymbolKey : AbstractSymbolKey<IMethodSymbol>
     {
@@ -119,7 +119,7 @@ internal partial struct SymbolKey
     }
 }
 
-internal partial struct SymbolKey
+public partial struct SymbolKey
 {
     private sealed class MethodSymbolKey : AbstractSymbolKey<IMethodSymbol>
     {

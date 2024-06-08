@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis;
 /// If no symbol can be found <see cref="Symbol"/> will be <c>null</c> and <see cref="CandidateSymbols"/>
 /// will be empty.
 /// </summary>
-internal readonly partial struct SymbolKeyResolution
+public readonly partial struct SymbolKeyResolution
 {
     private readonly ImmutableArray<ISymbol> _candidateSymbols;
 

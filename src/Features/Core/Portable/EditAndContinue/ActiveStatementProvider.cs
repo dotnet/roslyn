@@ -11,4 +11,4 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <summary>
 /// Provides active statement spans within the specified document of a solution.
 /// </summary>
-internal delegate ValueTask<ImmutableArray<ActiveStatementSpan>> ActiveStatementSpanProvider(DocumentId? documentId, string filePath, CancellationToken cancellationToken);
+public delegate ValueTask<ImmutableArray<ActiveStatementSpan>> ActiveStatementSpanProvider(DocumentId? documentId, string filePath, CancellationToken cancellationToken);

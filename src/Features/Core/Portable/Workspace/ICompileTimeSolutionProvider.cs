@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host;
 /// Workaround for Razor projects which generate both design-time and compile-time source files.
 /// TODO: remove https://github.com/dotnet/roslyn/issues/51678
 /// </summary>
-internal interface ICompileTimeSolutionProvider : IWorkspaceService
+public interface ICompileTimeSolutionProvider : IWorkspaceService
 {
     Solution GetCompileTimeSolution(Solution designTimeSolution);
 }

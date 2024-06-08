@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 [DataContract]
-internal sealed class DiagnosticDataLocation
+public sealed class DiagnosticDataLocation
 {
     /// <summary>
     /// Path to where the diagnostic was originally reported.  May be a path to a document in a project, or the
@@ -48,10 +48,16 @@ internal sealed class DiagnosticDataLocation
 
     public DiagnosticDataLocation(
         FileLinePositionSpan unmappedFileSpan,
-        DocumentId? documentId = null)
+        DocumentId? documentId)
         : this(unmappedFileSpan, documentId, null, forceMappedPath: false)
     {
     }
+
+    public DiagnosticDataLocation(FileLinePositionSpan unmappedFileSpan)
+    : this(unmappedFileSpan, null, null, forceMappedPath: false)
+    {
+    }
+
 
     private DiagnosticDataLocation(
         FileLinePositionSpan unmappedFileSpan,

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Reader of debug information needed for EnC.
 /// This object does not own the underlying memory (SymReader/MetadataReader).
 /// </summary>
-internal abstract class EditAndContinueMethodDebugInfoReader
+public abstract class EditAndContinueMethodDebugInfoReader
 {
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     internal static bool IgnoreCaseWhenComparingDocumentNames;

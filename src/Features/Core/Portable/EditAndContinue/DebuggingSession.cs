@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <summary>
 /// Represents a debugging session.
 /// </summary>
-internal sealed class DebuggingSession : IDisposable
+public sealed class DebuggingSession : IDisposable
 {
     private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
     internal readonly IPdbMatchingSourceTextProvider SourceTextProvider;
@@ -64,7 +64,7 @@ internal sealed class DebuggingSession : IDisposable
     private readonly ReaderWriterLockSlim _baselineAccessLock = new();
     private bool _isDisposed;
 
-    internal EditSession EditSession { get; private set; }
+    public EditSession EditSession { get; private set; }
 
     private readonly HashSet<Guid> _modulesPreparedForUpdate = [];
     private readonly object _modulesPreparedForUpdateGuard = new();
@@ -81,7 +81,7 @@ internal sealed class DebuggingSession : IDisposable
     /// or the solution which the last changes committed to the debuggee at the end of edit session were calculated from.
     /// The solution reflecting the current state of the modules loaded in the debugee.
     /// </summary>
-    internal readonly CommittedSolution LastCommittedSolution;
+    public readonly CommittedSolution LastCommittedSolution;
 
     internal readonly IManagedHotReloadService DebuggerService;
 

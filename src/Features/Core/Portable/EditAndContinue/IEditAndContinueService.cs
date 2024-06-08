@@ -10,13 +10,13 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal interface IEditAndContinueWorkspaceService : IWorkspaceService
+public interface IEditAndContinueWorkspaceService : IWorkspaceService
 {
     IEditAndContinueService Service { get; }
     IEditAndContinueSessionTracker SessionTracker { get; }
 }
 
-internal interface IEditAndContinueService
+public interface IEditAndContinueService
 {
     ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
     ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal readonly record struct ProjectDiagnostics(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics);
+public readonly record struct ProjectDiagnostics(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics);
 
 internal static partial class Extensions
 {

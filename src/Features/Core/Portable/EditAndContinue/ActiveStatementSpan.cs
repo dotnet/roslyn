@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Null if unknown (not determined yet).
 /// </param>
 [DataContract]
-internal readonly record struct ActiveStatementSpan(
+public readonly record struct ActiveStatementSpan(
     [property: DataMember(Order = 0)] ActiveStatementId Id,
     [property: DataMember(Order = 1)] LinePositionSpan LineSpan,
     [property: DataMember(Order = 2)] ActiveStatementFlags Flags,

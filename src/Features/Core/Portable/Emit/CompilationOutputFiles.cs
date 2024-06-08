@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit;
 
-internal sealed class CompilationOutputFiles : CompilationOutputs
+public sealed class CompilationOutputFiles : CompilationOutputs
 {
     internal static readonly CompilationOutputFiles None = new();
 

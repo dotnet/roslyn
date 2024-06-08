@@ -9,6 +9,19 @@ Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 3 -> Micr
 Microsoft.CodeAnalysis.CodeAnalysisProgress
 Microsoft.CodeAnalysis.CodeAnalysisProgress.CodeAnalysisProgress() -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.Progress.get -> System.IProgress<Microsoft.CodeAnalysis.CodeAnalysisProgress>
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticData
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.DiagnosticData(string id, string category, string message, Microsoft.CodeAnalysis.DiagnosticSeverity severity, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, int warningLevel, System.Collections.Immutable.ImmutableArray<string> customTags, System.Collections.Immutable.ImmutableDictionary<string, string> properties, Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation location, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation> additionalLocations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation>), string language = null, string title = null, string description = null, string helpLink = null, bool isSuppressed = false) -> void
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.DocumentId.get -> Microsoft.CodeAnalysis.DocumentId
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Equals(Microsoft.CodeAnalysis.Diagnostics.DiagnosticData other) -> bool
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.ToDiagnostic(Microsoft.CodeAnalysis.Location location, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> additionalLocations) -> Microsoft.CodeAnalysis.Diagnostic
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.ToDiagnosticAsync(Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.WithLocations(Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation location, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation> additionalLocations) -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticData
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.DiagnosticDataLocation(Microsoft.CodeAnalysis.FileLinePositionSpan unmappedFileSpan) -> void
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.DiagnosticDataLocation(Microsoft.CodeAnalysis.FileLinePositionSpan unmappedFileSpan, Microsoft.CodeAnalysis.DocumentId documentId) -> void
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.DiagnosticDataLocation(Microsoft.CodeAnalysis.FileLinePositionSpan unmappedFileSpan, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.FileLinePositionSpan mappedFileSpan) -> void
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.TestAccessor
+Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.WithSpan(Microsoft.CodeAnalysis.Text.TextSpan newSourceSpan, Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.CodeActions.CodeAction.Priority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
@@ -23,6 +36,50 @@ Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 2 -> Microsof
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Lowest = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.SymbolKey
+Microsoft.CodeAnalysis.SymbolKey.Equals(Microsoft.CodeAnalysis.SymbolKey other) -> bool
+Microsoft.CodeAnalysis.SymbolKey.Resolve(Microsoft.CodeAnalysis.Compilation compilation, bool ignoreAssemblyKey = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SymbolKeyResolution
+Microsoft.CodeAnalysis.SymbolKey.SymbolKey() -> void
+Microsoft.CodeAnalysis.SymbolKey.SymbolKey(string data) -> void
+Microsoft.CodeAnalysis.SymbolKeyResolution
+Microsoft.CodeAnalysis.SymbolKeyResolution.CandidateReason.get -> Microsoft.CodeAnalysis.CandidateReason
+Microsoft.CodeAnalysis.SymbolKeyResolution.CandidateSymbols.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
+Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerable<TSymbol>
+Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerable<TSymbol>.Enumerable() -> void
+Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerable<TSymbol>.GetEnumerator() -> Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerator<TSymbol>
+Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerator<TSymbol>
+Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerator<TSymbol>.Current.get -> TSymbol
+Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerator<TSymbol>.Enumerator() -> void
+Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerator<TSymbol>.MoveNext() -> bool
+Microsoft.CodeAnalysis.SymbolKeyResolution.GetEnumerator() -> Microsoft.CodeAnalysis.SymbolKeyResolution.Enumerator<Microsoft.CodeAnalysis.ISymbol>
+Microsoft.CodeAnalysis.SymbolKeyResolution.Symbol.get -> Microsoft.CodeAnalysis.ISymbol
+Microsoft.CodeAnalysis.SymbolKeyResolution.SymbolKeyResolution() -> void
+override Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.ToString() -> string
+override Microsoft.CodeAnalysis.SymbolKey.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.SymbolKey.GetHashCode() -> int
+override Microsoft.CodeAnalysis.SymbolKey.ToString() -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.AdditionalLocations -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation>
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Category -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.CustomTags -> System.Collections.Immutable.ImmutableArray<string>
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.DataLocation -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.DefaultSeverity -> Microsoft.CodeAnalysis.DiagnosticSeverity
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Description -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.HelpLink -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Id -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.IsEnabledByDefault -> bool
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.IsSuppressed -> bool
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Language -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Message -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.ProjectId -> Microsoft.CodeAnalysis.ProjectId
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Properties -> System.Collections.Immutable.ImmutableDictionary<string, string>
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Severity -> Microsoft.CodeAnalysis.DiagnosticSeverity
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Title -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.WarningLevel -> int
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.DocumentId -> Microsoft.CodeAnalysis.DocumentId
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.MappedFileSpan -> Microsoft.CodeAnalysis.FileLinePositionSpan
+readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.UnmappedFileSpan -> Microsoft.CodeAnalysis.FileLinePositionSpan
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, bool isInlinable, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.IProgress<Microsoft.CodeAnalysis.CodeAnalysisProgress>, System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.IProgress<Microsoft.CodeAnalysis.CodeAnalysisProgress>, System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
@@ -33,6 +90,21 @@ static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System
 static Microsoft.CodeAnalysis.CodeAnalysisProgress.AddCompleteItems(int count, string description = null) -> Microsoft.CodeAnalysis.CodeAnalysisProgress
 static Microsoft.CodeAnalysis.CodeAnalysisProgress.AddIncompleteItems(int count, string description = null) -> Microsoft.CodeAnalysis.CodeAnalysisProgress
 static Microsoft.CodeAnalysis.CodeAnalysisProgress.Description(string description) -> Microsoft.CodeAnalysis.CodeAnalysisProgress
+static Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Create(Microsoft.CodeAnalysis.Diagnostic diagnostic, Microsoft.CodeAnalysis.TextDocument document) -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticData
+static Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.Create(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.Diagnostic diagnostic, Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticData
+static Microsoft.CodeAnalysis.Diagnostics.DiagnosticData.TryCreate(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, string[] messageArguments, Microsoft.CodeAnalysis.Project project, out Microsoft.CodeAnalysis.Diagnostics.DiagnosticData diagnosticData) -> bool
+static Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation.TestAccessor.Create(Microsoft.CodeAnalysis.FileLinePositionSpan originalFileSpan, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.FileLinePositionSpan mappedFileSpan, bool forceMappedPath) -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticDataLocation
+static Microsoft.CodeAnalysis.SymbolKey.CanCreate(Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken) -> bool
+static Microsoft.CodeAnalysis.SymbolKey.Create(Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SymbolKey
+static Microsoft.CodeAnalysis.SymbolKey.CreateString(Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> string
+static Microsoft.CodeAnalysis.SymbolKey.GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false) -> System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.SymbolKey>
+static Microsoft.CodeAnalysis.SymbolKey.IsBodyLevelSymbol(Microsoft.CodeAnalysis.ISymbol symbol) -> bool
+static Microsoft.CodeAnalysis.SymbolKey.ResolveString(string symbolKey, Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.SymbolKeyResolution
+static Microsoft.CodeAnalysis.SymbolKey.ResolveString(string symbolKey, Microsoft.CodeAnalysis.Compilation compilation, bool ignoreAssemblyKey) -> Microsoft.CodeAnalysis.SymbolKeyResolution
+static Microsoft.CodeAnalysis.SymbolKey.ResolveString(string symbolKey, Microsoft.CodeAnalysis.Compilation compilation, bool ignoreAssemblyKey, out string failureReason, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SymbolKeyResolution
+static Microsoft.CodeAnalysis.SymbolKey.ResolveString(string symbolKey, Microsoft.CodeAnalysis.Compilation compilation, bool ignoreAssemblyKey, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SymbolKeyResolution
+static Microsoft.CodeAnalysis.SymbolKey.ResolveString(string symbolKey, Microsoft.CodeAnalysis.Compilation compilation, out string failureReason, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SymbolKeyResolution
+static Microsoft.CodeAnalysis.SymbolKey.ResolveString(string symbolKey, Microsoft.CodeAnalysis.Compilation compilation, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SymbolKeyResolution
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(System.IProgress<Microsoft.CodeAnalysis.CodeAnalysisProgress> progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedDocumentAsync(System.IProgress<Microsoft.CodeAnalysis.CodeAnalysisProgress> progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
