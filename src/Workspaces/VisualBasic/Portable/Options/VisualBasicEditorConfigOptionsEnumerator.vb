@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Options
