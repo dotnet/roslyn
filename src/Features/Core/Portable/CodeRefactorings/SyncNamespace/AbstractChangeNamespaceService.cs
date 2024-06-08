@@ -492,11 +492,12 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             source: refLocationGroups,
             produceItems: static async (refInOneDocument, callback, args, cancellationToken) =>
             {
+                var (solutionWithChangedNamespace, newNamespace, fallbackOptions) = args;
                 var result = await FixReferencingDocumentAsync(
-                    args.solutionWithChangedNamespace.GetRequiredDocument(refInOneDocument.Key),
+                    solutionWithChangedNamespace.GetRequiredDocument(refInOneDocument.Key),
                     refInOneDocument,
-                    args.newNamespace,
-                    args.fallbackOptions,
+                    newNamespace,
+                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
                 callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },
@@ -784,10 +785,11 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             source: documentsToProcess,
             produceItems: static async (doc, callback, args, cancellationToken) =>
             {
+                var (names, fallbackOptions) = args;
                 var result = await RemoveUnnecessaryImportsWorkerAsync(
                     doc,
-                    CreateImports(doc, args.names, withFormatterAnnotation: false),
-                    args.fallbackOptions,
+                    CreateImports(doc, names, withFormatterAnnotation: false),
+                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
                 callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },

@@ -16,9 +16,8 @@ internal partial class SemanticMap
         {
             foreach (var child in node.DescendantNodesAndTokensAndSelf())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var childNode = child.AsNode()!;
                     var info = semanticModel.GetSymbolInfo(childNode);
                     if (!IsNone(info))
                     {

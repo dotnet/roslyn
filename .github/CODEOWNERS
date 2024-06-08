@@ -21,6 +21,7 @@ src/Compilers/Test/Core/Traits/Traits.cs
 src/EditorFeatures/ @dotnet/roslyn-ide
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
+src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure

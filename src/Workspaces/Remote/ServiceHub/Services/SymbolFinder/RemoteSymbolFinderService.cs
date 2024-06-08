@@ -227,19 +227,16 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public async ValueTask OnReferencesFoundAsync(
-                IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
+                ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
                 CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<(SerializableSymbolGroup, SerializableSymbolAndProjectId, SerializableReferenceLocation)>.GetInstance(out var result);
-                await foreach (var (group, symbol, location) in references)
-                {
-                    result.Add((
-                        SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken),
-                         SerializableSymbolAndProjectId.Dehydrate(_solution, symbol, cancellationToken),
-                         SerializableReferenceLocation.Dehydrate(location, cancellationToken)));
-                }
+                var dehydrated = references.SelectAsArray(
+                    static (reference, tuple) => (
+                        SerializableSymbolGroup.Dehydrate(tuple.solution, reference.group, tuple.cancellationToken),
+                        SerializableSymbolAndProjectId.Dehydrate(tuple.solution, reference.symbol, tuple.cancellationToken),
+                        SerializableReferenceLocation.Dehydrate(reference.location, tuple.cancellationToken)),
+                    (solution: _solution, cancellationToken));
 
-                var dehydrated = result.ToImmutableAndClear();
                 await _callback.InvokeAsync(
                     (callback, cancellationToken) => callback.OnReferencesFoundAsync(
                         _callbackId, dehydrated, cancellationToken), cancellationToken).ConfigureAwait(false);

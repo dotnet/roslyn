@@ -5842,6 +5842,9 @@ interface I1
 
 ref struct S1 : I1
 {}
+
+struct S2 : I1
+{}
 ";
             var comp = CreateCompilation(src);
 
@@ -5853,7 +5856,7 @@ ref struct S1 : I1
                 Assert.Equal("I1", s1.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
 
             CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (5,17): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -6593,13 +6596,35 @@ ref struct S2 : System.IDisposable
     }
 }
 
+struct S3 : System.IDisposable
+{
+    void System.IDisposable.Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
 class C
 {
     static void Main()
     {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
         using (new S2())
         {
             System.Console.Write(123);
+        }
+    }
+
+    static void Test2()
+    {
+        using (new S3())
+        {
+            System.Console.Write(456);
         }
     }
 }
@@ -6607,12 +6632,12 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(
-                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D456D" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                     Verification.Passes :
                     Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C.Main",
+            verifier.VerifyIL("C.Test1",
 @"
 {
   // Code size       32 (0x20)
@@ -6638,7 +6663,7 @@ class C
 ");
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
 
             VerifyFlowGraph(comp, node, """
 Block[B0] - Entry
@@ -7168,6 +7193,13 @@ public ref struct S2 : System.IDisposable
     {
     }
 }
+
+public struct S3 : System.IDisposable
+{
+    void System.IDisposable.Dispose()
+    {
+    }
+}
 ";
 
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -7209,6 +7241,30 @@ class C
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics();
+
+            var src3 = @"
+class C
+{
+    static void Main()
+    {
+        using (new S3())
+        {
+        }
+
+        using (var s = new S3())
+        {
+        }
+    }
+}
+";
+            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7643,11 +7699,40 @@ ref struct S : IEnumerable<int>
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => Get123();
 }
 
+struct S2 : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator()
+    {
+        return Get456();
+    }
+
+    static IEnumerator<int> Get456()
+    {
+        yield return 456;
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => Get456();
+}
+
 class C
 {
     static void Main()
     {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
         foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+
+    static void Test2()
+    {
+        foreach (var i in new S2())
         {
             System.Console.Write(i);
         }
@@ -7656,9 +7741,9 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123456" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C.Main",
+            verifier.VerifyIL("C.Test1",
 @"
 {
   // Code size       55 (0x37)
@@ -7695,7 +7780,7 @@ class C
 ");
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
 
             VerifyFlowGraph(comp, node, """
 Block[B0] - Entry
@@ -7798,7 +7883,8 @@ Block[B7] - Exit
 """);
 
             var model = comp.GetSemanticModel(tree);
-            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+            Assert.Equal("new S()", foreachSyntax.Expression.ToString());
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
             Assert.False(info.IsAsynchronous);
@@ -8520,6 +8606,12 @@ public ref struct S : IEnumerable<int>
     IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
+
+public struct S2 : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+}
 ";
 
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -8557,6 +8649,26 @@ class C
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics();
+
+            var src3 = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S2())
+        {
+        }
+    }
+}
+";
+            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -10669,11 +10781,54 @@ ref struct S2 : System.IDisposable
     }
 }
 
+" + (s1IsRefStruct ? "ref " : "") + @"struct S3
+{
+    public S4 GetEnumerator()
+    {
+        return new S4();
+    }
+}
+
+struct S4 : System.IDisposable
+{
+    bool stop;
+    public int Current => 456;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    void System.IDisposable.Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
 class C
 {
     static void Main()
     {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
         foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+
+    static void Test2()
+    {
+        foreach (var i in new S3())
         {
             System.Console.Write(i);
         }
@@ -10683,12 +10838,12 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(
-                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D456D" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                     Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
                     Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C.Main",
+            verifier.VerifyIL("C.Test1",
 @"
 {
   // Code size       55 (0x37)
@@ -10723,7 +10878,7 @@ class C
 ");
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
 
             VerifyFlowGraph(comp, node, """
 Block[B0] - Entry
@@ -10810,7 +10965,8 @@ Block[B5] - Exit
 """);
 
             var model = comp.GetSemanticModel(tree);
-            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+            Assert.Equal("new S1()", foreachSyntax.Expression.ToString());
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
             Assert.False(info.IsAsynchronous);
@@ -11527,6 +11683,21 @@ public ref struct S2 : System.IDisposable
     public bool MoveNext() => throw null;
     void System.IDisposable.Dispose() => throw null;
 }
+
+public struct S3
+{
+    public S4 GetEnumerator()
+    {
+        return new S4();
+    }
+}
+
+public struct S4 : System.IDisposable
+{
+    public int Current => throw null;
+    public bool MoveNext() => throw null;
+    void System.IDisposable.Dispose() => throw null;
+}
 ";
 
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -11559,6 +11730,24 @@ class C
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics();
+
+            var src3 = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S3()) {}
+    }
+}
+";
+            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -11966,13 +12155,36 @@ ref struct S2 : IAsyncDisposable
     }
 }
 
+struct S3 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
 class C
 {
     static async Task Main()
     {
+        await Test1();
+        await Test2();
+    }
+
+    static async Task Test1()
+    {
         await using (new S2())
         {
             System.Console.Write(123);
+        }
+    }
+
+    static async Task Test2()
+    {
+        await using (new S3())
+        {
+            System.Console.Write(456);
         }
     }
 }
@@ -11980,12 +12192,12 @@ class C
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(
-                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D456D" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                     Verification.Passes :
                     Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+            verifier.VerifyIL("C.<Test1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
   // Code size      235 (0xeb)
@@ -11997,7 +12209,7 @@ class C
                 System.Threading.Tasks.ValueTask V_4,
                 System.Exception V_5)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<Test1>d__1.<>1__state""
   IL_0006:  stloc.0
   .try
   {
@@ -12007,10 +12219,10 @@ class C
     IL_000c:  initobj    ""S2""
     IL_0012:  ldarg.0
     IL_0013:  ldnull
-    IL_0014:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_0014:  stfld      ""object C.<Test1>d__1.<>7__wrap1""
     IL_0019:  ldarg.0
     IL_001a:  ldc.i4.0
-    IL_001b:  stfld      ""int C.<Main>d__0.<>7__wrap2""
+    IL_001b:  stfld      ""int C.<Test1>d__1.<>7__wrap2""
     .try
     {
       IL_0020:  ldc.i4.s   123
@@ -12022,7 +12234,7 @@ class C
       IL_0029:  stloc.2
       IL_002a:  ldarg.0
       IL_002b:  ldloc.2
-      IL_002c:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+      IL_002c:  stfld      ""object C.<Test1>d__1.<>7__wrap1""
       IL_0031:  leave.s    IL_0033
     }
     IL_0033:  ldloca.s   V_1
@@ -12039,31 +12251,31 @@ class C
     IL_0054:  ldc.i4.0
     IL_0055:  dup
     IL_0056:  stloc.0
-    IL_0057:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0057:  stfld      ""int C.<Test1>d__1.<>1__state""
     IL_005c:  ldarg.0
     IL_005d:  ldloc.3
-    IL_005e:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_005e:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test1>d__1.<>u__1""
     IL_0063:  ldarg.0
-    IL_0064:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0064:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test1>d__1.<>t__builder""
     IL_0069:  ldloca.s   V_3
     IL_006b:  ldarg.0
-    IL_006c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_006c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test1>d__1>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test1>d__1)""
     IL_0071:  leave.s    IL_00ea
     IL_0073:  ldarg.0
-    IL_0074:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0074:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test1>d__1.<>u__1""
     IL_0079:  stloc.3
     IL_007a:  ldarg.0
-    IL_007b:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_007b:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test1>d__1.<>u__1""
     IL_0080:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
     IL_0086:  ldarg.0
     IL_0087:  ldc.i4.m1
     IL_0088:  dup
     IL_0089:  stloc.0
-    IL_008a:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_008a:  stfld      ""int C.<Test1>d__1.<>1__state""
     IL_008f:  ldloca.s   V_3
     IL_0091:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
     IL_0096:  ldarg.0
-    IL_0097:  ldfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_0097:  ldfld      ""object C.<Test1>d__1.<>7__wrap1""
     IL_009c:  stloc.2
     IL_009d:  ldloc.2
     IL_009e:  brfalse.s  IL_00b5
@@ -12077,7 +12289,7 @@ class C
     IL_00b0:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
     IL_00b5:  ldarg.0
     IL_00b6:  ldnull
-    IL_00b7:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_00b7:  stfld      ""object C.<Test1>d__1.<>7__wrap1""
     IL_00bc:  leave.s    IL_00d7
   }
   catch System.Exception
@@ -12085,25 +12297,25 @@ class C
     IL_00be:  stloc.s    V_5
     IL_00c0:  ldarg.0
     IL_00c1:  ldc.i4.s   -2
-    IL_00c3:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00c3:  stfld      ""int C.<Test1>d__1.<>1__state""
     IL_00c8:  ldarg.0
-    IL_00c9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_00c9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test1>d__1.<>t__builder""
     IL_00ce:  ldloc.s    V_5
     IL_00d0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_00d5:  leave.s    IL_00ea
   }
   IL_00d7:  ldarg.0
   IL_00d8:  ldc.i4.s   -2
-  IL_00da:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_00da:  stfld      ""int C.<Test1>d__1.<>1__state""
   IL_00df:  ldarg.0
-  IL_00e0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_00e0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test1>d__1.<>t__builder""
   IL_00e5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00ea:  ret
 }
 ");
 
             var tree = comp1.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
 
             VerifyFlowGraph(comp1, node, """
 Block[B0] - Entry
@@ -13416,7 +13628,14 @@ public ref struct S2 : IAsyncDisposable
 {
     ValueTask IAsyncDisposable.DisposeAsync()
     {
-        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+public struct S3 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
         return ValueTask.CompletedTask;
     }
 }
@@ -13460,12 +13679,12 @@ class C
                 // (5,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S2 : IAsyncDisposable
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncDisposable").WithArguments("ref struct interfaces").WithLocation(5, 24),
-                // (18,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (25,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 22),
-                // (22,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(25, 22),
+                // (29,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(22, 22)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(29, 22)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
@@ -13473,6 +13692,30 @@ class C
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics();
+
+            var src3 = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (new S3())
+        {
+        }
+
+        await using (var s = new S3())
+        {
+        }
+    }
+}
+";
+            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14283,11 +14526,36 @@ ref struct S : IAsyncEnumerable<int>
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => Get123();
 }
 
+struct S2 : IAsyncEnumerable<int>
+{
+    async static IAsyncEnumerator<int> Get456()
+    {
+        await Task.Yield();
+        yield return 456;
+    }
+
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => Get456();
+}
+
 class C
 {
     static async Task Main()
     {
+        await Test1();
+        await Test2();
+    }
+
+    static async Task Test1()
+    {
         await foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+
+    static async Task Test2()
+    {
+        await foreach (var i in new S2())
         {
             System.Console.Write(i);
         }
@@ -14296,9 +14564,9 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123456" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+            verifier.VerifyIL("C.<Test1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"
 {
   // Code size      411 (0x19b)
@@ -14313,7 +14581,7 @@ class C
                 System.Threading.Tasks.ValueTask V_7,
                 System.Exception V_8)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<Test1>d__1.<>1__state""
   IL_0006:  stloc.0
   .try
   {
@@ -14331,13 +14599,13 @@ class C
     IL_0023:  ldloc.2
     IL_0024:  constrained. ""S""
     IL_002a:  callvirt   ""System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
-    IL_002f:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_002f:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test1>d__1.<>7__wrap1""
     IL_0034:  ldarg.0
     IL_0035:  ldnull
-    IL_0036:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_0036:  stfld      ""object C.<Test1>d__1.<>7__wrap2""
     IL_003b:  ldarg.0
     IL_003c:  ldc.i4.0
-    IL_003d:  stfld      ""int C.<Main>d__0.<>7__wrap3""
+    IL_003d:  stfld      ""int C.<Test1>d__1.<>7__wrap3""
     IL_0042:  nop
     .try
     {
@@ -14345,11 +14613,11 @@ class C
       IL_0044:  brfalse.s  IL_0099
       IL_0046:  br.s       IL_0058
       IL_0048:  ldarg.0
-      IL_0049:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_0049:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test1>d__1.<>7__wrap1""
       IL_004e:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
       IL_0053:  call       ""void System.Console.Write(int)""
       IL_0058:  ldarg.0
-      IL_0059:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_0059:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test1>d__1.<>7__wrap1""
       IL_005e:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
       IL_0063:  stloc.s    V_4
       IL_0065:  ldloca.s   V_4
@@ -14362,27 +14630,27 @@ class C
       IL_0077:  ldc.i4.0
       IL_0078:  dup
       IL_0079:  stloc.0
-      IL_007a:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_007a:  stfld      ""int C.<Test1>d__1.<>1__state""
       IL_007f:  ldarg.0
       IL_0080:  ldloc.3
-      IL_0081:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_0081:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test1>d__1.<>u__1""
       IL_0086:  ldarg.0
-      IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test1>d__1.<>t__builder""
       IL_008c:  ldloca.s   V_3
       IL_008e:  ldarg.0
-      IL_008f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_008f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Test1>d__1>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Test1>d__1)""
       IL_0094:  leave      IL_019a
       IL_0099:  ldarg.0
-      IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test1>d__1.<>u__1""
       IL_009f:  stloc.3
       IL_00a0:  ldarg.0
-      IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test1>d__1.<>u__1""
       IL_00a6:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
       IL_00ac:  ldarg.0
       IL_00ad:  ldc.i4.m1
       IL_00ae:  dup
       IL_00af:  stloc.0
-      IL_00b0:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00b0:  stfld      ""int C.<Test1>d__1.<>1__state""
       IL_00b5:  ldloca.s   V_3
       IL_00b7:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
       IL_00bc:  brtrue.s   IL_0048
@@ -14393,14 +14661,14 @@ class C
       IL_00c0:  stloc.s    V_5
       IL_00c2:  ldarg.0
       IL_00c3:  ldloc.s    V_5
-      IL_00c5:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+      IL_00c5:  stfld      ""object C.<Test1>d__1.<>7__wrap2""
       IL_00ca:  leave.s    IL_00cc
     }
     IL_00cc:  ldarg.0
-    IL_00cd:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00cd:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test1>d__1.<>7__wrap1""
     IL_00d2:  brfalse.s  IL_013b
     IL_00d4:  ldarg.0
-    IL_00d5:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00d5:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test1>d__1.<>7__wrap1""
     IL_00da:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
     IL_00df:  stloc.s    V_7
     IL_00e1:  ldloca.s   V_7
@@ -14413,31 +14681,31 @@ class C
     IL_00f4:  ldc.i4.1
     IL_00f5:  dup
     IL_00f6:  stloc.0
-    IL_00f7:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00f7:  stfld      ""int C.<Test1>d__1.<>1__state""
     IL_00fc:  ldarg.0
     IL_00fd:  ldloc.s    V_6
-    IL_00ff:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_00ff:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test1>d__1.<>u__2""
     IL_0104:  ldarg.0
-    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test1>d__1.<>t__builder""
     IL_010a:  ldloca.s   V_6
     IL_010c:  ldarg.0
-    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test1>d__1>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test1>d__1)""
     IL_0112:  leave      IL_019a
     IL_0117:  ldarg.0
-    IL_0118:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0118:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test1>d__1.<>u__2""
     IL_011d:  stloc.s    V_6
     IL_011f:  ldarg.0
-    IL_0120:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0120:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test1>d__1.<>u__2""
     IL_0125:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
     IL_012b:  ldarg.0
     IL_012c:  ldc.i4.m1
     IL_012d:  dup
     IL_012e:  stloc.0
-    IL_012f:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_012f:  stfld      ""int C.<Test1>d__1.<>1__state""
     IL_0134:  ldloca.s   V_6
     IL_0136:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
     IL_013b:  ldarg.0
-    IL_013c:  ldfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_013c:  ldfld      ""object C.<Test1>d__1.<>7__wrap2""
     IL_0141:  stloc.s    V_5
     IL_0143:  ldloc.s    V_5
     IL_0145:  brfalse.s  IL_015e
@@ -14451,10 +14719,10 @@ class C
     IL_0159:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
     IL_015e:  ldarg.0
     IL_015f:  ldnull
-    IL_0160:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_0160:  stfld      ""object C.<Test1>d__1.<>7__wrap2""
     IL_0165:  ldarg.0
     IL_0166:  ldnull
-    IL_0167:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_0167:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test1>d__1.<>7__wrap1""
     IL_016c:  leave.s    IL_0187
   }
   catch System.Exception
@@ -14462,25 +14730,25 @@ class C
     IL_016e:  stloc.s    V_8
     IL_0170:  ldarg.0
     IL_0171:  ldc.i4.s   -2
-    IL_0173:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0173:  stfld      ""int C.<Test1>d__1.<>1__state""
     IL_0178:  ldarg.0
-    IL_0179:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0179:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test1>d__1.<>t__builder""
     IL_017e:  ldloc.s    V_8
     IL_0180:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_0185:  leave.s    IL_019a
   }
   IL_0187:  ldarg.0
   IL_0188:  ldc.i4.s   -2
-  IL_018a:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_018a:  stfld      ""int C.<Test1>d__1.<>1__state""
   IL_018f:  ldarg.0
-  IL_0190:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_0190:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test1>d__1.<>t__builder""
   IL_0195:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_019a:  ret
 }
 ");
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
 
             VerifyFlowGraph(comp, node, """
 Block[B0] - Entry
@@ -14591,7 +14859,8 @@ Block[B7] - Exit
 """);
 
             var model = comp.GetSemanticModel(tree);
-            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+            AssertEx.Equal("new S()", foreachSyntax.Expression.ToString());
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
             Assert.True(info.IsAsynchronous);
@@ -15786,6 +16055,11 @@ public ref struct S : IAsyncEnumerable<int>
 {
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => throw null;
 }
+
+public struct S2 : IAsyncEnumerable<int>
+{
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => throw null;
+}
 ";
 
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -15823,6 +16097,26 @@ class C
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics();
+
+            var src3 = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (var i in new S2())
+        {
+        }
+    }
+}
+";
+            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -16999,6 +17293,21 @@ public ref struct S2 : IAsyncDisposable
     ValueTask IAsyncDisposable.DisposeAsync() => throw null;
     public ValueTask<bool> MoveNextAsync() => throw null;
 }
+
+public struct S3
+{
+    public S4 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S4();
+    }
+}
+
+public struct S4 : IAsyncDisposable
+{
+    public int Current => throw null;
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
 ";
 
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -17027,9 +17336,9 @@ class C
                 // (14,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S2 : IAsyncDisposable
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncDisposable").WithArguments("ref struct interfaces").WithLocation(14, 24),
-                // (25,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (40,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(25, 15)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(40, 15)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
@@ -17045,6 +17354,24 @@ class C
                 //         await foreach (var i in new S1()) {}
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
                 );
+
+            var src3 = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (var i in new S3()) {}
+    }
+}
+";
+            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -17519,11 +17846,38 @@ ref struct S : IEnumerable
     }
 }
 
+struct S1 : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Get456();
+    }
+
+    static IEnumerator Get456()
+    {
+        yield return 456;
+    }
+}
+
 class C
 {
     static void Main()
     {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
         foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+
+    static void Test2()
+    {
+        foreach (var i in new S1())
         {
             System.Console.Write(i);
         }
@@ -17532,9 +17886,9 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123456" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C.Main",
+            verifier.VerifyIL("C.Test1",
 @"
 {
       // Code size       62 (0x3e)
@@ -17575,7 +17929,7 @@ class C
     ");
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
 
             VerifyFlowGraph(comp, node, """
 Block[B0] - Entry
@@ -17682,7 +18036,8 @@ Block[B7] - Exit
 """);
 
             var model = comp.GetSemanticModel(tree);
-            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+            AssertEx.Equal("new S()", foreachSyntax.Expression.ToString());
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
             Assert.False(info.IsAsynchronous);
@@ -18422,6 +18777,11 @@ public ref struct S : IEnumerable
 {
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
+
+public struct S1 : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
 ";
 
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -18456,6 +18816,26 @@ class C
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics();
+
+            var src3 = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+        }
+    }
+}
+";
+            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -19514,7 +19894,7 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
             CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (100,54): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static void Test<T>(T x) where T : allows ref struct
@@ -19527,7 +19907,7 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
             CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (200,9): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Helper.Test(new S1());
@@ -19540,6 +19920,44 @@ class C
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
                 );
 
+            var src3 = @"
+struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+#line 200
+        Helper.Test(new S1());
+    }
+}
+";
+
+            comp = CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (100,54): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void Test<T>(T x) where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(100, 54)
+                );
+
+            comp = CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+
+            CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (100,54): error CS9240: Target runtime doesn't support by-ref-like generics.
+                //     public static void Test<T>(T x) where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
+                );
+
             comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
 
             CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
@@ -19547,6 +19965,8 @@ class C
                 //         Helper.Test(new S1());
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "Helper.Test").WithLocation(200, 9)
                 );
+
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -19672,6 +20092,322 @@ class C<T, S>
                 //         _ = typeof(C<T, T>);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "T").WithArguments("C<T, S>", "S", "T").WithLocation(16, 25)
                 );
+        }
+
+        [Fact]
+        public void ConstraintsCheck_06()
+        {
+            var src = @"
+#nullable enable
+
+class C
+{
+    static void Test1<T>(T? x) where T : allows ref struct
+    {
+    }
+
+    static void Test2<T>(T? x) where T : struct, allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (10,29): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     static void Test2<T>(T? x) where T : struct, allows ref struct
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(10, 29)
+                );
+        }
+
+        [Fact]
+        public void ConstraintsCheck_07()
+        {
+            var src1 = @"
+#line 100
+public class Helper<T> where T : allows ref struct
+{
+    public static void Test(T x)
+    {
+        System.Console.Write(""Called"");
+    }
+}
+";
+            var src2 = @"
+ref struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+#line 200
+        Helper<S1>.Test(new S1());
+    }
+}
+";
+            var comp = CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (100,41): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(100, 41)
+                );
+
+            var comp1Ref = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).ToMetadataReference();
+
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (200,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Helper<S1>.Test(new S1());
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("ref struct interfaces").WithLocation(200, 16)
+                );
+
+            CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
+                );
+
+            var src3 = @"
+struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+#line 200
+        Helper<S1>.Test(new S1());
+    }
+}
+";
+
+            comp = CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (100,41): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(100, 41)
+                );
+
+            comp = CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+
+            CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
+                );
+
+            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
+
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (200,16): error CS9240: Target runtime doesn't support by-ref-like generics.
+                //         Helper<S1>.Test(new S1());
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "S1").WithLocation(200, 16)
+                );
+
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void IdentityConversion_01()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        Helper1<Program>.Test1(new Program());
+        Helper1<Program>.Test1(null);
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+        }
+
+        [Fact]
+        public void IdentityConversion_02()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return (T)h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        Helper1<Program>.Test1(new Program());
+        Helper1<Program>.Test1(null);
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+        }
+
+        [Fact]
+        public void IdentityConversion_03()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+        }
+
+        [Fact]
+        public void IdentityConversion_04()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return (T)h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
         }
 
         [Fact]
@@ -26277,10 +27013,19 @@ class Program
         System.Console.Write(Test<S>().P);
         System.Console.Write("" "");
         System.Console.Write((new S() { 200, 40, 6 }).P);
+        System.Console.Write("" "");
+        System.Console.Write((new S2() { 300, 60, 9 }).P);
     }
 }
 
 public ref struct S : I1
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+}
+
+public struct S2 : I1
 {
     public int P {get;set;}
     public void Add(int x) => P += x;
@@ -26305,7 +27050,7 @@ namespace System
 
             var verifier = CompileAndVerify(
                 comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123 246" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123 246 369" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
 
@@ -26495,6 +27240,13 @@ public ref struct S : I1
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
 }
 
+public struct S2 : I1
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+}
+
 public interface I1 : System.Collections.IEnumerable
 {
     public void Add(int x);
@@ -26557,6 +27309,24 @@ namespace System
 
             comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics();
+
+            var text3 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((new S2() { 200, 40, 6 }).P);
+    }
+}
+";
+            var comp3 = CreateCompilation(text3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp2.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(text3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3.VerifyEmitDiagnostics();
+
+            comp3 = CreateCompilation(text3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]

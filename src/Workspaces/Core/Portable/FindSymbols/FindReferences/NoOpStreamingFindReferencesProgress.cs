@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -27,7 +28,7 @@ internal class NoOpStreamingFindReferencesProgress : IStreamingFindReferencesPro
     public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
     public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
     public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken) => default;
-    public ValueTask OnReferencesFoundAsync(IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken) => default;
+    public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken) => default;
 
     private class NoOpProgressTracker : IStreamingProgressTracker
     {

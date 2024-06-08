@@ -62,7 +62,7 @@ internal static class PopulateSwitchExpressionHelpers
         }
     }
 
-    private static void HandleBinaryPattern(IBinaryPatternOperation? binaryPattern, Dictionary<long, ISymbol> enumMembers)
+    internal static void HandleBinaryPattern(IBinaryPatternOperation? binaryPattern, Dictionary<long, ISymbol> enumMembers)
     {
         if (binaryPattern?.OperatorKind == BinaryOperatorKind.Or)
         {

@@ -1171,7 +1171,7 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
@@ -2207,14 +2207,14 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_InconsistentLambdaParameterUsage" xml:space="preserve">
     <value>Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit</value>
   </data>
-  <data name="ERR_PartialMethodInvalidModifier" xml:space="preserve">
-    <value>A partial method cannot have the 'abstract' modifier</value>
+  <data name="ERR_PartialMemberCannotBeAbstract" xml:space="preserve">
+    <value>A partial member cannot have the 'abstract' modifier</value>
   </data>
-  <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial type</value>
+  <data name="ERR_PartialMemberOnlyInPartialClass" xml:space="preserve">
+    <value>A partial member must be declared within a partial type</value>
   </data>
-  <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
-    <value>A partial method may not explicitly implement an interface method</value>
+  <data name="ERR_PartialMemberNotExplicit" xml:space="preserve">
+    <value>A partial member may not explicitly implement an interface member</value>
   </data>
   <data name="ERR_PartialMethodExtensionDifference" xml:space="preserve">
     <value>Both partial method declarations must be extension methods or neither may be an extension method</value>
@@ -2225,14 +2225,14 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodOnlyOneActual" xml:space="preserve">
     <value>A partial method may not have multiple implementing declarations</value>
   </data>
-  <data name="ERR_PartialMethodParamsDifference" xml:space="preserve">
-    <value>Both partial method declarations must use a params parameter or neither may use a params parameter</value>
+  <data name="ERR_PartialMemberParamsDifference" xml:space="preserve">
+    <value>Both partial member declarations must use a params parameter or neither may use a params parameter</value>
   </data>
   <data name="ERR_PartialMethodMustHaveLatent" xml:space="preserve">
     <value>No defining declaration found for implementing declaration of partial method '{0}'</value>
   </data>
-  <data name="ERR_PartialMethodInconsistentTupleNames" xml:space="preserve">
-    <value>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</value>
+  <data name="ERR_PartialMemberInconsistentTupleNames" xml:space="preserve">
+    <value>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</value>
   </data>
   <data name="ERR_PartialMethodInconsistentConstraints" xml:space="preserve">
     <value>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</value>
@@ -2240,11 +2240,11 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodToDelegate" xml:space="preserve">
     <value>Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration</value>
   </data>
-  <data name="ERR_PartialMethodStaticDifference" xml:space="preserve">
-    <value>Both partial method declarations must be static or neither may be static</value>
+  <data name="ERR_PartialMemberStaticDifference" xml:space="preserve">
+    <value>Both partial member declarations must be static or neither may be static</value>
   </data>
-  <data name="ERR_PartialMethodUnsafeDifference" xml:space="preserve">
-    <value>Both partial method declarations must be unsafe or neither may be unsafe</value>
+  <data name="ERR_PartialMemberUnsafeDifference" xml:space="preserve">
+    <value>Both partial member declarations must be unsafe or neither may be unsafe</value>
   </data>
   <data name="ERR_PartialMethodInExpressionTree" xml:space="preserve">
     <value>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</value>
@@ -5737,8 +5737,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
     <value>Field-like event '{0}' cannot be 'readonly'.</value>
   </data>
-  <data name="ERR_PartialMethodReadOnlyDifference" xml:space="preserve">
-    <value>Both partial method declarations must be readonly or neither may be readonly</value>
+  <data name="ERR_PartialMemberReadOnlyDifference" xml:space="preserve">
+    <value>Both partial member declarations must be readonly or neither may be readonly</value>
   </data>
   <data name="ERR_ReadOnlyModMissingAccessor" xml:space="preserve">
     <value>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</value>
@@ -6521,17 +6521,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodWithExtendedModMustHaveAccessMods" xml:space="preserve">
     <value>Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</value>
   </data>
-  <data name="ERR_PartialMethodAccessibilityDifference" xml:space="preserve">
-    <value>Both partial method declarations must have identical accessibility modifiers.</value>
+  <data name="ERR_PartialMemberAccessibilityDifference" xml:space="preserve">
+    <value>Both partial member declarations must have identical accessibility modifiers.</value>
   </data>
-  <data name="ERR_PartialMethodExtendedModDifference" xml:space="preserve">
-    <value>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
+  <data name="ERR_PartialMemberExtendedModDifference" xml:space="preserve">
+    <value>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
   </data>
   <data name="ERR_PartialMethodReturnTypeDifference" xml:space="preserve">
     <value>Both partial method declarations must have the same return type.</value>
   </data>
-  <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
-    <value>Partial method declarations must have matching ref return values.</value>
+  <data name="ERR_PartialMemberRefReturnDifference" xml:space="preserve">
+    <value>Partial member declarations must have matching ref return values.</value>
   </data>
   <data name="WRN_PartialMethodTypeDifference" xml:space="preserve">
     <value>Partial method declarations '{0}' and '{1}' have signature differences.</value>
@@ -6865,6 +6865,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
+  <data name="INF_IdentifierConflictWithContextualKeyword" xml:space="preserve">
+    <value>'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</value>
+  </data>
+  <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
+    <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
@@ -7032,7 +7038,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The 'scoped' modifier of parameter doesn't match target.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
-    <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</value>
   </data>
   <data name="ERR_FixedFieldMustNotBeRef" xml:space="preserve">
     <value>A fixed field must not be a ref field.</value>
@@ -7920,6 +7926,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefUnsafeInIteratorAsync" xml:space="preserve">
     <value>ref and unsafe in async and iterator methods</value>
   </data>
+  <data name="IDS_FeatureFieldAndValueKeywords" xml:space="preserve">
+    <value>field and value keywords</value>
+  </data>
   <data name="ERR_RefLocalAcrossAwait" xml:space="preserve">
     <value>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</value>
   </data>
@@ -7955,5 +7964,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadAllowByRefLikeEnumerator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</value>
+  </data>
+  <data name="ERR_PartialPropertyMissingImplementation" xml:space="preserve">
+    <value>Partial property '{0}' must have an implementation part.</value>
+  </data>
+  <data name="ERR_PartialPropertyMissingDefinition" xml:space="preserve">
+    <value>Partial property '{0}' must have a definition part.</value>
+  </data>
+  <data name="ERR_PartialPropertyDuplicateDefinition" xml:space="preserve">
+    <value>A partial property may not have multiple defining declarations, and cannot be an auto-property.</value>
+  </data>
+  <data name="ERR_PartialPropertyDuplicateImplementation" xml:space="preserve">
+    <value>A partial property may not have multiple implementing declarations</value>
+  </data>
+  <data name="ERR_PartialPropertyMissingAccessor" xml:space="preserve">
+    <value>Property accessor '{0}' must be implemented because it is declared on the definition part</value>
+  </data>
+  <data name="ERR_PartialPropertyUnexpectedAccessor" xml:space="preserve">
+    <value>Property accessor '{0}' does not implement any accessor declared on the definition part</value>
+  </data>
+  <data name="ERR_PartialPropertyInitMismatch" xml:space="preserve">
+    <value>Property accessor '{0}' must be '{1}' to match the definition part</value>
+  </data>
+  <data name="ERR_PartialPropertyTypeDifference" xml:space="preserve">
+    <value>Both partial property declarations must have the same type.</value>
+  </data>
+  <data name="WRN_PartialPropertySignatureDifference" xml:space="preserve">
+    <value>Partial property declarations '{0}' and '{1}' have signature differences.</value>
+  </data>
+  <data name="WRN_PartialPropertySignatureDifference_Title" xml:space="preserve">
+    <value>Partial property declarations have signature differences.</value>
+  </data>
+  <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
+    <value>Both partial property declarations must be required or neither may be required</value>
   </data>
 </root>

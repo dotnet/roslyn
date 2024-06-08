@@ -1642,24 +1642,49 @@
         <target state="translated">O parâmetro params deve ter um tipo de coleção válido</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="translated">As duas declarações de métodos parciais precisam ter modificadores de acessibilidade idênticos.</target>
+      <trans-unit id="ERR_PartialMemberAccessibilityDifference">
+        <source>Both partial member declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+      <trans-unit id="ERR_PartialMemberCannotBeAbstract">
+        <source>A partial member cannot have the 'abstract' modifier</source>
+        <target state="new">A partial member cannot have the 'abstract' modifier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
+        <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
+        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
+        <source>A partial member must be declared within a partial type</source>
+        <target state="new">A partial member must be declared within a partial type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberParamsDifference">
+        <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
+        <target state="new">Both partial member declarations must use a params parameter or neither may use a params parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberReadOnlyDifference">
+        <source>Both partial member declarations must be readonly or neither may be readonly</source>
+        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberExtendedModDifference">
+        <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
         <target state="translated">As duas declarações de métodos parciais precisam ter combinações idênticas dos modificadores 'virtual', 'override', 'sealed' e 'new'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="translated">As duas declarações de métodos parciais precisam ser readonly ou nenhuma deve ser readonly</target>
+      <trans-unit id="ERR_PartialMemberRefReturnDifference">
+        <source>Partial member declarations must have matching ref return values.</source>
+        <target state="translated">As declarações de método parcial precisam ter valores de retorno de referência correspondentes.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Partial method declarations must have matching ref return values.</source>
-        <target state="translated">As declarações de método parcial precisam ter valores de retorno de referência correspondentes.</target>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
@@ -1685,6 +1710,51 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">O método parcial '{0}' precisa ter modificadores de acessibilidade porque ele tem parâmetros 'out'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
+        <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
+        <target state="new">A partial property may not have multiple defining declarations, and cannot be an auto-property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
+        <source>A partial property may not have multiple implementing declarations</source>
+        <target state="new">A partial property may not have multiple implementing declarations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyInitMismatch">
+        <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
+        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingAccessor">
+        <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
+        <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingDefinition">
+        <source>Partial property '{0}' must have a definition part.</source>
+        <target state="new">Partial property '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingImplementation">
+        <source>Partial property '{0}' must have an implementation part.</source>
+        <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyRequiredDifference">
+        <source>Both partial property declarations must be required or neither may be required</source>
+        <target state="new">Both partial property declarations must be required or neither may be required</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyTypeDifference">
+        <source>Both partial property declarations must have the same type.</source>
+        <target state="new">Both partial property declarations must have the same type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
+        <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
+        <target state="new">Property accessor '{0}' does not implement any accessor declared on the definition part</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -1953,8 +2023,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
-        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">O modificador 'scoped' do parâmetro '{0}' não corresponde à declaração de método parcial.</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
+        <target state="needs-review-translation">O modificador 'scoped' do parâmetro '{0}' não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -2307,6 +2377,11 @@
         <target state="translated">padrões de propriedade estendida</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
+        <source>field and value keywords</source>
+        <target state="new">field and value keywords</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">namespace de escopo de arquivo</target>
@@ -2530,6 +2605,16 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">ponteiro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
+        <source>'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</source>
+        <target state="new">'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
+        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
+        <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -3045,6 +3130,16 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">O parâmetro tem modificador de parâmetros em lambda, mas não no tipo delegado de destino.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference">
+        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
+        <source>Partial property declarations have signature differences.</source>
+        <target state="new">Partial property declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -4765,12 +4860,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo de parâmetro '{0}' não corresponde à declaração de método parcial.</target>
+        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de parâmetro '{0}' não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo de parâmetro não corresponde à declaração de método parcial.</target>
+        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de parâmetro não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4815,12 +4910,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="translated">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
+        <target state="needs-review-translation">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="translated">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
+        <target state="needs-review-translation">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6524,8 +6619,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="translated">O modificador 'partial' só pode aparecer imediatamente antes de 'class', de 'record', de 'struct', de 'interface' ou de um tipo de retorno de método.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
+        <target state="needs-review-translation">O modificador 'partial' só pode aparecer imediatamente antes de 'class', de 'record', de 'struct', de 'interface' ou de um tipo de retorno de método.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8132,18 +8227,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <target state="translated">Utilização inconsistente do parâmetro lambda; todos os tipos de parâmetros devem ser explícitos ou implícitos</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have the 'abstract' modifier</source>
-        <target state="translated">Um método parcial não pode ter o modificador 'abstract'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial type</source>
-        <target state="translated">Um método parcial precisa ser declarado em um tipo parcial</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodNotExplicit">
-        <source>A partial method may not explicitly implement an interface method</source>
+      <trans-unit id="ERR_PartialMemberNotExplicit">
+        <source>A partial member may not explicitly implement an interface member</source>
         <target state="translated">Um método parcial não pode implementar explicitamente um método de interface</target>
         <note />
       </trans-unit>
@@ -8162,19 +8247,9 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <target state="translated">Um método parcial não pode ter várias declarações de implementação</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodParamsDifference">
-        <source>Both partial method declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="translated">As duas declarações do método parcial devem usar um parâmetro params ou nenhuma delas pode usar um parâmetro params</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodMustHaveLatent">
         <source>No defining declaration found for implementing declaration of partial method '{0}'</source>
         <target state="translated">Nenhuma declaração de definição encontrada para implementar a declaração de método parcial "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodInconsistentTupleNames">
-        <source>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="translated">Ambas as declarações de método parciais, '{0}' e '{1}', devem usar os mesmos elementos de nome de tupla.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
@@ -8187,14 +8262,9 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <target state="translated">Não é possível criar representante do método "{0}" porque ele é um método parcial sem declaração de implementação</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodStaticDifference">
-        <source>Both partial method declarations must be static or neither may be static</source>
+      <trans-unit id="ERR_PartialMemberStaticDifference">
+        <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">As duas declarações de métodos parciais devem ser estáticas ou nenhuma delas deve ser desse tipo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">As duas declarações de métodos parciais devem ser inseguras ou nenhuma delas deve ser desse tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

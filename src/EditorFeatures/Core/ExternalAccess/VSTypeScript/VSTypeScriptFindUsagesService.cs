@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;

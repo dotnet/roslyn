@@ -805,6 +805,12 @@ internal sealed class EditSession
             var hasEmitErrors = false;
             foreach (var newProject in solution.Projects)
             {
+                if (newProject.FilePath == null)
+                {
+                    log.Write("Skipping project '{0}' without a file path", newProject.Id);
+                    continue;
+                }
+
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
@@ -825,7 +831,7 @@ internal sealed class EditSession
                 }
 
                 await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
-                if (changedOrAddedDocuments.IsEmpty())
+                if (changedOrAddedDocuments.IsEmpty)
                 {
                     continue;
                 }
@@ -1049,6 +1055,7 @@ internal sealed class EditSession
                         var delta = new ManagedHotReloadUpdate(
                             mvid,
                             newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
+                            newProject.Id,
                             ilStream.ToImmutableArray(),
                             metadataStream.ToImmutableArray(),
                             pdbStream.ToImmutableArray(),

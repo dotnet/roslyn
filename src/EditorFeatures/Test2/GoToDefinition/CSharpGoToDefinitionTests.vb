@@ -278,6 +278,39 @@ class Program
         End Function
 
         <WpfFact>
+        Public Async Function TestCSharpGotoDefinitionPartialProperty() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial int Prop { get; set; }
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    int i = t.Prop$$;
+                }
+
+                public partial void [|Prop|]
+                {
+                    get => throw new NotImplementedException();
+                    set => throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
         Public Async Function TestCSharpGotoDefinitionOnMethodCall1() As Task
             Dim workspace =
 <Workspace>

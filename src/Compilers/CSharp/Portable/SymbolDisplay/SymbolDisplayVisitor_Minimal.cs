@@ -195,27 +195,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE(cyrusn): If we're currently in a block of usings, then we want to collect the
             // aliases that are higher up than this block.  Using aliases declared in a block of
-            // usings are not usable from within that same block.
-            var usingDirective = GetAncestorOrThis<UsingDirectiveSyntax>(startNode);
-            if (usingDirective != null)
+            // usings are not usable from within that same block. This loop moves us outside of the
+            // immediately enclosing using directive, if any.
+            while (startNode != null)
             {
-                startNode = usingDirective.Parent!.Parent!;
+                if (startNode is UsingDirectiveSyntax)
+                {
+                    startNode = startNode.Parent!.Parent!;
+                    break;
+                }
+
+                startNode = startNode.Parent;
             }
 
-            var usingAliases = GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>(startNode)
-                .SelectMany(n => n.Usings)
-                .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
-                .Where(u => u.Alias != null)
-                .Select(u => semanticModel.GetDeclaredSymbol(u) as IAliasSymbol)
-                .WhereNotNull();
+            startNode ??= token.Parent;
 
             var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();
-            foreach (var alias in usingAliases)
+            while (startNode != null)
             {
-                if (!builder.ContainsKey(alias.Target))
+                var usings = (startNode as BaseNamespaceDeclarationSyntax)?.Usings;
+                usings ??= (startNode as CompilationUnitSyntax)?.Usings;
+
+                if (usings != null)
                 {
-                    builder.Add(alias.Target, alias);
+                    foreach (var u in usings)
+                    {
+                        if (u.Alias != null
+                            && semanticModel.GetDeclaredSymbol(u) is IAliasSymbol aliasSymbol
+                            && !builder.ContainsKey(aliasSymbol.Target))
+                        {
+                            builder.Add(aliasSymbol.Target, aliasSymbol);
+                        }
+                    }
                 }
+
+                startNode = startNode.Parent;
             }
 
             return builder.ToImmutable();
@@ -285,18 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return symbolName;
-        }
-
-        private static T? GetAncestorOrThis<T>(SyntaxNode node) where T : SyntaxNode
-        {
-            return GetAncestorsOrThis<T>(node).FirstOrDefault();
-        }
-
-        private static IEnumerable<T> GetAncestorsOrThis<T>(SyntaxNode node) where T : SyntaxNode
-        {
-            return node == null
-                ? SpecializedCollections.EmptyEnumerable<T>()
-                : node.AncestorsAndSelf().OfType<T>();
         }
 
         private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> AliasMap

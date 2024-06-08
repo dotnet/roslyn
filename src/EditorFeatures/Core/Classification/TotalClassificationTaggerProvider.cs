@@ -12,12 +12,10 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -30,16 +28,11 @@ namespace Microsoft.CodeAnalysis.Classification;
 [Microsoft.VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class TotalClassificationTaggerProvider(
-    IThreadingContext threadingContext,
-    ClassificationTypeMap typeMap,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : IViewTaggerProvider
+internal sealed class TotalClassificationTaggerProvider(TaggerHost taggerHost, ClassificationTypeMap typeMap) : IViewTaggerProvider
 {
-    private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider = new(threadingContext, typeMap, globalOptions, listenerProvider);
-    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
-    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
+    private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider = new(taggerHost, typeMap);
+    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(taggerHost, typeMap);
+    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(taggerHost, typeMap);
 
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {
@@ -77,9 +70,9 @@ internal sealed class TotalClassificationAggregateTagger(
     EfficientTagger<IClassificationTag> embeddedTagger)
     : AbstractAggregateTagger<IClassificationTag>([syntacticTagger, semanticTagger, embeddedTagger])
 {
-    private static readonly Comparison<ITagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start - s2.Span.Start;
+    private static readonly Comparison<TagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start.Position - s2.Span.Start.Position;
 
-    public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> totalTags)
+    public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<IClassificationTag>> totalTags)
     {
         // Everything we pass in is synchronous, so we should immediately get a completed task back out.
         AddTagsAsync(
@@ -105,10 +98,10 @@ internal sealed class TotalClassificationAggregateTagger(
 
     public static async Task AddTagsAsync<TArg>(
         NormalizedSnapshotSpanCollection spans,
-        SegmentedList<ITagSpan<IClassificationTag>> totalTags,
-        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, Task> addSyntacticSpansAsync,
-        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, Task> addSemanticSpansAsync,
-        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, Task> addEmbeddedSpansAsync,
+        SegmentedList<TagSpan<IClassificationTag>> totalTags,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, TArg, Task> addSyntacticSpansAsync,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, TArg, Task> addSemanticSpansAsync,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, TArg, Task> addEmbeddedSpansAsync,
         TArg arg)
     {
         // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
@@ -116,9 +109,9 @@ internal sealed class TotalClassificationAggregateTagger(
         // tags like 'Comments' and 'Excluded Code'.  In those cases we want the classification to 'snap' instantly to
         // the syntactic state, and we do not want things like semantic classifications showing up over that.
 
-        using var _1 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
-        using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var syntacticSpans);
-        using var _3 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
+        using var _1 = SegmentedListPool.GetPooledList<TagSpan<IClassificationTag>>(out var stringLiterals);
+        using var _2 = SegmentedListPool.GetPooledList<TagSpan<IClassificationTag>>(out var syntacticSpans);
+        using var _3 = SegmentedListPool.GetPooledList<TagSpan<IClassificationTag>>(out var semanticSpans);
 
         await addSyntacticSpansAsync(spans, syntacticSpans, arg).ConfigureAwait(false);
         await addSemanticSpansAsync(spans, semanticSpans, arg).ConfigureAwait(false);
@@ -231,7 +224,7 @@ internal sealed class TotalClassificationAggregateTagger(
                 return;
 
             // Only need to ask for the spans that overlapped the string literals.
-            using var _1 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var embeddedClassifications);
+            using var _1 = SegmentedListPool.GetPooledList<TagSpan<IClassificationTag>>(out var embeddedClassifications);
 
             var stringLiteralSpansFull = new NormalizedSnapshotSpanCollection(stringLiterals.Select(s => s.Span));
 
@@ -257,7 +250,7 @@ internal sealed class TotalClassificationAggregateTagger(
             // The helper will add all the embedded classifications first, then add string literal classifications
             // in the the space between the embedded classifications that were originally classified as a string
             // literal.
-            ClassifierHelper.MergeParts<ITagSpan<IClassificationTag>, ClassificationTagSpanIntervalIntrospector>(
+            ClassifierHelper.MergeParts<TagSpan<IClassificationTag>, ClassificationTagSpanIntervalIntrospector>(
                 stringLiterals,
                 embeddedClassifications,
                 totalTags,
@@ -265,19 +258,16 @@ internal sealed class TotalClassificationAggregateTagger(
                 static (original, final) => new TagSpan<IClassificationTag>(new SnapshotSpan(original.Span.Snapshot, final.ToSpan()), original.Tag));
         }
 
-        ITagSpan<IClassificationTag>? GetNextSyntacticSpan()
+        TagSpan<IClassificationTag>? GetNextSyntacticSpan()
             => syntacticEnumerator.MoveNext() ? syntacticEnumerator.Current : null;
 
-        ITagSpan<IClassificationTag>? GetNextSemanticSpan()
+        TagSpan<IClassificationTag>? GetNextSemanticSpan()
             => semanticEnumerator.MoveNext() ? semanticEnumerator.Current : null;
     }
 
-    private readonly struct ClassificationTagSpanIntervalIntrospector : IIntervalIntrospector<ITagSpan<IClassificationTag>>
+    private readonly struct ClassificationTagSpanIntervalIntrospector : IIntervalIntrospector<TagSpan<IClassificationTag>>
     {
-        public int GetStart(ITagSpan<IClassificationTag> value)
-            => value.Span.Start;
-
-        public int GetLength(ITagSpan<IClassificationTag> value)
-            => value.Span.Length;
+        public TextSpan GetSpan(TagSpan<IClassificationTag> value)
+            => value.Span.Span.ToTextSpan();
     }
 }

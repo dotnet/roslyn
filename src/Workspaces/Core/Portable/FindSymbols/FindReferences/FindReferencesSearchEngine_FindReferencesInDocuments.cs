@@ -117,40 +117,47 @@ internal partial class FindReferencesSearchEngine
                 ProducerConsumerOptions.SingleReaderWriterOptions,
                 static (callback, args, cancellationToken) =>
                 {
+                    var (@this, symbol, state) = args;
+
                     // We don't bother calling into the finders in parallel as there's only ever one that applies for a
                     // particular symbol kind.  All the rest bail out immediately after a quick type-check.  So there's
                     // no benefit in forking out to have only one of them end up actually doing work.
-                    foreach (var finder in args.@this._finders)
+                    foreach (var finder in @this._finders)
                     {
                         finder.FindReferencesInDocument(
-                            args.symbol, args.state,
+                            symbol, state,
                             static (finderLocation, callback) => callback(finderLocation),
-                            callback, args.@this._options, cancellationToken);
+                            callback, @this._options, cancellationToken);
                     }
 
                     return Task.CompletedTask;
                 },
                 consumeItems: static async (values, args, cancellationToken) =>
                 {
-                    await args.@this._progress.OnReferencesFoundAsync(
-                        ReadAllAsync(args.@this, values, args.symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
+                    var (@this, symbol, state) = args;
+                    var converted = await ConvertLocationsAndReportGroupsAsync(@this, values, symbol, cancellationToken).ConfigureAwait(false);
+                    await @this._progress.OnReferencesFoundAsync(converted, cancellationToken).ConfigureAwait(false);
                 },
                 args: (@this: this, symbol, state),
                 cancellationToken).ConfigureAwait(false);
         }
 
-        static async IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> ReadAllAsync(
-            FindReferencesSearchEngine @this, IAsyncEnumerable<FinderLocation> locations, ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+        static async Task<ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>> ConvertLocationsAndReportGroupsAsync(
+            FindReferencesSearchEngine @this, IAsyncEnumerable<FinderLocation> locations, ISymbol symbol, CancellationToken cancellationToken)
         {
             SymbolGroup? group = null;
+
+            using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var result);
 
             // Transform the individual finder-location objects to "group/symbol/location" tuples.
             await foreach (var location in locations)
             {
                 // The first time we see the location for a symbol, report its group.
                 group ??= await @this.ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                yield return (group, symbol, location.Location);
+                result.Add((group, symbol, location.Location));
             }
+
+            return result.ToImmutableAndClear();
         }
 
         async ValueTask InheritanceSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
@@ -171,8 +178,7 @@ internal partial class FindReferencesSearchEngine
                         var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
-                        await _progress.OnReferencesFoundAsync(
-                            IAsyncEnumerableExtensions.AsAsyncEnumerable([(candidateGroup, candidate, location)]), cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

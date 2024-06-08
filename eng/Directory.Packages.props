@@ -119,8 +119,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.UI.Interfaces" Version="17.9.0-beta.24072.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.9.0-beta.24072.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.11.0-beta.24274.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 
@@ -143,7 +142,7 @@
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="7.0.0-preview.24266.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24281.3" />
 
     <!--
       Analyzers

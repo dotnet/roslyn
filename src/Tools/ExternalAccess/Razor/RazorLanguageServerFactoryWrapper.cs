@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         internal override void AddJsonConverters(JsonSerializerOptions options)
         {
-            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
+            ProtocolConversions.AddLspSerializerOptions(options);
         }
 
         private class RazorCapabilitiesProvider : ICapabilitiesProvider

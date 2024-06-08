@@ -43,16 +43,12 @@ public partial class Workspace
                 return;
         }
 
-        // Ensure we're fully loaded before rerunning generators.
-        var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
-        await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-
         await this.SetCurrentSolutionAsync(
             useAsync: true,
             oldSolution =>
             {
                 var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIds);
-                return oldSolution.WithSourceGeneratorExecutionVersions(updates, cancellationToken);
+                return oldSolution.UpdateSpecificSourceGeneratorExecutionVersions(updates, cancellationToken);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,

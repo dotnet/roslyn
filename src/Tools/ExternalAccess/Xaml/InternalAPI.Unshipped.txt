@@ -1,5 +1,6 @@
 abstract Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>.GetTextDocumentUri(TRequest request) -> System.Uri!
 abstract Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerFactoryBase<TRequest, TResponse>.CreateHandler(Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>? xamlRequestHandler, Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService! resolveDataService) -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>!
+const Microsoft.CodeAnalysis.ExternalAccess.Xaml.Constants.DiagnosticSourceProviderName = "XamlDiagnostics" -> string!
 const Microsoft.CodeAnalysis.ExternalAccess.Xaml.StringConstants.FactoryMethodMessage = "This factory method only provides services for the MEF export provider." -> string!
 const Microsoft.CodeAnalysis.ExternalAccess.Xaml.StringConstants.ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider." -> string!
 const Microsoft.CodeAnalysis.ExternalAccess.Xaml.StringConstants.XamlFileExtension = ".xaml" -> string!
@@ -9,6 +10,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.ClientCapabi
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.IsDynamicRegistrationSupported(string! methodName) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.SupportsCompletionListData.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.SupportsMarkdownDocumentation.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.Constants
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ConversionHelpers
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.DescriptionService(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions) -> void

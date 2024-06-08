@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;

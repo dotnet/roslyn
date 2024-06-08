@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -336,18 +334,9 @@ internal partial class ProjectState
             }
 
             var filePath = GetEffectiveFilePath(documentState);
-            if (filePath == null)
-            {
-                return StructuredAnalyzerConfigOptions.Empty;
-            }
-
-            var legacyDocumentOptionsProvider = services.GetService<ILegacyDocumentOptionsProvider>();
-            if (legacyDocumentOptionsProvider != null)
-            {
-                return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(projectState.Id, filePath));
-            }
-
-            return GetOptionsForSourcePath(cache, filePath);
+            return filePath == null
+                ? StructuredAnalyzerConfigOptions.Empty
+                : GetOptionsForSourcePath(cache, filePath);
         }
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
@@ -492,7 +481,7 @@ internal partial class ProjectState
     {
         private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = [];
         private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
-        private readonly Lazy<AnalyzerConfigData> _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
+        private readonly Lazy<AnalyzerConfigData> _global = new(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
 
         public AnalyzerConfigData GlobalConfigOptions
             => _global.Value;

@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
+
+[UseExportProvider]
+public class TrackingSpanTests : EditingTestBase
 {
-    [UseExportProvider]
-    public class TrackingSpanTests : EditingTestBase
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
+    public void MovedOutsideOfMethod1()
     {
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
-        public void MovedOutsideOfMethod1()
-        {
-            var src1 = @"
+        var src1 = @"
 class C
 {
     static void F()
@@ -25,7 +25,7 @@ class C
         <AS:0>Goo(1);</AS:0>
     }
 }";
-            var src2 = @"
+        var src2 = @"
 class C
 {
     static void F()
@@ -39,18 +39,18 @@ class C
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                active,
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-        }
+        edits.VerifySemanticDiagnostics(
+            active,
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
 
-        [Fact]
-        public void MovedOutsideOfMethod2()
-        {
-            var src1 = @"
+    [Fact]
+    public void MovedOutsideOfMethod2()
+    {
+        var src1 = @"
 class C
 {
     static void F()
@@ -58,7 +58,7 @@ class C
         <AS:0>Goo(1);</AS:0>
     }
 }";
-            var src2 = @"
+        var src2 = @"
 class C
 {
     static void F()
@@ -72,18 +72,18 @@ class C
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                active,
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-        }
+        edits.VerifySemanticDiagnostics(
+            active,
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
 
-        [Fact]
-        public void MovedOutsideOfLambda1()
-        {
-            var src1 = @"
+    [Fact]
+    public void MovedOutsideOfLambda1()
+    {
+        var src1 = @"
 class C
 {
     static void F()
@@ -91,7 +91,7 @@ class C
         Action a = () => { <AS:0>Goo(1);</AS:0> };
     }
 }";
-            var src2 = @"
+        var src2 = @"
 class C
 {
     static void F()
@@ -101,16 +101,16 @@ class C
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active);
-        }
+        edits.VerifySemanticDiagnostics(active);
+    }
 
-        [Fact]
-        public void MovedOutsideOfLambda2()
-        {
-            var src1 = @"
+    [Fact]
+    public void MovedOutsideOfLambda2()
+    {
+        var src1 = @"
 class C
 {
     static void F()
@@ -119,7 +119,7 @@ class C
         Action b = () => { Goo(2); };
     }
 }";
-            var src2 = @"
+        var src2 = @"
 class C
 {
     static void F()
@@ -129,10 +129,9 @@ class C
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active);
-        }
+        edits.VerifySemanticDiagnostics(active);
     }
 }

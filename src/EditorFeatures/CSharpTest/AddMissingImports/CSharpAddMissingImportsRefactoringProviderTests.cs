@@ -16,370 +16,369 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.AddMissingImports
+namespace Microsoft.CodeAnalysis.AddMissingImports;
+
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.AddMissingImports)]
+public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
 {
-    [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-    public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        => new CSharpAddMissingImportsRefactoringProvider();
+
+    protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
-            => new CSharpAddMissingImportsRefactoringProvider();
+        // Treat the span being tested as the pasted span
+        var hostDocument = workspace.Documents.First();
+        var pastedTextSpan = hostDocument.SelectedSpans.FirstOrDefault();
 
-        protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
+        if (!pastedTextSpan.IsEmpty)
         {
-            // Treat the span being tested as the pasted span
-            var hostDocument = workspace.Documents.First();
-            var pastedTextSpan = hostDocument.SelectedSpans.FirstOrDefault();
+            var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
 
-            if (!pastedTextSpan.IsEmpty)
+            // This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
+            // registered consecutively and that the last registered span wins.
+            pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), default);
+            pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), pastedTextSpan);
+        }
+    }
+
+    private Task TestInRegularAndScriptAsync(
+        string initialMarkup, string expectedMarkup,
+        bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
+    {
+        var options =
+            new OptionsCollection(GetLanguage())
             {
-                var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
+                { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
+                { GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups },
+            };
+        return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
+    }
 
-                // This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
-                // registered consecutively and that the last registered span wins.
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), default);
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), pastedTextSpan);
+    [WpfFact]
+    public async Task AddMissingImports_AddImport_PasteContainsSingleMissingImport()
+    {
+        var code = """
+            class C
+            {
+                public [|D|] Foo { get; }
             }
-        }
 
-        private Task TestInRegularAndScriptAsync(
-            string initialMarkup, string expectedMarkup,
-            bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
-        {
-            var options =
-                new OptionsCollection(GetLanguage())
-                {
-                    { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
-                    { GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups },
-                };
-            return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
-        }
+            namespace A
+            {
+                public class D { }
+            }
+            """;
 
-        [WpfFact]
-        public async Task AddMissingImports_AddImport_PasteContainsSingleMissingImport()
-        {
-            var code = """
-                class C
-                {
-                    public [|D|] Foo { get; }
-                }
+        var expected = """
+            using A;
 
-                namespace A
-                {
-                    public class D { }
-                }
-                """;
+            class C
+            {
+                public D Foo { get; }
+            }
 
-            var expected = """
-                using A;
+            namespace A
+            {
+                public class D { }
+            }
+            """;
 
-                class C
-                {
-                    public D Foo { get; }
-                }
+        await TestInRegularAndScriptAsync(code, expected);
+    }
 
-                namespace A
-                {
-                    public class D { }
-                }
-                """;
+    [WpfFact]
+    public async Task AddMissingImports_AddImportsBelowSystem_PlaceSystemFirstPasteContainsMultipleMissingImports()
+    {
+        var code = """
+            using System;
 
-            await TestInRegularAndScriptAsync(code, expected);
-        }
+            class C
+            {
+                [|public D Foo { get; }
+                public E Bar { get; }|]
+            }
 
-        [WpfFact]
-        public async Task AddMissingImports_AddImportsBelowSystem_PlaceSystemFirstPasteContainsMultipleMissingImports()
-        {
-            var code = """
-                using System;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    [|public D Foo { get; }
-                    public E Bar { get; }|]
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        var expected = """
+            using System;
+            using A;
+            using B;
 
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
+            class C
+            {
+                public D Foo { get; }
+                public E Bar { get; }
+            }
 
-            var expected = """
-                using System;
-                using A;
-                using B;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    public D Foo { get; }
-                    public E Bar { get; }
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+    }
 
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
+    [WpfFact]
+    public async Task AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports()
+    {
+        var code = """
+            using System;
 
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
-        }
+            class C
+            {
+                [|public D Foo { get; }
+                public E Bar { get; }|]
+            }
 
-        [WpfFact]
-        public async Task AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports()
-        {
-            var code = """
-                using System;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    [|public D Foo { get; }
-                    public E Bar { get; }|]
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        var expected = """
+            using A;
+            using B;
+            using System;
 
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
+            class C
+            {
+                public D Foo { get; }
+                public E Bar { get; }
+            }
 
-            var expected = """
-                using A;
-                using B;
-                using System;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    public D Foo { get; }
-                    public E Bar { get; }
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+    }
 
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/42221")]
+    public async Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
+    {
+        var code = """
+            using System;
 
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
-        }
+            class C
+            {
+                [|public D Foo { get; }
+                public E Bar { get; }|]
+            }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/42221")]
-        public async Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
-        {
-            var code = """
-                using System;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    [|public D Foo { get; }
-                    public E Bar { get; }|]
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        var expected = """
+            using A;
+            using B;
 
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
+            using System;
 
-            var expected = """
-                using A;
-                using B;
+            class C
+            {
+                public D Foo { get; }
+                public E Bar { get; }
+            }
 
-                using System;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    public D Foo { get; }
-                    public E Bar { get; }
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
+    }
 
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
+    [WpfFact]
+    public async Task AddMissingImports_PartialFix_PasteContainsFixableAndAmbiguousMissingImports()
+    {
+        var code = """
+            class C
+            {
+                [|public D Foo { get; }
+                public E Bar { get; }|]
+            }
 
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
-        }
+            namespace A
+            {
+                public class D { }
+            }
 
-        [WpfFact]
-        public async Task AddMissingImports_PartialFix_PasteContainsFixableAndAmbiguousMissingImports()
-        {
-            var code = """
-                class C
-                {
-                    [|public D Foo { get; }
-                    public E Bar { get; }|]
-                }
+            namespace B
+            {
+                public class D { }
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        var expected = """
+            using B;
 
-                namespace B
-                {
-                    public class D { }
-                    public class E { }
-                }
-                """;
+            class C
+            {
+                public D Foo { get; }
+                public E Bar { get; }
+            }
 
-            var expected = """
-                using B;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    public D Foo { get; }
-                    public E Bar { get; }
-                }
+            namespace B
+            {
+                public class D { }
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        await TestInRegularAndScriptAsync(code, expected);
+    }
 
-                namespace B
-                {
-                    public class D { }
-                    public class E { }
-                }
-                """;
+    [WpfFact]
+    public async Task AddMissingImports_NoAction_NoPastedSpan()
+    {
+        var code = """
+            class C
+            {
+                public D[||] Foo { get; }
+            }
 
-            await TestInRegularAndScriptAsync(code, expected);
-        }
+            namespace A
+            {
+                public class D { }
+            }
+            """;
 
-        [WpfFact]
-        public async Task AddMissingImports_NoAction_NoPastedSpan()
-        {
-            var code = """
-                class C
-                {
-                    public D[||] Foo { get; }
-                }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-                namespace A
-                {
-                    public class D { }
-                }
-                """;
+    [WpfFact]
+    public async Task AddMissingImports_NoAction_PasteIsNotMissingImports()
+    {
+        var code = """
+            class [|C|]
+            {
+                public D Foo { get; }
+            }
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+            namespace A
+            {
+                public class D { }
+            }
+            """;
 
-        [WpfFact]
-        public async Task AddMissingImports_NoAction_PasteIsNotMissingImports()
-        {
-            var code = """
-                class [|C|]
-                {
-                    public D Foo { get; }
-                }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-                namespace A
-                {
-                    public class D { }
-                }
-                """;
+    [WpfFact]
+    public async Task AddMissingImports_NoAction_PasteContainsAmibiguousMissingImport()
+    {
+        var code = """
+            class C
+            {
+                public [|D|] Foo { get; }
+            }
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+            namespace A
+            {
+                public class D { }
+            }
 
-        [WpfFact]
-        public async Task AddMissingImports_NoAction_PasteContainsAmibiguousMissingImport()
-        {
-            var code = """
-                class C
-                {
-                    public [|D|] Foo { get; }
-                }
+            namespace B
+            {
+                public class D { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-                namespace B
-                {
-                    public class D { }
-                }
-                """;
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
+    public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
+    {
+        var code = """
+            class C
+            {
+                [|public D Foo { get; }
+                public E Bar { get; }|]
+            }
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+            namespace A
+            {
+                public class D { }
+            }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
-        public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
-        {
-            var code = """
-                class C
-                {
-                    [|public D Foo { get; }
-                    public E Bar { get; }|]
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
+        var expected = """
+            using A;
+            using B;
 
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
+            class C
+            {
+                public D Foo { get; }
+                public E Bar { get; }
+            }
 
-            var expected = """
-                using A;
-                using B;
+            namespace A
+            {
+                public class D { }
+            }
 
-                class C
-                {
-                    public D Foo { get; }
-                    public E Bar { get; }
-                }
+            namespace B
+            {
+                public class E { }
+            }
+            """;
 
-                namespace A
-                {
-                    public class D { }
-                }
-
-                namespace B
-                {
-                    public class E { }
-                }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
-        }
+        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
     }
 }
