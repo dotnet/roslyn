@@ -153,10 +153,20 @@ namespace Roslyn.LanguageServer.Protocol
         public PublishDiagnosticsSetting? PublishDiagnostics { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines how folding range is supported.
+        /// Capabilities specific to the `textDocument/foldingRange` request.
         /// </summary>
+        /// <remarks>Since LSP 3.10</remarks>
         [JsonPropertyName("foldingRange")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public FoldingRangeSetting? FoldingRange { get; set; }
+
+        /// <summary>
+        /// Capabilities specific to the `textDocument/selectionRange` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
+        [JsonPropertyName("selectionRange")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SelectionRangeClientCapabilities? SelectionRange { get; set; }
 
         /// <summary>
         /// Gets or sets the setting which determines if linked editing range can be dynamically registered.

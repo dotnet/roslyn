@@ -191,6 +191,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if folding range is supported.
         /// </summary>
+        /// <remarks>Since LSP 3.10</remarks>
         [JsonPropertyName("foldingRangeProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, FoldingRangeOptions>? FoldingRangeProvider { get; set; }
@@ -201,6 +202,14 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("executeCommandProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ExecuteCommandOptions? ExecuteCommandProvider { get; set; }
+
+        /// <summary>
+        /// The server provides selection range support.
+        /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
+        [JsonPropertyName("selectionRangeProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SumType<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>? SelectionRangeProvider { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the server supports linked editing range.

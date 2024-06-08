@@ -80,4 +80,41 @@ partial class Methods
     /// Strongly typed message object for 'workspace/codeLens/refresh'.
     /// </summary>
     public static readonly LspRequest<object?, object?> WorkspaceCodeLensRefresh = new(WorkspaceCodeLensRefreshName);
+
+    /// <summary>
+    /// Method name for 'textDocument/foldingRange'.
+    /// <para>
+    /// The folding range request is sent from the client to the server to return all folding ranges found in a given text document.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_foldingRange">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.10</remarks>
+    public const string TextDocumentFoldingRangeName = "textDocument/foldingRange";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/foldingRange'.
+    /// </summary>
+    public static readonly LspRequest<FoldingRangeParams, FoldingRange[]?> TextDocumentFoldingRange = new(TextDocumentFoldingRangeName);
+
+    /// <summary>
+    /// Method name for 'textDocument/selectionRange'.
+    /// <para>
+    /// The selection range request is sent from the client to the server to return suggested selection ranges at an array of given positions.
+    /// </para>
+    /// <para>
+    /// A selection range is a range around the cursor position which the user might be interested in selecting.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_selectionRange">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.15</remarks>
+    public const string TextDocumentSelectionRangeName = "textDocument/selectionRange";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/selectionRange'.
+    /// </summary>
+    public static readonly LspRequest<SelectionRangeParams, SelectionRange[]?> TextDocumentSelectionRange = new(TextDocumentSelectionRangeName);
 }
