@@ -9,13 +9,8 @@ namespace Microsoft.CodeAnalysis.Options;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class EditorConfigGeneratorAttribute : ExportAttribute
+internal sealed class EditorConfigOptionsEnumeratorAttribute(string language)
+    : ExportAttribute(typeof(IEditorConfigOptionsEnumerator))
 {
-    public string Language { get; }
-
-    public EditorConfigGeneratorAttribute(string language)
-        : base(typeof(IEditorConfigOptionsCollection))
-    {
-        this.Language = language ?? throw new ArgumentNullException(nameof(language));
-    }
+    public string Language { get; } = language;
 }

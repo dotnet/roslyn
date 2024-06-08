@@ -12,27 +12,19 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Options.EditorConfig;
+namespace Microsoft.CodeAnalysis.Options;
 
-[Export(typeof(EditorConfigOptionsGenerator)), Shared]
-internal class EditorConfigOptionsGenerator
+[Export(typeof(EditorConfigOptionsEnumerator)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditorConfigOptionsEnumerator(
+    [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsEnumerator, LanguageMetadata>> optionEnumerators)
 {
-    private readonly IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> _editorConfigGenerators;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditorConfigOptionsGenerator(
-        [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> generators)
-    {
-        _editorConfigGenerators = generators;
-    }
-
-    public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetDefaultOptions(string language)
+    public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetOptions(string language)
     {
         var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
-        builder.AddRange(GetLanguageAgnosticEditorConfigOptions());
 
-        foreach (var generator in _editorConfigGenerators)
+        foreach (var generator in optionEnumerators)
         {
             if (generator.Metadata.Language == language)
             {

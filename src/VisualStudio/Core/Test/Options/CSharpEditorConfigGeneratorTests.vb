@@ -253,8 +253,7 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 ' Use the default options
                 Dim options = New OptionStore(workspace.GlobalOptions)
-                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
-                Dim groupedOptions = editorService.GetDefaultOptions(LanguageNames.CSharp)
+                Dim groupedOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.CSharp)
                 Dim actualText = EditorConfigFileGenerator.Generate(groupedOptions, Options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
@@ -499,8 +498,7 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
-                Dim groupedOptions = editorService.GetDefaultOptions(LanguageNames.CSharp)
+                Dim groupedOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.CSharp)
                 Dim actualText = EditorConfigFileGenerator.Generate(groupedOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
