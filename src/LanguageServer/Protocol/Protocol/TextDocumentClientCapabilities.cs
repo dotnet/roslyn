@@ -90,7 +90,7 @@ namespace Roslyn.LanguageServer.Protocol
         public DocumentHighlightClientCapabilities? DocumentHighlight { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if document symbol can be dynamically registered.
+        /// Capabilities specific to the `textDocument/documentSymbol` request.
         /// </summary>
         [JsonPropertyName("documentSymbol")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

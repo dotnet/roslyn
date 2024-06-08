@@ -10,9 +10,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing information about programming constructs like variables, classes, interfaces, etc.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#symbolInformation">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    [Obsolete("Use DocumentSymbol or WorkspaceSymbol instead")]
     internal class SymbolInformation : IEquatable<SymbolInformation>
     {
         /// <summary>
@@ -36,7 +38,33 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="Protocol.Location"/> of this symbol.
+        /// Tags for this document symbol.
+        /// </summary>
+        /// <remarks>Since 3.16</remarks>
+        [JsonPropertyName("tags")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SymbolTag[]? Tags { get; init; }
+
+        /// <summary>
+        /// Indicates whether this symbol is deprecated.
+        /// </summary>
+        [JsonPropertyName("deprecated")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [Obsolete("Use Tags instead")]
+        public bool Deprecated { get; init; }
+
+        /// <summary>
+        /// The location of this symbol, used by a tool to reveal the location in the editor.
+        /// <para>
+        /// If the symbol is selected in the tool the range's start information is used to
+        /// position the cursor. So the range usually spans more then the actual symbol's
+        /// name and does normally include things like visibility modifiers.
+        /// </para>
+        /// <para>
+        /// The range doesn't have to denote a node range in the sense of an abstract
+        /// syntax tree. It can therefore not be used to re-construct a hierarchy of
+        /// the symbols.
+        /// </para>
         /// </summary>
         [JsonPropertyName("location")]
         public Location Location
@@ -46,7 +74,12 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the name of the symbol containing this symbol.
+        /// <para>
+        /// The name of the symbol containing this symbol.
+        /// </para>
+        /// This information is for user interface purposes (e.g. to render a qualifier in
+        /// the user interface if necessary). It can't be used to re-infer a hierarchy for
+        /// the document symbols.
         /// </summary>
         [JsonPropertyName("containerName")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -65,22 +98,19 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public bool Equals(SymbolInformation? other)
         {
-            return other != null &&
-                   this.Name == other.Name &&
-                   this.Kind == other.Kind &&
-                   EqualityComparer<Location>.Default.Equals(this.Location, other.Location) &&
-                   this.ContainerName == other.ContainerName;
+            return other != null
+                && this.Name == other.Name
+                && this.Kind == other.Kind
+                && (this.Tags == null
+                        ? other.Tags == null
+                        : (this.Tags.Equals(other.Tags) || this.Tags.SequenceEqual(other.Tags)))
+                && this.Deprecated == other.Deprecated
+                && EqualityComparer<Location>.Default.Equals(this.Location, other.Location)
+                && this.ContainerName == other.ContainerName;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            var hashCode = 1633890234;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(this.Name);
-            hashCode = (hashCode * -1521134295) + (int)this.Kind;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<Location>.Default.GetHashCode(this.Location);
-            hashCode = (hashCode * -1521134295) + EqualityComparer<string?>.Default.GetHashCode(this.ContainerName);
-            return hashCode;
-        }
+        public override int GetHashCode() =>
+            HashCode.Combine(Name, Kind, Utilities.Hash.CombineValues(Tags), Deprecated, Location, ContainerName);
     }
 }

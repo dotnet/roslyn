@@ -126,7 +126,7 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<bool, DocumentHighlightOptions>? DocumentHighlightProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether document symbols are supported.
+        /// The server provides Document Symbols support.
         /// </summary>
         [JsonPropertyName("documentSymbolProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

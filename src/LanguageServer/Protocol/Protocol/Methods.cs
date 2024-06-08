@@ -62,11 +62,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentDocumentColorName = "textDocument/documentColor";
 
         /// <summary>
-        /// Method name for 'textDocument/documentSymbol'.
-        /// </summary>
-        public const string TextDocumentDocumentSymbolName = "textDocument/documentSymbol";
-
-        /// <summary>
         /// Method name for 'textDocument/formatting'.
         /// </summary>
         public const string TextDocumentFormattingName = "textDocument/formatting";
@@ -225,11 +220,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'textDocument/documentColor'.
         /// </summary>
         public static readonly LspRequest<DocumentColorParams, ColorInformation[]> DocumentColorRequest = new LspRequest<DocumentColorParams, ColorInformation[]>(TextDocumentDocumentColorName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/documentSymbol'.
-        /// </summary>
-        public static readonly LspRequest<DocumentSymbolParams, SymbolInformation[]?> TextDocumentDocumentSymbol = new LspRequest<DocumentSymbolParams, SymbolInformation[]?>(TextDocumentDocumentSymbolName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/formatting'.
