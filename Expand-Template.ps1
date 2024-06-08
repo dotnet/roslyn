@@ -36,7 +36,7 @@ function Replace-Placeholders {
 
     $Path = Resolve-Path $Path
     Write-Host "Replacing tokens in `"$Path`""
-    $content = Get-Content -Path $Path | Out-String
+    $content = Get-Content -Encoding UTF8 -Path $Path | Out-String
     $Replacements.GetEnumerator() |% {
         $modifiedContent = $content -replace $_.Key,$_.Value
         if ($modifiedContent -eq $content) {
