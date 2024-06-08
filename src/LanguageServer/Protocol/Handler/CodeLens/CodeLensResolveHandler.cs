@@ -9,6 +9,7 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Roslyn.LanguageServer.Protocol;
 using System.Text.Json;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
@@ -48,11 +49,13 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
             ]
         };
 
-        // If the request is for an older version of the document, return a request with '- references'
+        // If the request is for an older version of the document, throw an exception so the client knows to re-query us.
         if (resolveData.SyntaxVersion != currentDocumentSyntaxVersion.ToString())
         {
-            context.TraceInformation($"Requested syntax version {resolveData.SyntaxVersion} does not match current version {currentDocumentSyntaxVersion}");
-            return request;
+            throw new LocalRpcException($"Resolve version {resolveData.SyntaxVersion} does not match current version {currentDocumentSyntaxVersion}")
+            {
+                ErrorCode = LspErrorCodes.ContentModified
+            };
         }
 
         var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
