@@ -4,13 +4,30 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing human readable text that should be rendered.
-    ///
+    /// MarkedString can be used to render human readable text. It is either a
+    /// markdown string or a code-block that provides a language and a code snippet.
+    /// <para>
+    /// The language identifier is semantically equal to the optional language
+    /// identifier in fenced code blocks in GitHub issues.
+    /// </para>
+    /// <para>The pair of a language and a value is an equivalent to markdown:
+    /// <code>
+    /// ```${language}
+    /// ${value}
+    /// ```
+    /// </code>
+    /// </para>
+    /// <para>Note that markdown strings will be sanitized - that means html will be escaped.
+    /// </para>
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markedString">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    [Obsolete("Use MarkupContent instead")]
     internal class MarkedString
     {
         /// <summary>

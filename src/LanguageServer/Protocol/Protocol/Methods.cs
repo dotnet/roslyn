@@ -37,19 +37,9 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentCodeActionName = "textDocument/codeAction";
 
         /// <summary>
-        /// Method name for 'textDocument/codeLens'.
-        /// </summary>
-        public const string TextDocumentCodeLensName = "textDocument/codeLens";
-
-        /// <summary>
         /// Method name for 'codeAction/resolve'.
         /// </summary>
         public const string CodeActionResolveName = "codeAction/resolve";
-
-        /// <summary>
-        /// Method name for 'codeLens/resolve'.
-        /// </summary>
-        public const string CodeLensResolveName = "codeLens/resolve";
 
         /// <summary>
         /// Method name for 'textDocument/completion'.
@@ -77,19 +67,9 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentDocumentSymbolName = "textDocument/documentSymbol";
 
         /// <summary>
-        /// Method name for 'textDocument/foldingRange'.
-        /// </summary>
-        public const string TextDocumentFoldingRangeName = "textDocument/foldingRange";
-
-        /// <summary>
         /// Method name for 'textDocument/formatting'.
         /// </summary>
         public const string TextDocumentFormattingName = "textDocument/formatting";
-
-        /// <summary>
-        /// Method name for 'textDocument/hover'.
-        /// </summary>
-        public const string TextDocumentHoverName = "textDocument/hover";
 
         /// <summary>
         /// Method name for 'textDocument/onTypeFormatting'.
@@ -212,11 +192,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WorkspaceDidChangeWatchedFilesName = "workspace/didChangeWatchedFiles";
 
         /// <summary>
-        /// Method name for 'workspace/codeLens/refresh'.
-        /// </summary>
-        public const string WorkspaceCodeLensRefreshName = "workspace/codeLens/refresh";
-
-        /// <summary>
         /// Method name for 'workspace/inlayHint/refresh'.
         /// </summary>
         public const string WorkspaceInlayHintRefreshName = "workspace/inlayHint/refresh";
@@ -232,19 +207,9 @@ namespace Roslyn.LanguageServer.Protocol
         public static readonly LspRequest<CodeActionParams, SumType<Command, CodeAction>[]?> TextDocumentCodeAction = new LspRequest<CodeActionParams, SumType<Command, CodeAction>[]?>(TextDocumentCodeActionName);
 
         /// <summary>
-        /// Strongly typed message object for 'textDocument/codeLens'.
-        /// </summary>
-        public static readonly LspRequest<CodeLensParams, CodeLens[]?> TextDocumentCodeLens = new LspRequest<CodeLensParams, CodeLens[]?>(TextDocumentCodeLensName);
-
-        /// <summary>
         /// Strongly typed message object for 'codeAction/resolve'.
         /// </summary>
         public static readonly LspRequest<CodeAction, CodeAction> CodeActionResolve = new LspRequest<CodeAction, CodeAction>(CodeActionResolveName);
-
-        /// <summary>
-        /// Strongly typed message object for 'codeLens/resolve'.
-        /// </summary>
-        public static readonly LspRequest<CodeLens, CodeLens> CodeLensResolve = new LspRequest<CodeLens, CodeLens>(CodeLensResolveName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/completion'.
@@ -267,19 +232,9 @@ namespace Roslyn.LanguageServer.Protocol
         public static readonly LspRequest<DocumentSymbolParams, SymbolInformation[]?> TextDocumentDocumentSymbol = new LspRequest<DocumentSymbolParams, SymbolInformation[]?>(TextDocumentDocumentSymbolName);
 
         /// <summary>
-        /// Stronly typed message object for 'textDocument/foldingRange'.
-        /// </summary>
-        public static readonly LspRequest<FoldingRangeParams, FoldingRange[]?> TextDocumentFoldingRange = new LspRequest<FoldingRangeParams, FoldingRange[]?>(TextDocumentFoldingRangeName);
-
-        /// <summary>
         /// Strongly typed message object for 'textDocument/formatting'.
         /// </summary>
         public static readonly LspRequest<DocumentFormattingParams, TextEdit[]?> TextDocumentFormatting = new LspRequest<DocumentFormattingParams, TextEdit[]?>(TextDocumentFormattingName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/hover'.
-        /// </summary>
-        public static readonly LspRequest<TextDocumentPositionParams, Hover> TextDocumentHover = new LspRequest<TextDocumentPositionParams, Hover>(TextDocumentHoverName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/onTypeFormatting'.
@@ -375,11 +330,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'workspace/didChangeWatchedFiles'.
         /// </summary>
         public static readonly LspNotification<DidChangeWatchedFilesParams> WorkspaceDidChangeWatchedFiles = new LspNotification<DidChangeWatchedFilesParams>(WorkspaceDidChangeWatchedFilesName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/codeLens/refresh'.
-        /// </summary>
-        public static readonly LspRequest<object?, object?> WorkspaceCodeLensRefresh = new LspRequest<object?, object?>(WorkspaceCodeLensRefreshName);
 
         /// <summary>
         /// Strongly typed message object for 'workspace/inlayHint/refresh'.

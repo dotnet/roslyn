@@ -67,7 +67,7 @@ namespace Roslyn.LanguageServer.Protocol
         public CompletionOptions? CompletionProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the server provides hover support.
+        /// The server provides hover support.
         /// </summary>
         [JsonPropertyName("hoverProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

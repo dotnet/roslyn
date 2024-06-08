@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         public CompletionSetting? Completion { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if hover can be dynamically registered.
+        /// Capabilities specific to the `textDocument/hover` request
         /// </summary>
         [JsonPropertyName("hover")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -104,11 +104,11 @@ namespace Roslyn.LanguageServer.Protocol
         public CodeActionSetting? CodeAction { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if code lens can be dynamically registered.
+        /// Capabilities specific to the `textDocument/codeLens` request.
         /// </summary>
         [JsonPropertyName("codeLens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? CodeLens { get; set; }
+        public CodeLensClientCapabilities? CodeLens { get; set; }
 
         /// <summary>
         /// Capabilities specific to the `textDocument/documentLink` request.

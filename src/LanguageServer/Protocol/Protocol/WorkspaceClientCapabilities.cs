@@ -73,8 +73,9 @@ namespace Roslyn.LanguageServer.Protocol
         public SemanticTokensWorkspaceSetting? SemanticTokens { get; set; }
 
         /// <summary>
-        /// Gets of sets capabilities specific to the code lens requests scoped to the workspace.
+        /// Capabilities specific to the code lens requests scoped to the workspace.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("codeLens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeLensWorkspaceSetting? CodeLens { get; set; }

@@ -7,34 +7,26 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the data returned by a textDocument/hover request.
-    ///
+    /// Class representing the data returned by a <c>textDocument/hover</c> request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hover">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class Hover
     {
         /// <summary>
-        /// Gets or sets the content for the hover. Object can either be an array or a single object.
-        /// If the object is an array the array can contain objects of type <see cref="MarkedString"/> and <see cref="string"/>.
-        /// If the object is not an array it can be of type <see cref="MarkedString"/>, <see cref="string"/>, or <see cref="MarkupContent"/>.
+        /// The hover's content
         /// </summary>
-        // This is nullable because in VS we allow null when VSInternalHover.RawContent is specified instead of Contents
         [JsonPropertyName("contents")]
-        public SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>? Contents
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent> Contents { get; set; }
 
         /// <summary>
-        /// Gets or sets the range over which the hover applies.
+        /// An optional range inside a text document that is used to visualize the applicable
+        /// range of the hover, e.g. by changing the background color.
         /// </summary>
         [JsonPropertyName("range")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public Range? Range
-        {
-            get;
-            set;
-        }
+        public Range? Range { get; set; }
     }
 }
