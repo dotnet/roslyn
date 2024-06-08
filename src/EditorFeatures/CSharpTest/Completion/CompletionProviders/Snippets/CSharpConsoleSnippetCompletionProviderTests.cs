@@ -491,4 +491,94 @@ public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpSnippet
             """;
         await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
     }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task InsertConsoleSnippetInVoidReturningLambdaTest1()
+    {
+        var markupBeforeCommit = """
+            using System;
+
+            M(() => $$);
+
+            void M(Action a)
+            {
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            using System;
+
+            M(() => Console.WriteLine($$));
+
+            void M(Action a)
+            {
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task InsertConsoleSnippetInVoidReturningLambdaTest2()
+    {
+        var markupBeforeCommit = """
+            using System;
+
+            Action action = () => $$
+            """;
+
+        var expectedCodeAfterCommit = """
+            using System;
+            
+            Action action = () => Console.WriteLine($$)
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task InsertConsoleSnippetInVoidReturningLambdaTest_TypeInference()
+    {
+        var markupBeforeCommit = """
+            using System;
+
+            var action = () => $$
+            """;
+
+        var expectedCodeAfterCommit = """
+            using System;
+            
+            var action = () => Console.WriteLine($$)
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task NoConsoleSnippetInNonVoidReturningLambdaTest1()
+    {
+        var markupBeforeCommit = """
+            using System;
+            
+            M(() => $$);
+            
+            void M(Func<int> f)
+            {
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task NoConsoleSnippetInNonVoidReturningLambdaTest2()
+    {
+        var markupBeforeCommit = """
+            using System;
+            
+            Func<int> f = () => $$
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 }

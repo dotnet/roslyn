@@ -338,9 +338,7 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // they include any : or :: tokens. If they do, we can't remove the parentheses because
         // the parser would assume that the first : would begin the format clause of the interpolation.
 
-        using var pooledStack = s_nodeStackPool.GetPooledObject();
-        var stack = pooledStack.Object;
-
+        using var _ = s_nodeStackPool.GetPooledObject(out var stack);
         stack.Push(node.Expression);
 
         while (stack.TryPop(out var expression))

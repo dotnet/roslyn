@@ -35,7 +35,7 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
         using var workspace = CreateWorkspace(out var solution, out var encService);
 
         var projectP = solution.
-            AddProject("P", "P", LanguageNames.CSharp).
+            AddTestProject("P").
             WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
         solution = projectP.Solution;
@@ -49,15 +49,15 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
 
         var hotReload = new UnitTestingHotReloadService(workspace.Services);
 
-        await hotReload.StartSessionAsync(solution, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"), CancellationToken.None);
+        await hotReload.StartSessionAsync(solution, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"], CancellationToken.None);
 
         var sessionId = hotReload.GetTestAccessor().SessionId;
         var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
         var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "(A, MatchesBuildOutput)"
-        }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
         // Valid change
         solution = solution.WithDocumentText(documentIdA, CreateText(source2));

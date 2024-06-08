@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -53,10 +54,12 @@ internal sealed class StreamingFindReferencesProgressAdapter : IStreamingFindRef
         }
     }
 
-    public async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+    public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
-        await foreach (var (_, symbol, location) in references)
+        foreach (var (_, symbol, location) in references)
             _progress.OnReferenceFound(symbol, location);
+
+        return ValueTaskFactory.CompletedTask;
     }
 
     public ValueTask OnStartedAsync(CancellationToken cancellationToken)

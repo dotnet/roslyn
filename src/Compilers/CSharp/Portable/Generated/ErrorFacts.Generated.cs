@@ -342,6 +342,7 @@
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                 case ErrorCode.WRN_BadYieldInLock:
+                case ErrorCode.WRN_PartialPropertySignatureDifference:
                     return true;
                 default:
                     return false;
@@ -371,6 +372,7 @@
             {
                 case ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer:
                 case ErrorCode.INF_TooManyBoundLambdas:
+                case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
                     return true;
                 default:
                     return false;

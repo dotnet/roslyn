@@ -14,16 +14,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -39,14 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed partial class ReferenceHighlightingViewTaggerProvider(
-    IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<NavigableHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
+internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost taggerHost)
+    : AsynchronousViewTaggerProvider<NavigableHighlightTag>(taggerHost, FeatureAttribute.ReferenceHighlighting)
 {
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
-
     // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
     // highlights if the caret stays within an existing tag.
     protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
@@ -86,13 +80,12 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         return textViewOpt.BufferGraph.MapDownToFirstMatch(textViewOpt.Selection.Start.Position, PointTrackingMode.Positive, b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
     }
 
-    protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+    protected override void AddSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // Note: this may return no snapshot spans.  We have to be resilient to that
         // when processing the TaggerContext<>.SpansToTag below.
-        return textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType))
-                          .Select(b => b.CurrentSnapshot.GetFullSpan())
-                          .ToList();
+        foreach (var buffer in textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType)))
+            result.Add(buffer.CurrentSnapshot.GetFullSpan());
     }
 
     protected override Task ProduceTagsAsync(
@@ -117,15 +110,15 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         }
 
         // Don't produce tags if the feature is not enabled.
-        if (!_globalOptions.GetOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, document.Project.Language))
+        if (!this.GlobalOptions.GetOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, document.Project.Language))
         {
             return Task.CompletedTask;
         }
 
-        // See if the user is just moving their caret around in an existing tag.  If so, we don't
-        // want to actually go recompute things.  Note: this only works for containment.  If the
-        // user moves their caret to the end of a highlighted reference, we do want to recompute
-        // as they may now be at the start of some other reference that should be highlighted instead.
+        // See if the user is just moving their caret around in an existing tag.  If so, we don't want to actually go
+        // recompute things.  Note: this only works for containment.  If the user moves their caret to the end of a
+        // highlighted reference, we do want to recompute as they may now be at the start of some other reference that
+        // should be highlighted instead.
         var onExistingTags = context.HasExistingContainingTags(caretPosition);
         if (onExistingTags)
         {
@@ -134,7 +127,7 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         }
 
         // Otherwise, we need to go produce all tags.
-        var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
+        var options = this.GlobalOptions.GetHighlightingOptions(document.Project.Language);
         return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
     }
 
@@ -145,8 +138,6 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         HighlightingOptions options,
         CancellationToken cancellationToken)
     {
-        var solution = document.Project.Solution;
-
         using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
         {
             if (document != null)
@@ -160,15 +151,17 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
 
                     // We only want to search inside documents that correspond to the snapshots
                     // we're looking at
-                    var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+                    var documentsToSearchBuilder = ImmutableHashSet.CreateBuilder<Document>();
+                    foreach (var snapshotSpan in context.SpansToTag)
+                        documentsToSearchBuilder.AddIfNotNull(snapshotSpan.Document);
+
+                    var documentsToSearch = documentsToSearchBuilder.ToImmutable();
                     var documentHighlightsList = await service.GetDocumentHighlightsAsync(
                         document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                     if (documentHighlightsList != null)
                     {
                         foreach (var documentHighlights in documentHighlightsList)
-                        {
                             AddTagSpans(context, documentHighlights, cancellationToken);
-                        }
                     }
                 }
             }

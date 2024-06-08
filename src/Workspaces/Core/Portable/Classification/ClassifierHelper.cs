@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
@@ -238,17 +239,20 @@ internal static partial class ClassifierHelper
     {
         // Create an interval tree so we can easily determine which semantic parts intersect with the 
         // syntactic parts we're looking at.
-        var semanticPartsTree = new SimpleIntervalTree<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(default, values: null);
+        using var _1 = SegmentedListPool.GetPooledList<TClassifiedSpan>(out var semanticSpans);
 
         // Add all the non-empty semantic parts to the tree.
         foreach (var part in semanticParts)
         {
             if (!getSpan(part).IsEmpty)
             {
-                semanticPartsTree.AddIntervalInPlace(part);
+                semanticSpans.Add(part);
                 finalParts.Add(part);
             }
         }
+
+        var semanticPartsTree = ImmutableIntervalTree<TClassifiedSpan>.CreateFromUnsorted(
+            default(TClassifiedSpanIntervalIntrospector), semanticSpans);
 
         using var tempBuffer = TemporaryArray<TClassifiedSpan>.Empty;
 
@@ -260,8 +264,9 @@ internal static partial class ClassifierHelper
                 continue;
 
             tempBuffer.Clear();
-            semanticPartsTree.FillWithIntervalsThatOverlapWith(
-                syntacticPartSpan.Start, syntacticPartSpan.Length, ref tempBuffer.AsRef());
+            semanticPartsTree.Algorithms.FillWithIntervalsThatOverlapWith(
+                syntacticPartSpan.Start, syntacticPartSpan.Length, ref tempBuffer.AsRef(),
+                default(TClassifiedSpanIntervalIntrospector));
 
             if (tempBuffer.Count == 0)
             {

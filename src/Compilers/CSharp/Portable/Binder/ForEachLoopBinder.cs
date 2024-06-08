@@ -220,6 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckFeatureAvailability(_syntax.AwaitKeyword, MessageID.IDS_FeatureAsyncStreams, diagnostics);
             }
 
+            if (_syntax is ForEachStatementSyntax forEachStatement)
+            {
+                ReportFieldOrValueContextualKeywordConflictIfAny(forEachStatement, forEachStatement.Identifier, diagnostics);
+            }
+
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 

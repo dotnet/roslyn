@@ -11,8 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -44,10 +43,8 @@ public class SyntacticTaggerTests
 
         var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
             new SyntacticClassificationTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                typeMap: null,
-                workspace.GetService<IGlobalOptionService>(),
-                AsynchronousOperationListenerProvider.NullProvider),
+                workspace.GetService<TaggerHost>(),
+                typeMap: null),
             subjectBuffer,
             diffTimeout: TimeSpan.MaxValue);
 
@@ -89,8 +86,7 @@ public class SyntacticTaggerTests
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
     public async Task TestTagsChangedAfterDelete()
     {
-        var code =
-@"class Goo";
+        var code = @"class Goo";
         using var workspace = EditorTestWorkspace.CreateCSharp(code);
         var document = workspace.Documents.First();
         var subjectBuffer = document.GetTextBuffer();
@@ -101,10 +97,8 @@ public class SyntacticTaggerTests
 
         var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
             new SyntacticClassificationTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                typeMap,
-                workspace.GetService<IGlobalOptionService>(),
-                AsynchronousOperationListenerProvider.NullProvider),
+                workspace.GetService<TaggerHost>(),
+                typeMap),
             subjectBuffer,
             diffTimeout: TimeSpan.MaxValue);
 

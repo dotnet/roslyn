@@ -10,11 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
 internal abstract partial class AbstractAsynchronousTaggerProvider<TTag>
 {
-    private partial class TagSource : IEqualityComparer<ITagSpan<TTag>>
+    private partial class TagSource : IEqualityComparer<TagSpan<TTag>>
     {
-        private readonly ObjectPool<HashSet<ITagSpan<TTag>>> _tagSpanSetPool;
-
-        public bool Equals(ITagSpan<TTag>? x, ITagSpan<TTag>? y)
+        public bool Equals(TagSpan<TTag>? x, TagSpan<TTag>? y)
         {
             if (x == y)
                 return true;
@@ -28,10 +26,10 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag>
         /// <summary>
         /// For the purposes of hashing, just hash spans.  This will prevent most collisions.  And the rare
         /// collision of two tag spans with the same span will be handled by checking if their tags are the same
-        /// through <see cref="Equals(ITagSpan{TTag}, ITagSpan{TTag})"/>.  This prevents us from having to
+        /// through <see cref="Equals(TagSpan{TTag}, TagSpan{TTag})"/>.  This prevents us from having to
         /// define a suitable hashing strategy for all our tags.
         /// </summary>
-        public int GetHashCode(ITagSpan<TTag> obj)
+        public int GetHashCode(TagSpan<TTag> obj)
             => obj.Span.Span.GetHashCode();
     }
 }

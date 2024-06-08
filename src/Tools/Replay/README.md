@@ -18,7 +18,7 @@ Then run the replay tool against that log.
 
 ```cmd
 e:\code\roslyn> cd src\Tools\Replay
-e:\code\roslyn\src\Tools\Replay> dotnet run --framework net472 e:\code\example\msbuild.binlog -o e:\temp
+e:\code\roslyn\src\Tools\Replay> dotnet run --framework net472 --configuration Release e:\code\example\msbuild.binlog
 ```
 
 This runs all of the compilation events in the binary log against the compiler and outputs the results to `e:\temp`.
@@ -34,7 +34,7 @@ To profile with `dotnet trace` first run with the `-w` option to get the PID of 
 Console 1
 
 ```cmd
-e:\code\roslyn\src\Tools\Replay> dotnet run --framework net472 e:\code\example\msbuild.binlog -w
+e:\code\roslyn\src\Tools\Replay> dotnet run --framework net8.0 --configuration Release e:\code\example\msbuild.binlog -w
 Binary Log: E:\code\example\msbuild.binlog
 Client Directory: E:\code\roslyn\artifacts\bin\Replay\Release\net8.0\
 Output Directory: E:\code\roslyn\src\Tools\Replay\output
@@ -49,9 +49,10 @@ Press any key to continue
 Console 2
 
 ```cmd
-e:\users\jaredpar> dotnet trace collect --profile gc-verbose -p 48752
+e:\users\jaredpar> dotnet trace collect --profile gc-verbose -p 48752 --providers Microsoft-CodeAnalysis-General
 
 Provider Name                           Keywords            Level               Enabled By
+Microsoft-CodeAnalysis-General          0x0000000000000000  Informational(4)    --providers
 Microsoft-Windows-DotNETRuntime         0x0000000000008003  Verbose(5)          --profile
 
 Process        : C:\Program Files\dotnet\dotnet.exe

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -3917,11 +3918,8 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
 
         var provider = new SemanticClassificationViewTaggerProvider(
-            workspace.GetService<IThreadingContext>(),
-            workspace.GetService<ClassificationTypeMap>(),
-            globalOptions,
-            visibilityTracker: null,
-            listenerProvider);
+            workspace.GetService<TaggerHost>(),
+            workspace.GetService<ClassificationTypeMap>());
 
         using var tagger = provider.CreateTagger(disposableView.TextView, extraBuffer);
         using (var edit = extraBuffer.CreateEdit())

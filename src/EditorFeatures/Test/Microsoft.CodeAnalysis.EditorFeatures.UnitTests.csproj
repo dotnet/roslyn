@@ -14,7 +14,7 @@
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\Features\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />

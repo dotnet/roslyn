@@ -1181,14 +1181,11 @@ public partial class Solution
     /// specified.
     /// </summary>
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
-        => WithDocumentTexts([(documentId, text, mode)]);
+        => WithDocumentTexts([(documentId, text)], mode);
 
-    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts)
-        => WithDocumentTexts(texts.SelectAsArray(t => (t.documentId, t.text, PreservationMode.PreserveValue)));
-
-    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        foreach (var (documentId, text, mode) in texts)
+        foreach (var (documentId, text) in texts)
         {
             CheckContainsDocument(documentId);
 
@@ -1199,7 +1196,7 @@ public partial class Solution
                 throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentTexts(texts));
+        return WithCompilationState(_compilationState.WithDocumentTexts(texts, mode));
     }
 
     /// <summary>
@@ -1312,31 +1309,30 @@ public partial class Solution
     /// rooted by the specified syntax node.
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
-        => WithDocumentSyntaxRoots([(documentId, root, mode)]);
+        => WithDocumentSyntaxRoots([(documentId, root)], mode);
 
     /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
-    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots)
-        => WithDocumentSyntaxRoots(syntaxRoots.SelectAsArray(t => (t.documentId, t.root, PreservationMode.PreserveValue)));
-
-    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
-    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        foreach (var (documentId, root, mode) in syntaxRoots)
+        if (!mode.IsValid())
+            throw new ArgumentOutOfRangeException(nameof(mode));
+
+        foreach (var (documentId, root) in syntaxRoots)
         {
             CheckContainsDocument(documentId);
 
             if (root == null)
                 throw new ArgumentNullException(nameof(root));
-
-            if (!mode.IsValid())
-                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots));
+        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
     internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer));
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source

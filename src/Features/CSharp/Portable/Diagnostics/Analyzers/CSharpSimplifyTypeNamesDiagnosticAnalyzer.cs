@@ -64,7 +64,7 @@ internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         return simplifier.Diagnostics;
     }
 
-    protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree)
+    protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanMutableIntervalTree? codeBlockIntervalTree)
     {
         var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
         if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), context.CancellationToken))

@@ -182,6 +182,7 @@ public class RemoteEditAndContinueServiceTests
             var deltas = ImmutableArray.Create(new ManagedHotReloadUpdate(
                 module: moduleId1,
                 moduleName: "mod",
+                projectId: projectId,
                 ilDelta: ImmutableArray.Create<byte>(1, 2),
                 metadataDelta: ImmutableArray.Create<byte>(3, 4),
                 pdbDelta: ImmutableArray.Create<byte>(5, 6),

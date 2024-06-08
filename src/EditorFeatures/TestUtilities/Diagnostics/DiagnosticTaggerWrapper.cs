@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
-        private ITaggerProvider? _taggerProvider;
+        private AbstractDiagnosticsTaggerProvider<TTag>? _taggerProvider;
 
         public DiagnosticTaggerWrapper(
             EditorTestWorkspace workspace,
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        public ITaggerProvider TaggerProvider
+        public AbstractDiagnosticsTaggerProvider<TTag> TaggerProvider
         {
             get
             {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                     if (typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                     {
-                        _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
+                        _taggerProvider = (AbstractDiagnosticsTaggerProvider<TTag>)(object)_workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
                             .OfType<TProvider>()
                             .Single();
                     }

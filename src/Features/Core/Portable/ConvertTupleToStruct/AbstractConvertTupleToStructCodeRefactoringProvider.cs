@@ -185,9 +185,20 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         Document document, TextSpan span, CancellationToken cancellationToken)
     {
         // Enable refactoring either for TupleExpression or TupleType
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        // Acceptable to directly instantiate a parsed document here.  The parsed documents only uses services that are
+        // available in OOP.
+        var hostServices = document.Project.Solution.Services
+            .GetLanguageServices(document.Project.Language).HostLanguageServices;
+#pragma warning restore CS0618 // Type or member is obsolete
+        var parsedDocument = new ParsedDocument(document.Id, text, root, hostServices);
+
         var expressionOrType =
-            await document.TryGetRelevantNodeAsync<TTupleTypeSyntax>(span, cancellationToken).ConfigureAwait(false) as SyntaxNode ??
-            await document.TryGetRelevantNodeAsync<TTupleExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+            parsedDocument.TryGetRelevantNode<TTupleTypeSyntax>(span, cancellationToken) as SyntaxNode ??
+            parsedDocument.TryGetRelevantNode<TTupleExpressionSyntax>(span, cancellationToken);
         if (expressionOrType == null)
         {
             return default;

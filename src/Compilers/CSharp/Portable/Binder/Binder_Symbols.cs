@@ -704,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasExplicitNames = true;
                     CheckTupleMemberName(name, i, nameToken, diagnostics, uniqueFieldNames);
                     locations.Add(nameToken.GetLocation());
+                    ReportFieldOrValueContextualKeywordConflictIfAny(argumentSyntax, nameToken, diagnostics);
                 }
                 else
                 {
@@ -870,6 +871,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = LookupResult.GetInstance();
             LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
+
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
@@ -1209,6 +1212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol unconstructedType = LookupGenericTypeName(
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);
             NamedTypeSymbol resultType;
+
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             if (isUnboundTypeExpr)
             {

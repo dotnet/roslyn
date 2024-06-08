@@ -89,12 +89,15 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             return [];
         }
 
-        private static IEnumerable<ITagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
+        private static IReadOnlyList<TagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
             => SegmentedListPool<TagSpan<IClassificationTag>>.ComputeList(
                 static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
                 (cachedTags, spans));
 
-        public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+        IEnumerable<ITagSpan<IClassificationTag>> IAccurateTagger<IClassificationTag>.GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+            => GetAllTags(spans, cancellationToken);
+
+        public IEnumerable<TagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
         {
             if (spans.Count == 0)
                 return [];
@@ -125,7 +128,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             }
         }
 
-        private IEnumerable<ITagSpan<IClassificationTag>> ComputeAndCacheAllTags(
+        private IEnumerable<TagSpan<IClassificationTag>> ComputeAndCacheAllTags(
             NormalizedSnapshotSpanCollection spans,
             ITextSnapshot snapshot,
             Document document,
@@ -156,8 +159,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     arg: default).ConfigureAwait(false);
             });
 
-            var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
-
+            var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot, SpanTrackingMode.EdgeExclusive, mergedTags);
             lock (_gate)
             {
                 _cachedTaggedSpan = spanToTag;
