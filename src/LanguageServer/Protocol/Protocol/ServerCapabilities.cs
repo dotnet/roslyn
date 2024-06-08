@@ -229,9 +229,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if semantic tokens is supported.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("semanticTokensProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SemanticTokensOptions? SemanticTokensOptions { get; set; }
+        public SumType<SemanticTokensOptions, SemanticTokensRegistrationOptions>? SemanticTokensOptions { get; set; }
 
         /// <summary>
         /// The server provides type hierarchy support.

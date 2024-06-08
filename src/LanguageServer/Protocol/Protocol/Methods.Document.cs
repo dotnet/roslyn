@@ -145,4 +145,101 @@ partial class Methods
     /// Strongly typed message object for 'textDocument/documentSymbol'.
     /// </summary>
     public static readonly LspRequest<DocumentSymbolParams, SumType<SymbolInformation[], DocumentSymbol[]>?> TextDocumentDocumentSymbol = new(TextDocumentDocumentSymbolName);
+
+    /// <summary>
+    /// Method name for 'textDocument/semanticTokens'.
+    /// <para>
+    /// This method name is used only for registering for semantic tokens requests.
+    /// </para>
+    /// <para>
+    /// For actual requests, the specific methods <c>textDocument/semanticTokens/{full,full/delta,range}</c> are used.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokens_fullRequest">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public const string TextDocumentSemanticTokensName = "textDocument/semanticTokens";
+
+    /// <summary>
+    /// Method name for 'textDocument/semanticTokens/full'.
+    /// <para>
+    /// Returns semantic tokens for the full document.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokens_fullRequest">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public const string TextDocumentSemanticTokensFullName = "textDocument/semanticTokens/full";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/semanticTokens/full'.
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public static readonly LspRequest<SemanticTokensParams, SemanticTokens?> TextDocumentSemanticTokensFull = new(TextDocumentSemanticTokensFullName);
+
+    /// <summary>
+    /// Method name for 'textDocument/semanticTokens/full/delta'.
+    /// <para>
+    /// Returns a delta against a previous set of semantic tokens for the full document.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokens_deltaRequest">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public const string TextDocumentSemanticTokensFullDeltaName = "textDocument/semanticTokens/full/delta";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/semanticTokens/full/delta'.
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public static readonly LspRequest<SemanticTokensDeltaParams, SumType<SemanticTokens, SemanticTokensDelta>?> TextDocumentSemanticTokensFullDelta = new(TextDocumentSemanticTokensFullDeltaName);
+
+    /// <summary>
+    /// Method name for 'textDocument/semanticTokens/range'.
+    /// <para>
+    /// Returns semantic tokens for a visible range of the document.
+    /// </para>
+    /// <para>
+    /// This allows clients to improved rendering performance when opening files
+    /// and allow rendering documents that are too large for full semantic coloring.
+    /// </para>
+    /// <para>
+    /// A server is allowed to compute the semantic tokens for a broader range than
+    /// requested by the client. However if the server does the semantic tokens
+    /// for the broader range must be complete and correct.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokens_rangeRequest">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public const string TextDocumentSemanticTokensRangeName = "textDocument/semanticTokens/range";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/semanticTokens/range'.
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public static readonly LspRequest<SemanticTokensRangeParams, SemanticTokens?> TextDocumentSemanticTokensRange = new(TextDocumentSemanticTokensRangeName);
+
+    /// <summary>
+    /// Method name for 'workspace/semanticTokens/refresh'.
+    /// <para>
+    /// This request is sent from the server to the client. Servers can use it to ask clients to refresh the editors for
+    /// which this server provides semantic tokens.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokens_refreshRequest">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public const string WorkspaceSemanticTokensRefreshName = "workspace/semanticTokens/refresh";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/semanticTokens/refresh'.
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public static readonly LspRequest<object?, object?> WorkspaceSemanticTokensRefresh = new(WorkspaceSemanticTokensRefreshName);
 }

@@ -66,8 +66,9 @@ namespace Roslyn.LanguageServer.Protocol
         public bool Configuration { get; set; }
 
         /// <summary>
-        /// Gets or sets capabilities specific to the semantic token requests scoped to the workspace.
+        /// Capabilities specific to the semantic token requests scoped to the workspace.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("semanticTokens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SemanticTokensWorkspaceSetting? SemanticTokens { get; set; }

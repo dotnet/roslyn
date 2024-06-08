@@ -102,21 +102,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentPrepareRenameName = "textDocument/prepareRename";
 
         /// <summary>
-        /// Method name for 'textDocument/semanticTokens/full'.
-        /// </summary>
-        public const string TextDocumentSemanticTokensFullName = "textDocument/semanticTokens/full";
-
-        /// <summary>
-        /// Method name for 'textDocument/semanticTokens/range'.
-        /// </summary>
-        public const string TextDocumentSemanticTokensRangeName = "textDocument/semanticTokens/range";
-
-        /// <summary>
-        /// Method name for 'textDocument/semanticTokens/full/delta'.
-        /// </summary>
-        public const string TextDocumentSemanticTokensFullDeltaName = "textDocument/semanticTokens/full/delta";
-
-        /// <summary>
         /// Method name for 'textDocument/signatureHelp'.
         /// </summary>
         public const string TextDocumentSignatureHelpName = "textDocument/signatureHelp";
@@ -145,11 +130,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'workspace/applyEdit'.
         /// </summary>
         public const string WorkspaceApplyEditName = "workspace/applyEdit";
-
-        /// <summary>
-        /// Method name for 'workspace/semanticTokens/refresh'.
-        /// </summary>
-        public const string WorkspaceSemanticTokensRefreshName = "workspace/semanticTokens/refresh";
 
         /// <summary>
         /// Method name for 'workspace/configuration'.
@@ -292,11 +272,6 @@ namespace Roslyn.LanguageServer.Protocol
         public static readonly LspRequest<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse> WorkspaceApplyEdit = new LspRequest<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(WorkspaceApplyEditName);
 
         /// <summary>
-        /// Strongly typed message object for 'workspace/semanticTokens/refresh'.
-        /// </summary>
-        public static readonly LspRequest<object?, object?> WorkspaceSemanticTokensRefresh = new LspRequest<object?, object?>(WorkspaceSemanticTokensRefreshName);
-
-        /// <summary>
         /// Strongly typed message object for 'workspace/configuration'.
         /// </summary>
         public static readonly LspRequest<ConfigurationParams, object?[]> WorkspaceConfiguration = new LspRequest<ConfigurationParams, object?[]>(WorkspaceConfigurationName);
@@ -330,21 +305,5 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'telemetry/event'.
         /// </summary>
         public static readonly LspNotification<object> TelemetryEvent = new LspNotification<object>(TelemetryEventName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/semanticTokens/full'.
-        /// </summary>
-        public static readonly LspRequest<SemanticTokensParams, SemanticTokens?> TextDocumentSemanticTokensFull = new LspRequest<SemanticTokensParams, SemanticTokens?>(TextDocumentSemanticTokensFullName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/semanticTokens/range'.
-        /// </summary>
-        public static readonly LspRequest<SemanticTokensRangeParams, SemanticTokens?> TextDocumentSemanticTokensRange = new LspRequest<SemanticTokensRangeParams, SemanticTokens?>(TextDocumentSemanticTokensRangeName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/semanticTokens/full/delta'.
-        /// </summary>
-        public static readonly LspRequest<SemanticTokensDeltaParams, SumType<SemanticTokens, SemanticTokensDelta>?> TextDocumentSemanticTokensFullDelta
-            = new LspRequest<SemanticTokensDeltaParams, SumType<SemanticTokens, SemanticTokensDelta>?>(TextDocumentSemanticTokensFullDeltaName);
     }
 }

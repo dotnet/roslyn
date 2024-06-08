@@ -184,8 +184,9 @@ namespace Roslyn.LanguageServer.Protocol
         public CallHierarchyClientCapabilities CallHierarchy { get; init; }
 
         /// <summary>
-        /// Gets or sets a setting indicating whether semantic tokens is supported.
+        /// Capabilities specific to the various semantic token requests.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("semanticTokens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SemanticTokensSetting? SemanticTokens { get; set; }
