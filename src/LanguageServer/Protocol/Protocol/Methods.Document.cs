@@ -242,4 +242,65 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
     public static readonly LspRequest<object?, object?> WorkspaceSemanticTokensRefresh = new(WorkspaceSemanticTokensRefreshName);
+
+    /// <summary>
+    /// Method name for 'textDocument/inlayHint'.
+    /// <para>
+    /// The inlay hints request is sent from the client to the server to compute inlay hints
+    /// for a given [text document, range] tuple that may be rendered in the editor in place with other text.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_inlayHint">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public const string TextDocumentInlayHintName = "textDocument/inlayHint";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/inlayHint'.
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public static readonly LspRequest<InlayHintParams, InlayHint[]?> TextDocumentInlayHint = new(TextDocumentInlayHintName);
+
+    /// <summary>
+    /// Method name for 'inlayHint/resolve'.
+    /// <para>
+    /// The request is sent from the client to the server to resolve additional information for
+    /// a given inlay hint.
+    /// </para>
+    /// <para>
+    /// This is usually used to compute the tooltip, location or command
+    /// properties of an inlay hint’s label part to avoid its unnecessary computation during
+    /// the <c>textDocument/inlayHint</c> request.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHint_resolve">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public const string InlayHintResolveName = "inlayHint/resolve";
+
+    /// <summary>
+    /// Strongly typed message object for 'inlayHint/resolve'.
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public static readonly LspRequest<InlayHint, InlayHint> InlayHintResolve = new(InlayHintResolveName);
+
+    /// <summary>
+    /// Method name for 'workspace/inlayHint/refresh'.
+    /// <para>
+    /// This request is sent from the server to ask the client to refresh the inlay hints currently shown in editors.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_inlayHint_refresh">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public const string WorkspaceInlayHintRefreshName = "workspace/inlayHint/refresh";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/inlayHint/refresh'.
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public static readonly LspRequest<object?, object?> WorkspaceInlayHintRefresh = new(WorkspaceInlayHintRefreshName);
 }

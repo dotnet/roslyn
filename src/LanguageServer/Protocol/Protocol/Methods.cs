@@ -82,16 +82,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentPublishDiagnosticsName = "textDocument/publishDiagnostics";
 
         /// <summary>
-        /// Method name for 'textDocument/inlayHint'.
-        /// </summary>
-        public const string TextDocumentInlayHintName = "textDocument/inlayHint";
-
-        /// <summary>
-        /// Method name for 'inlayHint/resolve'.
-        /// </summary>
-        public const string InlayHintResolveName = "inlayHint/resolve";
-
-        /// <summary>
         /// Method name for 'textDocument/rename'.
         /// </summary>
         public const string TextDocumentRenameName = "textDocument/rename";
@@ -167,11 +157,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WorkspaceDidChangeWatchedFilesName = "workspace/didChangeWatchedFiles";
 
         /// <summary>
-        /// Method name for 'workspace/inlayHint/refresh'.
-        /// </summary>
-        public const string WorkspaceInlayHintRefreshName = "workspace/inlayHint/refresh";
-
-        /// <summary>
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
@@ -220,16 +205,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'textDocument/publishDiagnostics'.
         /// </summary>
         public static readonly LspNotification<PublishDiagnosticParams> TextDocumentPublishDiagnostics = new LspNotification<PublishDiagnosticParams>(TextDocumentPublishDiagnosticsName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/inlayHint'.
-        /// </summary>
-        public static readonly LspRequest<InlayHintParams, InlayHint[]?> TextDocumentInlayHint = new LspRequest<InlayHintParams, InlayHint[]?>(TextDocumentInlayHintName);
-
-        /// <summary>
-        /// Strongly typed message object for 'inlayHint/resolve'.
-        /// </summary>
-        public static readonly LspRequest<InlayHint, InlayHint> InlayHintResolve = new LspRequest<InlayHint, InlayHint>(InlayHintResolveName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/rename'.
@@ -295,11 +270,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'workspace/didChangeWatchedFiles'.
         /// </summary>
         public static readonly LspNotification<DidChangeWatchedFilesParams> WorkspaceDidChangeWatchedFiles = new LspNotification<DidChangeWatchedFilesParams>(WorkspaceDidChangeWatchedFilesName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/inlayHint/refresh'.
-        /// </summary>
-        public static readonly LspRequest<object?, object?> WorkspaceInlayHintRefresh = new LspRequest<object?, object?>(WorkspaceInlayHintRefreshName);
 
         /// <summary>
         /// Strongly typed message object for 'telemetry/event'.

@@ -200,8 +200,9 @@ namespace Roslyn.LanguageServer.Protocol
         public TypeHierarchyClientCapabilities? TypeHierarchy { get; init; }
 
         /// <summary>
-        /// Gets or sets the setting which determines what support the client has for pull diagnostics.
+        /// Capabilities specific to the `textDocument/inlayHint` request.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("inlayHint")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public InlayHintSetting? InlayHint { get; set; }

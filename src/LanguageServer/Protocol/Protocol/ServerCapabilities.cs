@@ -245,9 +245,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates what support the server has for inlay hints.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("inlayHintProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SumType<bool, InlayHintOptions>? InlayHintOptions { get; set; }
+        public SumType<bool, InlayHintOptions, InlayHintRegistrationOptions>? InlayHintOptions { get; set; }
 
         /// <summary>
         /// Gets or sets the value which indicates what support the server has for pull diagnostics.

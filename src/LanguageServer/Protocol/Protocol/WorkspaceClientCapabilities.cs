@@ -84,6 +84,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets of sets capabilities specific to the inlay hint requests scoped to the workspace.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("inlayHint")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public InlayHintWorkspaceSetting? InlayHint { get; set; }
