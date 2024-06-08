@@ -192,6 +192,14 @@ namespace Roslyn.LanguageServer.Protocol
         public SemanticTokensSetting? SemanticTokens { get; set; }
 
         /// <summary>
+        /// Capabilities specific to the `textDocument/moniker` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("moniker")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public MonikerClientCapabilities? Moniker { get; set; }
+
+        /// <summary>
         /// Capabilities specific to the various type hierarchy requests.
         /// </summary>
         /// <remarks>Since LSP 3.17</remarks>

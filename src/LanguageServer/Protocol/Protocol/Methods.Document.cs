@@ -340,4 +340,26 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
     public static readonly LspRequest<object?, object?> WorkspaceInlineValueRefresh = new(WorkspaceInlineValueRefreshName);
+
+    /// <summary>
+    /// Method name for 'textDocument/moniker'.
+    /// <para>
+    /// Provide the same symbol moniker information used by Language Server Index Format (LSIF) given a text document position.
+    /// </para>
+    /// <para>
+    /// Clients can utilize this method to get the moniker at the current location in a file user is editing and do
+    /// further code navigation queries in other services that rely on LSIF indexes and link symbols together.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_moniker">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public const string TextDocumentMonikerName = "textDocument/moniker";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/moniker'.
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public static readonly LspRequest<MonikerParams, Moniker[]?> TextDocumentMoniker = new(TextDocumentMonikerName);
 }

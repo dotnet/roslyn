@@ -235,6 +235,14 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<SemanticTokensOptions, SemanticTokensRegistrationOptions>? SemanticTokensOptions { get; set; }
 
         /// <summary>
+        /// Whether server provides moniker support.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("monikerProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SumType<bool, MonikerOptions, MonikerRegistrationOptions>? MonikerProvider { get; init; }
+
+        /// <summary>
         /// The server provides type hierarchy support.
         /// </summary>
         /// <remarks>Since LSP 3.17</remarks>
