@@ -200,6 +200,14 @@ namespace Roslyn.LanguageServer.Protocol
         public TypeHierarchyClientCapabilities? TypeHierarchy { get; init; }
 
         /// <summary>
+        /// Capabilities specific to the `textDocument/inlineValue` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("inlineValue")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public InlineValueClientCapability? InlineValue { get; set; }
+
+        /// <summary>
         /// Capabilities specific to the `textDocument/inlayHint` request.
         /// </summary>
         /// <remarks>Since LSP 3.17</remarks>

@@ -243,6 +243,14 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>? TypeHierarchyProvider { get; init; }
 
         /// <summary>
+        /// The server provides inline values.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("inlineValueProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SumType<bool, InlineValueOptions, InlineValueRegistrationOptions>? InlineValueProvider { get; init; }
+
+        /// <summary>
         /// Gets or sets the value which indicates what support the server has for inlay hints.
         /// </summary>
         /// <remarks>Since LSP 3.17</remarks>

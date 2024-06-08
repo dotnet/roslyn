@@ -303,4 +303,41 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
     public static readonly LspRequest<object?, object?> WorkspaceInlayHintRefresh = new(WorkspaceInlayHintRefreshName);
+
+    /// <summary>
+    /// Method name for 'textDocument/inlineValue'.
+    /// <para>
+    /// The inline value request is sent from the client to the server to compute inline values for
+    /// a given text document that may be rendered in the editor at the end of lines..
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_inlineValue">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public const string TextDocumentInlineValueName = "textDocument/inlineValue";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/inlineValue'.
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public static readonly LspRequest<InlineValueParams, SumType<InlineValueText, InlineValueVariableLookup, InlineValueEvaluatableExpression>[]?> TextDocumentInlineValue = new(TextDocumentInlineValueName);
+
+    /// <summary>
+    /// Method name for 'workspace/inlineValue/refresh'.
+    /// <para>
+    /// This request is sent from the server to ask the client to refresh the inline values currently shown in editors.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_inlineValue_refresh">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public const string WorkspaceInlineValueRefreshName = "workspace/inlineValue/refresh";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/inlineValue/refresh'.
+    /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
+    public static readonly LspRequest<object?, object?> WorkspaceInlineValueRefresh = new(WorkspaceInlineValueRefreshName);
 }

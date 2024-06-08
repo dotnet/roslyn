@@ -82,6 +82,14 @@ namespace Roslyn.LanguageServer.Protocol
         public CodeLensWorkspaceSetting? CodeLens { get; set; }
 
         /// <summary>
+        /// Client workspace capabilities specific to inline values.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("inlineValue")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public InlineValueWorkspaceClientCapabilities? InlineValue { get; init; }
+
+        /// <summary>
         /// Gets of sets capabilities specific to the inlay hint requests scoped to the workspace.
         /// </summary>
         /// <remarks>Since LSP 3.17</remarks>
