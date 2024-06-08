@@ -77,8 +77,8 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
             TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
             TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(this.GlobalOptions, ClassificationOptionsStorage.ClassifyReassignedVariables),
-            TaggerEventSources.OnGlobalOptionChanged(this.GlobalOptions, ClassificationOptionsStorage.ClassifyObsoleteSymbols));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions,
+                static option => option.Equals(ClassificationOptionsStorage.ClassifyReassignedVariables) || option.Equals(ClassificationOptionsStorage.ClassifyObsoleteSymbols)));
     }
 
     protected sealed override async Task ProduceTagsAsync(

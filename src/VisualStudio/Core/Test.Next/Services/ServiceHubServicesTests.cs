@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public class ServiceHubServicesTests
+    public sealed class ServiceHubServicesTests
     {
         private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
              => new(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
@@ -765,10 +765,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return tempDoc.Id;
         }
 
-        private static IAsynchronousOperationWaiter GetWorkspaceWaiter(TestWorkspace workspace)
+        private static async Task WaitForSourceGeneratorsAsync(TestWorkspace workspace)
         {
             var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            return operations.GetWaiter(FeatureAttribute.Workspace);
+            await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
         }
 
         [Theory, CombinatorialData]
@@ -810,7 +810,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, callCount);
 
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             solution = workspace.CurrentSolution;
             project = solution.Projects.Single();
@@ -866,7 +866,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Because we're forcing regeneration, in both mode we should now see two calls to the generator.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             solution = workspace.CurrentSolution;
             project = solution.Projects.Single();
@@ -913,7 +913,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var initialSolution = workspace.CurrentSolution;
 
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -964,7 +964,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var initialSolution = workspace.CurrentSolution;
 
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1007,7 +1007,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // forceRegeneration=true should take precedence.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1049,7 +1049,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Updating project1 should only impact it.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1102,7 +1102,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Updating project1 should regen both projects due to p2p reference.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1155,7 +1155,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Updating project2 should regen only it due to project1 having no reference to it.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId2, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1210,7 +1210,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // for both as project2 has a ref on project1.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: true);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId2, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1255,7 +1255,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // only for project2 as project1 doesn't have a ref on it.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId2, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1298,7 +1298,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Project2 should have a minor update since we only have a solution-minor change.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1341,7 +1341,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Project1 and 2 should have a major update since we have a solution-majorchange.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 

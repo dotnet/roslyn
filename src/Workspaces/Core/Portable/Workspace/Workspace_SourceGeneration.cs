@@ -43,10 +43,6 @@ public partial class Workspace
                 return;
         }
 
-        // Ensure we're fully loaded before rerunning generators.
-        var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
-        await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-
         await this.SetCurrentSolutionAsync(
             useAsync: true,
             oldSolution =>

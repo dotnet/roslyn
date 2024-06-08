@@ -58,18 +58,19 @@ internal partial class InlineHintsDataTaggerProvider(
             TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
             TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
             new InlineHintKeyProcessorEventSource(_inlineHintKeyProcessor),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLiteralParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForIndexerParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForObjectCreationParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForOtherParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitVariableTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLambdaParameterTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitObjectCreation));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForLiteralParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForIndexerParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForObjectCreationParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForOtherParameters) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName) ||
+                option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation)));
     }
 
     protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
