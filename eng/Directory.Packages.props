@@ -5,6 +5,7 @@
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.24121.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
+    <_BasicReferenceAssembliesVersion>1.7.2</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>17.10.72-preview</VisualStudioEditorPackagesVersion>
@@ -56,7 +57,7 @@
       Visual Studio
     -->
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.10.234-preview.1" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.35796-preview.1" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.36524" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.2.1017" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
@@ -99,7 +100,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioCoreVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.10.11-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.10.72-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.3-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.234-preview.1" />
@@ -118,8 +119,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.UI.Interfaces" Version="17.9.0-beta.24072.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.9.0-beta.24072.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.11.0-beta.24274.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 
@@ -138,11 +138,11 @@
     <!--
       Language Server
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.9.25-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="7.0.0-preview.24165.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24281.3" />
 
     <!--
       Analyzers
@@ -293,13 +293,14 @@
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.6.1" />
-    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="1.6.0" />
-    <PackageVersion Include="Basic.Reference.Assemblies.Net50" Version="1.6.0" />
-    <PackageVersion Include="Basic.Reference.Assemblies.Net60" Version="1.6.0" />
-    <PackageVersion Include="Basic.Reference.Assemblies.Net70" Version="1.6.0" />
-    <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.4.5" />
-    <PackageVersion Include="Basic.Reference.Assemblies.Net461" Version="1.6.0" />
-    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="1.6.0" />
+    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net50" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net60" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net70" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net461" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
     <!--
     Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert

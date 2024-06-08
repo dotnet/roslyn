@@ -1,5 +1,8 @@
 Microsoft.CodeAnalysis.IParameterSymbol.IsParamsCollection.get -> bool
 Microsoft.CodeAnalysis.IParameterSymbol.IsParamsArray.get -> bool
+Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.Operations.ArgumentKind.ParamCollection = 4 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.ProgrammaticSuppressions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.Suppression>
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.ModuleCancellation = 3 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
@@ -57,3 +60,5 @@ static Microsoft.CodeAnalysis.DocumentationCommentId.CreateDeclarationId(Microso
 [RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.DisableNullableAnalysis = 2 -> Microsoft.CodeAnalysis.SemanticModelOptions
 [RSEXPERIMENTAL001]Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, Microsoft.CodeAnalysis.SemanticModelOptions options) -> Microsoft.CodeAnalysis.SemanticModel!
 abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
+Microsoft.CodeAnalysis.ITypeParameterSymbol.AllowsRefLikeType.get -> bool
+Microsoft.CodeAnalysis.RuntimeCapability.ByRefLikeGenerics = 8 -> Microsoft.CodeAnalysis.RuntimeCapability

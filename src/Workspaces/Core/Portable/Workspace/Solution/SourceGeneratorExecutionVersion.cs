@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -42,20 +43,23 @@ internal readonly record struct SourceGeneratorExecutionVersion(
 
     public static SourceGeneratorExecutionVersion ReadFrom(ObjectReader reader)
         => new(reader.ReadInt32(), reader.ReadInt32());
+
+    public override string ToString()
+        => $"{MajorVersion}.{MinorVersion}";
 }
 
 /// <summary>
 /// Helper construct to allow a mapping from <see cref="ProjectId"/>s to <see cref="SourceGeneratorExecutionVersion"/>.
 /// Limited to just the surface area the workspace needs.
 /// </summary>
-internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> map)
+internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSortedDictionary<ProjectId, SourceGeneratorExecutionVersion> map)
 {
     public static readonly SourceGeneratorExecutionVersionMap Empty = new();
 
-    public ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> Map { get; } = map;
+    public ImmutableSortedDictionary<ProjectId, SourceGeneratorExecutionVersion> Map { get; } = map;
 
     public SourceGeneratorExecutionVersionMap()
-        : this(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty)
+        : this(ImmutableSortedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty)
     {
     }
 
@@ -75,6 +79,8 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
 
     public void WriteTo(ObjectWriter writer)
     {
+        // Writing out the dictionary in order is fine.  That's because it's a sorted dictionary, and ProjectIds are
+        // naturally comparable.
         writer.WriteInt32(Map.Count);
         foreach (var (projectId, version) in Map)
         {
@@ -86,7 +92,7 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
     public static SourceGeneratorExecutionVersionMap Deserialize(ObjectReader reader)
     {
         var count = reader.ReadInt32();
-        var builder = ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
+        var builder = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
         for (var i = 0; i < count; i++)
         {
             var projectId = ProjectId.ReadFrom(reader);
@@ -95,5 +101,29 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
         }
 
         return new(builder.ToImmutable());
+    }
+
+    public Checksum GetChecksum()
+    {
+        using var _ = ArrayBuilder<Checksum>.GetInstance(this.Map.Count * 2, out var checksums);
+
+        foreach (var (projectId, version) in this.Map)
+        {
+            checksums.Add(projectId.Checksum);
+            checksums.Add(Checksum.Create(version, static (v, w) => v.WriteTo(w)));
+        }
+
+        return Checksum.Create(checksums);
+    }
+
+    public override string ToString()
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+        builder.AppendLine(nameof(SourceGeneratorExecutionVersionMap));
+        foreach (var (projectId, version) in Map)
+            builder.AppendLine($"    {projectId}: {version}");
+
+        return builder.ToString();
     }
 }

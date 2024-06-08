@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.StringIndentation;
 using Microsoft.CodeAnalysis.Text;
@@ -19,69 +20,62 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.StringIndentation;
 
 [ExportLanguageService(typeof(IStringIndentationService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpStringIndentationService : IStringIndentationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpStringIndentationService() : IStringIndentationService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpStringIndentationService()
-    {
-    }
-
     public async Task<ImmutableArray<StringIndentationRegion>> GetStringIndentationRegionsAsync(
         Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
-
-        Recurse(text, root, textSpan, result, cancellationToken);
-
-        return result.ToImmutableAndClear();
-    }
-
-    private static void Recurse(
-        SourceText text,
-        SyntaxNode root,
-        TextSpan textSpan,
-        ArrayBuilder<StringIndentationRegion> result,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+        using var result = TemporaryArray<StringIndentationRegion>.Empty;
 
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodeStack);
         nodeStack.Add(root);
 
         while (nodeStack.TryPop(out var node))
         {
-            // DoNot' bother recursing into nodes that don't hit the requested span, they can never contribute 
-            // regions of interest.
-            if (!node.Span.IntersectsWith(textSpan))
-                continue;
-
-            if (node is InterpolatedStringExpressionSyntax interpolatedString &&
-                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            if (node is InterpolatedStringExpressionSyntax
+                {
+                    StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                } interpolatedString)
             {
-                ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
+                ProcessInterpolatedStringExpression(text, interpolatedString, ref result.AsRef(), cancellationToken);
             }
 
-            foreach (var child in node.ChildNodesAndTokens().Reverse())
+            foreach (var child in node.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                // Don't bother recursing into nodes that don't hit the requested span, they can never contribute
+                // regions of interest.
+
+                var childSpan = child.FullSpan;
+                if (childSpan.Start > textSpan.End)
+                    break;
+
+                if (childSpan.End < textSpan.Start)
+                    continue;
+
+                if (child.AsNode(out var childNode))
                 {
-                    nodeStack.Add(child.AsNode()!);
+                    nodeStack.Add(childNode);
                 }
                 else if (child.IsToken)
                 {
                     if (child.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
-                        ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
+                        ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), ref result.AsRef(), cancellationToken);
                 }
             }
         }
+
+        result.Sort(static (region1, region2) => region1.IndentSpan.CompareTo(region2.IndentSpan));
+
+        return result.ToImmutableAndClear();
     }
 
     private static void ProcessMultiLineRawStringLiteralToken(
-        SourceText text, SyntaxToken token, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
+        SourceText text, SyntaxToken token, ref TemporaryArray<StringIndentationRegion> result, CancellationToken cancellationToken)
     {
         // Ignore strings with errors as we don't want to draw a line in a bad place that makes things even harder
         // to understand.
@@ -95,7 +89,8 @@ internal sealed class CSharpStringIndentationService : IStringIndentationService
         result.Add(new StringIndentationRegion(indentSpan));
     }
 
-    private static void ProcessInterpolatedStringExpression(SourceText text, InterpolatedStringExpressionSyntax interpolatedString, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
+    private static void ProcessInterpolatedStringExpression(
+        SourceText text, InterpolatedStringExpressionSyntax interpolatedString, ref TemporaryArray<StringIndentationRegion> result, CancellationToken cancellationToken)
     {
         // Ignore strings with errors as we don't want to draw a line in a bad place that makes things even harder
         // to understand.

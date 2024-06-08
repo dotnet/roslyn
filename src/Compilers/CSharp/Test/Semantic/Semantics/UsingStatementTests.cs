@@ -1127,12 +1127,67 @@ class C2
         }
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }).VerifyDiagnostics(
-                // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or async lambda expressions.
-                //         await using (S1 c = new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "S1").WithArguments("S1").WithLocation(16, 22)
-                );
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Dispose async").VerifyDiagnostics();
+        }
 
+        [Fact]
+        public void UsingPatternAsyncTest_02()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                ref struct S1
+                {
+                    public ValueTask DisposeAsync() 
+                    { 
+                        System.Console.WriteLine("Dispose async");
+                        return new ValueTask(Task.CompletedTask);
+                    }
+                }
+                class C2
+                {
+                    static async Task Main()
+                    {
+                        await using (S1 c = new S1())
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                }
+                """;
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+            compilation.VerifyEmitDiagnostics(
+                // 0.cs(14,25): error CS4007: Instance of type 'S1' cannot be preserved across 'await' or 'yield' boundary.
+                //         await using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c = new S1()").WithArguments("S1").WithLocation(14, 25));
+        }
+
+        [Fact]
+        public void UsingPatternAsyncTest_03()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                ref struct S1
+                {
+                    public S1(int x) { }
+                    public ValueTask DisposeAsync() 
+                    { 
+                        System.Console.WriteLine("Dispose async");
+                        return new ValueTask(Task.CompletedTask);
+                    }
+                }
+                class C2
+                {
+                    static async Task Main()
+                    {
+                        await using (S1 c = new S1(await Task.FromResult(1)))
+                        {
+                        }
+                    }
+                }
+                """;
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Dispose async").VerifyDiagnostics();
         }
 
         [Fact]

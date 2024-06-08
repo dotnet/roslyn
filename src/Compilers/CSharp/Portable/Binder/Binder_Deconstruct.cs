@@ -869,6 +869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
+
             // is this a local?
             if ((object)localSymbol != null)
             {
@@ -894,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (declTypeWithAnnotations.HasType &&
-                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorTypeOrRefLikeType())
+                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                     {
                         diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                     }

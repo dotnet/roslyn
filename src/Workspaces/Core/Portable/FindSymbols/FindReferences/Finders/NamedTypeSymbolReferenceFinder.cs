@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -105,7 +104,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
             predefinedType == actualType;
     }
 
-    protected override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         INamedTypeSymbol namedType,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -135,8 +134,6 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             namedType, state, processResult, processResultData, cancellationToken);
-
-        return ValueTaskFactory.CompletedTask;
     }
 
     internal static void AddReferencesToTypeOrGlobalAliasToIt<TData>(

@@ -3084,5 +3084,440 @@ ref struct C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "DISPOSED");
         }
+
+        [Fact]
+        public void RefStruct_AwaitInside()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                class C
+                {
+                    async Task M()
+                    {
+                        using (new R())
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                }
+                ref struct R
+                {
+                    public void Dispose() { }
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         using (new R())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 16));
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,16): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (new R())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_YieldReturnInside()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        using (new R())
+                        {
+                            yield return 1;
+                        }
+                    }
+                }
+                ref struct R
+                {
+                    public void Dispose() { }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,16): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (new R())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_YieldBreakInside()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in M(true)) { Console.Write(x); }
+                        Console.Write(" ");
+                        foreach (var x in M(false)) { Console.Write(x); }
+                    }
+                    static IEnumerable<int> M(bool b)
+                    {
+                        yield return 123;
+                        using (new R())
+                        {
+                            if (b) { yield break; }
+                        }
+                        yield return 456;
+                    }
+                }
+                ref struct R
+                {
+                    public R() => Console.Write("C");
+                    public void Dispose() => Console.Write("D");
+                }
+                """;
+
+            var expectedOutput = "123CD 123CD456";
+
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_AwaitResource()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                class C
+                {
+                    static async Task Main()
+                    {
+                        Console.Write("1");
+                        using ((await GetC()).GetR())
+                        {
+                            Console.Write("2");
+                        }
+                        Console.Write("3");
+                    }
+                    static async Task<C> GetC()
+                    {
+                        Console.Write("Ga");
+                        await Task.Yield();
+                        Console.Write("Gb");
+                        return new C();
+                    }
+                    R GetR() => new R();
+                }
+                ref struct R
+                {
+                    public R() => Console.Write("C");
+                    public void Dispose() => Console.Write("D");
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         using ((await GetC()).GetR())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(await GetC()).GetR()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 16));
+
+            var expectedOutput = "1GaGbC2D3";
+
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, verify: Verification.FailsILVerify).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_AwaitOutside()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                class C
+                {
+                    static async Task Main()
+                    {
+                        Console.Write("1");
+                        await Task.Yield();
+                        Console.Write("2");
+                        using (new R())
+                        {
+                            Console.Write("3");
+                        }
+                        Console.Write("4");
+                        await Task.Yield();
+                        Console.Write("5");
+                    }
+                }
+                ref struct R
+                {
+                    public R() => Console.Write("C");
+                    public void Dispose() => Console.Write("D");
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         using (new R())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 16));
+
+            var expectedOutput = "12C3D45";
+
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_YieldReturnOutside()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in M())
+                        {
+                            Console.Write(x);
+                        }
+                    }
+                    static IEnumerable<string> M()
+                    {
+                        Console.Write("1");
+                        yield return "a";
+                        Console.Write("2");
+                        using (new R())
+                        {
+                            Console.Write("3");
+                        }
+                        Console.Write("4");
+                        yield return "b";
+                        Console.Write("5");
+                    }
+                }
+                ref struct R
+                {
+                    public R() => Console.Write("C");
+                    public void Dispose() => Console.Write("D");
+                }
+                """;
+
+            var expectedOutput = "1a2C3D4b5";
+
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_AwaitUsing()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                class C
+                {
+                    static async Task Main()
+                    {
+                        Console.Write("1");
+                        await using (new R())
+                        {
+                            Console.Write("2");
+                        }
+                        Console.Write("3");
+                    }
+                }
+                ref struct R
+                {
+                    public R() => Console.Write("C");
+                    public ValueTask DisposeAsync()
+                    {
+                        Console.Write("D");
+                        return default;
+                    }
+                }
+                """;
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using (new R())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 22));
+
+            var expectedOutput = "1C2D3";
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_AwaitUsing_AwaitInside()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                class C
+                {
+                    async Task M()
+                    {
+                        await using (new R())
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                }
+                ref struct R
+                {
+                    public ValueTask DisposeAsync() => default;
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using (new R())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22));
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,22): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+                //         await using (new R())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 22)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_AwaitUsing_YieldReturnInside()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class C
+                {
+                    async IAsyncEnumerable<int> M()
+                    {
+                        await using (new R())
+                        {
+                            yield return 123;
+                        }
+                    }
+                }
+                ref struct R
+                {
+                    public ValueTask DisposeAsync() => default;
+                }
+                """ + AsyncStreamsTypes;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using (new R())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 22));
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,22): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+                //         await using (new R())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(7, 22)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_AwaitUsing_YieldReturnInside_Var()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class C
+                {
+                    async IAsyncEnumerable<int> M()
+                    {
+                        await using var _ = new R();
+                        yield return 123;
+                    }
+                }
+                ref struct R
+                {
+                    public ValueTask DisposeAsync() => default;
+                }
+                """ + AsyncStreamsTypes;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using var _ = new R();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 21));
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,25): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+                //         await using var _ = new R();
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "_ = new R()").WithArguments("R").WithLocation(7, 25)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_AwaitUsing_YieldBreakInside()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class C
+                {
+                    static async Task Main()
+                    {
+                        await foreach (var x in M(true)) { Console.Write(x); }
+                        Console.Write(" ");
+                        await foreach (var x in M(false)) { Console.Write(x); }
+                    }
+                    static async IAsyncEnumerable<int> M(bool b)
+                    {
+                        yield return 1;
+                        await using (new R())
+                        {
+                            if (b) { yield break; }
+                        }
+                        yield return 2;
+                    }
+                }
+                ref struct R
+                {
+                    public R() => Console.Write("C");
+                    public ValueTask DisposeAsync()
+                    {
+                        Console.Write("D");
+                        return default;
+                    }
+                }
+                """ + AsyncStreamsTypes;
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (15,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using (new R())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(15, 22));
+
+            var expectedOutput = "1CD 1CD2";
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
     }
 }

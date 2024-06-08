@@ -398,12 +398,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, ps))
-            {
-                var (actions, _) = await GetCodeActionsAsync(workspace, ps);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
+            var (actions, _) = await GetCodeActionsAsync(workspace, ps);
 
-                Assert.Equal(count, actions.Length);
-            }
+            Assert.Equal(count, actions.Length);
         }
 
         internal Task TestInRegularAndScriptAsync(
@@ -488,25 +486,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => []);
             var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => []);
 
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            // Ideally this check would always run, but there are several hundred tests that would need to be
+            // updated with {|Unnecessary:|} spans.
+            if (unnecessarySpans.Any())
             {
-                // Ideally this check would always run, but there are several hundred tests that would need to be
-                // updated with {|Unnecessary:|} spans.
-                if (unnecessarySpans.Any())
-                {
-                    var allDiagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters
-                        .WithRetainNonFixableDiagnostics(true)
-                        .WithIncludeDiagnosticsOutsideSelection(true));
+                var allDiagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters
+                    .WithRetainNonFixableDiagnostics(true)
+                    .WithIncludeDiagnosticsOutsideSelection(true));
 
-                    TestUnnecessarySpans(allDiagnostics, unnecessarySpans, UnnecessaryMarkupKey, initialMarkupWithoutSpans);
-                }
-
-                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                await TestActionAsync(
-                    workspace, expected, action,
-                    conflictSpans, renameSpans, warningSpans, navigationSpans,
-                    parameters);
+                TestUnnecessarySpans(allDiagnostics, unnecessarySpans, UnnecessaryMarkupKey, initialMarkupWithoutSpans);
             }
+
+            var (_, action) = await GetCodeActionsAsync(workspace, parameters);
+            await TestActionAsync(
+                workspace, expected, action,
+                conflictSpans, renameSpans, warningSpans, navigationSpans,
+                parameters);
         }
 
         private static void TestUnnecessarySpans(
@@ -700,58 +696,56 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, TestComposition composition)
         {
-            using (var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition))
+            using var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition);
+            var expectedSolution = expectedWorkspace.CurrentSolution;
+            Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
+            foreach (var project in newSolution.Projects)
             {
-                var expectedSolution = expectedWorkspace.CurrentSolution;
-                Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
-                foreach (var project in newSolution.Projects)
+                var expectedProject = expectedSolution.GetProjectsByName(project.Name).Single();
+                Assert.Equal(expectedProject.Documents.Count(), project.Documents.Count());
+
+                foreach (var doc in project.Documents)
                 {
-                    var expectedProject = expectedSolution.GetProjectsByName(project.Name).Single();
-                    Assert.Equal(expectedProject.Documents.Count(), project.Documents.Count());
+                    var root = await doc.GetSyntaxRootAsync();
+                    var expectedDocuments = expectedProject.Documents.Where(d => d.Name == doc.Name);
 
-                    foreach (var doc in project.Documents)
+                    if (expectedDocuments.Any())
                     {
-                        var root = await doc.GetSyntaxRootAsync();
-                        var expectedDocuments = expectedProject.Documents.Where(d => d.Name == doc.Name);
-
-                        if (expectedDocuments.Any())
-                        {
-                            Assert.Single(expectedDocuments);
-                        }
-                        else
-                        {
-                            AssertEx.Fail($"Could not find document with name '{doc.Name}'");
-                        }
-
-                        var expectedDocument = expectedDocuments.Single();
-
-                        var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
-                        VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
+                        Assert.Single(expectedDocuments);
+                    }
+                    else
+                    {
+                        AssertEx.Fail($"Could not find document with name '{doc.Name}'");
                     }
 
-                    foreach (var additionalDoc in project.AdditionalDocuments)
+                    var expectedDocument = expectedDocuments.Single();
+
+                    var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
+                    VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
+                }
+
+                foreach (var additionalDoc in project.AdditionalDocuments)
+                {
+                    var root = await additionalDoc.GetTextAsync();
+                    var expectedDocument = expectedProject.AdditionalDocuments.Single(d => d.Name == additionalDoc.Name);
+                    var expectedRoot = await expectedDocument.GetTextAsync();
+                    VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                }
+
+                foreach (var analyzerConfigDoc in project.AnalyzerConfigDocuments)
+                {
+                    var root = await analyzerConfigDoc.GetTextAsync();
+                    var actualString = root.ToString();
+                    if (actualString.StartsWith(AutoGeneratedAnalyzerConfigHeader))
                     {
-                        var root = await additionalDoc.GetTextAsync();
-                        var expectedDocument = expectedProject.AdditionalDocuments.Single(d => d.Name == additionalDoc.Name);
-                        var expectedRoot = await expectedDocument.GetTextAsync();
-                        VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                        // Skip validation for analyzer config file that is auto-generated by test framework
+                        // for applying code style options.
+                        continue;
                     }
 
-                    foreach (var analyzerConfigDoc in project.AnalyzerConfigDocuments)
-                    {
-                        var root = await analyzerConfigDoc.GetTextAsync();
-                        var actualString = root.ToString();
-                        if (actualString.StartsWith(AutoGeneratedAnalyzerConfigHeader))
-                        {
-                            // Skip validation for analyzer config file that is auto-generated by test framework
-                            // for applying code style options.
-                            continue;
-                        }
-
-                        var expectedDocument = expectedProject.AnalyzerConfigDocuments.Single(d => d.FilePath == analyzerConfigDoc.FilePath);
-                        var expectedRoot = await expectedDocument.GetTextAsync();
-                        VerifyExpectedDocumentText(expectedRoot.ToString(), actualString);
-                    }
+                    var expectedDocument = expectedProject.AnalyzerConfigDocuments.Single(d => d.FilePath == analyzerConfigDoc.FilePath);
+                    var expectedRoot = await expectedDocument.GetTextAsync();
+                    VerifyExpectedDocumentText(expectedRoot.ToString(), actualString);
                 }
             }
 

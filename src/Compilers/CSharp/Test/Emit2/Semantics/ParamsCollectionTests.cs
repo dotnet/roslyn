@@ -1323,15 +1323,30 @@ class Program
                 // (19,19): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         Test("2", 3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(19, 19),
-                // (20,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (20,14): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         Test(["2", 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, @"[""2"", 3]").WithArguments("1", "collection expressions", "string").WithLocation(20, 14),
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[""2"", 3]").WithArguments("string", "0").WithLocation(20, 14),
+                // (20,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""2"", 3]").WithArguments("string", "Add").WithLocation(20, 14),
+                // (20,15): error CS0029: Cannot implicitly convert type 'string' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "char").WithLocation(20, 15),
+                // (20,20): error CS0029: Cannot implicitly convert type 'int' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "char").WithLocation(20, 20),
                 // (23,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         Test(3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("1", "int", "string").WithLocation(23, 14),
-                // (24,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (24,14): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         Test([3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[3]").WithArguments("1", "collection expressions", "string").WithLocation(24, 14),
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[3]").WithArguments("string", "0").WithLocation(24, 14),
+                // (24,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         Test([3]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[3]").WithArguments("string", "Add").WithLocation(24, 14),
+                // (24,15): error CS0029: Cannot implicitly convert type 'int' to 'char'
+                //         Test([3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "char").WithLocation(24, 15),
                 // (27,28): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         MyCollection x2 = [3];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(27, 28)
@@ -2449,9 +2464,18 @@ class Program
                 // (16,19): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         Test("2", 3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(16, 19),
-                // (17,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (17,14): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         Test(["2", 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, @"[""2"", 3]").WithArguments("1", "collection expressions", "string").WithLocation(17, 14)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[""2"", 3]").WithArguments("string", "0").WithLocation(17, 14),
+                // (17,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""2"", 3]").WithArguments("string", "Add").WithLocation(17, 14),
+                // (17,15): error CS0029: Cannot implicitly convert type 'string' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "char").WithLocation(17, 15),
+                // (17,20): error CS0029: Cannot implicitly convert type 'int' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "char").WithLocation(17, 20)
                 );
         }
 
@@ -4710,6 +4734,58 @@ class Program
                 //         var x1 = Params.Test1;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Params.Test1").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(6, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73242")]
+        public void DelegateNaturalType_07()
+        {
+            var src = @"
+class Helper<T> 
+    where T : System.Collections.Generic.List<long>, new()
+{
+    static public void Test3(params T a) { System.Console.WriteLine("" {0}"", a is not null); }
+}
+
+class Program
+{
+    static void Main()
+    {
+        DoTest3<System.Collections.Generic.List<long>>();
+    }
+    static void DoTest3<T>()
+        where T : System.Collections.Generic.List<long>, new()
+    {
+        var a3 = Helper<T>.Test3;
+        M(a3)();
+    }
+
+    static T M<T>(T t) { System.Console.WriteLine(typeof(T)); return t; }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                symbolValidator: (m) =>
+                {
+                    var delegateType = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0`1");
+                    MethodSymbol delegateInvokeMethod = delegateType.DelegateInvokeMethod;
+                    AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1 arg)", delegateInvokeMethod.ToTestDisplayString());
+
+                    // Strictly speaking it is a violation of language rules to decorate this parameter with ParamCollectionAttribute
+                    // because it lacks constraints that would make it a valid 'params' type
+                    // However, going through the trouble of porting constraints and differentiating/merging anonymous delegates based on them
+                    // is probably not worth the trouble for this edge scenario.
+                    // The types involved might be inaccessible on assembly level, etc.
+                    VerifyParamsAndAttribute(delegateInvokeMethod.Parameters[0], isParamArray: false, isParamCollection: true);
+                    Assert.False(delegateType.TypeParameters[0].HasConstructorConstraint);
+                    Assert.Empty(delegateType.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics);
+                },
+                expectedOutput: ExpectedOutput(@"
+<>f__AnonymousDelegate0`1[System.Collections.Generic.List`1[System.Int64]]
+ True
+")).VerifyDiagnostics();
         }
 
         [Fact]
@@ -9759,19 +9835,19 @@ partial class C1
             Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (13,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (13,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test1(params Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test1").WithLocation(13, 18),
-                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test1").WithLocation(13, 18),
+                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test1(params Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test1").WithArguments("a").WithLocation(13, 18),
-                // (17,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (17,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2(params scoped Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(17, 18),
-                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(17, 18),
+                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test2(params scoped Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test2").WithArguments("a").WithLocation(17, 18),
-                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test3(scoped Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test3").WithArguments("a").WithLocation(21, 18)
                 );
@@ -9812,19 +9888,19 @@ partial class C1
             Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (13,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (13,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test1(Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test1").WithLocation(13, 18),
-                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test1").WithLocation(13, 18),
+                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test1(Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test1").WithArguments("a").WithLocation(13, 18),
-                // (17,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (17,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2(Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(17, 18),
-                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(17, 18),
+                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test2(Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test2").WithArguments("a").WithLocation(17, 18),
-                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test3(Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test3").WithArguments("a").WithLocation(21, 18)
                 );
@@ -9871,15 +9947,15 @@ partial class C1
             Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (14,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (14,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test1([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test1").WithLocation(14, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test1").WithLocation(14, 18),
                 // (14,25): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
                 //     partial void Test1([UnscopedRef] Span<long> a)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 25),
-                // (18,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (18,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(18, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(18, 18),
                 // (18,25): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
                 //     partial void Test2([UnscopedRef] Span<long> a)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(18, 25),
@@ -9930,9 +10006,9 @@ partial class C1
             Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (20,31): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (20,31): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     public partial Span<long> Test3([UnscopedRef] params Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(20, 31)
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test3").WithLocation(20, 31)
                 );
         }
 
@@ -14359,18 +14435,18 @@ partial class Program
                 // (5,24): error CS0225: The params parameter must have a valid collection type
                 //     partial void Test1(params int a)
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 24),
-                // (11,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (11,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2(params int a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(11, 18),
                 // (11,24): error CS0225: The params parameter must have a valid collection type
                 //     partial void Test2(params int a)
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(11, 24),
                 // (15,24): error CS0225: The params parameter must have a valid collection type
                 //     partial void Test3(params int a);
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(15, 24),
-                // (17,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (17,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test3(int a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(17, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test3").WithLocation(17, 18)
                 );
         }
 

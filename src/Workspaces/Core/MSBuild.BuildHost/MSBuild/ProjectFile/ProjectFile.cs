@@ -9,8 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -39,8 +37,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => [.. Log];
 
-        protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
-        public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
         protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
@@ -228,10 +224,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
-            var sourceCodeKind = GetSourceCodeKind(filePath);
 
             var folders = GetRelativeFolders(documentItem);
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
         }
 
         private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
@@ -242,7 +237,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isGenerated = IsDocumentGenerated(documentItem);
 
             var folders = GetRelativeFolders(documentItem);
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
         }
 
         private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
@@ -380,7 +375,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public void AddMetadataReference(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath)
+        public void AddMetadataReference(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath)
         {
             if (_loadedProject is null)
             {
@@ -388,8 +383,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             var metadata = new Dictionary<string, string>();
-            if (!properties.Aliases.IsEmpty)
-                metadata.Add(MetadataNames.Aliases, string.Join(",", properties.Aliases));
+            if (!aliases.IsEmpty)
+                metadata.Add(MetadataNames.Aliases, string.Join(",", aliases));
 
             if (hintPath is not null)
                 metadata.Add(MetadataNames.HintPath, hintPath);

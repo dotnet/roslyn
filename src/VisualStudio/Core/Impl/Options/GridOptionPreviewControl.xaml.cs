@@ -105,22 +105,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
 
             var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, OptionStore, _language);
-            using (var sfd = new System.Windows.Forms.SaveFileDialog
+            using var sfd = new System.Windows.Forms.SaveFileDialog
             {
                 Filter = "All files (*.*)|",
                 FileName = ".editorconfig",
                 Title = ServicesVSResources.Save_dot_editorconfig_file,
                 InitialDirectory = GetInitialDirectory()
-            })
+            };
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                IOUtilities.PerformIO(() =>
                 {
-                    IOUtilities.PerformIO(() =>
-                    {
-                        var filePath = sfd.FileName;
-                        File.WriteAllText(filePath, editorconfig.ToString());
-                    });
-                }
+                    var filePath = sfd.FileName;
+                    File.WriteAllText(filePath, editorconfig.ToString());
+                });
             }
         }
 

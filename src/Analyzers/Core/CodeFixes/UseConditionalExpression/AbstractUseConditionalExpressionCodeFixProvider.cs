@@ -72,7 +72,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         // formatted to explicitly format things.  Note: all we will format is the new
         // conditional expression as that's the only node that has the appropriate
         // annotation on it.
-        var rules = new List<AbstractFormattingRule> { GetMultiLineFormattingRule() };
+        var rules = ImmutableArray.Create(GetMultiLineFormattingRule());
 
 #if CODE_STYLE
         var provider = GetSyntaxFormatting();

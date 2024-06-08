@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -39,47 +38,56 @@ internal abstract class AbstractDefinitionLocationService : IDefinitionLocationS
             workspace, document.Id, position, virtualSpace: 0, cancellationToken);
     }
 
-    public async Task<DefinitionLocation?> GetDefinitionLocationAsync(
-        Document document, int position, CancellationToken cancellationToken)
+    public async Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
-        var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
-            document, position, cancellationToken).ConfigureAwait(false);
-        if (controlFlowTarget != null)
+        // We want to compute this as quickly as possible so that the symbol be squiggled and navigated to.  We
+        // don't want to wait on expensive operations like computing source-generators or skeletons if we can avoid
+        // it.  So first try with a frozen document, then fallback to a normal document.  This mirrors how go-to-def
+        // works as well.
+        return await GetDefinitionLocationWorkerAsync(document.WithFrozenPartialSemantics(cancellationToken)).ConfigureAwait(false) ??
+               await GetDefinitionLocationWorkerAsync(document).ConfigureAwait(false);
+
+        async Task<DefinitionLocation?> GetDefinitionLocationWorkerAsync(Document document)
         {
-            var location = await GetNavigableLocationAsync(
-                document, controlFlowTarget.Value, cancellationToken).ConfigureAwait(false);
-            return location is null ? null : new DefinitionLocation(location, new DocumentSpan(document, controlFlowSpan));
-        }
-        else
-        {
-            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
-            var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+            var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+            var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbol is null)
-                return null;
+            if (controlFlowTarget != null)
+            {
+                var location = await GetNavigableLocationAsync(
+                    document, controlFlowTarget.Value, cancellationToken).ConfigureAwait(false);
+                return location is null ? null : new DefinitionLocation(location, new DocumentSpan(document, controlFlowSpan));
+            }
+            else
+            {
+                // Try to compute the referenced symbol and attempt to go to definition for the symbol.
+                var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+                    document, position, cancellationToken).ConfigureAwait(false);
+                if (symbol is null)
+                    return null;
 
-            // if the symbol only has a single source location, and we're already on it,
-            // try to see if there's a better symbol we could navigate to.
-            var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
-                project, position, symbol, originalDocument: document, cancellationToken).ConfigureAwait(false);
-            if (remappedLocation != null)
-                return new DefinitionLocation(remappedLocation, new DocumentSpan(document, span));
+                // if the symbol only has a single source location, and we're already on it,
+                // try to see if there's a better symbol we could navigate to.
+                var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
+                    project, position, symbol, originalDocument: document, cancellationToken).ConfigureAwait(false);
+                if (remappedLocation != null)
+                    return new DefinitionLocation(remappedLocation, new DocumentSpan(document, span));
 
-            var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
-                symbol, position, document, cancellationToken).ConfigureAwait(false);
+                var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
+                    symbol, position, document, cancellationToken).ConfigureAwait(false);
 
-            var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
-                symbol,
-                project.Solution,
-                _threadingContext,
-                _streamingPresenter,
-                thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (location is null)
-                return null;
+                var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
+                    symbol,
+                    project.Solution,
+                    _threadingContext,
+                    _streamingPresenter,
+                    thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (location is null)
+                    return null;
 
-            return new DefinitionLocation(location, new DocumentSpan(document, span));
+                return new DefinitionLocation(location, new DocumentSpan(document, span));
+            }
         }
     }
 
@@ -140,8 +148,7 @@ internal abstract class AbstractDefinitionLocationService : IDefinitionLocationS
 
         if (containingTypeDeclaration != null)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            Debug.Assert(semanticModel != null);
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Allow third parties to navigate to all symbols except types/constructors
             // if we are navigating from the corresponding type.

@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,139 +14,156 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
+using DocumentAndHashBuilder = ArrayBuilder<(Document newDocument, ImmutableArray<byte> newContentHash)>;
+
 internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
 {
-    internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler mergeConflictHandler, CancellationToken cancellationToken)
+    internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler? mergeConflictHandler, CancellationToken cancellationToken)
     {
-        var sessionInfo = new LinkedFileDiffMergingSessionInfo();
-
-        var linkedDocumentGroupsWithChanges = solutionChanges
-            .GetProjectChanges()
-            .SelectMany(p => p.GetChangedDocuments())
-            .GroupBy(d => oldSolution.GetDocument(d).FilePath, StringComparer.OrdinalIgnoreCase);
-
-        var linkedFileMergeResults = new List<LinkedFileMergeResult>();
-
-        var updatedSolution = newSolution;
-        foreach (var linkedDocumentsWithChanges in linkedDocumentGroupsWithChanges)
+        using var _1 = PooledDictionary<string, DocumentAndHashBuilder>.GetInstance(out var filePathToNewDocumentsAndHashes);
+        try
         {
-            var documentInNewSolution = newSolution.GetDocument(linkedDocumentsWithChanges.First());
-
-            // Ensure the first document in the group is the first in the list of 
-            var allLinkedDocuments = documentInNewSolution.GetLinkedDocumentIds().Add(documentInNewSolution.Id);
-            if (allLinkedDocuments.Length == 1)
+            foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(p => p.GetChangedDocuments()))
             {
-                continue;
+                // Don't need to do any merging whatsoever for documents that are not linked files.
+                var newDocument = newSolution.GetRequiredDocument(documentId);
+                var relatedDocumentIds = newSolution.GetRelatedDocumentIds(newDocument.Id);
+                if (relatedDocumentIds.Length == 1)
+                    continue;
+
+                var filePath = newDocument.FilePath;
+                Contract.ThrowIfNull(filePath);
+
+                var newDocumentsAndHashes = filePathToNewDocumentsAndHashes.GetOrAdd(filePath, static (_, capacity) => DocumentAndHashBuilder.GetInstance(capacity), relatedDocumentIds.Length);
+
+                var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newContentHash = newText.GetContentHash();
+                // Ignore any linked documents that we have the same contents as.  
+                if (newDocumentsAndHashes.Any(t => t.newContentHash.SequenceEqual(newContentHash)))
+                    continue;
+
+                newDocumentsAndHashes.Add((newDocument, newContentHash));
             }
 
-            SourceText mergedText;
-            if (linkedDocumentsWithChanges.Count() > 1)
+            var updatedSolution = newSolution;
+            using var _ = ArrayBuilder<LinkedFileMergeResult>.GetInstance(
+                filePathToNewDocumentsAndHashes.Count(static kvp => kvp.Value.Count > 1),
+                out var linkedFileMergeResults);
+
+            foreach (var (filePath, newDocumentsAndHashes) in filePathToNewDocumentsAndHashes)
             {
-                var mergeGroupResult = await MergeLinkedDocumentGroupAsync(allLinkedDocuments, linkedDocumentsWithChanges, sessionInfo, mergeConflictHandler, cancellationToken).ConfigureAwait(false);
-                linkedFileMergeResults.Add(mergeGroupResult);
-                mergedText = mergeGroupResult.MergedSourceText;
-            }
-            else
-            {
-                mergedText = await newSolution.GetDocument(linkedDocumentsWithChanges.Single()).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(newDocumentsAndHashes.Count == 0);
+
+                // Don't need to do anything if this document has no linked siblings.
+                var firstNewDocument = newDocumentsAndHashes[0].newDocument;
+
+                var relatedDocuments = newSolution.GetRelatedDocumentIds(firstNewDocument.Id);
+                Contract.ThrowIfTrue(relatedDocuments.Length == 1, "We should have skipped non-linked files in the prior loop.");
+
+                if (newDocumentsAndHashes.Count == 1)
+                {
+                    // The file has linked siblings, but we collapsed down to only one actual document change.  Ensure that
+                    // any linked files have that same content as well.
+                    var firstSourceText = await firstNewDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    updatedSolution = updatedSolution.WithDocumentTexts(
+                        relatedDocuments.SelectAsArray(d => (d, firstSourceText)));
+                }
+                else
+                {
+                    // Otherwise, merge the changes and set all the linked files to that merged content.
+                    var mergeGroupResult = await MergeLinkedDocumentGroupAsync(newDocumentsAndHashes, mergeConflictHandler, cancellationToken).ConfigureAwait(false);
+                    linkedFileMergeResults.Add(mergeGroupResult);
+                    updatedSolution = updatedSolution.WithDocumentTexts(
+                        relatedDocuments.SelectAsArray(d => (d, mergeGroupResult.MergedSourceText)));
+                }
             }
 
-            updatedSolution = updatedSolution.WithDocumentTexts(
-                allLinkedDocuments.SelectAsArray(documentId => (documentId, mergedText)));
+            return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
         }
-
-        return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
+        finally
+        {
+            foreach (var (_, newDocumentsAndHashes) in filePathToNewDocumentsAndHashes)
+                newDocumentsAndHashes.Free();
+        }
     }
 
     private async Task<LinkedFileMergeResult> MergeLinkedDocumentGroupAsync(
-        IEnumerable<DocumentId> allLinkedDocuments,
-        IEnumerable<DocumentId> linkedDocumentGroup,
-        LinkedFileDiffMergingSessionInfo sessionInfo,
-        IMergeConflictHandler mergeConflictHandler,
+        DocumentAndHashBuilder newDocumentsAndHashes,
+        IMergeConflictHandler? mergeConflictHandler,
         CancellationToken cancellationToken)
     {
-        var groupSessionInfo = new LinkedFileGroupSessionInfo();
+        Contract.ThrowIfTrue(newDocumentsAndHashes.Count < 2);
 
         // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
         var textDifferencingService = oldSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
-        var appliedChanges = await textDifferencingService.GetTextChangesAsync(oldSolution.GetDocument(linkedDocumentGroup.First()), newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
-        var unmergedChanges = new List<UnmergedDocumentChanges>();
 
-        foreach (var documentId in linkedDocumentGroup.Skip(1))
+        var firstNewDocument = newDocumentsAndHashes[0].newDocument;
+        var firstOldDocument = oldSolution.GetRequiredDocument(firstNewDocument.Id);
+        var firstOldSourceText = await firstOldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+        var allTextChangesAcrossLinkedFiles = await textDifferencingService.GetTextChangesAsync(
+            firstOldDocument, firstNewDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
+
+        using var _ = ArrayBuilder<UnmergedDocumentChanges>.GetInstance(out var unmergedChanges);
+        for (int i = 1, n = newDocumentsAndHashes.Count; i < n; i++)
         {
-            appliedChanges = await AddDocumentMergeChangesAsync(
-                oldSolution.GetDocument(documentId),
-                newSolution.GetDocument(documentId),
-                [.. appliedChanges],
+            var siblingNewDocument = newDocumentsAndHashes[i].newDocument;
+            var siblingOldDocument = oldSolution.GetRequiredDocument(siblingNewDocument.Id);
+
+            allTextChangesAcrossLinkedFiles = await AddDocumentMergeChangesAsync(
+                siblingOldDocument,
+                siblingNewDocument,
+                allTextChangesAcrossLinkedFiles,
                 unmergedChanges,
-                groupSessionInfo,
                 textDifferencingService,
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var originalDocument = oldSolution.GetDocument(linkedDocumentGroup.First());
-        var originalSourceText = await originalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var linkedDocuments = oldSolution.GetRelatedDocumentIds(firstOldDocument.Id);
+
+        if (unmergedChanges.Count == 0)
+            return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(allTextChangesAcrossLinkedFiles), []);
+
+        mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
+        var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
 
         // Add comments in source explaining diffs that could not be merged
-
-        IEnumerable<TextChange> allChanges;
-        IList<TextSpan> mergeConflictResolutionSpan = [];
-
-        if (unmergedChanges.Any())
-        {
-            mergeConflictHandler ??= oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
-            var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(originalSourceText, unmergedChanges);
-
-            allChanges = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits, mergeConflictResolutionSpan, groupSessionInfo);
-        }
-        else
-        {
-            allChanges = appliedChanges;
-        }
-
-        groupSessionInfo.LinkedDocuments = newSolution.GetDocumentIdsWithFilePath(originalDocument.FilePath).Length;
-        groupSessionInfo.DocumentsWithChanges = linkedDocumentGroup.Count();
-        sessionInfo.LogLinkedFileResult(groupSessionInfo);
-
-        return new LinkedFileMergeResult(allLinkedDocuments, originalSourceText.WithChanges(allChanges), mergeConflictResolutionSpan);
+        var (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(allTextChangesAcrossLinkedFiles, mergeConflictTextEdits);
+        return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(allChanges), mergeConflictResolutionSpans);
     }
 
     private static async Task<ImmutableArray<TextChange>> AddDocumentMergeChangesAsync(
         Document oldDocument,
         Document newDocument,
-        List<TextChange> cumulativeChanges,
-        List<UnmergedDocumentChanges> unmergedChanges,
-        LinkedFileGroupSessionInfo groupSessionInfo,
+        ImmutableArray<TextChange> cumulativeChanges,
+        ArrayBuilder<UnmergedDocumentChanges> unmergedChanges,
         IDocumentTextDifferencingService textDiffService,
         CancellationToken cancellationToken)
     {
-        var unmergedDocumentChanges = new List<TextChange>();
-        var successfullyMergedChanges = ArrayBuilder<TextChange>.GetInstance();
+        using var _1 = ArrayBuilder<TextChange>.GetInstance(out var unmergedDocumentChanges);
+        using var _2 = ArrayBuilder<TextChange>.GetInstance(out var successfullyMergedChanges);
 
         var cumulativeChangeIndex = 0;
 
-        var textchanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-        foreach (var change in textchanges)
+        var textChanges = await textDiffService.GetTextChangesAsync(
+            oldDocument, newDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
+        foreach (var change in textChanges)
         {
-            while (cumulativeChangeIndex < cumulativeChanges.Count && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)
+            while (cumulativeChangeIndex < cumulativeChanges.Length && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)
             {
                 // Existing change that does not overlap with the current change in consideration
                 successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
                 cumulativeChangeIndex++;
-
-                groupSessionInfo.IsolatedDiffs++;
             }
 
-            if (cumulativeChangeIndex < cumulativeChanges.Count)
+            if (cumulativeChangeIndex < cumulativeChanges.Length)
             {
                 var cumulativeChange = cumulativeChanges[cumulativeChangeIndex];
                 if (!cumulativeChange.Span.IntersectsWith(change.Span))
                 {
                     // The current change in consideration does not intersect with any existing change
                     successfullyMergedChanges.Add(change);
-
-                    groupSessionInfo.IsolatedDiffs++;
                 }
                 else
                 {
@@ -158,24 +172,12 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                         // The current change in consideration overlaps an existing change but
                         // the changes are not identical. 
                         unmergedDocumentChanges.Add(change);
-
-                        groupSessionInfo.OverlappingDistinctDiffs++;
-                        if (change.Span == cumulativeChange.Span)
-                        {
-                            groupSessionInfo.OverlappingDistinctDiffsWithSameSpan++;
-                            if (change.NewText.Contains(cumulativeChange.NewText) || cumulativeChange.NewText.Contains(change.NewText))
-                            {
-                                groupSessionInfo.OverlappingDistinctDiffsWithSameSpanAndSubstringRelation++;
-                            }
-                        }
                     }
                     else
                     {
                         // The current change in consideration is identical to an existing change
                         successfullyMergedChanges.Add(change);
                         cumulativeChangeIndex++;
-
-                        groupSessionInfo.IdenticalDiffs++;
                     }
                 }
             }
@@ -183,108 +185,99 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             {
                 // The current change in consideration does not intersect with any existing change
                 successfullyMergedChanges.Add(change);
-
-                groupSessionInfo.IsolatedDiffs++;
             }
         }
 
-        while (cumulativeChangeIndex < cumulativeChanges.Count)
+        while (cumulativeChangeIndex < cumulativeChanges.Length)
         {
             // Existing change that does not overlap with the current change in consideration
             successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
             cumulativeChangeIndex++;
-            groupSessionInfo.IsolatedDiffs++;
         }
 
-        if (unmergedDocumentChanges.Any())
+        if (unmergedDocumentChanges.Count != 0)
         {
             unmergedChanges.Add(new UnmergedDocumentChanges(
-                unmergedDocumentChanges.AsEnumerable(),
+                unmergedDocumentChanges.ToImmutableAndClear(),
                 oldDocument.Project.Name,
                 oldDocument.Id));
         }
 
-        return successfullyMergedChanges.ToImmutableAndFree();
+        return successfullyMergedChanges.ToImmutableAndClear();
     }
 
-    private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
-        IEnumerable<TextChange> mergedChanges,
-        IEnumerable<TextChange> commentChanges,
-        IList<TextSpan> mergeConflictResolutionSpans,
-        LinkedFileGroupSessionInfo groupSessionInfo)
+    private static (ImmutableArray<TextChange> mergeChanges, ImmutableArray<TextSpan> mergeConflictResolutionSpans) MergeChangesWithMergeFailComments(
+        ImmutableArray<TextChange> mergedChanges,
+        ImmutableArray<TextChange> commentChanges)
     {
-        var mergedChangesList = NormalizeChanges(mergedChanges).ToList();
-        var commentChangesList = NormalizeChanges(commentChanges).ToList();
+        var mergedChangesList = NormalizeChanges(mergedChanges);
+        var commentChangesList = NormalizeChanges(commentChanges);
 
-        var combinedChanges = new List<TextChange>();
+        using var _1 = ArrayBuilder<TextChange>.GetInstance(out var combinedChanges);
+        using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var mergeConflictResolutionSpans);
+
         var insertedMergeConflictCommentsAtAdjustedLocation = 0;
-
         var commentChangeIndex = 0;
         var currentPositionDelta = 0;
 
         foreach (var mergedChange in mergedChangesList)
         {
-            while (commentChangeIndex < commentChangesList.Count && commentChangesList[commentChangeIndex].Span.End <= mergedChange.Span.Start)
+            while (commentChangeIndex < commentChangesList.Length && commentChangesList[commentChangeIndex].Span.End <= mergedChange.Span.Start)
             {
                 // Add a comment change that does not conflict with any merge change
                 combinedChanges.Add(commentChangesList[commentChangeIndex]);
-                mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText.Length));
-                currentPositionDelta += (commentChangesList[commentChangeIndex].NewText.Length - commentChangesList[commentChangeIndex].Span.Length);
+                mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText!.Length));
+                currentPositionDelta += commentChangesList[commentChangeIndex].NewText!.Length - commentChangesList[commentChangeIndex].Span.Length;
                 commentChangeIndex++;
             }
 
-            if (commentChangeIndex >= commentChangesList.Count || mergedChange.Span.End <= commentChangesList[commentChangeIndex].Span.Start)
+            if (commentChangeIndex >= commentChangesList.Length || mergedChange.Span.End <= commentChangesList[commentChangeIndex].Span.Start)
             {
                 // Add a merge change that does not conflict with any comment change
                 combinedChanges.Add(mergedChange);
-                currentPositionDelta += (mergedChange.NewText.Length - mergedChange.Span.Length);
+                currentPositionDelta += mergedChange.NewText!.Length - mergedChange.Span.Length;
                 continue;
             }
 
             // The current comment insertion location conflicts with a merge diff location. Add the comment before the diff.
             var conflictingCommentInsertionLocation = new TextSpan(mergedChange.Span.Start, 0);
-            while (commentChangeIndex < commentChangesList.Count && commentChangesList[commentChangeIndex].Span.Start < mergedChange.Span.End)
+            while (commentChangeIndex < commentChangesList.Length && commentChangesList[commentChangeIndex].Span.Start < mergedChange.Span.End)
             {
-                combinedChanges.Add(new TextChange(conflictingCommentInsertionLocation, commentChangesList[commentChangeIndex].NewText));
-                mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText.Length));
-                currentPositionDelta += commentChangesList[commentChangeIndex].NewText.Length;
+                combinedChanges.Add(new TextChange(conflictingCommentInsertionLocation, commentChangesList[commentChangeIndex].NewText!));
+                mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText!.Length));
+                currentPositionDelta += commentChangesList[commentChangeIndex].NewText!.Length;
 
                 commentChangeIndex++;
                 insertedMergeConflictCommentsAtAdjustedLocation++;
             }
 
             combinedChanges.Add(mergedChange);
-            currentPositionDelta += (mergedChange.NewText.Length - mergedChange.Span.Length);
+            currentPositionDelta += mergedChange.NewText!.Length - mergedChange.Span.Length;
         }
 
-        while (commentChangeIndex < commentChangesList.Count)
+        while (commentChangeIndex < commentChangesList.Length)
         {
             // Add a comment change that does not conflict with any merge change
             combinedChanges.Add(commentChangesList[commentChangeIndex]);
-            mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText.Length));
+            mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText!.Length));
 
-            currentPositionDelta += (commentChangesList[commentChangeIndex].NewText.Length - commentChangesList[commentChangeIndex].Span.Length);
+            currentPositionDelta += commentChangesList[commentChangeIndex].NewText!.Length - commentChangesList[commentChangeIndex].Span.Length;
             commentChangeIndex++;
         }
 
-        groupSessionInfo.InsertedMergeConflictComments = commentChanges.Count();
-        groupSessionInfo.InsertedMergeConflictCommentsAtAdjustedLocation = insertedMergeConflictCommentsAtAdjustedLocation;
-
-        return NormalizeChanges(combinedChanges);
+        return (NormalizeChanges(combinedChanges.ToImmutableAndClear()), mergeConflictResolutionSpans.ToImmutableAndClear());
     }
 
-    private static IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
+    private static ImmutableArray<TextChange> NormalizeChanges(ImmutableArray<TextChange> changes)
     {
-        if (changes.Count() <= 1)
-        {
+        if (changes.Length <= 1)
             return changes;
-        }
 
-        changes = changes.OrderBy(c => c.Span.Start);
-        var normalizedChanges = new List<TextChange>();
+        var orderedChanges = changes.Sort(static (c1, c2) => c1.Span.Start - c2.Span.Start);
+        using var _ = ArrayBuilder<TextChange>.GetInstance(changes.Length, out var normalizedChanges);
 
-        var currentChange = changes.First();
-        foreach (var nextChange in changes.Skip(1))
+        var currentChange = changes[0];
+        foreach (var nextChange in changes.AsSpan()[1..])
         {
             if (nextChange.Span.Start == currentChange.Span.End)
             {
@@ -298,27 +291,11 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         }
 
         normalizedChanges.Add(currentChange);
-        return normalizedChanges;
-    }
 
-    internal class LinkedFileDiffMergingSessionInfo
-    {
-        public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = [];
+        // If we didn't merge anything, can just return the original ordered changes.
+        if (normalizedChanges.Count == orderedChanges.Length)
+            return orderedChanges;
 
-        public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
-            => LinkedFileGroups.Add(info);
-    }
-
-    internal class LinkedFileGroupSessionInfo
-    {
-        public int LinkedDocuments;
-        public int DocumentsWithChanges;
-        public int IsolatedDiffs;
-        public int IdenticalDiffs;
-        public int OverlappingDistinctDiffs;
-        public int OverlappingDistinctDiffsWithSameSpan;
-        public int OverlappingDistinctDiffsWithSameSpanAndSubstringRelation;
-        public int InsertedMergeConflictComments;
-        public int InsertedMergeConflictCommentsAtAdjustedLocation;
+        return normalizedChanges.ToImmutableAndClear();
     }
 }

@@ -7,29 +7,28 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.BracePairs;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BracePairs
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BracePairs;
+
+public sealed class CSharpBracePairsTests : AbstractBracePairsTests
 {
-    public sealed class CSharpBracePairsTests : AbstractBracePairsTests
+    protected override EditorTestWorkspace CreateWorkspace(string input)
+        => EditorTestWorkspace.CreateCSharp(input);
+
+    [Fact]
+    public async Task Test1()
     {
-        protected override EditorTestWorkspace CreateWorkspace(string input)
-            => EditorTestWorkspace.CreateCSharp(input);
+        await Test("""
+            public class C
+            {|a:{|}
+                void M{|b:(|}int i{|b:)|}
+                {|c:{|}
+                {|c:}|}
 
-        [Fact]
-        public async Task Test1()
-        {
-            await Test("""
-                public class C
-                {|a:{|}
-                    void M{|b:(|}int i{|b:)|}
-                    {|c:{|}
-                    {|c:}|}
-
-                    {|d:[|}Attr{|d:]|}
-                    void M2{|e:(|}List{|f:<|}int{|f:>|} i{|e:)|}
-                    {|g:{|}
-                    {|g:}|}
-                {|a:}|}
-                """);
-        }
+                {|d:[|}Attr{|d:]|}
+                void M2{|e:(|}List{|f:<|}int{|f:>|} i{|e:)|}
+                {|g:{|}
+                {|g:}|}
+            {|a:}|}
+            """);
     }
 }

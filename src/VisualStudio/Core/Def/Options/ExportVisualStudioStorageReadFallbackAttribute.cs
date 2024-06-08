@@ -5,12 +5,7 @@
 using System;
 using System.Composition;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 

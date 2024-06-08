@@ -1638,4 +1638,124 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
+    public async Task NotAllMembersExist_NotDefault_OrPattern()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz,
+                    FizzBuzzFizz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz or MyEnum.FizzBuzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz,
+                    FizzBuzzFizz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz or MyEnum.FizzBuzz:
+                                break;
+                            case MyEnum.FizzBuzzFizz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """, index: 2);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
+    public async Task NotAllMembersExist_WithDefault_OrPattern()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
 }
