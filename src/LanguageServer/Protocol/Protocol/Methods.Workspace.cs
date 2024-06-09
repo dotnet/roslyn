@@ -258,4 +258,40 @@ partial class Methods
     /// Strongly typed message object for 'workspace/didChangeWatchedFiles'.
     /// </summary>
     public static readonly LspNotification<DidChangeWatchedFilesParams> WorkspaceDidChangeWatchedFiles = new(WorkspaceDidChangeWatchedFilesName);
+
+    /// <summary>
+    /// Method name for 'workspace/executeCommand'.
+    /// <para>
+    /// The workspace/executeCommand request is sent from the client to the server to trigger command execution on the server.
+    /// </para>
+    /// <para>
+    /// In most cases the server creates a WorkspaceEdit structure and applies the changes to the workspace using the
+    /// request <c>workspace/applyEdit</c> which is sent from the server to the client.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_executeCommand">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string WorkspaceExecuteCommandName = "workspace/executeCommand";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/executeCommand'.
+    /// </summary>
+    public static readonly LspRequest<ExecuteCommandParams, object?> WorkspaceExecuteCommand = new(WorkspaceExecuteCommandName);
+
+    /// <summary>
+    /// Method name for 'workspace/applyEdit'.
+    /// </summary>
+    public const string WorkspaceApplyEditName = "workspace/applyEdit";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/applyEdit'.
+    /// <para>
+    /// The <c>workspace/applyEdit</c> request is sent from the server to the client to modify resource on the client side.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_applyEdit">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public static readonly LspRequest<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse> WorkspaceApplyEdit = new(WorkspaceApplyEditName);
 }

@@ -47,16 +47,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WindowShowMessageRequestName = "window/showMessageRequest";
 
         /// <summary>
-        /// Method name for 'workspace/applyEdit'.
-        /// </summary>
-        public const string WorkspaceApplyEditName = "workspace/applyEdit";
-
-        /// <summary>
-        /// Method name for 'workspace/executeCommand'.
-        /// </summary>
-        public const string WorkspaceExecuteCommandName = "workspace/executeCommand";
-
-        /// <summary>
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
@@ -75,16 +65,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'window/showMessageRequest'.
         /// </summary>
         public static readonly LspRequest<ShowMessageRequestParams, MessageActionItem> WindowShowMessageRequest = new LspRequest<ShowMessageRequestParams, MessageActionItem>(WindowShowMessageRequestName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/applyEdit'.
-        /// </summary>
-        public static readonly LspRequest<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse> WorkspaceApplyEdit = new LspRequest<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(WorkspaceApplyEditName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/executeCommand'.
-        /// </summary>
-        public static readonly LspRequest<ExecuteCommandParams, object?> WorkspaceExecuteCommand = new LspRequest<ExecuteCommandParams, object?>(WorkspaceExecuteCommandName);
 
         /// <summary>
         /// Strongly typed message object for 'telemetry/event'.

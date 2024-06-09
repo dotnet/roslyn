@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         // NOTE: these are kept in the same order as the spec to make them easier to update
 
         /// <summary>
-        /// Gets or sets a value indicating whether apply edit is supported.
+        /// Whether the client supports applying batch edits to the workspace by supporting the request 'workspace/applyEdit'
         /// </summary>
         [JsonPropertyName("applyEdit")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -52,11 +52,11 @@ namespace Roslyn.LanguageServer.Protocol
         public SymbolSetting? Symbol { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if execute command can be dynamically registered.
+        /// Capabilities specific to the `workspace/executeCommand` request.
         /// </summary>
         [JsonPropertyName("executeCommand")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? ExecuteCommand { get; set; }
+        public ExecuteCommandClientCapabilities? ExecuteCommand { get; set; }
 
         /// <summary>
         /// The client has support for workspace folders.
