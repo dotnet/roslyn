@@ -74,7 +74,7 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<bool, HoverOptions>? HoverProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the value which indicates if signature help is supported.
+        /// The server provides signature help support.
         /// </summary>
         [JsonPropertyName("signatureHelpProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

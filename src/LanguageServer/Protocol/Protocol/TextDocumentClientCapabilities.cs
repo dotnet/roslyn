@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         public HoverSetting? Hover { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if signature help can be dynamically registered.
+        /// Capabilities specific to the `textDocument/signatureHelp` request
         /// </summary>
         [JsonPropertyName("signatureHelp")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

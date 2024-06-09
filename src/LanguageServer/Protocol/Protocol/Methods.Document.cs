@@ -398,4 +398,20 @@ partial class Methods
     /// Strongly typed message object for 'completionItem/resolve'.
     /// </summary>
     public static readonly LspRequest<CompletionItem, CompletionItem> TextDocumentCompletionResolve = new(TextDocumentCompletionResolveName);
+
+    /// <summary>
+    /// Method name for 'textDocument/signatureHelp'.
+    /// <para>
+    /// The signature help request is sent from the client to the server to request signature information at a given cursor position.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_signatureHelp">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentSignatureHelpName = "textDocument/signatureHelp";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/signatureHelp'.
+    /// </summary>
+    public static readonly LspRequest<SignatureHelpParams, SignatureHelp?> TextDocumentSignatureHelp = new(TextDocumentSignatureHelpName);
 }

@@ -72,11 +72,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentPrepareRenameName = "textDocument/prepareRename";
 
         /// <summary>
-        /// Method name for 'textDocument/signatureHelp'.
-        /// </summary>
-        public const string TextDocumentSignatureHelpName = "textDocument/signatureHelp";
-
-        /// <summary>
         /// Method name for 'textDocument/linkedEditingRange'.
         /// </summary>
         public const string TextDocumentLinkedEditingRangeName = "textDocument/linkedEditingRange";
@@ -171,11 +166,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'textDocument/prepareRename'.
         /// </summary>
         public static readonly LspRequest<PrepareRenameParams, SumType<RenameRange, DefaultBehaviorPrepareRename, Range>?> TextDocumentPrepareRename = new LspRequest<PrepareRenameParams, SumType<RenameRange, DefaultBehaviorPrepareRename, Range>?>(TextDocumentPrepareRenameName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/signatureHelp'.
-        /// </summary>
-        public static readonly LspRequest<SignatureHelpParams, SignatureHelp?> TextDocumentSignatureHelp = new LspRequest<SignatureHelpParams, SignatureHelp?>(TextDocumentSignatureHelpName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/linkedEditingRange'.
