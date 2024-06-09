@@ -453,4 +453,63 @@ partial class Methods
     /// Strongly typed message object for 'codeAction/resolve'.
     /// </summary>
     public static readonly LspRequest<CodeAction, CodeAction> CodeActionResolve = new(CodeActionResolveName);
+
+    /// <summary>
+    /// Method name for 'textDocument/documentColor'.
+    /// <para>
+    /// The document color request is sent from the client to the server to list all color references
+    /// found in a given text document. Along with the range, a color value in RGB is returned.
+    /// </para>
+    /// <para>
+    /// Clients can use the result to decorate color references in an editor. For example:
+    /// <list type="bullet">
+    /// <item>
+    /// Color boxes showing the actual color next to the reference
+    /// </item>
+    /// <item>
+    /// Show a color picker when a color reference is edited
+    /// </item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_documentColor">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
+    public const string TextDocumentDocumentColorName = "textDocument/documentColor";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/documentColor'.
+    /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
+    public static readonly LspRequest<DocumentColorParams, ColorInformation[]> TextDocumentDocumentColor = new(TextDocumentDocumentColorName);
+
+    /// <summary>
+    /// Method name for 'textDocument/colorPresentation'.
+    /// <para>
+    /// The color presentation request is sent from the client to the server to obtain a list of presentations for a color value at a given location.
+    /// <para>
+    /// </para>
+    /// Clients can use the result to:
+    /// <list type="bullet">
+    /// <item>
+    /// modify a color reference.
+    /// </item>
+    /// <item>
+    /// show in a color picker and let users pick one of the presentations
+    /// </item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_colorPresentation">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
+    public const string TextDocumentColorPresentationName = "textDocument/colorPresentation";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/colorPresentation'.
+    /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
+    public static readonly LspRequest<ColorPresentationParams, ColorPresentation[]> TextDocumentColorPresentation = new(TextDocumentColorPresentationName);
 }

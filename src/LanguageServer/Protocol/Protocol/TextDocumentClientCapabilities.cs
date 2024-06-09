@@ -118,6 +118,14 @@ namespace Roslyn.LanguageServer.Protocol
         public DocumentLinkClientCapabilities? DocumentLink { get; set; }
 
         /// <summary>
+        /// Capabilities specific to the `textDocument/documentColor` and the `textDocument/colorPresentation` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
+        [JsonPropertyName("colorProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DocumentColorClientCapabilities? ColorProvider { get; set; }
+
+        /// <summary>
         /// Gets or sets the setting which determines if formatting can be dynamically registered.
         /// </summary>
         [JsonPropertyName("formatting")]

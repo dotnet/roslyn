@@ -158,9 +158,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if document color is supported.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("colorProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SumType<bool, DocumentColorOptions>? DocumentColorProvider { get; set; }
+        public SumType<bool, DocumentColorOptions, DocumentColorRegistrationOptions>? DocumentColorProvider { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether document formatting is supported.

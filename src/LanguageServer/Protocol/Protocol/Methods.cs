@@ -32,11 +32,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string ProgressNotificationTokenName = "token";
 
         /// <summary>
-        /// Method name for 'textDocument/documentColor'.
-        /// </summary>
-        public const string TextDocumentDocumentColorName = "textDocument/documentColor";
-
-        /// <summary>
         /// Method name for 'textDocument/formatting'.
         /// </summary>
         public const string TextDocumentFormattingName = "textDocument/formatting";
@@ -116,11 +111,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/documentColor'.
-        /// </summary>
-        public static readonly LspRequest<DocumentColorParams, ColorInformation[]> DocumentColorRequest = new LspRequest<DocumentColorParams, ColorInformation[]>(TextDocumentDocumentColorName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/formatting'.
