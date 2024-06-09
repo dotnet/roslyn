@@ -126,25 +126,25 @@ namespace Roslyn.LanguageServer.Protocol
         public DocumentColorClientCapabilities? ColorProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if formatting can be dynamically registered.
+        /// Capabilities specific to the `textDocument/formatting` request.
         /// </summary>
         [JsonPropertyName("formatting")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? Formatting { get; set; }
+        public DocumentFormattingClientCapabilities? Formatting { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if range formatting can be dynamically registered.
+        /// Capabilities specific to the `textDocument/rangeFormatting` request.
         /// </summary>
         [JsonPropertyName("rangeFormatting")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? RangeFormatting { get; set; }
+        public RangeFormattingClientCapabilities? RangeFormatting { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if on type formatting can be dynamically registered.
+        /// Capabilities specific to the `textDocument/onTypeFormatting` request.
         /// </summary>
         [JsonPropertyName("onTypeFormatting")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? OnTypeFormatting { get; set; }
+        public OnTypeFormattingClientCapabilities? OnTypeFormatting { get; set; }
 
         /// <summary>
         /// Gets or sets the setting which determines if rename can be dynamically registered.

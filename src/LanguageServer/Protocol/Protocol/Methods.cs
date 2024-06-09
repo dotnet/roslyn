@@ -32,21 +32,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string ProgressNotificationTokenName = "token";
 
         /// <summary>
-        /// Method name for 'textDocument/formatting'.
-        /// </summary>
-        public const string TextDocumentFormattingName = "textDocument/formatting";
-
-        /// <summary>
-        /// Method name for 'textDocument/onTypeFormatting'.
-        /// </summary>
-        public const string TextDocumentOnTypeFormattingName = "textDocument/onTypeFormatting";
-
-        /// <summary>
-        /// Method name for 'textDocument/rangeFormatting'.
-        /// </summary>
-        public const string TextDocumentRangeFormattingName = "textDocument/rangeFormatting";
-
-        /// <summary>
         /// Method name for 'textDocument/rename'.
         /// </summary>
         public const string TextDocumentRenameName = "textDocument/rename";
@@ -111,21 +96,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/formatting'.
-        /// </summary>
-        public static readonly LspRequest<DocumentFormattingParams, TextEdit[]?> TextDocumentFormatting = new LspRequest<DocumentFormattingParams, TextEdit[]?>(TextDocumentFormattingName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/onTypeFormatting'.
-        /// </summary>
-        public static readonly LspRequest<DocumentOnTypeFormattingParams, TextEdit[]?> TextDocumentOnTypeFormatting = new LspRequest<DocumentOnTypeFormattingParams, TextEdit[]?>(TextDocumentOnTypeFormattingName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/rangeFormatting'.
-        /// </summary>
-        public static readonly LspRequest<DocumentRangeFormattingParams, TextEdit[]?> TextDocumentRangeFormatting = new LspRequest<DocumentRangeFormattingParams, TextEdit[]?>(TextDocumentRangeFormattingName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/rename'.

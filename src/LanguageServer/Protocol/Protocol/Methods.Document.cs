@@ -512,4 +512,52 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.6</remarks>
     public static readonly LspRequest<ColorPresentationParams, ColorPresentation[]> TextDocumentColorPresentation = new(TextDocumentColorPresentationName);
+
+    /// <summary>
+    /// Method name for 'textDocument/formatting'.
+    /// <para>
+    /// The document formatting request is sent from the client to the server to format a whole document.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_formatting">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentFormattingName = "textDocument/formatting";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/formatting'.
+    /// </summary>
+    public static readonly LspRequest<DocumentFormattingParams, TextEdit[]?> TextDocumentFormatting = new(TextDocumentFormattingName);
+
+    /// <summary>
+    /// Method name for 'textDocument/rangeFormatting'.
+    /// <para>
+    /// The document range formatting request is sent from the client to the server to format a given range in a document.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_rangeFormatting">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentRangeFormattingName = "textDocument/rangeFormatting";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/rangeFormatting'.
+    /// </summary>
+    public static readonly LspRequest<DocumentRangeFormattingParams, TextEdit[]?> TextDocumentRangeFormatting = new(TextDocumentRangeFormattingName);
+
+    /// <summary>
+    /// Method name for 'textDocument/onTypeFormatting'.
+    /// <para>
+    /// The document on type formatting request is sent from the client to the server to format parts of the document during typing.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_onTypeFormatting">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentOnTypeFormattingName = "textDocument/onTypeFormatting";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/onTypeFormatting'.
+    /// </summary>
+    public static readonly LspRequest<DocumentOnTypeFormattingParams, TextEdit[]?> TextDocumentOnTypeFormatting = new(TextDocumentOnTypeFormattingName);
 }
