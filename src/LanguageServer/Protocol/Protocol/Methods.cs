@@ -30,45 +30,5 @@ namespace Roslyn.LanguageServer.Protocol
         /// Name of the progress token in the $/progress notification.
         /// </summary>
         public const string ProgressNotificationTokenName = "token";
-
-        /// <summary>
-        /// Method name for 'window/logMessage'.
-        /// </summary>
-        public const string WindowLogMessageName = "window/logMessage";
-
-        /// <summary>
-        /// Method name for 'window/showMessage'.
-        /// </summary>
-        public const string WindowShowMessageName = "window/showMessage";
-
-        /// <summary>
-        /// Method name for 'window/showMessageRequest'.
-        /// </summary>
-        public const string WindowShowMessageRequestName = "window/showMessageRequest";
-
-        /// <summary>
-        /// Method name for 'telemetry/event'.
-        /// </summary>
-        public const string TelemetryEventName = "telemetry/event";
-
-        /// <summary>
-        /// Strongly typed message object for 'window/logMessage'.
-        /// </summary>
-        public static readonly LspNotification<LogMessageParams> WindowLogMessage = new LspNotification<LogMessageParams>(WindowLogMessageName);
-
-        /// <summary>
-        /// Strongly typed message object for 'window/showMessage'.
-        /// </summary>
-        public static readonly LspNotification<ShowMessageParams> WindowShowMessage = new LspNotification<ShowMessageParams>(WindowShowMessageName);
-
-        /// <summary>
-        /// Strongly typed message object for 'window/showMessageRequest'.
-        /// </summary>
-        public static readonly LspRequest<ShowMessageRequestParams, MessageActionItem> WindowShowMessageRequest = new LspRequest<ShowMessageRequestParams, MessageActionItem>(WindowShowMessageRequestName);
-
-        /// <summary>
-        /// Strongly typed message object for 'telemetry/event'.
-        /// </summary>
-        public static readonly LspNotification<object> TelemetryEvent = new LspNotification<object>(TelemetryEventName);
     }
 }
