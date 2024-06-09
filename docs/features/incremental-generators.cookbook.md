@@ -759,7 +759,7 @@ sealed class {{AutoImplementAttributeClassName}} : Attribute
                     """);
                 foreach (IPropertySymbol interfaceProperty in interfaceProperties)
                 {
-                    //Check if property has a setter
+                    // Check if property has a setter
                     string setter = interfaceProperty.SetMethod is null
                         ? string.Empty
                         : "set; ";
