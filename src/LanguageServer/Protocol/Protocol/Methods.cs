@@ -57,11 +57,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WorkspaceExecuteCommandName = "workspace/executeCommand";
 
         /// <summary>
-        /// Method name for 'workspace/didChangeWatchedFiles'.
-        /// </summary>
-        public const string WorkspaceDidChangeWatchedFilesName = "workspace/didChangeWatchedFiles";
-
-        /// <summary>
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
@@ -90,11 +85,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'workspace/executeCommand'.
         /// </summary>
         public static readonly LspRequest<ExecuteCommandParams, object?> WorkspaceExecuteCommand = new LspRequest<ExecuteCommandParams, object?>(WorkspaceExecuteCommandName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/didChangeWatchedFiles'.
-        /// </summary>
-        public static readonly LspNotification<DidChangeWatchedFilesParams> WorkspaceDidChangeWatchedFiles = new LspNotification<DidChangeWatchedFilesParams>(WorkspaceDidChangeWatchedFilesName);
 
         /// <summary>
         /// Strongly typed message object for 'telemetry/event'.

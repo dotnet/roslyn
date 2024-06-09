@@ -38,11 +38,11 @@ namespace Roslyn.LanguageServer.Protocol
         public DidChangeConfigurationClientCapabilities? DidChangeConfiguration { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if did change watched files can be dynamically registered.
+        /// Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
         /// </summary>
         [JsonPropertyName("didChangeWatchedFiles")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? DidChangeWatchedFiles { get; set; }
+        public DidChangeWatchedFilesClientCapabilities? DidChangeWatchedFiles { get; set; }
 
         /// <summary>
         /// Capabilities specific to the `workspace/symbol` request.
@@ -57,6 +57,14 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("executeCommand")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? ExecuteCommand { get; set; }
+
+        /// <summary>
+        /// The client has support for workspace folders.
+        /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
+        [JsonPropertyName("workspaceFolders")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool WorkspaceFolders { get; init; }
 
         /// <summary>
         /// The client supports `workspace/configuration` requests.
@@ -81,6 +89,14 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("codeLens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeLensWorkspaceSetting? CodeLens { get; set; }
+
+        /// <summary>
+        /// The client's capabilities for file requests/notifications.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("fileOperations")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public FileOperationsWorkspaceClientCapabilities? FileOperations { get; init; }
 
         /// <summary>
         /// Client workspace capabilities specific to inline values.

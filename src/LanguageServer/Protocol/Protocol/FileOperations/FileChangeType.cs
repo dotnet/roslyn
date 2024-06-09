@@ -6,8 +6,9 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// File event type enum.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fileChangeType">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal enum FileChangeType
     {

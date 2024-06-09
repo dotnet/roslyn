@@ -286,6 +286,13 @@ namespace Roslyn.LanguageServer.Protocol
         public SumType<bool, WorkspaceSymbolOptions>? WorkspaceSymbolProvider { get; set; }
 
         /// <summary>
+        /// Workspace specific server capabilities.
+        /// </summary>
+        [JsonPropertyName("workspace")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public WorkspaceServerCapabilities? Workspace { get; init; }
+
+        /// <summary>
         /// Gets or sets experimental server capabilities.
         /// </summary>
         [JsonPropertyName("experimental")]

@@ -9,8 +9,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents a file change event.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fileEvent">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class FileEvent
     {
@@ -19,11 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri Uri
-        {
-            get;
-            set;
-        }
+        public Uri Uri { get; set; }
 
         /// <summary>
         /// Gets or sets the file change type.

@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents the parameter that is sent with workspace/didChangeWatchedFiles message.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeWatchedFilesParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DidChangeWatchedFilesParams
     {
@@ -17,6 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets of the collection of file change events.
         /// </summary>
         [JsonPropertyName("changes")]
+        [JsonRequired]
         public FileEvent[] Changes
         {
             get;
