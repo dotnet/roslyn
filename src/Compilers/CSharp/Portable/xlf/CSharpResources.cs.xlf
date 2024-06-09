@@ -677,6 +677,11 @@
         <target state="translated">Očekával se interpolovaný řetězec.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitExtensionErasureAttr">
+        <source>Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Explicitní implementace uživatelem definovaného operátoru {0} musí být deklarovaná jako statická.</target>

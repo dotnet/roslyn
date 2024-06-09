@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -75,6 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static AssemblyIdentity GetComponentAssemblyIdentity(ModuleSymbol module)
         {
             return ((PEModuleSymbol)module).Module.ReadAssemblyIdentityOrThrow();
+        }
+
+        protected override TypeSymbol GetGenericTypeParamSymbol(int index)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        protected override TypeSymbol GetGenericMethodTypeParamSymbol(int index)
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
         private ModuleSymbol Module => _compilation.Assembly.Modules.Single();

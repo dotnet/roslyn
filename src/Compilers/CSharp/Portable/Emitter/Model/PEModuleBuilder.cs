@@ -839,10 +839,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
+            var specialTypeSymbol = GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics);
+            Debug.Assert(!specialTypeSymbol.IsExtension);
+
+            return (Cci.INamedTypeReference)Translate(specialTypeSymbol,
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
-                             needDeclaration: true);
+                             keepExtension: false, needDeclaration: true);
         }
 
         public sealed override Cci.IMethodReference GetInitArrayHelper()
@@ -960,16 +963,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal Cci.INamedTypeReference Translate(
+        /// <param name="keepExtension">
+        /// There are a few reasons to keep an extension type un-erased:
+        /// - translating a container type: `E.X` (we should keep the extension type `E`)
+        /// - serializing a type into a string for the extension erasure attribute (we should keep all extensions)
+        /// - translating a type related to a type reference that was already subjected to a decision to erase or not (for example, the original definition)
+        /// - translating a modifier
+        /// </param>
+        internal Cci.ITypeReference Translate(
             NamedTypeSymbol namedTypeSymbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
+            bool keepExtension,
             bool fromImplements = false,
             bool needDeclaration = false)
         {
-            // PROTOTYPE emit references to extension types
             Debug.Assert(namedTypeSymbol.IsDefinitionOrDistinct());
             Debug.Assert(diagnostics != null);
+
+            if (!keepExtension
+                && namedTypeSymbol.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved: null) is { } extendedType)
+            {
+                if (extendedType is NamedTypeSymbol extendedNamedType)
+                {
+                    namedTypeSymbol = extendedNamedType;
+                }
+                else
+                {
+                    return Translate(extendedType, syntaxNodeOpt, diagnostics);
+                }
+            }
 
             // Anonymous type being translated
             if (namedTypeSymbol.IsAnonymousType)
@@ -1142,10 +1165,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return param.GetCciAdapter();
         }
 
+        /// <param name="keepExtension">
+        /// When translating for purpose of serializing a type into a string for the extension erasure attribute, we should keep extensions.
+        /// </param>
         internal sealed override Cci.ITypeReference Translate(
             TypeSymbol typeSymbol,
             SyntaxNode syntaxNodeOpt,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool keepExtension = false)
         {
             Debug.Assert(diagnostics != null);
 
@@ -1159,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
-                    return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
+                    return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics, keepExtension: keepExtension);
 
                 case SymbolKind.PointerType:
                     return Translate((PointerTypeSymbol)typeSymbol);

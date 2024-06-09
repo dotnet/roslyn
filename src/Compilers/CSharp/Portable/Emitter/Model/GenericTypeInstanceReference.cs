@@ -51,8 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             System.Diagnostics.Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                              diagnostics: context.Diagnostics, needDeclaration: true);
+
+            return (Cci.INamedTypeReference)moduleBeingBuilt.Translate(
+                UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
+                diagnostics: context.Diagnostics, keepExtension: true, needDeclaration: true);
         }
     }
 }

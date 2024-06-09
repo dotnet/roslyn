@@ -11,6 +11,7 @@ using System.Linq;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -243,8 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return types.All(containingSymbol.IsContainingSymbolOfAllTypeParameters);
         }
 
-        private static readonly Func<TypeSymbol, Symbol, bool, bool> s_hasInvalidTypeParameterFunc =
-            (type, containingSymbol, unused) => HasInvalidTypeParameter(type, containingSymbol);
+        private static readonly TypePredicate<Symbol> s_hasInvalidTypeParameterFunc =
+            (type, containingSymbol, _, _) => HasInvalidTypeParameter(type, containingSymbol);
 
         private static bool HasInvalidTypeParameter(TypeSymbol type, Symbol? containingSymbol)
         {

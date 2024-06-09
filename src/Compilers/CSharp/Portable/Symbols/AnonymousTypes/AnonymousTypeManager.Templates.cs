@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 field.TypeWithAnnotations.VisitType(
                     type: null,
                     typeWithAnnotationsPredicate: null,
-                    typePredicate: static (type, referenced, _) =>
+                    typePredicate: static (type, referenced, _, _) =>
                     {
                         if (type is TypeParameterSymbol typeParameter)
                         {

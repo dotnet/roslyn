@@ -677,6 +677,11 @@
         <target state="translated">보간된 문자열이 필요합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitExtensionErasureAttr">
+        <source>Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">사용자 정의 연산자 '{0}'의 명시적 구현은 정적으로 선언되어야 합니다.</target>

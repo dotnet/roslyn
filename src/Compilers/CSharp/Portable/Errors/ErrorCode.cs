@@ -2321,6 +2321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionMethodInExtension = 9321,
         ERR_MalformedExtensionInMetadata = 9322,
         ERR_UnderspecifiedImplicitExtension = 9328,
+        ERR_ExplicitExtensionErasureAttr = 9329,
 
         ERR_NoModifiersOnUsing = 9229,
         ERR_CannotDynamicInvokeOnExpression = 9230,

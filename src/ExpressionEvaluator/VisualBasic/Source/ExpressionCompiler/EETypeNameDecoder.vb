@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
@@ -67,6 +68,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function GetComponentAssemblyIdentity([module] As ModuleSymbol) As AssemblyIdentity
             Return DirectCast([module], PEModuleSymbol).Module.ReadAssemblyIdentityOrThrow()
+        End Function
+
+        Protected Overrides Function GetGenericTypeParamSymbol(index As Integer) As TypeSymbol
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
+        Protected Overrides Function GetGenericMethodTypeParamSymbol(index As Integer) As TypeSymbol
+            Throw ExceptionUtilities.Unreachable()
         End Function
 
         Private ReadOnly Property [Module] As ModuleSymbol

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         bool Cci.ITypeReference.IsValueType
         {
-            get { return AdaptedNamedTypeSymbol.IsValueType || AdaptedNamedTypeSymbol.IsExtension; }
+            get { return AdaptedNamedTypeSymbol.IsValueType || AdaptedNamedTypeSymbol.IsExtension; } // PROTOTYPE emit extensions as static classes
         }
 
         Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
@@ -300,9 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 baseType = AdaptedNamedTypeSymbol.ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
             }
 
+            Debug.Assert(baseType?.IsExtension != true);
+
             return ((object)baseType != null) ? moduleBeingBuilt.Translate(baseType,
                                                                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                                                   diagnostics: context.Diagnostics) : null;
+                                                                   diagnostics: context.Diagnostics,
+                                                                   keepExtension: false) : null;
         }
 
         IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
@@ -483,10 +486,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (NamedTypeSymbol @interface in AdaptedNamedTypeSymbol.GetInterfacesToEmit())
             {
+                Debug.Assert(!@interface.IsExtension);
+
                 var typeRef = moduleBeingBuilt.Translate(
                     @interface,
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                     diagnostics: context.Diagnostics,
+                    keepExtension: false,
                     fromImplements: true);
 
                 var type = TypeWithAnnotations.Create(@interface);
@@ -834,6 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.ContainingType,
                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
+                                              keepExtension: true,
                                               needDeclaration: AdaptedNamedTypeSymbol.IsDefinition);
         }
 
@@ -869,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, keepExtension: context.KeepExtensions);
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {
@@ -891,8 +898,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                              diagnostics: context.Diagnostics, needDeclaration: true);
+
+            return (INamedTypeReference)moduleBeingBuilt.Translate(
+                AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
+                diagnostics: context.Diagnostics, keepExtension: true, needDeclaration: true);
         }
 
         Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)

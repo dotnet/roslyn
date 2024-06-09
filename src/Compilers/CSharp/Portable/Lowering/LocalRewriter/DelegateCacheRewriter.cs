@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbolExtensions;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -217,7 +218,7 @@ internal sealed class DelegateCacheRewriter
         }
     }
 
-    private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_typeParameterSymbolCollector = (typeSymbol, result, _) =>
+    private static readonly TypePredicate<HashSet<TypeParameterSymbol>> s_typeParameterSymbolCollector = (typeSymbol, result, _, _) =>
     {
         if (typeSymbol is TypeParameterSymbol typeParameter)
         {

@@ -1922,7 +1922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var resultType = type.VisitType(
-                    predicate: (t, a, b) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
+                    predicate: (t, _, _, _) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
                     arg: (object?)null);
                 return resultType is object;
             }

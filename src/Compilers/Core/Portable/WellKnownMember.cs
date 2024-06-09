@@ -623,6 +623,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
 
+        System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

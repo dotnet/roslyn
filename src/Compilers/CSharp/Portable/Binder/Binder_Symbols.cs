@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // pass args in a value tuple to avoid allocating a closure
                     var args = (this, diagnostics, syntax);
-                    type.VisitType((typePart, argTuple, isNested) =>
+                    type.VisitType((typePart, argTuple, isNested, isContainer) =>
                     {
                         argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.diagnostics, typePart, argTuple.syntax, hasBaseReceiver: false);
                         return false;

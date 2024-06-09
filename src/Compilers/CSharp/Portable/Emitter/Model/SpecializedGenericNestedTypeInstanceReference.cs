@@ -48,10 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GetGenericType(EmitContext context)
         {
-            System.Diagnostics.Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
+            Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                              diagnostics: context.Diagnostics, needDeclaration: true);
+
+            return (Cci.INamedTypeReference)moduleBeingBuilt.Translate(
+                this.UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
+                diagnostics: context.Diagnostics, keepExtension: true, needDeclaration: true);
         }
 
         public override Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference

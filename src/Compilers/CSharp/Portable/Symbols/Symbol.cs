@@ -1604,6 +1604,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
             {
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExtensionErasureAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitExtensionErasureAttr, arguments.AttributeSyntaxOpt.Location);
+            }
             else
             {
                 return false;

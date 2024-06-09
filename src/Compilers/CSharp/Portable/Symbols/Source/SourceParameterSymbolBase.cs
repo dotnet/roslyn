@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
             }
+
+            if (type.Type.ContainsErasedExtensionType())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeExtensionErasureAttribute(type.Type));
+            }
         }
 
         internal abstract ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams);

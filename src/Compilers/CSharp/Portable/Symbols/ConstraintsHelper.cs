@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -580,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<TypeSymbol, CheckConstraintsArgsBoxed, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, in arg.Args);
+        private static readonly TypePredicate<CheckConstraintsArgsBoxed> s_checkConstraintsSingleTypeFunc = (type, arg, _, _) => CheckConstraintsSingleType(type, in arg.Args);
 
         private static bool CheckConstraintsSingleType(TypeSymbol type, in CheckConstraintsArgs args)
         {

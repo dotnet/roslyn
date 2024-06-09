@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -206,11 +207,15 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension R for UnderlyingClas
     public static int operator-(UnderlyingClass c, R r) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
         // PROTOTYPE need to finalize the rules for operators (conversion and others)
         // PROTOTYPE constructor and destructor
         comp.VerifyDiagnostics();
 
+        // TODO2
+        // PEVerify failed for assembly '':
+        // Error: Method has a duplicate, token = 0x0600000e.
+        // Error: Method has a duplicate, token = 0x0600000d.
         var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         verifier.VerifyIL($$"""R.{{ExtensionMarkerName(isExplicit)}}(UnderlyingClass)""", """
 {
@@ -27429,7 +27434,7 @@ public implicit extension E for System.Attribute
     public int Property1 { get => throw null; set => throw null; }
 }
 """;
-        // PROTOTYPE can an extension type be used in an attribute?
+        // PROTOTYPE can an extension type be used in an attribute? if yes, we'll need to deal with erasure
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (3,6): error CS0616: 'E' is not an attribute class
@@ -29184,12 +29189,12 @@ implicit extension E2 for C
     public string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
+        var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var x = GetSyntax<VariableDeclaratorSyntax>(tree, "x = e.M");
         Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -43547,5 +43552,1990 @@ class Program
             Diagnostic(ErrorCode.ERR_BindToBogus, "remove_E1").WithArguments("E.remove_E1(ref C, System.Action)").WithLocation(9, 11)
             );
 #endif
+    }
+
+    const string ExtensionErasureAttributeDefinition = """
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionErasureAttribute : System.Attribute
+    {
+        public ExtensionErasureAttribute(string encodedType) { }
+    }
+}
+""";
+
+    [Fact]
+    public void TypeReference_MethodReturn_Simple()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public E M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        Assert.Equal("System.Runtime.CompilerServices.ExtensionErasureAttribute",
+            comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ExtensionErasureAttribute).ToDisplayString());
+
+        Assert.Equal("System.Runtime.CompilerServices.ExtensionErasureAttribute..ctor(System.String encodedType)",
+            comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType).ToTestDisplayString());
+
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.Equal("E C.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object C.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    private static void VerifyMethodInPE(string expected, MethodDefinitionHandle handle, PEModuleSymbol peModule)
+    {
+        Assert.Equal(expected, peModule.Module.MetadataReader.Dump(handle));
+    }
+
+    private static void VerifyExtensionErasureAttribute(string expected, PEModuleSymbol module, EntityHandle handle)
+    {
+        var allAttributes = module.GetCustomAttributesForToken(handle);
+        var attribute = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.ExtensionErasureAttribute").Single();
+        var arg = attribute.CommonConstructorArguments[0];
+        Assert.Equal(TypedConstantKind.Primitive, arg.Kind);
+        AssertEx.Equal(expected, (string)arg.ValueInternal);
+    }
+
+    private static void VerifyNoExtensionErasureAttribute(PEModuleSymbol module, EntityHandle handle)
+    {
+        var allAttributes = module.GetCustomAttributesForToken(handle);
+        Assert.Empty(allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.ExtensionErasureAttribute"));
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_WrongTypeInMetadata()
+    {
+        // public explicit extension E for object { }
+        // public class C
+        // {
+        //     public /*E*/ int M() { } // note: mismatch of underlying type
+        // }
+        var ilSrc = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.ExtensionErasureAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor( string encodedType ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	.method public hidebysig instance int32 M() cil managed
+	{
+		.param [0]
+			.custom instance void System.Runtime.CompilerServices.ExtensionErasureAttribute::.ctor(string) = ( 01 00 01 45 00 00 )
+		IL_0000: ldnull
+		IL_0001: throw
+	}
+	.method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+	{
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	}
+}
+""";
+        var src = """
+public class D
+{
+    public C M2() => throw null;
+}
+""";
+
+        // PROTOTYPE consider checking that the type is the erased version of the decoded type
+        var comp = CreateCompilationWithIL([src, ExtensionErasureAttributeDefinition], ilSrc);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M2").ReturnType.GetMember<MethodSymbol>("M");
+            Assert.Equal("E C.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 C.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact(Skip = "PROTOTYPE need to generate the attribute when it is missing")]
+    public void TypeReference_MethodReturn_Simple_MissingAttribute()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public E M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExplicitAttributeUsage()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    [return: System.Runtime.CompilerServices.ExtensionErasureAttribute("E")]
+    public object M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        comp.VerifyEmitDiagnostics(
+            // (5,14): error CS9329: Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.
+            //     [return: System.Runtime.CompilerServices.ExtensionErasureAttribute("E")]
+            Diagnostic(ErrorCode.ERR_ExplicitExtensionErasureAttr, @"System.Runtime.CompilerServices.ExtensionErasureAttribute(""E"")").WithLocation(5, 14));
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_Generic()
+    {
+        var libSrc = """public class A { }""";
+        var libRef = CreateCompilation(libSrc, assemblyName: "AssemblyA").EmitToImageReference();
+        var src = """
+public explicit extension E<T> for C<int> { }
+
+public class C<T> { }
+public class D
+{
+    public E<A> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [libRef]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<A> D.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1[[A, AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:C`1{Int32} D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExtensionAsTypeArgument()
+    {
+        var src = """
+public explicit extension E for int { }
+
+public class C<T> { }
+public class D
+{
+    public C<E> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("C<E> D.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("C`1[E]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:C`1{Int32} D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExtensionNestedTypeAsTypeArgument()
+    {
+        var src = """
+public explicit extension E for int { public class Nested { } }
+
+public class C<T> { }
+public class D
+{
+    public C<E.Nested> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("C<E.Nested> D.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                VerifyNoExtensionErasureAttribute((PEModuleSymbol)peMethod.ContainingModule, peMethod.ReturnTypeParameter.Handle);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExtensionAsTypeArgumentOfExtension()
+    {
+        var src = """
+public explicit extension E<T> for object { }
+public explicit extension E2 for int { }
+
+public class C
+{
+    public E<E2> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<E2> C.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1[E2]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object C.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExtensionNestedType()
+    {
+        var src = """
+public explicit extension E<T1> for int 
+{
+    public explicit extension E2 for object { }
+}
+
+public class C1 { }
+public class C2 { }
+
+public class D
+{
+    public E<C1>.E2 M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<C1>.E2 D.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+E2[C1]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExtensionNestedType_Generic()
+    {
+        var src = """
+public explicit extension E<T1> for int 
+{
+    public explicit extension E2<T2> for object { }
+}
+
+public class C1 { }
+public class C2 { }
+
+public class D
+{
+    public E<C1>.E2<C2> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<C1>.E2<C2> D.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+E2`1[C1,C2]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_Array()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public E[] M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.Equal("E[] C.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E[]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object[] C.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_Pointer()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public unsafe E* M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.UnsafeDebugDll);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.Equal("E* C.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E*", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object* C.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_OnArray()
+    {
+        var src = """
+public explicit extension E for object[] { }
+
+public class C
+{
+    public E M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.Equal("E C.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object[] C.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExtensionTypeMethod_TypeParameter()
+    {
+        var src = """
+public explicit extension E<T> for object
+{ 
+    public E<T> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<T> E<T>.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1[!0]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_SpecializedNestedTypeReference()
+    {
+        var src = """
+public explicit extension E<T> for object
+{
+    public class Nested { }
+    public Nested M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<T>.Nested E<T>.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEExtensionInstanceMethodSymbol)m;
+                VerifyNoExtensionErasureAttribute((PEModuleSymbol)peMethod.ContainingModule, ((PEMethodSymbol)peMethod.UnderlyingMethod).ReturnTypeParameter.Handle);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_SpecializedNestedTypeReference_NestedExtension()
+    {
+        var src = """
+public explicit extension E<T> for object
+{
+    public explicit extension NestedE for int { }
+    public NestedE M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<T>.NestedE E<T>.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+NestedE[!0]",
+                    (PEModuleSymbol)peMethod.ContainingModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_SpecializedGenericNestedTypeInstanceReference_NestedExtension()
+    {
+        var src = """
+public explicit extension E<T> for object
+{
+    public explicit extension NestedE for int { }
+    public NestedE M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<T>.NestedE E<T>.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+NestedE[!0]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_SpecializedGenericNestedTypeInstanceReference_NestedExtension_Generic()
+    {
+        var src = """
+public explicit extension E<T> for object
+{
+    public explicit extension Nested<U> for int { }
+    public Nested<T> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<T>.Nested<T> E<T>.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+Nested`1[!0,!0]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_SpecializedGenericNestedTypeInstanceReference_NestedExtension_Generic_SpecificTypeArgument()
+    {
+        var src = """
+public class C { }
+public explicit extension E<T> for object
+{
+    public explicit extension Nested<U> for int { }
+    public Nested<C> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<T>.Nested<C> E<T>.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+Nested`1[!0,C]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_SpecializedGenericNestedTypeInstanceReference_NestedExtension_Generic_Nested()
+    {
+        var src = """
+class C<T0>
+{
+    public explicit extension E<T> for object
+    {
+        public explicit extension Nested<U> for int { }
+        public Nested<T> M() => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("C<T0>.E<T>.Nested<T> C<T0>.E<T>.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("C`1+E`1+Nested`1[!0,!1,!1]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ThirteenTypeParameters()
+    {
+        var src = """
+class C<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
+{
+    public explicit extension E<T12> for object
+    {
+        public explicit extension Nested<U, V> for int { }
+        public Nested<T11, T12> M() => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("C<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.E<T12>.Nested<T11, T12> C<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.E<T12>.M()",
+                m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("C`12+E`1+Nested`2[!0,!1,!2,!3,!4,!5,!6,!7,!8,!9,!10,!11,!12,!11,!12]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_MethodTypeParameter()
+    {
+        var src = """
+public explicit extension E<T> for object
+{
+    public explicit extension NestedE<U> for int { }
+    public NestedE<V> M<V>() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<T>.NestedE<V> E<T>.M<V>()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+NestedE`1[!0,!!0]", peModule, peMethod.ReturnTypeParameter.Handle);
+                // Note: we don't need to emit the erasure attribute on the `this` parameter of emitted static method
+                VerifyNoExtensionErasureAttribute(peModule, ((PEParameterSymbol)peMethod.Parameters[0]).Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var bRef = CreateCompilation("public class B { }", assemblyName: "AssemblyB").EmitToImageReference();
+        var cRef = CreateCompilation("public class C<T> { }", assemblyName: "AssemblyC").EmitToImageReference();
+        var eRef = CreateCompilation("public explicit extension E<T> for C<A> { }", references: [aRef, cRef], assemblyName: "AssemblyE").EmitToImageReference();
+
+        var src = """
+public class D
+{
+    public E<B> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, bRef, cRef, eRef]);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [bRef, cRef, eRef]).VerifyEmitDiagnostics(
+            // (3,30): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //     public E<B> M() => throw null;
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "null").WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, cRef, eRef]).VerifyEmitDiagnostics(
+            // (3,14): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+            //     public E<B> M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(3, 14));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, bRef, eRef]).VerifyEmitDiagnostics(
+            // (3,30): error CS0012: The type 'C<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyC, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //     public E<B> M() => throw null;
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "null").WithArguments("C<>", "AssemblyC, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, bRef, cRef]).VerifyEmitDiagnostics(
+            // (3,12): error CS0246: The type or namespace name 'E<>' could not be found (are you missing a using directive or an assembly reference?)
+            //     public E<B> M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E<B>").WithArguments("E<>").WithLocation(3, 12));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<B> D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1[[B, AssemblyB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], AssemblyE, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:C`1{A} D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn_UnderlyingHasExtension()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var bRef = CreateCompilation("public class B { }", assemblyName: "AssemblyB").EmitToImageReference();
+        var c1Ref = CreateCompilation("public class C1<T> { }", assemblyName: "AssemblyC1").EmitToImageReference();
+        var c2Ref = CreateCompilation("public class C2<T> { }", assemblyName: "AssemblyC2").EmitToImageReference();
+
+        var e1Src = "public explicit extension E1 for C2<A> { }";
+        var e1Ref = CreateCompilation(e1Src, assemblyName: "AssemblyE1", references: [aRef, c2Ref]).EmitToImageReference();
+
+        var e2Src = "public explicit extension E2<T> for C1<E1> { }";
+        var e2Ref = CreateCompilation(e2Src, references: [aRef, c1Ref, c2Ref, e1Ref], assemblyName: "AssemblyE2").EmitToImageReference();
+
+        var src = """
+public class D
+{
+    public E2<B> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, bRef, c1Ref, c2Ref, e1Ref, e2Ref]);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references when compiling E1
+        CreateCompilation(e1Src, references: [c2Ref]).VerifyEmitDiagnostics(
+            // (1,37): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+            // public explicit extension E1 for C2<A> { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(1, 37));
+
+        CreateCompilation(e1Src, references: [aRef]).VerifyEmitDiagnostics(
+            // (1,34): error CS0246: The type or namespace name 'C2<>' could not be found (are you missing a using directive or an assembly reference?)
+            // public explicit extension E1 for C2<A> { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C2<A>").WithArguments("C2<>").WithLocation(1, 34));
+
+        // Missing references when compiling E2
+        CreateCompilation(e2Src, references: [c1Ref, c2Ref, e1Ref]).VerifyEmitDiagnostics(
+            // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation(e2Src, references: [aRef, c2Ref, e1Ref]).VerifyEmitDiagnostics(
+            // (1,37): error CS0246: The type or namespace name 'C1<>' could not be found (are you missing a using directive or an assembly reference?)
+            // public explicit extension E2<T> for C1<E1> { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C1<E1>").WithArguments("C1<>").WithLocation(1, 37));
+
+        CreateCompilation(e2Src, references: [aRef, c1Ref, e1Ref]).VerifyEmitDiagnostics(
+            // error CS0012: The type 'C2<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyC2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("C2<>", "AssemblyC2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation(e2Src, references: [aRef, c1Ref, c2Ref]).VerifyEmitDiagnostics(
+            // (1,40): error CS0246: The type or namespace name 'E1' could not be found (are you missing a using directive or an assembly reference?)
+            // public explicit extension E2<T> for C1<E1> { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E1").WithArguments("E1").WithLocation(1, 40));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E2<B> D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E2`1[[B, AssemblyB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], AssemblyE2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:C1`1{C2`1{A}} D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn_ExtensionAsTypeArgument()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var bRef = CreateCompilation("public class B<T> { }", assemblyName: "AssemblyB").EmitToImageReference();
+        var cRef = CreateCompilation("public class C<T> { }", assemblyName: "AssemblyC").EmitToImageReference();
+        var eRef = CreateCompilation("public explicit extension E for C<A> { }", references: [aRef, cRef], assemblyName: "AssemblyE").EmitToImageReference();
+
+        var src = """
+public class D
+{
+    public B<E> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, bRef, cRef, eRef]);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [bRef, cRef, eRef]).VerifyEmitDiagnostics(
+            // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, cRef, eRef]).VerifyEmitDiagnostics(
+            // (3,12): error CS0246: The type or namespace name 'B<>' could not be found (are you missing a using directive or an assembly reference?)
+            //     public B<E> M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B<E>").WithArguments("B<>").WithLocation(3, 12));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, bRef, eRef]).VerifyEmitDiagnostics(
+            // error CS0012: The type 'C<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyC, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("C<>", "AssemblyC, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, bRef, cRef]).VerifyEmitDiagnostics(
+            // (3,14): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+            //     public B<E> M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 14));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("B<E> D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("B`1[[E, AssemblyE, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], AssemblyB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:B`1{C`1{A}} D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn_NestedType()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var eRef = CreateCompilation("public explicit extension E for A { public class Nested { } }", references: [aRef], assemblyName: "AssemblyE").EmitToImageReference();
+
+        var src = """
+public class D
+{
+    public E.Nested M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, eRef]);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [eRef]).VerifyEmitDiagnostics(
+            //// error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef]).VerifyEmitDiagnostics(
+            // (3,12): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+            //     public E.Nested M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 12));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E.Nested D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                VerifyNoExtensionErasureAttribute((PEModuleSymbol)peMethod.ContainingModule, peMethod.ReturnTypeParameter.Handle);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn_PointerType()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var eRef = CreateCompilation("public explicit extension E for A { }", references: [aRef], assemblyName: "AssemblyE").EmitToImageReference();
+
+        var src = """
+public unsafe class D
+{
+    public E* M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, eRef], options: TestOptions.UnsafeDebugDll);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [eRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // (3,12): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+            //     public E* M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 12),
+            // (3,15): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('E')
+            //     public E* M() => throw null;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("E").WithLocation(3, 15));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E* D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E*, AssemblyE, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:A* D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn_PointerPointerType()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var eRef = CreateCompilation("public explicit extension E for A { }", references: [aRef], assemblyName: "AssemblyE").EmitToImageReference();
+
+        var src = """
+public unsafe class D
+{
+    public E** M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, eRef], options: TestOptions.UnsafeDebugDll);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [eRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // (3,12): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+            //     public E** M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 12),
+            // (3,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('E')
+            //     public E** M() => throw null;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("E").WithLocation(3, 16));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E** D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E**, AssemblyE, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:A** D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn_ArrayType()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var eRef = CreateCompilation("public explicit extension E for A { }", references: [aRef], assemblyName: "AssemblyE").EmitToImageReference();
+
+        var src = """
+public unsafe class D
+{
+    public E[] M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, eRef], options: TestOptions.UnsafeDebugDll);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [eRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // (3,12): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+            //     public E[] M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 12));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E[] D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E[], AssemblyE, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:A[] D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MetadataDependencies_MethodReturn_ArrayArrayType()
+    {
+        var aRef = CreateCompilation("public class A { }", assemblyName: "AssemblyA").EmitToImageReference();
+        var eRef = CreateCompilation("public explicit extension E for A { }", references: [aRef], assemblyName: "AssemblyE").EmitToImageReference();
+
+        var src = """
+public unsafe class D
+{
+    public E[][] M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef, eRef], options: TestOptions.UnsafeDebugDll);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        // Missing references
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [eRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+        CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [aRef], options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            // (3,12): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+            //     public E[][] M() => throw null;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 12));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("E[][] D.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E[][], AssemblyE, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                    peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:A[][] D.M()", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void MethodReference_Simple()
+    {
+        var src = """
+E.M();
+
+public explicit extension E for object
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void E.M()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void MethodReference_ExtensionTypeArgument()
+    {
+        var src = """
+E<E2>.M();
+
+public explicit extension E<T> for object
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+
+public explicit extension E2 for int { }
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void E<E2>.M()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void MethodReference_ExtensionTypeArgumentInTypeArgument()
+    {
+        var src = """
+E<E<E2>>.M();
+
+public explicit extension E<T> for object
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+
+public explicit extension E2 for int { }
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void E<E<E2>>.M()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void MethodReference_NestedExtensionTypeInTypeArgument()
+    {
+        var src = """
+E<E2.Nested>.M();
+
+public explicit extension E<T> for object
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+
+public explicit extension E2 for int
+{
+    public class Nested { }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void E<E2.Nested>.M()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void MethodReference_ArrayInTypeArgument()
+    {
+        var src = """
+E<E2[]>.M();
+
+public explicit extension E<T> for object
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+
+public explicit extension E2 for int { }
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void E<E2[]>.M()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void MethodReference_NestedExtensionType()
+    {
+        var src = """
+E1<C1>.E2<C2>.M();
+
+class C1 { }
+class C2 { }
+
+public explicit extension E1<T> for object
+{
+    public explicit extension E2<T2> for int
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void E1<C1>.E2<C2>.M()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void MethodReference_NestedExtensionType_WithExtensionTypeAsTypeArgument()
+    {
+        var src = """
+E1<E3>.E2<E3>.M();
+
+class C1 { }
+class C2 { }
+
+public explicit extension E1<T> for object
+{
+    public explicit extension E2<T2> for int
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+
+public explicit extension E3 for string { }
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void E1<E3>.E2<E3>.M()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void MethodReference_Generic_Simple()
+    {
+        var src = """
+class C
+{
+    public static void Main()
+    {
+        M<E>();
+    }
+    public static void M<T>() { }
+}
+
+public explicit extension E for object
+{
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+        verifier.VerifyIL("C.Main", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void C.M<E>()"
+  IL_0005:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_RefType()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public ref E M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+
+        void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.Equal("ref E C.M()", m.ToTestDisplayString());
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_Generic_TupleName()
+    {
+        var src = """
+public explicit extension E<T> for C<T> { }
+
+public class C<T> { }
+
+public class D
+{
+    public static E<(int a, int b)> M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+
+        void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            if (inSource)
+            {
+                Assert.Equal("E<(System.Int32 a, System.Int32 b)> D.M()", m.ToTestDisplayString());
+            }
+            else
+            {
+                // PROTOTYPE need to encode and rountrip tuple names, dynamic, nullability, etc too
+                Assert.Equal("E<(System.Int32, System.Int32)> D.M()", m.ToTestDisplayString());
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodBody_AnonymousType()
+    {
+        var src = """
+public explicit extension E<T> for T
+{
+    public void Method() { System.Console.Write("ran"); }
+}
+
+public class D
+{
+    public static void Main()
+    {
+        var x = new { A = 1, B = 2 };
+        var y = Extend(x);
+        y.Method();
+    }
+
+    public static E<T> Extend<T>(T t) => throw null; // => (E<T>)t;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.DebugExe);
+        // PROTOTYPE verify execution once conversion support is added
+        var verifier = CompileAndVerify(comp/*, expectedOutput: "ran"*/).VerifyDiagnostics();
+        verifier.VerifyIL("D.Main", """
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (<>f__AnonymousType0<int, int> V_0, //x
+                <>f__AnonymousType0<int, int> V_1) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  newobj     "<>f__AnonymousType0<int, int>..ctor(int, int)"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  call       "E<<anonymous type: int A, int B>> D.Extend<<anonymous type: int A, int B>>(<anonymous type: int A, int B>)"
+  IL_000f:  stloc.1
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  call       "void E<<anonymous type: int A, int B>>.Method(ref <anonymous type: int A, int B>)"
+  IL_0017:  nop
+  IL_0018:  ret
+}
+""");
+    }
+
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker when accessing anonymous type property from underlying type")]
+    public void TypeReference_MethodBody_AnonymousType_AccessAnonymousTypeMembers()
+    {
+        var src = """
+public explicit extension E<T> for T { }
+
+public class D
+{
+    public static void Main()
+    {
+        var x = new { A = 1, B = 2 };
+        var y = Extend(x);
+        System.Console.Write(y.A);
+    }
+
+    public static E<T> Extend<T>(T t) => (E<T>)t;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.DebugExe);
+        // PROTOTYPE verify execution once conversion support is added
+        var verifier = CompileAndVerify(comp/*, expectedOutput: "ran"*/).VerifyDiagnostics();
+        verifier.VerifyIL("D.Main", """
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (<>f__AnonymousType0<int, int> V_0, //x
+                <>f__AnonymousType0<int, int> V_1) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  newobj     "<>f__AnonymousType0<int, int>..ctor(int, int)"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  call       "E<<anonymous type: int A, int B>> D.Extend<<anonymous type: int A, int B>>(<anonymous type: int A, int B>)"
+  IL_000f:  stloc.1
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  call       "void E<<anonymous type: int A, int B>>.Method(ref <anonymous type: int A, int B>)"
+  IL_0017:  nop
+  IL_0018:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void TypeReference_Typeof_Simple()
+    {
+        var src = """
+System.Console.Write(D.M().ToString());
+
+public explicit extension E for U { }
+
+public class U { }
+public class D
+{
+    public static System.Type M()
+    {
+        return typeof(E);
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "U").VerifyDiagnostics();
+        verifier.VerifyIL("D.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    "U"
+  IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_000a:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void TypeReference_Typeof_Generic()
+    {
+        var src = """
+System.Console.Write(D.M().ToString());
+
+public explicit extension E for U { }
+
+public class U { }
+public class C<T> { }
+public class D
+{
+    public static System.Type M()
+    {
+        return typeof(C<E>);
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "C`1[U]").VerifyDiagnostics();
+        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+        verifier.VerifyIL("D.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    "C<E>"
+  IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_000a:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void TypeReference_Typeof_Container()
+    {
+        var src = """
+System.Console.Write(D.M().ToString());
+
+public explicit extension E for U 
+{
+    public explicit extension NestedE for U { }
+    public class Nested { }
+    public class C<T1, T2> { }
+}
+
+public class U { }
+public class D
+{
+    public static System.Type M()
+    {
+        return typeof(E.C<E.NestedE, E.Nested>);
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "E+C`2[U,E+Nested]").VerifyDiagnostics();
+        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+        verifier.VerifyIL("D.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    "E.C<E.NestedE, E.Nested>"
+  IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_000a:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void TypeReference_Modopt_Simple()
+    {
+        // public explicit extension E for object { }
+        // public class Base
+        // {
+        //     public virtual object /*modopt(E)*/ M()
+        //     {
+        //         throw null;
+        //     }
+        // }
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig newslot virtual instance class [mscorlib]System.Object modopt(E) M() cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+
+        var src = """
+new Derived().M();
+
+public class Derived : Base
+{
+    public override object /*modopt(E)*/ M()
+    {
+        System.Console.Write("ran");
+        return null;
+    }
+}
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, expectedOutput: "ran");
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            Assert.Equal("System.Object modopt(E) Derived.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                VerifyNoExtensionErasureAttribute((PEModuleSymbol)peMethod.ContainingModule, peMethod.ReturnTypeParameter.Handle);
+            }
+        }
+    }
+
+    [Fact(Skip = "PROTOTYPE need to keep un-erased extension types in modifiers")]
+    public void TypeReference_Modopt_ExtensionAsTypeArgument()
+    {
+        // public explicit extension E for object { }
+        // public class C<T> { }
+        // public class Base
+        // {
+        //     public virtual object /*modopt(C<E>)*/ M()
+        //     {
+        //         throw null;
+        //     }
+        // }
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C`1<T>
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig newslot virtual instance class [mscorlib]System.Object modopt(class C`1<class E>) M() cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+
+        var src = """
+new Derived().M();
+
+public class Derived : Base
+{
+    public override object /*modopt(C<E>)*/ M()
+    {
+        System.Console.Write("ran");
+        return null;
+    }
+}
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE need to keep un-erased extension types in modifiers
+        // The problem is that the infrastructure that assigns tokens for type references (GetOrAddTypeSpecificationHandle)
+        // is given a type reference for `C<E>` but doesn't know if it's meant to be erased (to `C<object>`) or kept as-is.
+        // By default we erase extension types, so the token for `C<E>` is really for `C<object>`, which is incorrect in custom modifiers.
+        // Instead of pushing an additional flag (keepExtensions) in that API, we discussed a possible design where the type reference
+        // itself would keep track of whether it is meant to be erased of not.
+        //
+        // The Translate API would still be given a keepExtensions flag, then:
+        // - for a non-generic type, it would either erase or not
+        // - for a generic type that includes an extension type that should not be erased, it would return an adapter that records that fact
+        //   Such adapter, when prompted for its type arguments would repeat that process.
+        //
+        // This design would be pay-for-play. Aside from a check to decide whether this extra allocation is needed,
+        // type references would incur no overhead unless they involve some erasable extension type that needs to be kept as-is.
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate/*, expectedOutput: "ran"*/, verify: Verification.Fails);
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            //Assert.Equal("System.Object modopt(C<E>) Derived.M()", m.ToTestDisplayString());
+
+            if (module is not SourceModuleSymbol)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                VerifyNoExtensionErasureAttribute((PEModuleSymbol)peMethod.ContainingModule, peMethod.ReturnTypeParameter.Handle);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_Parameter_Simple()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public void M(E e) => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.Equal("void C.M(E e)", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E", peModule, ((PEParameterSymbol)peMethod.Parameters[0]).Handle);
+                VerifyMethodInPE("MethodDefinition:Void C.M(Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact(Skip = "PROTOTYPE need to generate the attribute when it is missing")]
+    public void TypeReference_Parameter_Simple_MissingAttribute()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public void M(E e) { }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void TypeReference_Parameter_ExplicitAttributeUsage()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public void M([System.Runtime.CompilerServices.ExtensionErasureAttribute("E")] object o) { }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9329: Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.
+            //     public void M([System.Runtime.CompilerServices.ExtensionErasureAttribute("E")] object o) { }
+            Diagnostic(ErrorCode.ERR_ExplicitExtensionErasureAttr, @"System.Runtime.CompilerServices.ExtensionErasureAttribute(""E"")").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void TypeReference_Parameter_Generic()
+    {
+        var libSrc = """public class A { }""";
+        var libRef = CreateCompilation(libSrc, assemblyName: "AssemblyA").EmitToImageReference();
+        var src = """
+public explicit extension E<T> for C<int> { }
+
+public class C<T> { }
+public class D
+{
+    public void M(E<A> e) => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], references: [libRef]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("void D.M(E<A> e)", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1[[A, AssemblyA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+                    peModule, ((PEParameterSymbol)peMethod.Parameters[0]).Handle);
+                VerifyMethodInPE("MethodDefinition:Void D.M(C`1{Int32})", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_Parameter_ExtensionAsTypeArgument()
+    {
+        var src = """
+public explicit extension E for int { }
+
+public class C<T> { }
+public class D
+{
+    public void M(C<E> c) { }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("M");
+            Assert.Equal("void D.M(C<E> c)", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)m;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("C`1[E]", peModule, ((PEParameterSymbol)peMethod.Parameters[0]).Handle);
+                VerifyMethodInPE("MethodDefinition:Void D.M(C`1{Int32})", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_ExtensionTypeMethod()
+    {
+        var src = """
+public explicit extension E for int
+{
+    public E M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E E.M()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyNoExtensionErasureAttribute(peModule, ((PEParameterSymbol)peMethod.Parameters[0]).Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Int32&)",
+                    peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_Parameter_ExtensionTypeMethod()
+    {
+        var src = """
+public explicit extension E for int
+{
+    public void M(E e) { }
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("void E.M(E e)", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyNoExtensionErasureAttribute(peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyNoExtensionErasureAttribute(peModule, ((PEParameterSymbol)peMethod.Parameters[0]).Handle);
+                VerifyExtensionErasureAttribute("E", peModule, ((PEParameterSymbol)peMethod.Parameters[1]).Handle);
+                VerifyMethodInPE("MethodDefinition:Void E.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Int32&, Int32)",
+                    peMethod.Handle, peModule);
+            }
+        }
     }
 }

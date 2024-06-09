@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             usedTypeParameters.Free();
             return anyUnusedTypeParameter;
 
-            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool b)
+            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored1, bool ignored2)
             {
                 if (type is TypeParameterSymbol typeParameter)
                 {

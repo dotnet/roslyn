@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsOrContainsErrorType(TypeSymbol typeSymbol)
         {
-            return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
+            return (object)typeSymbol.VisitType((currentTypeSymbol, _, _, _) => currentTypeSymbol.IsErrorType(), (object)null) != null;
         }
 
         /// <summary>
