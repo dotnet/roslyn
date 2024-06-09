@@ -52,17 +52,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WorkspaceApplyEditName = "workspace/applyEdit";
 
         /// <summary>
-        /// Method name for 'workspace/configuration'.
-        /// </summary>
-        public const string WorkspaceConfigurationName = "workspace/configuration";
-
-
-        /// <summary>
-        /// Method name for 'workspace/didChangeConfiguration'.
-        /// </summary>
-        public const string WorkspaceDidChangeConfigurationName = "workspace/didChangeConfiguration";
-
-        /// <summary>
         /// Method name for 'workspace/executeCommand'.
         /// </summary>
         public const string WorkspaceExecuteCommandName = "workspace/executeCommand";
@@ -96,16 +85,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'workspace/applyEdit'.
         /// </summary>
         public static readonly LspRequest<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse> WorkspaceApplyEdit = new LspRequest<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(WorkspaceApplyEditName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/configuration'.
-        /// </summary>
-        public static readonly LspRequest<ConfigurationParams, object?[]> WorkspaceConfiguration = new LspRequest<ConfigurationParams, object?[]>(WorkspaceConfigurationName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/didChangeConfiguration'.
-        /// </summary>
-        public static readonly LspNotification<DidChangeConfigurationParams> WorkspaceDidChangeConfiguration = new LspNotification<DidChangeConfigurationParams>(WorkspaceDidChangeConfigurationName);
 
         /// <summary>
         /// Strongly typed message object for 'workspace/executeCommand'.

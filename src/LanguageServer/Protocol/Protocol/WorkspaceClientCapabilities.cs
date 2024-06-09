@@ -31,11 +31,11 @@ namespace Roslyn.LanguageServer.Protocol
         public WorkspaceEditSetting? WorkspaceEdit { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if did change configuration can be dynamically registered.
+        /// Capabilities specific to the `workspace/didChangeConfiguration` notification.
         /// </summary>
         [JsonPropertyName("didChangeConfiguration")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? DidChangeConfiguration { get; set; }
+        public DidChangeConfigurationClientCapabilities? DidChangeConfiguration { get; set; }
 
         /// <summary>
         /// Gets or sets the setting which determines if did change watched files can be dynamically registered.
@@ -59,8 +59,9 @@ namespace Roslyn.LanguageServer.Protocol
         public DynamicRegistrationSetting? ExecuteCommand { get; set; }
 
         /// <summary>
-        /// Gets or sets the capabilities if client support 'workspace/configuration' requests.
+        /// The client supports `workspace/configuration` requests.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("configuration")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Configuration { get; set; }

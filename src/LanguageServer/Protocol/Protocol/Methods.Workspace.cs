@@ -40,4 +40,39 @@ partial class Methods
     /// Strongly typed message object for 'workspaceSymbol/resolve'.
     /// </summary>
     public static readonly LspRequest<WorkspaceSymbol, WorkspaceSymbol> WorkspaceSymbolResolve = new(WorkspaceSymbolResolveName);
+
+    /// <summary>
+    /// Method name for 'workspace/configuration'.
+    /// <para>
+    /// The workspace/configuration request is sent from the server to the client to fetch configuration
+    /// settings from the client. The request can fetch several configuration settings in one roundtrip.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_configuration">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
+    public const string WorkspaceConfigurationName = "workspace/configuration";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/configuration'.
+    /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
+    public static readonly LspRequest<ConfigurationParams, object?[]> WorkspaceConfiguration = new(WorkspaceConfigurationName);
+
+    /// <summary>
+    /// Method name for 'workspace/didChangeConfiguration'.
+    /// <para>
+    /// A notification sent from the client to the server to signal the change of configuration settings.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string WorkspaceDidChangeConfigurationName = "workspace/didChangeConfiguration";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/didChangeConfiguration'.
+    /// </summary>
+    public static readonly LspNotification<DidChangeConfigurationParams> WorkspaceDidChangeConfiguration = new(WorkspaceDidChangeConfigurationName);
 }

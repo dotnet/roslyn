@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents the parameter sent with workspace/didChangeConfiguration requests.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeConfigurationParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DidChangeConfigurationParams
     {
