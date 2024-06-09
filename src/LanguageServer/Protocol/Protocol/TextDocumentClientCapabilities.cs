@@ -146,7 +146,7 @@ namespace Roslyn.LanguageServer.Protocol
         public RenameClientCapabilities? Rename { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting publish diagnostics setting.
+        /// Capabilities specific to the `textDocument/publishDiagnostics` notification.
         /// </summary>
         [JsonPropertyName("publishDiagnostics")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -224,8 +224,9 @@ namespace Roslyn.LanguageServer.Protocol
         public InlayHintSetting? InlayHint { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines what support the client has for pull diagnostics.
+        /// Capabilities specific to the diagnostic pull model.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("diagnostic")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticSetting? Diagnostic { get; set; }

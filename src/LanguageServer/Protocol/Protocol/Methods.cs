@@ -42,11 +42,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string CodeActionResolveName = "codeAction/resolve";
 
         /// <summary>
-        /// Method name for 'textDocument/diagnostic'.
-        /// </summary>
-        public const string TextDocumentDiagnosticName = "textDocument/diagnostic";
-
-        /// <summary>
         /// Method name for 'textDocument/documentColor'.
         /// </summary>
         public const string TextDocumentDocumentColorName = "textDocument/documentColor";
@@ -65,11 +60,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'textDocument/rangeFormatting'.
         /// </summary>
         public const string TextDocumentRangeFormattingName = "textDocument/rangeFormatting";
-
-        /// <summary>
-        /// Method name for 'textDocument/publishDiagnostics'.
-        /// </summary>
-        public const string TextDocumentPublishDiagnosticsName = "textDocument/publishDiagnostics";
 
         /// <summary>
         /// Method name for 'textDocument/rename'.
@@ -116,15 +106,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         public const string WorkspaceConfigurationName = "workspace/configuration";
 
-        /// <summary>
-        /// Method name for 'workspace/diagnostic'.
-        /// </summary>
-        public const string WorkspaceDiagnosticName = "workspace/diagnostic";
-
-        /// <summary>
-        /// Method name for 'workspace/diagnostic/refresh'.
-        /// </summary>
-        public const string WorkspaceDiagnosticRefreshName = "workspace/diagnostic/refresh";
 
         /// <summary>
         /// Method name for 'workspace/didChangeConfiguration'.
@@ -180,11 +161,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'textDocument/rangeFormatting'.
         /// </summary>
         public static readonly LspRequest<DocumentRangeFormattingParams, TextEdit[]?> TextDocumentRangeFormatting = new LspRequest<DocumentRangeFormattingParams, TextEdit[]?>(TextDocumentRangeFormattingName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/publishDiagnostics'.
-        /// </summary>
-        public static readonly LspNotification<PublishDiagnosticParams> TextDocumentPublishDiagnostics = new LspNotification<PublishDiagnosticParams>(TextDocumentPublishDiagnosticsName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/rename'.

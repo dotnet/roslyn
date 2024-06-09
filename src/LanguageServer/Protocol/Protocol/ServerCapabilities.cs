@@ -269,9 +269,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates what support the server has for pull diagnostics.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("diagnosticProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DiagnosticOptions? DiagnosticOptions { get; set; }
+        public SumType<DiagnosticOptions, DiagnosticRegistrationOptions>? DiagnosticOptions { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether workspace symbols are supported.

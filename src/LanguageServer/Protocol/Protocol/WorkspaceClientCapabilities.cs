@@ -100,6 +100,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets capabilities indicating what support the client has for workspace pull diagnostics.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("diagnostics")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticWorkspaceSetting? Diagnostics { get; set; }
