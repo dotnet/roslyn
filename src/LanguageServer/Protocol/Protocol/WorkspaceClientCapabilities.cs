@@ -45,7 +45,7 @@ namespace Roslyn.LanguageServer.Protocol
         public DynamicRegistrationSetting? DidChangeWatchedFiles { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if symbols can be dynamically registered.
+        /// Capabilities specific to the `workspace/symbol` request.
         /// </summary>
         [JsonPropertyName("symbol")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

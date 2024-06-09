@@ -68,11 +68,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WorkspaceExecuteCommandName = "workspace/executeCommand";
 
         /// <summary>
-        /// Method name for 'workspace/symbol'.
-        /// </summary>
-        public const string WorkspaceSymbolName = "workspace/symbol";
-
-        /// <summary>
         /// Method name for 'workspace/didChangeWatchedFiles'.
         /// </summary>
         public const string WorkspaceDidChangeWatchedFilesName = "workspace/didChangeWatchedFiles";
@@ -116,11 +111,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'workspace/executeCommand'.
         /// </summary>
         public static readonly LspRequest<ExecuteCommandParams, object?> WorkspaceExecuteCommand = new LspRequest<ExecuteCommandParams, object?>(WorkspaceExecuteCommandName);
-
-        /// <summary>
-        /// Strongly typed message object for 'workspace/symbol'.
-        /// </summary>
-        public static readonly LspRequest<WorkspaceSymbolParams, SymbolInformation[]?> WorkspaceSymbol = new LspRequest<WorkspaceSymbolParams, SymbolInformation[]?>(WorkspaceSymbolName);
 
         /// <summary>
         /// Strongly typed message object for 'workspace/didChangeWatchedFiles'.
