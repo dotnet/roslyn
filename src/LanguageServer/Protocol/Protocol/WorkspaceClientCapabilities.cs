@@ -24,7 +24,7 @@ namespace Roslyn.LanguageServer.Protocol
         public bool ApplyEdit { get; set; }
 
         /// <summary>
-        /// Gets or sets the workspace edit setting.
+        /// Capabilities specific to <see cref="Protocol.WorkspaceEdit"/>
         /// </summary>
         [JsonPropertyName("workspaceEdit")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
