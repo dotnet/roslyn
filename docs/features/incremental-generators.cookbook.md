@@ -636,7 +636,7 @@ TODO: https://github.com/dotnet/roslyn/issues/72149
 
 ### Auto interface implementation
 
-**User scenario:** As a generator author I want to be able to implement the properties of the interfaces decoraated with a specific attribute automatically for a user.
+**User scenario:** As a generator author I want to be able to implement the properties of the interfaces decorated with a specific attribute automatically for a user.
 
 **Solution:** Require the user to decorate the interface that they want to self-implement with the `[AutoImplement]` Attribute; Require the user to make the classes that implement the decorated interface be a `partial class`.
 Provide that attribute in a `RegisterPostInitializationOutput` step. Register for callbacks on the classes with
@@ -774,7 +774,7 @@ sealed class {{AutoImplementAttributeClassName}} : Attribute
                     }
                     """);
 
-                //Concat class name and interface name to have unique file name if a class implements two interfaces with AutoImplement Attribute
+                // Concat class name and interface name to have unique file name if a class implements two interfaces with AutoImplement Attribute
                 string generatedFileName = $"{model.ClassName}_{implementedInterfaceName}.g.cs";
                 context.AddSource(generatedFileName, sourceBuilder.ToString());
             }
@@ -807,13 +807,13 @@ sealed class {{AutoImplementAttributeClassName}} : Attribute
         INamedTypeSymbol? interfaceSymbol = compilation.GetTypeByMetadataName(implementedInterfaceName);
         if (interfaceSymbol is null)
         {
-            //Get class usings in order to build full interface name if needed
+            // Get class usings in order to build full interface name if needed
             IEnumerable<UsingDirectiveSyntax> usingDirectives = model.Root
                 .DescendantNodes()
                 .OfType<UsingDirectiveSyntax>();
             foreach (UsingDirectiveSyntax usingDirective in usingDirectives)
             {
-                //get string 'System' from string 'using System;'
+                // Get string 'System' from string 'using System;'
                 string usingString = usingDirective.ToString().Split(' ').Last().TrimEnd(';');
                 interfaceSymbol = compilation.GetTypeByMetadataName($"{usingString}.{implementedInterfaceName}");
                 if (interfaceSymbol is not null)
