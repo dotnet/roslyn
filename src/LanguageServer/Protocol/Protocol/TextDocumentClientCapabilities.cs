@@ -147,7 +147,7 @@ namespace Roslyn.LanguageServer.Protocol
         public OnTypeFormattingClientCapabilities? OnTypeFormatting { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if rename can be dynamically registered.
+        /// Capabilities specific to the `textDocument/rename` request.
         /// </summary>
         [JsonPropertyName("rename")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

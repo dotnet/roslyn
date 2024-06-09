@@ -560,4 +560,40 @@ partial class Methods
     /// Strongly typed message object for 'textDocument/onTypeFormatting'.
     /// </summary>
     public static readonly LspRequest<DocumentOnTypeFormattingParams, TextEdit[]?> TextDocumentOnTypeFormatting = new(TextDocumentOnTypeFormattingName);
+
+    /// <summary>
+    /// Method name for 'textDocument/rename'.
+    /// <para>
+    /// The rename request is sent from the client to the server to ask the server to compute
+    /// a workspace change so that the client can perform a workspace-wide rename of a symbol.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_rename">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    public const string TextDocumentRenameName = "textDocument/rename";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/rename'.
+    /// </summary>
+    public static readonly LspRequest<RenameParams, WorkspaceEdit?> TextDocumentRename = new(TextDocumentRenameName);
+
+    /// <summary>
+    /// Method name for 'textDocument/prepareRename'.
+    /// <para>
+    /// The prepare rename request is sent from the client to the server to setup and test the
+    /// validity of a rename operation at a given location.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_prepareRename">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.12</remarks>
+    public const string TextDocumentPrepareRenameName = "textDocument/prepareRename";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/prepareRename'.
+    /// </summary>
+    /// <remarks>Since LSP 3.12</remarks>
+    public static readonly LspRequest<PrepareRenameParams, SumType<RenameRange, DefaultBehaviorPrepareRename, Range>?> TextDocumentPrepareRename = new(TextDocumentPrepareRenameName);
 }

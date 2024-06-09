@@ -32,16 +32,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string ProgressNotificationTokenName = "token";
 
         /// <summary>
-        /// Method name for 'textDocument/rename'.
-        /// </summary>
-        public const string TextDocumentRenameName = "textDocument/rename";
-
-        /// <summary>
-        /// Method name for 'textDocument/prepareRename'.
-        /// </summary>
-        public const string TextDocumentPrepareRenameName = "textDocument/prepareRename";
-
-        /// <summary>
         /// Method name for 'textDocument/linkedEditingRange'.
         /// </summary>
         public const string TextDocumentLinkedEditingRangeName = "textDocument/linkedEditingRange";
@@ -96,16 +86,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/rename'.
-        /// </summary>
-        public static readonly LspRequest<RenameParams, WorkspaceEdit?> TextDocumentRename = new LspRequest<RenameParams, WorkspaceEdit?>(TextDocumentRenameName);
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/prepareRename'.
-        /// </summary>
-        public static readonly LspRequest<PrepareRenameParams, SumType<RenameRange, DefaultBehaviorPrepareRename, Range>?> TextDocumentPrepareRename = new LspRequest<PrepareRenameParams, SumType<RenameRange, DefaultBehaviorPrepareRename, Range>?>(TextDocumentPrepareRenameName);
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/linkedEditingRange'.
