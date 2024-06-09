@@ -32,11 +32,6 @@ namespace Roslyn.LanguageServer.Protocol
         public const string ProgressNotificationTokenName = "token";
 
         /// <summary>
-        /// Method name for 'textDocument/linkedEditingRange'.
-        /// </summary>
-        public const string TextDocumentLinkedEditingRangeName = "textDocument/linkedEditingRange";
-
-        /// <summary>
         /// Method name for 'window/logMessage'.
         /// </summary>
         public const string WindowLogMessageName = "window/logMessage";
@@ -86,11 +81,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// Method name for 'telemetry/event'.
         /// </summary>
         public const string TelemetryEventName = "telemetry/event";
-
-        /// <summary>
-        /// Strongly typed message object for 'textDocument/linkedEditingRange'.
-        /// </summary>
-        public static readonly LspRequest<LinkedEditingRangeParams, LinkedEditingRanges?> TextDocumentLinkedEditingRange = new LspRequest<LinkedEditingRangeParams, LinkedEditingRanges?>(TextDocumentLinkedEditingRangeName);
 
         /// <summary>
         /// Strongly typed message object for 'window/logMessage'.

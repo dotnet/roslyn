@@ -217,6 +217,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the server supports linked editing range.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("linkedEditingRangeProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, LinkedEditingRangeOptions>? LinkedEditingRangeProvider { get; set; }

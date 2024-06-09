@@ -596,4 +596,23 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.12</remarks>
     public static readonly LspRequest<PrepareRenameParams, SumType<RenameRange, DefaultBehaviorPrepareRename, Range>?> TextDocumentPrepareRename = new(TextDocumentPrepareRenameName);
+
+    /// <summary>
+    /// Method name for 'textDocument/linkedEditingRange'.
+    /// <para>
+    /// The linked editing request is sent from the client to the server to return for a given
+    /// position in a document the range of the symbol at the position and all ranges that have the same content.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_prepareRename">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public const string TextDocumentLinkedEditingRangeName = "textDocument/linkedEditingRange";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/linkedEditingRange'.
+    /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
+    public static readonly LspRequest<LinkedEditingRangeParams, LinkedEditingRanges?> TextDocumentLinkedEditingRange = new(TextDocumentLinkedEditingRangeName);
 }

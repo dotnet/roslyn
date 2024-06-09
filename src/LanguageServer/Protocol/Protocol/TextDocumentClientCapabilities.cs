@@ -177,11 +177,12 @@ namespace Roslyn.LanguageServer.Protocol
         public SelectionRangeClientCapabilities? SelectionRange { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if linked editing range can be dynamically registered.
+        /// Capabilities specific to the `textDocument/linkedEditingRange` request.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("linkedEditingRange")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting LinkedEditingRange { get; set; }
+        public LinkedEditingRangeClientCapabilities LinkedEditingRange { get; set; }
 
         /// <summary>
         /// Capabilities specific to the various call hierarchy requests.
