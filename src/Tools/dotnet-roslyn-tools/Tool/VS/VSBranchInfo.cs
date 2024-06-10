@@ -65,6 +65,14 @@ internal static class VSBranchInfo
 
         var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(gitVersion, gitVersionType, devdiv, product.PackageName);
 
+        if (packageVersion is null)
+        {
+            if (product.PackagePropsFileName is null)
+                throw new Exception($"No package props file name is specified for {product.PackageName}");
+
+            packageVersion = await VisualStudioRepository.GetPackageVersionFromRoslynPropsAsync(gitVersion, gitVersionType, devdiv, product.PackageName, product.PackagePropsFileName);
+        }
+
         WriteNameAndValue("Package Version", packageVersion);
     }
 
