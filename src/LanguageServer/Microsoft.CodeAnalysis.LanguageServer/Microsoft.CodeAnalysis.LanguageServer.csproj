@@ -72,7 +72,7 @@
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
 
     <!-- Not directly referenced but needed for Razor source generators -->
-    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+    <ProjectReference Include="..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
 
     <!-- Not directly referenced but needed for Route embedded language features -->
     <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
