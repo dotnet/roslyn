@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -85,17 +84,14 @@ public partial class Workspace
             // update their execution version as well.
             if (projectIds.Any(t => t.projectId is null))
             {
-                foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
+                foreach (var projectId in solution.ProjectIds)
                 {
-                    if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
-                        continue;
-
-                    if (result.ContainsKey(projectId))
-                        continue;
-
-                    result.Add(
-                        projectId,
-                        Increment(solution.GetSourceGeneratorExecutionVersion(projectId), solutionMajor));
+                    if (!result.ContainsKey(projectId))
+                    {
+                        result.Add(
+                            projectId,
+                            Increment(solution.GetSourceGeneratorExecutionVersion(projectId), solutionMajor));
+                    }
                 }
             }
 
@@ -114,15 +110,12 @@ public partial class Workspace
                     // We may have been asked to rerun generators for a project that is no longer around.  So make sure
                     // we still have this project.
                     var requestedProject = solution.GetProject(projectId);
-                    if (RemoteSupportedLanguages.IsSupported(requestedProject?.Language))
+                    if (requestedProject != null)
                     {
                         result[projectId] = Increment(solution.GetSourceGeneratorExecutionVersion(projectId), major);
 
                         foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
-                        {
-                            if (RemoteSupportedLanguages.IsSupported(solution.GetProject(transitiveProjectId)?.Language))
-                                result[transitiveProjectId] = Increment(solution.GetSourceGeneratorExecutionVersion(transitiveProjectId), major);
-                        }
+                            result[transitiveProjectId] = Increment(solution.GetSourceGeneratorExecutionVersion(transitiveProjectId), major);
                     }
                 }
             }

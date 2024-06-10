@@ -1538,7 +1538,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var initialExecutionMap = initialSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
 
             Assert.True(initialExecutionMap.ContainsKey(projectId1));
-            Assert.False(initialExecutionMap.ContainsKey(noCompilationProject.Id));
+            Assert.True(initialExecutionMap.ContainsKey(noCompilationProject.Id));
 
             // forceRegeneration=true should take precedence.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
@@ -1548,10 +1548,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var finalExecutionMap = finalSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
 
             Assert.True(finalExecutionMap.ContainsKey(projectId1));
-            Assert.False(finalExecutionMap.ContainsKey(noCompilationProject.Id));
+            Assert.True(finalExecutionMap.ContainsKey(noCompilationProject.Id));
 
             // We should have successfully changed the version for the C# project.
             Assert.NotEqual(initialExecutionMap[projectId1], finalExecutionMap[projectId1]);
+            Assert.NotEqual(initialExecutionMap[noCompilationProject.Id], finalExecutionMap[noCompilationProject.Id]);
         }
 
         private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)
