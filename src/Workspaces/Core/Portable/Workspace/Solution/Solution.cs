@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -1800,6 +1801,12 @@ public partial class Solution
         }
     }
 
+    /// <summary>
+    /// Gets the associated SG execution version for the given project.  Only legal to call for C# or VB projects.
+    /// </summary>
     internal SourceGeneratorExecutionVersion GetSourceGeneratorExecutionVersion(ProjectId projectId)
-        => this.CompilationState.SourceGeneratorExecutionVersionMap[projectId];
+    {
+        Contract.ThrowIfFalse(RemoteSupportedLanguages.IsSupported(this.GetProject(projectId)?.Language));
+        return this.CompilationState.SourceGeneratorExecutionVersionMap[projectId];
+    }
 }

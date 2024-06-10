@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -433,6 +434,13 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             var projectId = _documentIdentity.DocumentId.ProjectId;
 
+            var oldProject = e.OldSolution.GetProject(projectId);
+            var newProject = e.NewSolution.GetProject(projectId);
+
+            // If this isn't even a language that support SG, nothing to do.
+            if (!RemoteSupportedLanguages.IsSupported(newProject?.Language))
+                return;
+
             // Trivial check.  see if the SG version of these projects changed.  If so, we definitely want to update
             // this generated file.
             if (e.OldSolution.GetSourceGeneratorExecutionVersion(projectId) !=
@@ -441,9 +449,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 _batchingWorkQueue.AddWork();
                 return;
             }
-
-            var oldProject = e.OldSolution.GetProject(projectId);
-            var newProject = e.NewSolution.GetProject(projectId);
 
             if (oldProject != null && newProject != null)
             {
