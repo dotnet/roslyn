@@ -1,0 +1,3 @@
+[*.{cs,vb}]
+# IGlobalOptionService is allowed in this layer (TODO: remove once Razor and Xaml is moved to the right layers)
+dotnet_diagnostic.LAYERING_IGlobalOptionService.severity = none
