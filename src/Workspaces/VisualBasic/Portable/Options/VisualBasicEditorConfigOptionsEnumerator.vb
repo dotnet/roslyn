@@ -19,7 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Options
         End Sub
 
         Public Iterator Function GetOptions() As IEnumerable(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsEnumerator.GetOptions
-
             For Each entry In EditorConfigOptionsEnumerator.GetLanguageAgnosticEditorConfigOptions()
                 Yield entry
             Next
