@@ -42,13 +42,38 @@ internal static class VisualStudioRepository
         return url;
     }
 
-    public static async Task<string> GetPackageVersionFromDefaultConfigAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string packageName)
+    public static async Task<string?> GetPackageVersionFromDefaultConfigAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string packageName)
     {
-        var fileContents = await GetFileContentsAsync(gitVersion, versionType, devdiv, @".corext\Configs\default.config");
+        string fileContents;
+        try
+        {
+            fileContents = await GetFileContentsAsync(gitVersion, versionType, devdiv, @".corext\Configs\default.config");
+        }
+        catch
+        {
+            // Couldn't find .corext\Configs\default.config for branch
+            return null;
+        }
 
         var defaultConfig = XDocument.Parse(fileContents);
 
         var packageVersion = defaultConfig.Root?.Descendants("package").Where(p => p.Attribute("id")?.Value == packageName).Select(p => p.Attribute("version")?.Value).FirstOrDefault();
+
+        if (packageVersion is null)
+        {
+            throw new Exception($"Couldn't find the {packageName} package for branch: {gitVersion}");
+        }
+
+        return packageVersion;
+    }
+
+    public static async Task<string> GetPackageVersionFromRoslynPropsAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string packageName, string propsFileName)
+    {
+        var fileContents = await GetFileContentsAsync(gitVersion, versionType, devdiv, propsFileName);
+
+        var defaultConfig = XDocument.Parse(fileContents);
+
+        var packageVersion = defaultConfig.Root?.Descendants("RoslynVersion").SingleOrDefault()?.Value;
 
         if (packageVersion is null)
         {

@@ -19,6 +19,8 @@ internal class TypeScript : IProduct
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => Array.Empty<string>();
 
+    public string? PackagePropsFileName => "src/ConfigData/Packages/TypeScriptSupport.props";
+
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch
         {

@@ -18,6 +18,7 @@ internal interface IProduct
     string ComponentJsonFileName { get; }
     string ComponentName { get; }
     string? PackageName { get; }
+    string? PackagePropsFileName { get; }
     string? ArtifactsFolderName { get; }
     string[] ArtifactsSubFolderNames { get; }
 

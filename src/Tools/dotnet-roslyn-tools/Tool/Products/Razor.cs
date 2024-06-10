@@ -16,8 +16,10 @@ internal class Razor : IProduct
     public string ComponentJsonFileName => @".corext\Configs\aspnet-components.json";
     public string ComponentName => "Microsoft.VisualStudio.RazorExtension";
     public string? PackageName => null;
+    public string? PackagePropsFileName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => Array.Empty<string>();
+
 
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch
