@@ -11,7 +11,12 @@
 
   <PropertyGroup>
     <!-- <Metalama> Added .Net version switch -->
-    <_MetalamaBuildRuntimeVersion>$([System.Environment]::Version)</_MetalamaBuildRuntimeVersion>
+    <!-- this version does not work on .Net SDK versions strictly less than 6.0.300 -->
+    <!-- <_MetalamaBuildRuntimeVersion>$([System.Environment]::Version)</_MetalamaBuildRuntimeVersion> -->
+
+    <_MetalamaBuildRuntimeDescription>$([System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)</_MetalamaBuildRuntimeDescription>
+    <_MetalamaBuildRuntimeVersion>$([System.Text.RegularExpressions.Regex]::Match($(_MetalamaBuildRuntimeDescription), '\d+(\.\d+)+').Value)</_MetalamaBuildRuntimeVersion>
+    
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &lt; '8'">netcore</_RoslynTargetDirectoryName>
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &gt;= '8'">net8.0</_RoslynTargetDirectoryName>
     <!-- </Metalama> -->
