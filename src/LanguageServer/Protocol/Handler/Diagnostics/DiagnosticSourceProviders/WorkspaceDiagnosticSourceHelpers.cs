@@ -51,6 +51,21 @@ internal static class WorkspaceDiagnosticSourceHelpers
 
         // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
         // for any razor file they are interested in.
-        return document.IsRazorDocument();
+        if (document.IsRazorDocument())
+        {
+            return true;
+        }
+
+        // Temporary workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2021832
+        // LSP workspace diagnostics are incorrectly returning diagnostics for the backing generated JS file.
+        // Razor is responsible for handling diagnostics for the virtual JS file and should not be returned here.
+        // This workaround should be removed in 17.11 as JS diagnostics are no longer returned via Roslyn in 17.11
+        if (context.ServerKind == WellKnownLspServerKinds.RoslynTypeScriptLspServer &&
+            (document.FilePath?.EndsWith("__virtual.js") == true || document.FilePath?.EndsWith(".razor") == true || document.FilePath?.EndsWith(".cshtml") == true))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
