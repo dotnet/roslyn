@@ -216,7 +216,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact]
         public async Task TestUnknownProject()
         {
-            var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -1511,6 +1511,48 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
 
             return solution;
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2085357")]
+        internal async Task TestNonCompilationLanguage(SourceGeneratorExecutionPreference sourceGeneratorExecution)
+        {
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService), typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
+
+            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
+            var projectId1 = ProjectId.CreateNewId();
+
+            var project1 = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                .GetRequiredProject(projectId1);
+            var tempDoc = project1.AddDocument("X.cs", SourceText.From("// "));
+            Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var noCompilationProject = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName);
+            Assert.True(workspace.SetCurrentSolution(_ => noCompilationProject.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var initialSolution = workspace.CurrentSolution;
+            var initialExecutionMap = initialSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
+
+            Assert.True(initialExecutionMap.ContainsKey(projectId1));
+            Assert.True(initialExecutionMap.ContainsKey(noCompilationProject.Id));
+
+            // forceRegeneration=true should take precedence.
+            workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+            await WaitForSourceGeneratorsAsync(workspace);
+
+            var finalSolution = workspace.CurrentSolution;
+            var finalExecutionMap = finalSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
+
+            Assert.True(finalExecutionMap.ContainsKey(projectId1));
+            Assert.True(finalExecutionMap.ContainsKey(noCompilationProject.Id));
+
+            // We should have successfully changed the version for the C# project.
+            Assert.NotEqual(initialExecutionMap[projectId1], finalExecutionMap[projectId1]);
+            Assert.NotEqual(initialExecutionMap[noCompilationProject.Id], finalExecutionMap[noCompilationProject.Id]);
         }
 
         private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)
