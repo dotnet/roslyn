@@ -1,3 +1,17 @@
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterCodeBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext>! action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>!>! action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext>! action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext>! action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext!>! action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterSemanticModelAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext>! action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterSemanticModelEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext>! action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext>! action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext>! action, params Microsoft.CodeAnalysis.OperationKind[]! operationKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext>! action, params TLanguageKindEnum[]! syntaxKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.IParameterSymbol.IsParamsCollection.get -> bool
 Microsoft.CodeAnalysis.IParameterSymbol.IsParamsArray.get -> bool
 Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
@@ -23,6 +37,8 @@ static Microsoft.CodeAnalysis.SyntaxList.Create<TNode>(System.ReadOnlySpan<TNode
 static Microsoft.CodeAnalysis.SyntaxNodeOrTokenList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxNodeOrToken> nodesAndTokens) -> Microsoft.CodeAnalysis.SyntaxNodeOrTokenList
 static Microsoft.CodeAnalysis.SyntaxTokenList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxToken> tokens) -> Microsoft.CodeAnalysis.SyntaxTokenList
 static Microsoft.CodeAnalysis.SyntaxTriviaList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxTrivia> trivias) -> Microsoft.CodeAnalysis.SyntaxTriviaList
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSemanticModelStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext!>! action) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSemanticModelStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SemanticModelStartAnalysisContext!>! action) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSpread(Microsoft.CodeAnalysis.Operations.ISpreadOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation, TArgument argument) -> TResult?

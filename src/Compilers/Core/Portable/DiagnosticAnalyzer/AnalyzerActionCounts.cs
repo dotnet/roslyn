@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
                 analyzerActions.CompilationActionsCount,
                 analyzerActions.SyntaxTreeActionsCount,
                 analyzerActions.AdditionalFileActionsCount,
+                analyzerActions.SemanticModelStartActionsCount,
+                analyzerActions.SemanticModelEndActionsCount,
                 analyzerActions.SemanticModelActionsCount,
                 analyzerActions.SymbolActionsCount,
                 analyzerActions.SymbolStartActionsCount,
@@ -42,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             int compilationActionsCount,
             int syntaxTreeActionsCount,
             int additionalFileActionsCount,
+            int semanticModelStartActionsCount,
+            int semanticModelEndActionsCount,
             int semanticModelActionsCount,
             int symbolActionsCount,
             int symbolStartActionsCount,
@@ -61,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             CompilationActionsCount = compilationActionsCount;
             SyntaxTreeActionsCount = syntaxTreeActionsCount;
             AdditionalFileActionsCount = additionalFileActionsCount;
+            SemanticModelStartActionsCount = semanticModelStartActionsCount;
+            SemanticModelEndActionsCount = semanticModelEndActionsCount;
             SemanticModelActionsCount = semanticModelActionsCount;
             SymbolActionsCount = symbolActionsCount;
             SymbolStartActionsCount = symbolStartActionsCount;
@@ -75,13 +81,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             OperationBlockActionsCount = operationBlockActionsCount;
             Concurrent = concurrent;
 
+            // Note: if we have any start actions, we have to presume we have executable code actions as they may
+            // register for executable code.
             HasAnyExecutableCodeActions = CodeBlockActionsCount > 0 ||
                 CodeBlockStartActionsCount > 0 ||
                 SyntaxNodeActionsCount > 0 ||
                 OperationActionsCount > 0 ||
                 OperationBlockActionsCount > 0 ||
                 OperationBlockStartActionsCount > 0 ||
-                SymbolStartActionsCount > 0;
+                SymbolStartActionsCount > 0 ||
+                SemanticModelStartActionsCount > 0;
 
             // All executable code actions, symbol actions, semantic model actions and compilation end actions
             // are driven by compilation event queue in the AnalyzerDriver.
@@ -115,6 +124,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of registered additional file actions.
         /// </summary>
         public int AdditionalFileActionsCount { get; }
+
+        /// <summary>
+        /// Count of registered semantic model start actions.
+        /// </summary>
+        public int SemanticModelStartActionsCount { get; }
+
+        /// <summary>
+        /// Count of registered semantic model end actions.
+        /// </summary>
+        public int SemanticModelEndActionsCount { get; }
 
         /// <summary>
         /// Count of registered semantic model actions.

@@ -125,6 +125,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 
+    internal sealed class SemanticModelStartAnalyzerAction : AnalyzerAction
+    {
+        public Action<SemanticModelStartAnalysisContext> Action { get; }
+
+        public SemanticModelStartAnalyzerAction(Action<SemanticModelStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
+    }
+
     internal sealed class SemanticModelAnalyzerAction : AnalyzerAction
     {
         public Action<SemanticModelAnalysisContext> Action { get; }
