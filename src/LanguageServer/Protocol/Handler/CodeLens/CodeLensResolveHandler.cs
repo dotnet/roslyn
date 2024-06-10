@@ -52,7 +52,7 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
         // If the request is for an older version of the document, throw an exception so the client knows to re-query us.
         if (resolveData.SyntaxVersion != currentDocumentSyntaxVersion.ToString())
         {
-            throw new LocalRpcException($"Resolve version {resolveData.SyntaxVersion} does not match current version {currentDocumentSyntaxVersion}")
+            throw new LocalRpcException($"Resolve version '{resolveData.SyntaxVersion}' does not match current version '{currentDocumentSyntaxVersion}'")
             {
                 ErrorCode = LspErrorCodes.ContentModified
             };
