@@ -329,7 +329,7 @@ function GetIbcDropName() {
     }
 
     # Bring in the ibc tools
-    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
+    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
 
     # Find the matching drop
