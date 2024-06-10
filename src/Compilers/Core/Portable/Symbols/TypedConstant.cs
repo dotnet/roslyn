@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The value for a <see cref="TypedConstant"/> array.
-        /// Returns a default ImmutableArray if null was passed as the array value;
+        /// Returns a default ImmutableArray if <see langword="null"/> was passed as the array value;
         /// <see cref="IsNull"/> can be used to check for this.
         /// </summary>
         public ImmutableArray<TypedConstant> Values
