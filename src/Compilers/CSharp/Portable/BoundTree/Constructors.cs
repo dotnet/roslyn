@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBlock
     {
         public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
-            : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, hasUnsafeModifier: false, instrumentation: null, statements, hasErrors)
+            : this(syntax, locals, ImmutableArray<MethodSymbol>.Empty, hasUnsafeModifier: false, instrumentation: null, statements, hasErrors)
         {
         }
 
