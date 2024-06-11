@@ -324,6 +324,26 @@ class C : System.IAsyncDisposable
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
                 );
+
+            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8107: Feature 'asynchronous using' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9),
+                // (6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
+                // (6,22): error CS8107: Feature 'pattern-based disposal' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "var x = new C()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 22)
+                );
+
+            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // 0.cs(6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
+                );
         }
 
         [Fact]
@@ -3650,6 +3670,86 @@ namespace System.Threading.Tasks
                 // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
                 //         await using var x = new Class1();
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
+        public void PatternBasedFails_AwaitUsing_08()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+struct S2 : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable
+{
+    ValueTask IMyAsyncDisposable1.DisposeAsync() => throw null;
+    ValueTask IMyAsyncDisposable2.DisposeAsync() => throw null;
+
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable, new()
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2066463")]
+        public void PatternBasedFails_AwaitUsing_Private()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+await using var service = new Service1();
+
+public sealed class Service1 : IAsyncDisposable
+{
+    private Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write("ran");
+        return new ValueTask(DisposeAsync());
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "ran" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
     }
 }

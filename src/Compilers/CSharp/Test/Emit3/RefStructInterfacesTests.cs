@@ -13564,7 +13564,6 @@ namespace System
 }
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics();
 
             CompileAndVerify(
                 comp,

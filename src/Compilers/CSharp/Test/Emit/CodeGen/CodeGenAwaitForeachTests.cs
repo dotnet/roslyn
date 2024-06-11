@@ -9294,5 +9294,84 @@ struct AsyncEnumerator : IAsyncEnumerator<(int, int)>
                 info.DisposeMethod.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)", info.ElementType.ToTestDisplayString());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
+        public void PatternBasedFails_AwaitForeach()
+        {
+            var src = """
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface ICustomEnumerator
+{
+    public int Current {get;}
+
+    public ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+struct S2 : ICustomEnumerator, IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable
+{
+    ValueTask IMyAsyncDisposable1.DisposeAsync() => throw null;
+    ValueTask IMyAsyncDisposable2.DisposeAsync() => throw null;
+    public ValueTask DisposeAsync()
+    { 
+        System.Console.Write("D");
+        return ValueTask.CompletedTask;
+    }
+
+    public int Current => 123;
+    public ValueTask<bool> MoveNextAsync()
+    {
+        return ValueTask.FromResult(false);
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : IGetEnumerator<TEnumerator>
+        where TEnumerator : ICustomEnumerator, IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
     }
 }

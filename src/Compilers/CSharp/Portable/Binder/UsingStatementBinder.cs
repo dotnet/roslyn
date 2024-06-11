@@ -196,13 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
-                                                       ? BindingDiagnosticBag.GetInstance(diagnostics)
-                                                       : BindingDiagnosticBag.Discarded;
+                    BindingDiagnosticBag patternDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
                     if (disposeMethod is object)
                     {
-                        diagnostics.AddRange(patternDiagnostics);
+                        diagnostics.AddRangeAndFree(patternDiagnostics);
                         MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
@@ -232,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return true;
                     }
+
+                    patternDiagnostics.Free();
                 }
 
                 // Interface binding
