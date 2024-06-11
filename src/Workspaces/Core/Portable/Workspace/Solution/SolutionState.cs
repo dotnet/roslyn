@@ -61,10 +61,17 @@ internal sealed partial class SolutionState
             int lastHashCode;
 
             var lockTaken = false;
-            _lock.Enter(ref lockTaken);
-            lastString = _lastString;
-            lastHashCode = _lastHashCode;
-            _lock.Exit();
+            try
+            {
+                _lock.Enter(ref lockTaken);
+                lastString = _lastString;
+                lastHashCode = _lastHashCode;
+            }
+            finally
+            {
+                if (lockTaken)
+                    _lock.Exit();
+            }
 
             if (ReferenceEquals(lastString, obj))
                 return lastHashCode;
@@ -72,10 +79,17 @@ internal sealed partial class SolutionState
             var hashCode = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
 
             lockTaken = false;
-            _lock.Enter(ref lockTaken);
-            _lastString = obj;
-            _lastHashCode = hashCode;
-            _lock.Exit();
+            try
+            {
+                _lock.Enter(ref lockTaken);
+                _lastString = obj;
+                _lastHashCode = hashCode;
+            }
+            finally
+            {
+                if (lockTaken)
+                    _lock.Exit();
+            }
 
             return hashCode;
         }
