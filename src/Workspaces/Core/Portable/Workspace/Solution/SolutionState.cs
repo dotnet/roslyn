@@ -8,6 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -34,10 +37,120 @@ internal readonly record struct StateChange(
 internal sealed partial class SolutionState
 {
     /// <summary>
+    /// String comparer for file paths that caches the last result of the comparison to avoid expensive rehashing of the
+    /// same string over and over again.
+    /// </summary>
+    private sealed class CachingFilePathComparer : IEqualityComparer<string>
+    {
+        public static readonly CachingFilePathComparer Instance = new();
+
+        private SpinLock _lock = new(enableThreadOwnerTracking: false);
+        private string? _lastString;
+        private int _lastHashCode;
+
+        private CachingFilePathComparer()
+        {
+        }
+
+        public bool Equals(string? x, string? y)
+            => StringComparer.OrdinalIgnoreCase.Equals(x, y);
+
+        public int GetHashCode([DisallowNull] string obj)
+        {
+            string? lastString;
+            int lastHashCode;
+
+            var lockTaken = false;
+            _lock.Enter(ref lockTaken);
+            lastString = _lastString;
+            lastHashCode = _lastHashCode;
+            _lock.Exit();
+
+            if (ReferenceEquals(lastString, obj))
+                return lastHashCode;
+
+            var hashCode = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
+
+            lockTaken = false;
+            _lock.Enter(ref lockTaken);
+            _lastString = obj;
+            _lastHashCode = hashCode;
+            _lock.Exit();
+
+            return hashCode;
+        }
+
+        // From https://github.com/dotnet/runtime/blob/5aa9687e110faa19d1165ba680e52585a822464d/src/libraries/System.Private.CoreLib/src/System/String.Comparison.cs#L921
+
+        // We "normalize to lowercase" every char by ORing with 0x0020. This casts
+        // a very wide net because it will change, e.g., '^' to '~'. But that should
+        // be ok because we expect this to be very rare in practice. These are valid
+        // for both for big-endian and for little-endian.
+        private const uint NormalizeToLowercase = 0x0020_0020u;
+
+        private unsafe int GetNonRandomizedHashCodeOrdinalIgnoreCase(string obj)
+        {
+            uint hash1 = (5381 << 16) + 5381;
+            uint hash2 = hash1;
+
+            int length = obj.Length;
+            fixed (char* src = obj)
+            {
+                Debug.Assert(src[obj.Length] == '\0', "src[this.Length] == '\\0'");
+                Debug.Assert(((int)src) % 4 == 0, "Managed string should start at 4 bytes boundary");
+
+                uint* ptr = (uint*)src;
+
+                while (length > 2)
+                {
+                    uint p0 = ptr[0];
+                    uint p1 = ptr[1];
+                    if (!AllCharsInUInt32AreAscii(p0 | p1))
+                    {
+                        goto NotAscii;
+                    }
+
+                    length -= 4;
+                    hash1 = (RuntimeBitOperations.RotateLeft(hash1, 5) + hash1) ^ (p0 | NormalizeToLowercase);
+                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p1 | NormalizeToLowercase);
+                    ptr += 2;
+                }
+
+                if (length > 0)
+                {
+                    uint p0 = ptr[0];
+                    if (!AllCharsInUInt32AreAscii(p0))
+                    {
+                        goto NotAscii;
+                    }
+
+                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p0 | NormalizeToLowercase);
+                }
+            }
+
+            return (int)(hash1 + (hash2 * 1566083941));
+
+NotAscii:
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj);
+        }
+
+        // From https://github.com/dotnet/runtime/blob/5aa9687e110faa19d1165ba680e52585a822464d/src/libraries/System.Private.CoreLib/src/System/Text/Unicode/Utf16Utility.cs#L16.
+
+        /// <summary>
+        /// Returns true iff the UInt32 represents two ASCII UTF-16 characters in machine endianness.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool AllCharsInUInt32AreAscii(uint value)
+        {
+            return (value & ~0x007F_007Fu) == 0;
+        }
+    }
+
+    /// <summary>
     /// Note: this insensitive comparer is busted on many systems.  But we do things this way for compat with the logic
     /// we've had on windows since forever.
     /// </summary>
-    public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+    public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
