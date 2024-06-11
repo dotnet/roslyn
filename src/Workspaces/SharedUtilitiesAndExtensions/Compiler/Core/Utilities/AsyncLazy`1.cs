@@ -136,7 +136,7 @@ internal abstract class AsyncLazy<T>
         /// </summary>
         private WaitThatValidatesInvariants TakeLock(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(Monitor.IsEntered(SyncObject));
+            Contract.ThrowIfTrue(Monitor.IsEntered(SyncObject), "Attempt to take the lock while already holding it!");
 
             cancellationToken.ThrowIfCancellationRequested();
             Monitor.Enter(SyncObject);
