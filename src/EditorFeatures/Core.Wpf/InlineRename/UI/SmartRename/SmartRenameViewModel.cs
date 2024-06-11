@@ -119,6 +119,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
 
         BaseViewModel = baseViewModel;
+        BaseViewModel.PropertyChanged += IdentifierTextPropertyChanged;
         this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
         GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
@@ -150,7 +151,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
 
-            _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+            var delayTask = Task.Delay(1000, _cancellationTokenSource.Token);
+            var coreTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
+            _getSuggestionsTask = delayTask
+                .ContinueWith(_ => coreTask)
+                .CompletesAsyncOperation(listenerToken);
         }
     }
 
@@ -219,10 +224,19 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     public void Dispose()
     {
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
+        BaseViewModel.PropertyChanged -= IdentifierTextPropertyChanged;
         _smartRenameSession.Dispose();
         _cancellationTokenSource.Dispose();
     }
 
     private void NotifyPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    private void IdentifierTextPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
+        {
+            _cancellationTokenSource.Cancel();
+        }
+    }
 }
