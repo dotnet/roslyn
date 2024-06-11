@@ -2290,9 +2290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DynamicDispatchToParamsCollection = 9218,
         ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
-        WRN_DynamicDispatchToParamsCollectionMethod = 9220,
-        WRN_DynamicDispatchToParamsCollectionIndexer = 9221,
-        WRN_DynamicDispatchToParamsCollectionConstructor = 9222,
+        // available 9220,
+        // available 9221,
+        // available 9222,
         ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
         ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
         ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,

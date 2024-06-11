@@ -668,22 +668,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection<TMember>(ArrayBuilder<BoundExpression> arguments, ImmutableArray<MemberResolutionResult<TMember>> finalApplicableCandidates)
-            where TMember : Symbol
-        {
-            foreach (var candidate in finalApplicableCandidates)
-            {
-                if ((candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm ||
-                    IsAmbiguousDynamicParamsArgument(arguments, candidate, argumentSyntax: out _)) &&
-                    !candidate.Member.GetParameters().Last().Type.IsSZArray())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, ArrayBuilder<BoundExpression> arguments, BindingDiagnosticBag diagnostics)
             where TMember : Symbol
         {
@@ -838,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
+                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, finalApplicableCandidates);
 
                                 result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics, queryClause);
                             }
@@ -860,22 +844,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, MethodGroupResolution resolution, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
+        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
         {
             if (HasApplicableConditionalMethod(finalApplicableCandidates))
             {
                 // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
                 // because one or more applicable overloads are conditional methods
                 Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
-            }
-
-            if (finalApplicableCandidates.Length != 1 &&
-                Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(resolution.AnalyzedArguments.Arguments, finalApplicableCandidates))
-            {
-                Error(diagnostics,
-                    ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod,
-                    syntax, methodGroup.Name);
             }
         }
 
