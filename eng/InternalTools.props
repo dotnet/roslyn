@@ -12,10 +12,11 @@
         </RestoreSources>
     </PropertyGroup>
     
-    <ItemGroup>
+    <ItemGroup Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
         <!-- Add explicit Newtonsoft.Json dependency to override the implicit 10.0.1 version brought in by Microsoft.DevDiv.Optimization.Data.PowerShell -->
-        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'" />
-        <PackageReference Include="Microsoft.DevDiv.Optimization.Data.PowerShell" Version="$(MicrosoftDevDivOptimizationDataPowerShellVersion)" ExcludeAssets="all" Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'"/>
+        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)"/>
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="$(MicrosoftIdentityModelJsonWebTokensVersion)"/>
+        <PackageReference Include="Microsoft.DevDiv.Optimization.Data.PowerShell" Version="$(MicrosoftDevDivOptimizationDataPowerShellVersion)" ExcludeAssets="all"/>
     </ItemGroup>
 
 </Project>
