@@ -285,8 +285,8 @@ public abstract partial class Workspace : IDisposable
 
             var changes = newSolution.GetChanges(oldSolution);
 
-            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var changedDocumentIds);
-            using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var addedDocumentIds);
+            using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var addedDocumentIds);
+            using var _2 = PooledHashSet<DocumentId>.GetInstance(out var changedDocumentIds);
 
             // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
             foreach (var addedProject in changes.GetAddedProjects())
@@ -309,13 +309,160 @@ public abstract partial class Workspace : IDisposable
                 changedDocumentIds.AddRange(projectChanges.GetChangedDocuments());
             }
 
-            newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocumentIds);
-
-            // now, for any changed document, ensure we go and make all links to it have the same text/tree.
-            newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentIds);
-
-            return newSolution;
+            var configService = newSolution.Workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+            return configService.Options.OnlyUnifyDocumentsAcrossProjectFlavors
+                ? UnifyLinkedDocumentContentsAcrossProjectFlavors(newSolution, addedDocumentIds, changedDocumentIds)
+                : UnifyLinkedDocumentContentsAcrossEntireSolution(newSolution, addedDocumentIds, changedDocumentIds);
         }
+    }
+
+    private static Solution UnifyLinkedDocumentContentsAcrossProjectFlavors(Solution newSolution, ArrayBuilder<DocumentId> addedDocumentIds, PooledHashSet<DocumentId> changedDocumentIds)
+    {
+        // Mapping from a project to all its sibling flavored projects.  For example, for a project "Workspaces
+        // (netstandard2.0)", this would be "Workspaces (net7.0)", "Workspaces (net8.0)", etc.
+        using var _3 = PooledDictionary<ProjectId, ArrayBuilder<ProjectState>>.GetInstance(out var projectToSiblingFlavors);
+
+        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocumentIds, projectToSiblingFlavors);
+
+        // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+        newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentIds, projectToSiblingFlavors);
+
+        // Free the ArrayBuilders in projectToSiblingFlavors.  The dictionary itself will be automatically freed at the end of this scope.
+        projectToSiblingFlavors.FreeValues();
+
+        return newSolution;
+
+        static bool TryGetSiblingFlavoredProjects(
+            Solution solution,
+            ProjectId projectId,
+            Dictionary<ProjectId, ArrayBuilder<ProjectState>> projectIdToSiblingFlavors,
+            [NotNullWhen(true)] out ArrayBuilder<ProjectState>? siblingFlavors)
+        {
+            siblingFlavors = null;
+
+            var projectState = solution.SolutionState.GetRequiredProjectState(projectId);
+
+            // If this project doesn't have any flavors itself, then there's no sibling flavors of it to return.
+            if (projectState.NameAndFlavor.flavor is null)
+                return false;
+
+            if (!projectIdToSiblingFlavors.TryGetValue(projectId, out siblingFlavors))
+            {
+                siblingFlavors = ArrayBuilder<ProjectState>.GetInstance();
+                projectIdToSiblingFlavors.Add(projectId, siblingFlavors);
+
+                foreach (var (siblingProjectId, siblingProject) in solution.SolutionState.ProjectStates)
+                {
+                    if (projectId == siblingProjectId)
+                        continue;
+
+                    if (siblingProject.NameAndFlavor.name == projectState.NameAndFlavor.name &&
+                        siblingProject.NameAndFlavor.flavor != null)
+                    {
+                        siblingFlavors.Add(siblingProject);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        static Solution UpdateAddedDocumentToExistingContentsInSolution(
+            Solution solution,
+            ArrayBuilder<DocumentId> addedDocumentIds,
+            Dictionary<ProjectId, ArrayBuilder<ProjectState>> projectIdToSiblingFlavors)
+        {
+            using var _ = ArrayBuilder<(DocumentId, DocumentState)>.GetInstance(out var relatedDocumentIdsAndStates);
+
+            foreach (var group in addedDocumentIds.GroupBy(static d => d.ProjectId))
+            {
+                var projectId = group.Key;
+
+                if (!TryGetSiblingFlavoredProjects(solution, projectId, projectIdToSiblingFlavors, out var siblingFlavors))
+                    continue;
+
+                foreach (var addedDocumentId in group)
+                {
+                    var addedDocument = solution.SolutionState.GetRequiredDocumentState(addedDocumentId);
+                    if (addedDocument.FilePath is null)
+                        continue;
+
+                    foreach (var siblingProject in siblingFlavors)
+                    {
+                        // Should only be searching different projects from the original project.
+                        Contract.ThrowIfTrue(siblingProject.Id == projectId);
+
+                        var relatedDocumentId = siblingProject.GetFirstDocumentIdWithFilePath(addedDocument.FilePath);
+                        if (relatedDocumentId is null)
+                            continue;
+
+                        var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                        relatedDocumentIdsAndStates.Add((addedDocumentId, relatedDocument.DocumentState));
+                        break;
+                    }
+                }
+            }
+
+            if (relatedDocumentIdsAndStates.IsEmpty)
+                return solution;
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear(), forceEvenIfTreesWouldDiffer: false);
+        }
+
+        static Solution UpdateExistingDocumentsToChangedDocumentContents(
+            Solution solution,
+            HashSet<DocumentId> changedDocumentIds,
+            Dictionary<ProjectId, ArrayBuilder<ProjectState>> projectIdToSiblingFlavors)
+        {
+            // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
+            // process that chain once.
+            using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
+
+            foreach (var group in changedDocumentIds.GroupBy(static d => d.ProjectId))
+            {
+                var projectId = group.Key;
+
+                if (!TryGetSiblingFlavoredProjects(solution, projectId, projectIdToSiblingFlavors, out var siblingFlavors))
+                    continue;
+
+                foreach (var changedDocumentId in group)
+                {
+                    var changedDocument = solution.SolutionState.GetRequiredDocumentState(changedDocumentId);
+                    if (changedDocument.FilePath is null)
+                        continue;
+
+                    foreach (var siblingProject in siblingFlavors)
+                    {
+                        // Should only be searching different projects from the original project.
+                        Contract.ThrowIfTrue(siblingProject.Id == projectId);
+
+                        var relatedDocumentId = siblingProject.GetFirstDocumentIdWithFilePath(changedDocument.FilePath);
+                        if (relatedDocumentId is null)
+                            continue;
+
+                        if (!changedDocumentIds.Contains(relatedDocumentId))
+                            relatedDocumentIdsAndStates[relatedDocumentId] = changedDocument;
+                    }
+                }
+            }
+
+            if (relatedDocumentIdsAndStates.Count == 0)
+                return solution;
+
+            var relatedDocumentIdsAndStatesArray = relatedDocumentIdsAndStates.SelectAsArray(static kvp => (kvp.Key, kvp.Value));
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
+        }
+    }
+
+    private static Solution UnifyLinkedDocumentContentsAcrossEntireSolution(Solution newSolution, ArrayBuilder<DocumentId> addedDocumentIds, PooledHashSet<DocumentId> changedDocumentIds)
+    {
+        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocumentIds);
+
+        // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+        newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentIds);
+
+        return newSolution;
 
         static Solution UpdateAddedDocumentToExistingContentsInSolution(
             Solution solution, ArrayBuilder<DocumentId> addedDocumentIds)
