@@ -102,7 +102,7 @@
         <target state="translated">Сделать структуру доступной "только для чтения"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Member can be made readonly">
+      <trans-unit id="Member_can_be_made_readonly">
         <source>Member can be made 'readonly'</source>
         <target state="translated">Элемент можно сделать "readonly"</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
@@ -385,6 +385,11 @@
       <trans-unit id="Use_pattern_matching_may_change_code_meaning">
         <source>Use pattern matching (may change code meaning)</source>
         <target state="translated">Использовать сопоставление шаблонов (может измениться значение кода)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="translated">Использовать основной конструктор</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

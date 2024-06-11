@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -130,7 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -172,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -212,7 +209,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -252,7 +248,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -293,7 +288,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -383,7 +377,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -480,7 +473,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -526,7 +518,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -602,7 +593,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -717,7 +707,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -761,7 +750,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -810,7 +798,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -931,7 +918,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             var fixedCode = """
                 using System.Collections.Generic;
                 using System.Linq;
-
                 namespace ConsoleApplication1
                 {
                     class Program

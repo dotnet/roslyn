@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var rewrittenPropertySymbol = VisitPropertySymbol(node.PropertySymbol);
             var rewrittenReceiver = (BoundExpression?)Visit(node.ReceiverOpt);
-            return node.Update(rewrittenReceiver, rewrittenPropertySymbol, node.ResultKind, VisitType(node.Type));
+            return node.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, rewrittenPropertySymbol, node.ResultKind, VisitType(node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return node.Update(
                 rewrittenReceiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 rewrittenMethodSymbol,
                 rewrittenArguments,
                 node.ArgumentNamesOpt,
@@ -613,8 +614,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (method.ContainingType is null)
             {
-                Debug.Assert(method is SynthesizedGlobalMethodSymbol);
-                return method;
+                Debug.Assert(method.OriginalDefinition is SynthesizedGlobalMethodSymbol);
+                return method.OriginalDefinition.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
             }
             else if (method.ContainingType.IsAnonymousType)
             {

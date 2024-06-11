@@ -64,97 +64,99 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 [WorkItem("https://github.com/dotnet/roslyn/issues/6455")]
                 public async Task TestFixMultipleInDocument()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInSelection:class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInSelection:class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}|}
-class Class3 { }
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }|}
+                        class Class3 { }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-#pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
-class Class1
-#pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
+                        class Class1
+                        #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-#pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
-class Class2
-#pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-}
-class Class3 { }
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
+                        class Class2
+                        #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                        }
+                        class Class3 { }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     await TestInRegularAndScriptAsync(input, expected);
                 }

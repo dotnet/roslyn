@@ -22,25 +22,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _defs As MatchDefs
         Private ReadOnly _symbols As MatchSymbols
 
-        Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
-                      sourceAssembly As SourceAssemblySymbol,
-                      sourceContext As EmitContext,
-                      otherAssembly As SourceAssemblySymbol,
-                      otherContext As EmitContext,
-                      otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
-                      otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
+        Public Sub New(sourceAssembly As SourceAssemblySymbol,
+                       sourceContext As EmitContext,
+                       otherAssembly As SourceAssemblySymbol,
+                       otherContext As EmitContext,
+                       synthesizedTypes As SynthesizedTypeMaps,
+                       otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                       otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
 
             _defs = New MatchDefsToSource(sourceContext, otherContext)
-            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, otherDeletedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
+            _symbols = New MatchSymbols(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt, otherDeletedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
         End Sub
 
-        Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
-                      sourceAssembly As SourceAssemblySymbol,
-                      sourceContext As EmitContext,
-                      otherAssembly As PEAssemblySymbol)
+        Public Sub New(synthesizedTypes As SynthesizedTypeMaps,
+                       sourceAssembly As SourceAssemblySymbol,
+                       sourceContext As EmitContext,
+                       otherAssembly As PEAssemblySymbol)
 
             _defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
-            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt:=Nothing, otherDeletedMembers:=Nothing, deepTranslatorOpt:=Nothing)
+            _symbols = New MatchSymbols(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt:=Nothing, otherDeletedMembers:=Nothing, deepTranslatorOpt:=Nothing)
         End Sub
 
         Public Overrides Function MapDefinition(definition As Cci.IDefinition) As Cci.IDefinition
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private NotInheritable Class MatchSymbols
             Inherits VisualBasicSymbolVisitor(Of Symbol)
 
-            Private ReadOnly _anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+            Private ReadOnly _synthesizedTypes As SynthesizedTypeMaps
             Private ReadOnly _comparer As SymbolComparer
             Private ReadOnly _matches As ConcurrentDictionary(Of Symbol, Symbol)
 
@@ -241,14 +241,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' through all members of a given kind each time a member Is matched.
             Private ReadOnly _otherMembers As ConcurrentDictionary(Of ISymbolInternal, IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbolInternal)))
 
-            Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
-                           sourceAssembly As SourceAssemblySymbol,
+            Public Sub New(sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
+                           synthesizedTypes As SynthesizedTypeMaps,
                            otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            otherDeletedMembers As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            deepTranslatorOpt As DeepTranslator)
 
-                _anonymousTypeMap = anonymousTypeMap
+                _synthesizedTypes = synthesizedTypes
                 _sourceAssembly = sourceAssembly
                 _otherAssembly = otherAssembly
                 _otherSynthesizedMembersOpt = otherSynthesizedMembersOpt
@@ -511,10 +511,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Friend Function TryFindAnonymousType(type As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef otherType As AnonymousTypeValue) As Boolean
                 Debug.Assert(type.ContainingSymbol Is _sourceAssembly.GlobalNamespace)
 
-                Return _anonymousTypeMap.TryGetValue(type.GetAnonymousTypeKey(), otherType)
+                Return _synthesizedTypes.AnonymousTypes.TryGetValue(type.GetAnonymousTypeKey(), otherType)
             End Function
 
             Private Function VisitNamedTypeMember(Of T As Symbol)(member As T, predicate As Func(Of T, T, Boolean)) As Symbol
+                If member.ContainingType Is Nothing Then
+                    ' ContainingType is null for synthesized PrivateImplementationDetails helpers.
+                    ' For simplicity, these helpers are not reused across generations.
+                    ' Instead new ones are regenerated as needed.
+                    Debug.Assert(TypeOf member Is ISynthesizedGlobalMethodSymbol)
+
+                    Return Nothing
+                End If
+
                 Dim otherType As NamedTypeSymbol = DirectCast(Visit(member.ContainingType), NamedTypeSymbol)
                 If otherType Is Nothing Then
                     Return Nothing
@@ -546,7 +555,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreEventsEqual([event] As EventSymbol, other As EventSymbol) As Boolean
                 Debug.Assert(s_nameComparer.Equals([event].Name, other.Name))
-                Return Me._comparer.Equals([event].Type, other.Type)
+                ' Events can't be overloaded on type.
+                ' ECMA: Within the rows owned by a given row in the TypeDef table, there shall be no duplicates based upon Name [ERROR]
+                Return True
             End Function
 
             Private Function AreFieldsEqual(field As FieldSymbol, other As FieldSymbol) As Boolean
@@ -597,11 +608,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreParametersEqual(parameter As ParameterSymbol, other As ParameterSymbol) As Boolean
                 Debug.Assert(parameter.Ordinal = other.Ordinal)
+
+                ' allow a different ref-kind as long as the runtime type is the same:
                 Return parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
             End Function
 
             Private Function ArePropertiesEqual([property] As PropertySymbol, other As PropertySymbol) As Boolean
                 Debug.Assert(s_nameComparer.Equals([property].Name, other.Name))
+
+                ' Properties may be overloaded on their signature.
+                ' ECMA: Within the rows owned by a given row in the TypeDef table, there shall be no duplicates based upon Name+Type [ERROR]
                 Return Me._comparer.Equals([property].Type, other.Type) AndAlso
                     [property].Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual)
             End Function

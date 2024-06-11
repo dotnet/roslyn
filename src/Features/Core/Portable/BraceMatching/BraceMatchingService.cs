@@ -16,21 +16,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
     [Export(typeof(IBraceMatchingService)), Shared]
-    internal class BraceMatchingService : IBraceMatchingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class BraceMatchingService(
+        [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers) : IBraceMatchingService
     {
-        private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BraceMatchingService(
-            [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers)
-        {
-            _braceMatchers = braceMatchers.ToImmutableArray();
-        }
+        private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers = braceMatchers.ToImmutableArray();
 
         public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (position < 0 || position > text.Length)
             {
                 throw new ArgumentException(nameof(position));

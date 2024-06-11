@@ -480,10 +480,10 @@ ExitDecodeTypeName:
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {
             int suffixStartsAt;
-            return InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
+            return InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt);
         }
 
-        private static short InferTypeArityFromMetadataName(string emittedTypeName, out int suffixStartsAt)
+        private static short InferTypeArityFromMetadataName(ReadOnlySpan<char> emittedTypeName, out int suffixStartsAt)
         {
             Debug.Assert(emittedTypeName != null, "NULL actual name unexpected!!!");
             int emittedTypeNameLength = emittedTypeName.Length;
@@ -505,28 +505,56 @@ ExitDecodeTypeName:
                 return 0;
             }
 
-            // Given a name corresponding to <unmangledName>`<arity>,
-            // extract the arity.
-            string stringRepresentingArity = emittedTypeName.Substring(indexOfManglingChar);
-
-            int arity;
-            bool nonNumericCharFound = !int.TryParse(stringRepresentingArity, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
-
-            if (nonNumericCharFound || arity < 0 || arity > short.MaxValue ||
-                stringRepresentingArity != arity.ToString())
+            // Given a name corresponding to <unmangledName>`<arity>, extract the arity.
+            if (tryScanArity(emittedTypeName[indexOfManglingChar..]) is not short arity)
             {
                 suffixStartsAt = -1;
                 return 0;
             }
 
             suffixStartsAt = indexOfManglingChar - 1;
-            return (short)arity;
+            return arity;
+
+            static short? tryScanArity(ReadOnlySpan<char> aritySpan)
+            {
+                // Arity must have at least one character and must not have leading zeroes.
+                // Also, in order to fit into short.MaxValue (32767), it must be at most 5 characters long. 
+                if (aritySpan is { Length: >= 1 and <= 5 } and not ['0', ..])
+                {
+                    int intArity = 0;
+                    foreach (char digit in aritySpan)
+                    {
+                        // Accepting integral decimal digits only
+                        if (digit is < '0' or > '9')
+                            return null;
+
+                        intArity = intArity * 10 + (digit - '0');
+                    }
+
+                    Debug.Assert(intArity > 0);
+
+                    if (intArity <= short.MaxValue)
+                        return (short)intArity;
+                }
+
+                return null;
+            }
         }
 
         internal static string InferTypeArityAndUnmangleMetadataName(string emittedTypeName, out short arity)
         {
+            var emittedTypeNameMemory = emittedTypeName.AsMemory();
+            var resultMemory = InferTypeArityAndUnmangleMetadataName(emittedTypeNameMemory, out arity);
+            var resultString = resultMemory.ToString();
+
+            Debug.Assert(!resultMemory.Equals(emittedTypeNameMemory) || ReferenceEquals(resultString, emittedTypeName), "If the name was not mangled, we should get the original string instance back.");
+            return resultString;
+        }
+
+        internal static ReadOnlyMemory<char> InferTypeArityAndUnmangleMetadataName(ReadOnlyMemory<char> emittedTypeName, out short arity)
+        {
             int suffixStartsAt;
-            arity = InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
+            arity = InferTypeArityFromMetadataName(emittedTypeName.Span, out suffixStartsAt);
 
             if (arity == 0)
             {
@@ -535,7 +563,7 @@ ExitDecodeTypeName:
             }
 
             Debug.Assert(suffixStartsAt > 0 && suffixStartsAt < emittedTypeName.Length - 1);
-            return emittedTypeName.Substring(0, suffixStartsAt);
+            return emittedTypeName[..suffixStartsAt];
         }
 
         internal static string UnmangleMetadataNameForArity(string emittedTypeName, int arity)
@@ -543,10 +571,10 @@ ExitDecodeTypeName:
             Debug.Assert(arity > 0);
 
             int suffixStartsAt;
-            if (arity == InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt))
+            if (arity == InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt))
             {
                 Debug.Assert(suffixStartsAt > 0 && suffixStartsAt < emittedTypeName.Length - 1);
-                return emittedTypeName.Substring(0, suffixStartsAt);
+                return emittedTypeName[..suffixStartsAt];
             }
 
             return emittedTypeName;
@@ -556,22 +584,30 @@ ExitDecodeTypeName:
         /// An ImmutableArray representing the single string "System"
         /// </summary>
         private static readonly ImmutableArray<string> s_splitQualifiedNameSystem = ImmutableArray.Create(SystemString);
+        private static readonly ImmutableArray<ReadOnlyMemory<char>> s_splitQualifiedNameSystemMemory = ImmutableArray.Create(SystemString.AsMemory());
 
-        internal static ImmutableArray<string> SplitQualifiedName(
-              string name)
+        internal static ImmutableArray<string> SplitQualifiedName(string name)
+            => SplitQualifiedNameWorker(name.AsMemory(), s_splitQualifiedNameSystem, static memory => memory.ToString());
+
+        internal static ImmutableArray<ReadOnlyMemory<char>> SplitQualifiedName(ReadOnlyMemory<char> name)
+            => SplitQualifiedNameWorker(name, s_splitQualifiedNameSystemMemory, static memory => memory);
+
+        internal static ImmutableArray<T> SplitQualifiedNameWorker<T>(
+            ReadOnlyMemory<char> nameMemory, ImmutableArray<T> splitSystemString, Func<ReadOnlyMemory<char>, T> convert)
         {
-            Debug.Assert(name != null);
+            Debug.Assert(!nameMemory.Equals(default(ReadOnlyMemory<char>)));
 
-            if (name.Length == 0)
+            if (nameMemory.Length == 0)
             {
-                return ImmutableArray<string>.Empty;
+                return ImmutableArray<T>.Empty;
             }
 
             // PERF: Avoid String.Split because of the allocations. Also, we can special-case
             // for "System" if it is the first or only part.
 
             int dots = 0;
-            foreach (char ch in name)
+            var nameSpan = nameMemory.Span;
+            foreach (char ch in nameSpan)
             {
                 if (ch == DotDelimiter)
                 {
@@ -581,24 +617,24 @@ ExitDecodeTypeName:
 
             if (dots == 0)
             {
-                return name == SystemString ? s_splitQualifiedNameSystem : ImmutableArray.Create(name);
+                return nameMemory.Span.SequenceEqual(SystemString.AsSpan()) ? splitSystemString : ImmutableArray.Create(convert(nameMemory));
             }
 
-            var result = ArrayBuilder<string>.GetInstance(dots + 1);
+            var result = ArrayBuilder<T>.GetInstance(dots + 1);
 
             int start = 0;
             for (int i = 0; dots > 0; i++)
             {
-                if (name[i] == DotDelimiter)
+                if (nameSpan[i] == DotDelimiter)
                 {
                     int len = i - start;
-                    if (len == 6 && start == 0 && name.StartsWith(SystemString, StringComparison.Ordinal))
+                    if (len == 6 && start == 0 && nameSpan.StartsWith(SystemString.AsSpan(), StringComparison.Ordinal))
                     {
-                        result.Add(SystemString);
+                        result.Add(convert(SystemString.AsMemory()));
                     }
                     else
                     {
-                        result.Add(name.Substring(start, len));
+                        result.Add(convert(nameMemory.Slice(start, len)));
                     }
 
                     dots--;
@@ -606,7 +642,7 @@ ExitDecodeTypeName:
                 }
             }
 
-            result.Add(name.Substring(start));
+            result.Add(convert(nameMemory[start..]));
 
             return result.ToImmutableAndFree();
         }
@@ -614,6 +650,15 @@ ExitDecodeTypeName:
         internal static string SplitQualifiedName(
             string pstrName,
             out string qualifier)
+        {
+            ReadOnlyMemory<char> nameMemory = SplitQualifiedName(pstrName, out ReadOnlyMemory<char> qualifierMemory);
+            qualifier = qualifierMemory.ToString();
+            return nameMemory.ToString();
+        }
+
+        internal static ReadOnlyMemory<char> SplitQualifiedName(
+            string pstrName,
+            out ReadOnlyMemory<char> qualifier)
         {
             Debug.Assert(pstrName != null);
 
@@ -647,20 +692,20 @@ ExitDecodeTypeName:
 
             if (delimiter < 0)
             {
-                qualifier = string.Empty;
-                return pstrName;
+                qualifier = string.Empty.AsMemory();
+                return pstrName.AsMemory();
             }
 
             if (delimiter == 6 && pstrName.StartsWith(SystemString, StringComparison.Ordinal))
             {
-                qualifier = SystemString;
+                qualifier = SystemString.AsMemory();
             }
             else
             {
-                qualifier = pstrName.Substring(0, delimiter);
+                qualifier = pstrName.AsMemory()[..delimiter];
             }
 
-            return pstrName.Substring(delimiter + 1);
+            return pstrName.AsMemory()[(delimiter + 1)..];
         }
 
         internal static string BuildQualifiedName(

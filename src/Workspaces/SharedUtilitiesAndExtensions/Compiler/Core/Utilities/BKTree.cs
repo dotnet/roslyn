@@ -2,91 +2,82 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Utilities;
-using System;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// NOTE: Only use if you truly need a BK-tree.  If you just want to compare words, use
-    /// the 'SpellChecker' type instead.
-    ///
+    /// NOTE: Only use if you truly need a BK-tree.  If you just want to compare words, use the 'SpellChecker' type
+    /// instead.
+    /// <para/>
     /// An implementation of a Burkhard-Keller tree.  Introduced in:
-    /// 
-    /// 'Some approaches to best-match file searching.'
-    /// Communications of the ACM CACM
-    /// Volume 16 Issue 4, April 1973 
-    /// Pages 230-236 
-    /// http://dl.acm.org/citation.cfm?doid=362003.362025
+    /// <para/>
+    /// 'Some approaches to best-match file searching.' Communications of the ACM CACM Volume 16 Issue 4, April 1973
+    /// Pages 230-236 http://dl.acm.org/citation.cfm?doid=362003.362025.
     /// </summary>
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
-        public static readonly BKTree Empty = new(
-            Array.Empty<char>(),
-            ImmutableArray<Node>.Empty,
-            ImmutableArray<Edge>.Empty);
+        public static readonly BKTree Empty = new([], ImmutableArray<Node>.Empty, ImmutableArray<Edge>.Empty);
 
-        // We have three completely flat arrays of structs.  These arrays fully represent the 
-        // BK tree.  The structure is as follows:
-        //
-        // The root node is in _nodes[0].
-        //
-        // It lists the count of edges it has.  These edges are in _edges in the range 
-        // [0*, childCount).  Each edge has the index of the child node it points to, and the
-        // edit distance between the parent and the child.
-        //
-        // * of course '0' is only for the root case.  
-        //
-        // All nodes state where in _edges their child edges range starts, so the children 
-        // for any node are in the range[node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount).
-        //
-        // Each node also has an associated string.  These strings are concatenated and stored
-        // in _concatenatedLowerCaseWords.  Each node has a TextSpan that indicates which portion
-        // of the character array is their string.  Note: i'd like to use an immutable array
-        // for the characters as well.  However, we need to create slices, and they need to 
-        // work on top of an ArraySlice (which needs a char[]).  The edit distance code also
-        // wants to work on top of raw char[]s (both for speed, and so it can pool arrays
-        // to prevent lots of garbage).  Because of that we just keep this as a char[].
+        /// <summary>
+        /// We have three completely flat arrays of structs.  These arrays fully represent the BK tree.  The structure
+        /// is as follows:
+        /// <para/>
+        /// The root node is in _nodes[0].
+        /// <para/>
+        /// It lists the count of edges it has.  These edges are in _edges in the range [0*, childCount).  Each edge has
+        /// the index of the child node it points to, and the edit distance between the parent and the child.
+        /// <para/>
+        /// * of course '0' is only for the root case.
+        /// <para/>
+        /// All nodes state where in _edges their child edges range starts, so the children for any node are in the
+        /// range[node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount).
+        /// <para/>
+        /// Each node also has an associated string.  These strings are concatenated and stored in
+        /// _concatenatedLowerCaseWords.  Each node has a TextSpan that indicates which portion of the character array
+        /// is their string.  Note: i'd like to use an immutable array for the characters as well.  However, we need to
+        /// create slices, and they need to work on top of an ArraySlice (which needs a char[]).  The edit distance code
+        /// also wants to work on top of raw char[]s (both for speed, and so it can pool arrays to prevent lots of
+        /// garbage).  Because of that we just keep this as a char[].
+        /// </summary> 
         private readonly char[] _concatenatedLowerCaseWords;
         private readonly ImmutableArray<Node> _nodes;
         private readonly ImmutableArray<Edge> _edges;
 
         private BKTree(char[] concatenatedLowerCaseWords, ImmutableArray<Node> nodes, ImmutableArray<Edge> edges)
         {
+            Contract.ThrowIfNull(concatenatedLowerCaseWords, nameof(_concatenatedLowerCaseWords));
+            Contract.ThrowIfTrue(nodes.IsDefault, $"{nameof(nodes)}.{nameof(nodes.IsDefault)}");
+            Contract.ThrowIfTrue(edges.IsDefault, $"{nameof(edges)}.{nameof(edges.IsDefault)}");
             _concatenatedLowerCaseWords = concatenatedLowerCaseWords;
             _nodes = nodes;
             _edges = edges;
         }
 
-        public static BKTree Create(params string[] values)
-            => Create((IEnumerable<string>)values);
-
         public static BKTree Create(IEnumerable<string> values)
             => new Builder(values).Create();
 
-        public IList<string> Find(string value, int? threshold = null)
+        public void Find(ref TemporaryArray<string> result, string value, int? threshold = null)
         {
+            Contract.ThrowIfNull(value, nameof(value));
+            Contract.ThrowIfNull(_concatenatedLowerCaseWords, nameof(_concatenatedLowerCaseWords));
+            Contract.ThrowIfTrue(_nodes.IsDefault, $"{nameof(_nodes)}.{nameof(_nodes.IsDefault)}");
+            Contract.ThrowIfTrue(_edges.IsDefault, $"{nameof(_edges)}.{nameof(_edges.IsDefault)}");
             if (_nodes.Length == 0)
-            {
-                return SpecializedCollections.EmptyList<string>();
-            }
+                return;
 
             var lowerCaseCharacters = ArrayPool<char>.GetArray(value.Length);
             try
             {
                 for (var i = 0; i < value.Length; i++)
-                {
                     lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
-                }
 
                 threshold ??= WordSimilarityChecker.GetThreshold(value);
-                var result = new List<string>();
-                Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, result, recursionCount: 0);
-                return result;
+                Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, ref result, recursionCount: 0);
             }
             finally
             {
@@ -99,7 +90,7 @@ namespace Roslyn.Utilities
             char[] queryCharacters,
             int queryLength,
             int threshold,
-            List<string> result,
+            ref TemporaryArray<string> result,
             int recursionCount)
         {
             // Don't bother recursing too deeply in the case of pathological trees.
@@ -141,7 +132,7 @@ namespace Roslyn.Utilities
                 if (min <= childEditDistance && childEditDistance <= max)
                 {
                     Lookup(_nodes[_edges[i].ChildNodeIndex],
-                        queryCharacters, queryLength, threshold, result,
+                        queryCharacters, queryLength, threshold, ref result,
                         recursionCount + 1);
                 }
             }

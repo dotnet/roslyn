@@ -20,6 +20,7 @@ The compiler shipped with .NET 8 (the C# 12 compiler) contains the following war
 | Warning ID | Description |
 |------------|-------------|
 | CS9123 | [Taking address of local or parameter in async method can create a GC hole](https://github.com/dotnet/roslyn/issues/63100) |
+| EnableGenerateDocumentationFile | [Helper diagnostic for enforcing IDE0005 on build](https://github.com/dotnet/roslyn/issues/70460) |
 
 ## Warning level 7
 

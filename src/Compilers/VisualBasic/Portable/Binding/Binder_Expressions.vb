@@ -2713,7 +2713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If leftType IsNot Nothing Then
                         Dim leftName = node.Identifier.ValueText
                         If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TYPEKIND.TypeParameter Then
-                            Dim typeDiagnostics = BindingDiagnosticBag.Create(diagnostics)
+                            Dim typeDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
                                 Dim err As ERRID = Nothing
@@ -2724,14 +2724,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Return boundType
                                 End If
 
-                                Dim valueDiagnostics = BindingDiagnosticBag.Create(diagnostics)
+                                Dim valueDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                                 valueDiagnostics.AddRangeAndFree(leftDiagnostics)
                                 If propertyDiagnostics IsNot Nothing Then
                                     valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
                                 End If
 
-                                Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType)
+                                Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree()), leftType)
                             End If
+
+                            typeDiagnostics.Free()
                         End If
                     End If
                 End If
@@ -4892,14 +4894,6 @@ lElseClause:
                 getResult = BadExpression(node, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             End If
 
-            Dim resultType As TypeSymbol
-
-            If bindAsStatement Then
-                resultType = GetSpecialType(SpecialType.System_Void, node, diagnostics)
-            Else
-                resultType = getResult.Type
-            End If
-
             If Not hasErrors Then
                 diagnostics.AddRange(allIgnoreDiagnostics)
             End If
@@ -4909,7 +4903,7 @@ lElseClause:
             Return New BoundAwaitOperator(node, operand,
                                           awaitableInstancePlaceholder, getAwaiter,
                                           awaiterInstancePlaceholder, isCompleted, getResult,
-                                          resultType, hasErrors)
+                                          type:=getResult.Type, hasErrors)
         End Function
 
         Private Shared Function DiagnosticBagHasErrorsOtherThanObsoleteOnes(bag As DiagnosticBag) As Boolean

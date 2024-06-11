@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (textDocument == null)
                 return Location.None;
 
-            var text = await textDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await textDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var tree = textDocument is Document { SupportsSyntaxTree: true } document
                 ? await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
                 : null;
@@ -74,11 +75,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetAssemblyQualifiedName(type);
         }
 
+        /// <summary>
+        /// Cache of a <see cref="Type"/> to its <see cref="Type.AssemblyQualifiedName"/>.  We cache this as the latter
+        /// computes and allocates expensively every time it is called.
+        /// </summary>
+        private static ImmutableSegmentedDictionary<Type, string> s_typeToAssemblyQualifiedName = ImmutableSegmentedDictionary<Type, string>.Empty;
+
         private static string GetAssemblyQualifiedName(Type type)
         {
             // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
             // so we need to consider them.
-            return type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type);
+            return RoslynImmutableInterlocked.GetOrAdd(
+                ref s_typeToAssemblyQualifiedName,
+                type,
+                static type => type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type));
         }
 
         public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(
@@ -336,11 +346,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (documentAnalysisScope.TextDocument is Document document)
                     {
                         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                        return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                        return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
                     }
 
                 case AnalysisKind.Semantic:

@@ -8,8 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
 {
@@ -51,7 +53,20 @@ End Class";
 
         private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace)
         {
-            await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace);
+            await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = new LSP.VSInternalClientCapabilities
+                {
+                    SupportsVisualStudioExtensions = true,
+                    Workspace = new WorkspaceClientCapabilities
+                    {
+                        InlayHint = new InlayHintWorkspaceSetting
+                        {
+                            RefreshSupport = true
+                        }
+                    }
+                }
+            });
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, true);
             await VerifyInlayHintAsync(testLspServer);
         }

@@ -8,42 +8,38 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Classification
+namespace Microsoft.CodeAnalysis.CSharp.Classification;
+
+[ExportLanguageService(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSyntaxClassificationService() : AbstractSyntaxClassificationService
 {
-    [ExportLanguageService(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxClassificationService : AbstractSyntaxClassificationService
-    {
-        private readonly ImmutableArray<ISyntaxClassifier> s_defaultSyntaxClassifiers = ImmutableArray.Create<ISyntaxClassifier>(
-            new NameSyntaxClassifier(),
-            new OperatorOverloadSyntaxClassifier(),
-            new SyntaxTokenClassifier(),
-            new UsingDirectiveSyntaxClassifier(),
-            new DiscardSyntaxClassifier());
+    private static readonly ImmutableArray<ISyntaxClassifier> s_defaultSyntaxClassifiers = ImmutableArray.Create<ISyntaxClassifier>(
+        new NameSyntaxClassifier(),
+        new OperatorOverloadSyntaxClassifier(),
+        new SyntaxTokenClassifier(),
+        new UsingDirectiveSyntaxClassifier(),
+        new DiscardSyntaxClassifier(),
+        new FunctionPointerUnmanagedCallingConventionClassifier());
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxClassificationService()
-        {
-        }
+    public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
+        => s_defaultSyntaxClassifiers;
 
-        public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
-            => s_defaultSyntaxClassifiers;
+    public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+        => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
-        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-            => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
+    public override void AddSyntacticClassifications(SyntaxNode root, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+        => Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
 
-        public override void AddSyntacticClassifications(SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-            => Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
+    public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
+        => ClassificationHelpers.AdjustStaleClassification(rawText, classifiedSpan);
 
-        public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
-            => ClassificationHelpers.AdjustStaleClassification(rawText, classifiedSpan);
-
-        public override string? GetSyntacticClassificationForIdentifier(SyntaxToken identifier)
-            => ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier);
-    }
+    public override string? GetSyntacticClassificationForIdentifier(SyntaxToken identifier)
+        => ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier);
 }

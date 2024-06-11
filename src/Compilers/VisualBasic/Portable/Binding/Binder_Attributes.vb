@@ -347,6 +347,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         Next
 
+                        CheckRequiredMembersInObjectInitializer(methodSym, methodSym.ContainingType, boundNamedArguments, node.Name, diagnostics)
+
                         If Not errorsReported Then
                             ' There should not be any used temporaries or copy back expressions because arguments must
                             ' be constants and they cannot be passed byref. 
@@ -479,10 +481,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If Not IsAccessible(setMethod, useSiteInfo) Then
-                                ReportDiagnostic(diagnostics, identifierName, ERRID.ERR_InaccessibleMember3,
+                                ReportDiagnostic(diagnostics, identifierName, New BadSymbolDiagnostic(propertySym,
+                                                   ERRID.ERR_InaccessibleMember3,
                                                    propertySym.ContainingSymbol,
                                                    propertySym,
-                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly))
+                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly)))
                                 hasErrors = True
                             End If
 

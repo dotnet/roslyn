@@ -2366,7 +2366,7 @@ class C
             })();
     }
 }";
-            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12.WithFeature("run-nullable-analysis", "never"));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -2382,16 +2382,16 @@ class C
             Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             comp.VerifyDiagnostics(
-                // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
-                // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
                 //             IEnumerable<int> Local(int* x) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
-                // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
-                // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
                 // (33,36): error CS1629: Unsafe code may not appear in iterators
@@ -2406,7 +2406,7 @@ class C
                 // (39,17): error CS1629: Unsafe code may not appear in iterators
                 //                 Local(&x);
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
-                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
         }
@@ -9039,9 +9039,6 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,35): error CS1525: Invalid expression term '['
-                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 35),
                 // (6,36): error CS0103: The name 'My' does not exist in the current context
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "My").WithArguments("My").WithLocation(6, 36),
@@ -9053,8 +9050,7 @@ public class MyAttribute : System.Attribute
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(6, 59),
                 // (6,81): error CS1002: ; expected
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81));
         }
 
         [Theory, CombinatorialData]

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // binding diagnostics directly on the SourceMethodSymbol containing this block, and
             // so it can retrieve the diagnostics at practically no cost.
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
+            var diagnostics = semanticModel.GetDiagnostics(context.FilterSpan, cancellationToken);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();

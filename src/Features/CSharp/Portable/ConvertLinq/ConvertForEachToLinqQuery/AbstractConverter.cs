@@ -18,12 +18,9 @@ using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.Syn
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal abstract class AbstractConverter : IConverter<ForEachStatementSyntax, StatementSyntax>
+    internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo) : IConverter<ForEachStatementSyntax, StatementSyntax>
     {
-        public ForEachInfo<ForEachStatementSyntax, StatementSyntax> ForEachInfo { get; }
-
-        public AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
-            => ForEachInfo = forEachInfo;
+        public ForEachInfo<ForEachStatementSyntax, StatementSyntax> ForEachInfo { get; } = forEachInfo;
 
         public abstract void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken);
 

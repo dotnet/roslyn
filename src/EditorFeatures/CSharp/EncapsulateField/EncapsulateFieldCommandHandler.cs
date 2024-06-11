@@ -19,17 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.EncapsulateField)]
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
-    internal class EncapsulateFieldCommandHandler : AbstractEncapsulateFieldCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class EncapsulateFieldCommandHandler(
+        IThreadingContext threadingContext,
+        ITextBufferUndoManagerProvider undoManager,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider) : AbstractEncapsulateFieldCommandHandler(threadingContext, undoManager, globalOptions, listenerProvider)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EncapsulateFieldCommandHandler(
-            IThreadingContext threadingContext,
-            ITextBufferUndoManagerProvider undoManager,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, undoManager, globalOptions, listenerProvider)
-        {
-        }
     }
 }

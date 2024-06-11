@@ -23,7 +23,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [Export(typeof(IEditAndContinueSolutionProvider))]
     [Export(typeof(EditAndContinueLanguageService))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class EditAndContinueLanguageService(
+        Lazy<IHostWorkspaceProvider> workspaceProvider,
+        Lazy<IManagedHotReloadService> debuggerService,
+        IDiagnosticAnalyzerService diagnosticService,
+        EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+        PdbMatchingSourceTextProvider sourceTextProvider,
+        IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private sealed class NoSessionException : InvalidOperationException
         {
@@ -35,12 +43,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
-        private readonly Lazy<IManagedHotReloadService> _debuggerService;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
+        private readonly PdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
+        private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
+        private readonly Lazy<IManagedHotReloadService> _debuggerService = debuggerService;
+        private readonly IDiagnosticAnalyzerService _diagnosticService = diagnosticService;
+        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource = diagnosticUpdateSource;
 
-        public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider;
+        public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider = workspaceProvider;
 
         public bool IsSessionActive { get; private set; }
 
@@ -51,26 +60,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private Solution? _committedDesignTimeSolution;
 
         public event Action<Solution>? SolutionCommitted;
-
-        /// <summary>
-        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
-        /// unless the host implements debugger components.
-        /// </summary>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditAndContinueLanguageService(
-            Lazy<IHostWorkspaceProvider> workspaceProvider,
-            Lazy<IManagedHotReloadService> debuggerService,
-            IDiagnosticAnalyzerService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            PdbMatchingSourceTextProvider sourceTextProvider)
-        {
-            WorkspaceProvider = workspaceProvider;
-            _debuggerService = debuggerService;
-            _diagnosticService = diagnosticService;
-            _diagnosticUpdateSource = diagnosticUpdateSource;
-            _sourceTextProvider = sourceTextProvider;
-        }
 
         public void SetFileLoggingDirectory(string? logDirectory)
         {
@@ -160,6 +149,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: true, cancellationToken).ConfigureAwait(false);
+
+                _diagnosticRefresher.RequestWorkspaceRefresh();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -188,6 +179,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: false, cancellationToken).ConfigureAwait(false);
+
+                _diagnosticRefresher.RequestWorkspaceRefresh();
                 GetActiveStatementTrackingService().EndTracking();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -207,6 +200,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: null, cancellationToken).ConfigureAwait(false);
+
+                _diagnosticRefresher.RequestWorkspaceRefresh();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -271,6 +266,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     var solution = GetCurrentCompileTimeSolution();
                     await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+
+                    _diagnosticRefresher.RequestWorkspaceRefresh();
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -345,40 +342,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
+            _diagnosticRefresher.RequestWorkspaceRefresh();
+
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
             return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
-        }
-
-        public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                var activeStatementTrackingService = GetActiveStatementTrackingService();
-
-                var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
-                    activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
-
-                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
-                return span?.ToSourceSpan().FromContract();
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
-        }
-
-        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
         }
     }
 }

@@ -22,6 +22,9 @@ parameters:
 - name: InsertToolset
   type: boolean
   default: true
+- name: SkipApplyOptimizationData
+  type: boolean
+  default: false
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -124,6 +127,7 @@ stages:
                    -pack
                    -sign
                    -publish
+                   -bootstrap
                    -binaryLog
                    -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
@@ -153,6 +157,19 @@ stages:
       inputs:
         filePath: 'eng\publish-assets.ps1'
         arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
+      condition: succeeded()
+
+    # Publish OptProf configuration files
+    - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+      inputs:
+        dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+        buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+        sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+        toLowerCase: false
+        usePat: true
+        AccessToken: $(_DevDivDropAccessToken)
+        retentionDays: 90
+      displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
       condition: succeeded()
 
     # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from

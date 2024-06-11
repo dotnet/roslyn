@@ -6445,7 +6445,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[globalStatement.Parent];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(globalStatement.Statement));
             }
@@ -6923,7 +6923,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -6991,7 +6991,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -7077,7 +7077,7 @@ class Test
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[decl];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(node));
             }
@@ -9700,6 +9700,34 @@ public class C
             model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: BlockSyntax }).Span.End, nodeToSpeculate, out var speculativeModelOutsideTopLevel);
             var conversionOutsideTopLevel = speculativeModelOutsideTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
             Assert.Equal(ConversionKind.NoConversion, conversionOutsideTopLevel.Kind);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67050")]
+        public void EmptyLocalDeclaration()
+        {
+            var src = """
+struct S { }
+partial ext X
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (1,13): error CS1031: Type expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term 'partial'
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                // (2,14): error CS1002: ; expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
+                );
         }
     }
 }

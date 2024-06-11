@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -17,26 +17,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class RemoteDebuggingSessionProxy : IActiveStatementSpanProvider, IDisposable
+    internal sealed class RemoteDebuggingSessionProxy(Workspace workspace, IDisposable? connection, DebuggingSessionId sessionId) : IActiveStatementSpanProvider, IDisposable
     {
-        private readonly IDisposable? _connection;
-        private readonly DebuggingSessionId _sessionId;
-        private readonly Workspace _workspace;
-
-        public RemoteDebuggingSessionProxy(Workspace workspace, IDisposable? connection, DebuggingSessionId sessionId)
-        {
-            _connection = connection;
-            _sessionId = sessionId;
-            _workspace = workspace;
-        }
+        private readonly IDisposable? _connection = connection;
+        private readonly DebuggingSessionId _sessionId = sessionId;
+        private readonly Workspace _workspace = workspace;
 
         public void Dispose()
         {
             _connection?.Dispose();
         }
 
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetLocalService()
+            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         public async ValueTask BreakStateOrCapabilitiesChangedAsync(IDiagnosticAnalyzerService diagnosticService, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, bool? inBreakState, CancellationToken cancellationToken)
         {
@@ -57,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
@@ -85,7 +78,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 compileTimeSolution, documentsToReanalyze, designTimeSolution: _workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: designTimeDocumentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: designTimeDocumentsToReanalyze, highPriority: false);
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: true);
@@ -116,7 +109,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     var results = await GetLocalService().EmitSolutionUpdateAsync(_sessionId, solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     moduleUpdates = results.ModuleUpdates;
-                    diagnosticData = results.GetDiagnosticData(solution);
+                    diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
                     rudeEdits = results.RudeEdits;
                     syntaxError = results.GetSyntaxErrorData(solution);
                 }
@@ -137,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
+                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
                         diagnosticData = ImmutableArray<DiagnosticData>.Empty;
                         rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                         syntaxError = null;
@@ -146,16 +139,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-                var diagnostic = Diagnostic.Create(
-                    descriptor,
-                    Location.None,
-                    string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
-
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
+                diagnosticData = GetInternalErrorDiagnosticData(solution, e);
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
+                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
                 syntaxError = null;
             }
 
@@ -163,12 +149,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: rudeEdits.Select(d => d.DocumentId), highPriority: false);
 
             // report emit/apply diagnostics:
             diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
 
             return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
+        }
+
+        private static ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(Solution solution, Exception e)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
+
+            var diagnostic = Diagnostic.Create(
+                descriptor,
+                Location.None,
+                string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
+
+            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
         }
 
         public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
         }
 
         public async ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken)
@@ -205,39 +203,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             await client.TryInvokeAsync<IRemoteEditAndContinueService>(
                 (service, cancellationToken) => service.DiscardSolutionUpdateAsync(_sessionId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return await GetLocalService().GetCurrentActiveStatementPositionAsync(_sessionId, solution, activeStatementSpanProvider, instructionId, cancellationToken).ConfigureAwait(false);
-            }
-
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, LinePositionSpan?>(
-                solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.GetCurrentActiveStatementPositionAsync(solutionInfo, callbackId, _sessionId, instructionId, cancellationToken),
-                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
-                cancellationToken).ConfigureAwait(false);
-
-            return result.HasValue ? result.Value : null;
-        }
-
-        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return await GetLocalService().IsActiveStatementInExceptionRegionAsync(_sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
-            }
-
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, bool?>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.IsActiveStatementInExceptionRegionAsync(solutionInfo, _sessionId, instructionId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-
-            return result.HasValue ? result.Value : null;
         }
 
         public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)

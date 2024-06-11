@@ -26,11 +26,15 @@ internal class ClientLanguageServerManager : IClientLanguageServerManager
     public Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken)
         => _jsonRpc.InvokeWithParameterObjectAsync<TResponse>(methodName, @params, cancellationToken);
 
+    public async ValueTask SendRequestAsync(string methodName, CancellationToken cancellationToken)
+        => await _jsonRpc.InvokeWithCancellationAsync(methodName, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+    public async ValueTask SendRequestAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
+        => await _jsonRpc.InvokeWithParameterObjectAsync(methodName, @params, cancellationToken).ConfigureAwait(false);
+
     public async ValueTask SendNotificationAsync(string methodName, CancellationToken cancellationToken)
         => await _jsonRpc.NotifyAsync(methodName).ConfigureAwait(false);
 
     public async ValueTask SendNotificationAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
-    {
-        await _jsonRpc.NotifyWithParameterObjectAsync(methodName, @params).ConfigureAwait(false);
-    }
+        => await _jsonRpc.NotifyWithParameterObjectAsync(methodName, @params).ConfigureAwait(false);
 }

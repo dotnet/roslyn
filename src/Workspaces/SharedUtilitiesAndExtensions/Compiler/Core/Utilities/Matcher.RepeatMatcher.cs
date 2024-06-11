@@ -8,16 +8,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class Matcher<T>
     {
-        private class RepeatMatcher : Matcher<T>
+        private class RepeatMatcher(Matcher<T> matcher) : Matcher<T>
         {
-            private readonly Matcher<T> _matcher;
-
-            public RepeatMatcher(Matcher<T> matcher)
-                => _matcher = matcher;
-
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
-                while (_matcher.TryMatch(sequence, ref index))
+                while (matcher.TryMatch(sequence, ref index))
                 {
                 }
 
@@ -25,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             public override string ToString()
-                => string.Format("({0}*)", _matcher);
+                => string.Format("({0}*)", matcher);
         }
     }
 }

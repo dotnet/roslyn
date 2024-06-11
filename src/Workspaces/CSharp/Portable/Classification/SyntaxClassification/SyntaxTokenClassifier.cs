@@ -8,10 +8,12 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
@@ -24,9 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         public override void AddClassifications(
             SyntaxToken lessThanToken,
+            TextSpan textSpan,
             SemanticModel semanticModel,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out var identifier))

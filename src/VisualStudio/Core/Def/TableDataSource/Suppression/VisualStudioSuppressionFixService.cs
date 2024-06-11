@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     _ = Task.Run(() =>
                     {
                         var reanalyzeDocuments = diagnosticsToFix.Select(d => d.DocumentId).WhereNotNull().Distinct();
-                        _diagnosticService.Reanalyze(_workspace, documentIds: reanalyzeDocuments, highPriority: true);
+                        _diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: reanalyzeDocuments, highPriority: true);
                     });
                 }
             }
@@ -546,7 +546,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
 
                     var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
-                    var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
+                    var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
+                        diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                         .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                     latestDocumentDiagnosticsMap.Clear();
@@ -635,7 +636,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     RoslynDebug.AssertNotNull(latestDiagnosticsToFix);
 
                     var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
-                    var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
+                    var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
+                        diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                         .ConfigureAwait(false));
 
                     latestDiagnosticsToFix.Clear();

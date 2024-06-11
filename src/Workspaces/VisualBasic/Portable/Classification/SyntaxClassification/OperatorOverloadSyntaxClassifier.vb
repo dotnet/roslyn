@@ -6,7 +6,8 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
@@ -20,20 +21,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Public Overrides Sub AddClassifications(
             syntax As SyntaxNode,
+            textSpan As TextSpan,
             semanticModel As SemanticModel,
-options As ClassificationOptions,
-            result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            options As ClassificationOptions,
+            result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
+
+            ' Short-circuit simple assignments to prevent calculation of symbol info as it can be expensive.
+            If syntax.IsKind(SyntaxKind.SimpleAssignmentStatement) Then
+                Return
+            End If
+
+            ' Short-circuit operators whose span doesn't intersect the requested span.
+            Dim operatorSpan = GetOperatorTokenSpan(syntax)
+            If operatorSpan.IsEmpty OrElse Not operatorSpan.IntersectsWith(textSpan) Then
+                Return
+            End If
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken)
             If TypeOf symbolInfo.Symbol Is IMethodSymbol AndAlso
                 DirectCast(symbolInfo.Symbol, IMethodSymbol).MethodKind = MethodKind.UserDefinedOperator Then
 
-                If TypeOf syntax Is BinaryExpressionSyntax Then
-                    result.Add(New ClassifiedSpan(DirectCast(syntax, BinaryExpressionSyntax).OperatorToken.Span, ClassificationTypeNames.OperatorOverloaded))
-                ElseIf TypeOf syntax Is UnaryExpressionSyntax Then
-                    result.Add(New ClassifiedSpan(DirectCast(syntax, UnaryExpressionSyntax).OperatorToken.Span, ClassificationTypeNames.OperatorOverloaded))
-                End If
+                result.Add(New ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverloaded))
             End If
         End Sub
+
+        Private Shared Function GetOperatorTokenSpan(syntax As SyntaxNode) As TextSpan
+            If TypeOf syntax Is BinaryExpressionSyntax Then
+                Return DirectCast(syntax, BinaryExpressionSyntax).OperatorToken.Span
+            ElseIf TypeOf syntax Is UnaryExpressionSyntax Then
+                Return DirectCast(syntax, UnaryExpressionSyntax).OperatorToken.Span
+            End If
+
+            Return Nothing
+        End Function
     End Class
 End Namespace

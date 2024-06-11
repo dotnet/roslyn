@@ -7,12 +7,9 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree
 {
-    internal class SimpleGroupNode : SimpleTreeNode
+    internal class SimpleGroupNode(string text, IList<SimpleTreeNode> children) : SimpleTreeNode(text)
     {
-        private readonly IList<SimpleTreeNode> _children;
-
-        public SimpleGroupNode(string text, IList<SimpleTreeNode> children) : base(text)
-            => _children = children;
+        private readonly IList<SimpleTreeNode> _children = children;
 
         public SimpleGroupNode(string text, string singleLeafChildText) : this(text, new SimpleLeafNode(singleLeafChildText)) { }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
     internal sealed class CSharpStructSnippetProvider : AbstractCSharpTypeSnippetProvider
     {
+        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.RefKeyword,
+            SyntaxKind.ReadOnlyKeyword,
+            SyntaxKind.FileKeyword,
+        };
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpStructSnippetProvider()
@@ -29,17 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         public override string Description => FeaturesResources.struct_;
 
-        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
+        protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
+
+        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var name = NameGenerator.GenerateUniqueName("MyStruct", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-            var classDeclaration = useAccessibility is true
-                ? generator.StructDeclaration(name, accessibility: Accessibility.Public)
-                : generator.StructDeclaration(name);
-
-            return classDeclaration;
+            return generator.StructDeclaration(name);
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)

@@ -42,13 +42,6 @@
         <target state="translated">Zmiana wersji odwołania do zestawu jest niedozwolona podczas debugowania: „{0}” — zmieniono wersję na „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">Analizator „{0}” zgłosił następujący wyjątek:
-„{1}”.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">Pomiń następującą diagnostykę, aby wyłączyć ten analizator: {0}</target>
@@ -62,6 +55,11 @@
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
         <target state="translated">Funkcja Edytuj i kontynuuj nie może wznowić wstrzymanego iteratora, ponieważ odpowiadająca jej instrukcja yield return została usunięta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="translated">Wartość „end” nie może być mniejsza niż wartość „start”. start=„{0}” end=„{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -84,15 +82,36 @@
         <target state="translated">Element hintName '{0}' zawiera nieprawidłowy segment '{1}' na pozycji {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
-      <trans-unit id="HintNameNotWithinCurrentDirectory">
-        <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="translated">Nazwa wskazówki '{0}' nie znajduje się w bieżącym katalogu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">Element hintName „{0}” dodanego pliku źródłowego musi być unikatowy w generatorze.</target>
         <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="translated">Bieżący zestaw: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="translated">Drukowanie informacji „InternalsVisibleToAttribute” dla bieżącej kompilacji i wszystkich przywoływanych zestawów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="translated">Odwołanie do zestawu: „{0}”
+  Przyznaje plik IVT bieżącemu zestawowi: {1}
+  Przyznaje pliki IVT dla:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="translated">    Nazwa zestawu: „{0}”
+    Klucze publiczne:</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -124,6 +143,11 @@
         <target state="translated">Parametr „{0}” musi być symbolem z tej kompilacji lub przywoływanym zestawem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="translated">Żądany numer wiersza {0} musi być mniejszy niż liczba wierszy {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">Oczekiwano symbolu metody</target>
@@ -142,6 +166,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">Dana operacja ma element nadrzędny inny niż null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="translated">Nic</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -172,6 +201,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Nie można użyć kopii modułu do utworzenia metadanych zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SigningTempPathUnavailable">
+        <source>The temporary path for legacy file signing is unavailable.</source>
+        <target state="translated">Ścieżka tymczasowa do podpisywania starszych plików jest niedostępna.</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -504,11 +538,6 @@
         <target state="translated">'Element „start” nie może być wartością ujemną</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Element „end” nie może mieć mniejszej wartości niż element „start”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">Nieprawidłowy typ zawartości</target>
@@ -692,17 +721,17 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">Błąd analizatora</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
         <target state="translated">Analizator „{0}” zgłosił wyjątek typu „{1}” z komunikatem „{2}”.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
@@ -710,16 +739,13 @@
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrows">
-        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
-        <target state="translated">Sterownik analizatora zgłosił wyjątek typu „{0}” z komunikatem „{1}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerDriverThrowsDescription">
-        <source>Analyzer driver threw the following exception:
-'{0}'.</source>
-        <target state="translated">Sterownik analizatora zgłosił następujący wyjątek:
-„{0}”.</target>
-        <note />
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</source>
+        <target state="translated">Sterownik analizatora zgłosił wyjątek typu „{0}” z komunikatem „{1}”.
+{2}</target>
+        <note>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>

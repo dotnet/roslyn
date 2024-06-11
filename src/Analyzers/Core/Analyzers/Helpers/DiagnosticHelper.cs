@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ReportDiagnostic effectiveSeverity,
             ImmutableArray<Location> additionalLocations,
             ImmutableArray<Location> additionalUnnecessaryLocations,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] messageArgs)
         {
             if (additionalUnnecessaryLocations.IsEmpty)
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ReportDiagnostic effectiveSeverity,
             IEnumerable<Location> additionalLocations,
             IDictionary<string, IEnumerable<int>> tagIndices,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] messageArgs)
         {
             Contract.ThrowIfTrue(additionalLocations.IsEmpty());

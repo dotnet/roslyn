@@ -79,38 +79,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         /// <summary>
         /// Represents a source-pattern, constructed from C# patterns
         /// </summary>
-        internal sealed class Source : AnalyzedPattern
+        internal sealed class Source(PatternSyntax patternSyntax, IOperation target) : AnalyzedPattern(target)
         {
-            public readonly PatternSyntax PatternSyntax;
-
-            public Source(PatternSyntax patternSyntax, IOperation target) : base(target)
-                => PatternSyntax = patternSyntax;
+            public readonly PatternSyntax PatternSyntax = patternSyntax;
         }
 
         /// <summary>
         /// Represents a constant-pattern, constructed from an equality check
         /// </summary>
-        internal sealed class Constant : AnalyzedPattern
+        internal sealed class Constant(ExpressionSyntax expression, IOperation target) : AnalyzedPattern(target)
         {
-            public readonly ExpressionSyntax ExpressionSyntax;
-
-            public Constant(ExpressionSyntax expression, IOperation target) : base(target)
-                => ExpressionSyntax = expression;
+            public readonly ExpressionSyntax ExpressionSyntax = expression;
         }
 
         /// <summary>
         /// Represents a relational-pattern, constructed from relational operators
         /// </summary>
-        internal sealed class Relational : AnalyzedPattern
+        internal sealed class Relational(BinaryOperatorKind operatorKind, ExpressionSyntax value, IOperation target) : AnalyzedPattern(target)
         {
-            public readonly BinaryOperatorKind OperatorKind;
-            public readonly ExpressionSyntax Value;
-
-            public Relational(BinaryOperatorKind operatorKind, ExpressionSyntax value, IOperation target) : base(target)
-            {
-                OperatorKind = operatorKind;
-                Value = value;
-            }
+            public readonly BinaryOperatorKind OperatorKind = operatorKind;
+            public readonly ExpressionSyntax Value = value;
         }
 
         /// <summary>

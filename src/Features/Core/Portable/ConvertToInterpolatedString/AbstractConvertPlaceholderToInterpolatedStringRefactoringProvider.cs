@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 if (invocation != null)
                 {
                     // look for a string argument containing `"...{0}..."`, followed by more arguments.
-                    var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
+                    var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
                     for (int i = 0, n = arguments.Count - 1; i < n; i++)
                     {
                         var argument = arguments[i];
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
+            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
             var literalExpression = (TLiteralExpressionSyntax?)syntaxFacts.GetExpressionOfArgument(placeholderArgument);
             Contract.ThrowIfNull(literalExpression);
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var newRoot = root.ReplaceNode(invocation, replacementNode.WithTriviaFrom(invocation));
             return document.WithSyntaxRoot(newRoot);
 
-            ImmutableArray<SyntaxNode> GetReorderedArgumentsAfterPlaceholderArgument()
+            ImmutableArray<TArgumentSyntax> GetReorderedArgumentsAfterPlaceholderArgument()
             {
                 var placeholderIndex = arguments.IndexOf(placeholderArgument);
                 Contract.ThrowIfTrue(placeholderIndex < 0);
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return unnamedArguments.Concat(namedAndUnnamedArguments);
             }
 
-            ImmutableArray<TExpressionSyntax> ExpandArgumentExpressions(ImmutableArray<SyntaxNode> argumentsAfterPlaceholder)
+            ImmutableArray<TExpressionSyntax> ExpandArgumentExpressions(ImmutableArray<TArgumentSyntax> argumentsAfterPlaceholder)
             {
                 using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
                 foreach (var argument in argumentsAfterPlaceholder)

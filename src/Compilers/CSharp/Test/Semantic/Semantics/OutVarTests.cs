@@ -18818,10 +18818,10 @@ public class Cls
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[constructorDeclaration];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration).IsDefaultOrEmpty);
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Initializer).IsDefaultOrEmpty);
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Body).IsDefaultOrEmpty);
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.ExpressionBody).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration).IsEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Initializer).IsEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Body).IsEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.ExpressionBody).IsEmpty);
 
                 var x1Decl = GetOutVarDeclaration(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1").ToArray();
@@ -20063,7 +20063,7 @@ public class Cls
                 int V_1) //z
   IL_0000:  ldnull
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
   IL_0007:  brtrue.s   IL_003e
   IL_0009:  ldc.i4.0
   IL_000a:  ldtoken    ""Cls""
@@ -20083,14 +20083,14 @@ public class Cls
   IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_002e:  stelem.ref
   IL_002f:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetIndex(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0034:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0039:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
-  IL_003e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
-  IL_0043:  ldfld      ""<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Target""
-  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0034:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0039:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_003e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0043:  ldfld      ""<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Target""
+  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
   IL_004d:  ldloc.0
   IL_004e:  ldloca.s   V_1
-  IL_0050:  callvirt   ""dynamic <>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref int)""
+  IL_0050:  callvirt   ""dynamic <>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref int)""
   IL_0055:  pop
   IL_0056:  ret
 }");
@@ -20118,7 +20118,7 @@ public class Cls
                 int V_1)
   IL_0000:  ldnull
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
   IL_0007:  brtrue.s   IL_003e
   IL_0009:  ldc.i4.0
   IL_000a:  ldtoken    ""Cls""
@@ -20138,14 +20138,14 @@ public class Cls
   IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_002e:  stelem.ref
   IL_002f:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetIndex(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0034:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0039:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
-  IL_003e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
-  IL_0043:  ldfld      ""<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Target""
-  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0034:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0039:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_003e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0043:  ldfld      ""<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Target""
+  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
   IL_004d:  ldloc.0
   IL_004e:  ldloca.s   V_1
-  IL_0050:  callvirt   ""dynamic <>F{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref int)""
+  IL_0050:  callvirt   ""dynamic <>F{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref int)""
   IL_0055:  pop
   IL_0056:  ret
 }
@@ -36336,13 +36336,12 @@ public class MyAttribute : System.Attribute
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,13): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                // (6,16): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
                 //         [My(() => { [My(M2(out var x))] static string M2(out int x) => throw null; })]
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { [My(M2(out var x))] static string M2(out int x) => throw null; }").WithArguments("lambda expression", "string").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(6, 16),
                 // (7,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local(int parameter) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

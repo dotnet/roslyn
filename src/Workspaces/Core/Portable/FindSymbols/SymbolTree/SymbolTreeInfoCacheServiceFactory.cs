@@ -11,17 +11,12 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 
 [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService)), Shared]
-internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class SymbolTreeInfoCacheServiceFactory(
+    IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
 {
-    private readonly IAsynchronousOperationListener _listener;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SymbolTreeInfoCacheServiceFactory(
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy);
-    }
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy);
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new SymbolTreeInfoCacheService(workspaceServices.Workspace, _listener);

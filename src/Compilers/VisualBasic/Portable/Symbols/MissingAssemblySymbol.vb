@@ -120,6 +120,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))()
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return SpecializedCollections.EmptyEnumerable(Of String)()
+        End Function
+
         Public Overrides ReadOnly Property TypeNames As ICollection(Of String)
             Get
                 Return SpecializedCollections.EmptyCollection(Of String)()
@@ -161,6 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return Nothing
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return Nothing
+            End Get
+        End Property
+
     End Class
 
     ''' <summary>

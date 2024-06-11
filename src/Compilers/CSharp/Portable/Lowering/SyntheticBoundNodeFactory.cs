@@ -788,14 +788,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiver, method, ImmutableArray<BoundExpression>.Empty);
         }
 
-        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0)
+        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, bool useStrictArgumentRefKinds = false)
         {
-            return Call(receiver, method, ImmutableArray.Create(arg0));
+            return Call(receiver, method, ImmutableArray.Create(arg0), useStrictArgumentRefKinds);
         }
 
-        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
+        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, BoundExpression arg1, bool useStrictArgumentRefKinds = false)
         {
-            return Call(receiver, method, ImmutableArray.Create(arg0, arg1));
+            return Call(receiver, method, ImmutableArray.Create(arg0, arg1), useStrictArgumentRefKinds);
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, params BoundExpression[] args)
@@ -806,23 +806,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression? receiver, WellKnownMember method, BoundExpression arg0)
             => Call(receiver, WellKnownMethod(method), ImmutableArray.Create(arg0));
 
-        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
+        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<BoundExpression> args, bool useStrictArgumentRefKinds = false)
         {
             Debug.Assert(method.ParameterCount == args.Length);
 
             return new BoundCall(
-                Syntax, receiver, method, args,
-                argumentNamesOpt: default(ImmutableArray<String>), argumentRefKindsOpt: method.ParameterRefKinds, isDelegateCall: false, expanded: false,
+                Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
+                argumentNamesOpt: default(ImmutableArray<string>), argumentRefKindsOpt: getArgumentRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
                 invokedAsExtensionMethod: false, argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable,
                 type: method.ReturnType, hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
+
+            static ImmutableArray<RefKind> getArgumentRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+            {
+                var result = method.ParameterRefKinds;
+
+                if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
+                    (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
+                {
+                    var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
+
+                    foreach (var refKind in result)
+                    {
+                        builder.Add(refKind switch
+                        {
+                            RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
+                            RefKind.RefReadOnlyParameter => RefKind.In,
+                            _ => refKind
+                        });
+                    }
+
+                    return builder.ToImmutableAndFree();
+                }
+
+                return result;
+            }
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
         {
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
-                Syntax, receiver, method, args,
+                Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
                 argumentNamesOpt: default(ImmutableArray<String>), argumentRefKindsOpt: refKinds, isDelegateCall: false, expanded: false, invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty, defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable, type: method.ReturnType)
             { WasCompilerGenerated = true };
@@ -1669,7 +1694,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
             // https://github.com/dotnet/roslyn/issues/58335: consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
-            return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
+            return BoundCall.Synthesized(
+                syntax,
+                expression,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
         }
 
         internal BoundExpression RewriteNullableNullEquality(

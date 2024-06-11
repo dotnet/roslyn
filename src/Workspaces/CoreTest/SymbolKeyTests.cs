@@ -376,6 +376,54 @@ public class C
         }
 
         [Fact]
+        public void TestParameterRename()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int a, int x, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("x", resolved?.Name);
+        }
+
+        [Fact]
+        public void TestParameterReorder()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int b, int a, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("b", resolved?.Name);
+        }
+
+        [Fact]
         public void TestTypeParameters()
         {
             var source = @"
@@ -1412,7 +1460,7 @@ public class C
             throw new NotSupportedException();
         }
 
-        private List<ISymbol> GetAllSymbols(
+        private static List<ISymbol> GetAllSymbols(
             SemanticModel model, Func<SyntaxNode, bool> predicate = null)
         {
             var list = new List<ISymbol>();
@@ -1420,7 +1468,7 @@ public class C
             return list;
         }
 
-        private void GetAllSymbols(
+        private static void GetAllSymbols(
             SemanticModel model, SyntaxNode node,
             List<ISymbol> list, Func<SyntaxNode, bool> predicate)
         {
@@ -1448,14 +1496,14 @@ public class C
             }
         }
 
-        private List<ISymbol> GetDeclaredSymbols(Compilation compilation)
+        private static List<ISymbol> GetDeclaredSymbols(Compilation compilation)
         {
             var list = new List<ISymbol>();
             GetDeclaredSymbols(compilation.Assembly.GlobalNamespace, list);
             return list;
         }
 
-        private void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
+        private static void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
         {
             foreach (var member in container.GetMembers())
             {

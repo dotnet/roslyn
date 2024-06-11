@@ -8,16 +8,10 @@ namespace Microsoft.CodeAnalysis
 {
     public partial class Project
     {
-        private class EquivalenceResult
+        private class EquivalenceResult(bool publiclyEquivalent, bool privatelyEquivalent)
         {
-            public readonly bool PubliclyEquivalent;
-            public readonly bool PrivatelyEquivalent;
-
-            public EquivalenceResult(bool publiclyEquivalent, bool privatelyEquivalent)
-            {
-                this.PubliclyEquivalent = publiclyEquivalent;
-                this.PrivatelyEquivalent = privatelyEquivalent;
-            }
+            public readonly bool PubliclyEquivalent = publiclyEquivalent;
+            public readonly bool PrivatelyEquivalent = privatelyEquivalent;
         }
     }
 }

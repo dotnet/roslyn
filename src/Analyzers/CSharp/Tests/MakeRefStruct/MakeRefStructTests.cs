@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeRefStruct;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
                     Span<int>[||] m;
                 }
                 """);
-            await TestMissingInRegularAndScriptAsync(text, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+            await TestMissingInRegularAndScriptAsync(text, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
         }
 
         [Fact]

@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 @"class A
 {
     /// <summary>
-    /// $0
-    /// </summary>
+/// $0
+/// </summary>
     void M()
     {
     }
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 @"class A
 {
     /// <summary>
-    /// $0This is an existing comment
-    /// </summary>
+/// $0This is an existing comment
+/// </summary>
     void M()
     {
     }
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 @"class A
 {
     /// <summary>
-    /// $0This is an existing comment
-    /// </summary>
+/// $0This is an existing comment
+/// </summary>
     void M()
     {
     }
@@ -106,8 +106,8 @@ End Class";
             var expected =
 @"Class A
     ''' <summary>
-    ''' $0
-    ''' </summary>
+''' $0
+''' </summary>
     Sub M()
     End Sub
 End Class";
@@ -129,11 +129,11 @@ End Class";
 @"class A
 {
     /// <summary>
-    /// $0
-    /// </summary>
-    /// <param name=""foo""></param>
-    /// <param name=""bar""></param>
-    /// <returns></returns>
+/// $0
+/// </summary>
+/// <param name=""foo""></param>
+/// <param name=""bar""></param>
+/// <returns></returns>
     string M(int foo, bool bar)
     {
     }

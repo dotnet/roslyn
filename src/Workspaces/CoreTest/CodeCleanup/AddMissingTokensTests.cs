@@ -196,7 +196,7 @@ End Class";
         }
 
         [Fact]
-        public async Task IdentifierMethod_DotName_DontAdd()
+        public async Task IdentifierMethod_DotName_DoNotAdd()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -560,7 +560,7 @@ End Class";
         }
 
         [Fact]
-        public async Task TypeArgumentOf_Comment_DontAdd()
+        public async Task TypeArgumentOf_Comment_DoNotAdd()
         {
             var code = @"[|
         Dim a As List( ' test
@@ -729,7 +729,7 @@ End Class";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544225")]
-        public async Task StructuredTrivia_Expression_DontCrash()
+        public async Task StructuredTrivia_Expression_DoNotCrash()
         {
             var code = @"[|#Const Goo1 = 1
 #Const Goo2 = 2
@@ -933,7 +933,7 @@ End Class";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544526")]
-        public async Task DontCrash_ImplementsStatement()
+        public async Task DoNotCrash_ImplementsStatement()
         {
             var code = @"[|Class C
     Sub Main() 
@@ -994,7 +994,7 @@ End Module";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545256")]
-        public async Task HandlesClauseItem_DontAddParentheses()
+        public async Task HandlesClauseItem_DoNotAddParentheses()
         {
             var code = @"[|Structure s1
     Sub Goo() Handles Me.Goo
@@ -1011,7 +1011,7 @@ End Structure";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
-        public async Task DontAddParenthesesInForEachControlVariable()
+        public async Task DoNotAddParenthesesInForEachControlVariable()
         {
             var code = @"[|Module Module1
     Sub Main()
@@ -1034,7 +1034,7 @@ End Module";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
-        public async Task DontAddParenthesesInForControlVariable()
+        public async Task DoNotAddParenthesesInForControlVariable()
         {
             var code = @"[|Module Module1
     Sub Main()
@@ -1057,7 +1057,7 @@ End Module";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
-        public async Task DontAddParenthesesForMissingName()
+        public async Task DoNotAddParenthesesForMissingName()
         {
             var code = @"[|Class C
     Public Overrides Function|]";
@@ -2713,8 +2713,7 @@ End Class";
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.AddMissingTokens or PredefinedCodeCleanupProviderNames.Format or PredefinedCodeCleanupProviderNames.Simplification);

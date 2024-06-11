@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         protected ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
-        private bool _lazyIsVararg;
 
         protected SourceConstructorSymbolBase(
             SourceMemberContainerTypeSymbol containingType,
             Location location,
             CSharpSyntaxNode syntax,
-            bool isIterator)
-            : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), isIterator)
+            bool isIterator,
+            (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
+            : base(containingType, syntax.GetReference(), location, isIterator, modifiersAndFlags)
         {
             Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
         }
@@ -48,18 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, parameterList, out arglistToken,
+                signatureBinder, this, parameterList, out _,
                 allowRefOrOut: AllowRefOrOut,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
 
-            var location = this.Locations[0];
+            var location = this.GetFirstLocation();
             // Don't report ERR_StaticConstParam if the ctor symbol name doesn't match the containing type name.
             // This avoids extra unnecessary errors.
             // There will already be a diagnostic saying Method must have a return type.
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
             this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
 
-            if (_lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
+            if (this.IsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
@@ -89,23 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             var compilation = DeclaringCompilation;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.Locations[0], diagnostics);
-            }
-        }
-
-        public sealed override bool IsVararg
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyIsVararg;
+                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
             }
         }
 
@@ -150,11 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -173,14 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // constructors can't have return type attributes
             return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
-        }
-
-        protected sealed override IAttributeTargetSymbol AttributeOwner
-        {
-            get
-            {
-                return base.AttributeOwner;
-            }
         }
 
         internal sealed override bool GenerateDebugInfo
@@ -252,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool HasSetsRequiredMembersImpl
             => GetEarlyDecodedWellKnownAttributeData()?.HasSetsRequiredMembersAttribute == true;
 
-        internal sealed override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             if (arguments.SymbolPart == AttributeLocation.None)
             {

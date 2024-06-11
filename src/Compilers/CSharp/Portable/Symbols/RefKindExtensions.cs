@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 case RefKind.None:
                 case RefKind.In:
+                case RefKind.RefReadOnlyParameter:
                     return false;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);

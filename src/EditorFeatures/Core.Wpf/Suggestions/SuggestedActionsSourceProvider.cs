@@ -9,7 +9,6 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
@@ -36,14 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [DeferCreation(OptionName = EditorOption.OptionName)]
     [Name("Roslyn Code Fix")]
     [Order]
-    [SuggestedActionPriority(DefaultOrderings.Highest)]
-    [SuggestedActionPriority(DefaultOrderings.Default)]
-    [SuggestedActionPriority(DefaultOrderings.Lowest)]
+    [SuggestedActionPriority(DefaultOrderings.Highest)] // for providers *and* items explicitly marked as high pri.
+    [SuggestedActionPriority(DefaultOrderings.Default)] // for any provider/item that is neither high or low pri and is not suppressions.
+    [SuggestedActionPriority(DefaultOrderings.Low)]     // for providers or items explicitly marked as low pri
+    [SuggestedActionPriority(DefaultOrderings.Lowest)]  // Only for suppressions
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         public static readonly ImmutableArray<string> Orderings = ImmutableArray.Create(
             DefaultOrderings.Highest,
             DefaultOrderings.Default,
+            DefaultOrderings.Low,
             DefaultOrderings.Lowest);
 
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
@@ -96,22 +97,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            // if user has explicitly set the option defer to that.  otherwise, we are enabled by default (unless our
-            // A/B escape hatch disables us).
-            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptionsStorage.Asynchronous) is bool b ? b : !_globalOptions.GetOption(SuggestionsOptionsStorage.AsynchronousQuickActionsDisableFeatureFlag);
-
-            return asyncEnabled
-                ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry, this.OperationListener)
-                : new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
+            return new SuggestedActionsSource(
+                _threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry, this.OperationListener);
         }
 
         private static CodeActionRequestPriority? TryGetPriority(string priority)
             => priority switch
             {
                 DefaultOrderings.Highest => CodeActionRequestPriority.High,
-                DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                DefaultOrderings.Default => CodeActionRequestPriority.Default,
+                DefaultOrderings.Low => CodeActionRequestPriority.Low,
                 DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
-                _ => (CodeActionRequestPriority?)null,
+                _ => null,
             };
     }
 }

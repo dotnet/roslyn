@@ -5,15 +5,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -22,7 +18,6 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracki
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -71,16 +66,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             var generator = new Generator(lsifJsonWriter, logFile);
 
-            // Pass the set of supported SemanticTokenTypes. Order must match
-            // the order used for serialization of semantic tokens array. This
-            // array is analogous to the equivalent array in https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_semanticTokens.
+            // Pass the set of supported SemanticTokenTypes. Order must match the order used for serialization of
+            // semantic tokens array. This array is analogous to the equivalent array in
+            // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_semanticTokens.
             //
-            // Ideally semantic tokens support would use the well-known, common
-            // set of token types specified in LSP's SemanticTokenTypes to reduce
-            // the number of tokens a particular LSIF consumer must understand,
-            // but Roslyn currently employs a large number of custom token types
-            // that aren't yet standardized in LSP or LSIF's well-known set so we
-            // will pass both LSP and Roslyn custom token types for now.
+            // Ideally semantic tokens support would use the well-known, common set of token types specified in LSP's
+            // SemanticTokenTypes to reduce the number of tokens a particular LSIF consumer must understand, but Roslyn
+            // currently employs a large number of custom token types that aren't yet standardized in LSP or LSIF's
+            // well-known set so we will pass both LSP and Roslyn custom token types for now.
             var capabilitiesVertex = new Capabilities(
                 generator._idFactory,
                 HoverProvider,
@@ -91,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 DocumentSymbolProvider,
                 FoldingRangeProvider,
                 DiagnosticProvider,
-                new SemanticTokensCapabilities(SemanticTokensHelpers.AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
+                new SemanticTokensCapabilities(SemanticTokensSchema.LegacyTokensSchemaForLSIF.AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
@@ -107,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var projectVertex = new Graph.LsifProject(
                 kind: GetLanguageKind(compilation.Language),
-                new Uri(projectPath),
+                ProtocolConversions.CreateAbsoluteUri(projectPath),
                 Path.GetFileNameWithoutExtension(projectPath),
                 _idFactory);
 
@@ -214,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document, cancellationToken);
 
-            var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+            var documentVertex = new Graph.LsifDocument(uri, GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
@@ -407,15 +400,17 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
         }
 
-        private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(
+        private static async Task<(Uri uri, string? contentBase64Encoded)> GetUriAndContentAsync(
             Document document, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(document.FilePath);
+
             string? contentBase64Encoded = null;
-            var uri = document.FilePath ?? "";
+            Uri uri;
 
             if (document is SourceGeneratedDocument)
             {
-                var text = await document.GetTextAsync(cancellationToken);
+                var text = await document.GetValueTextAsync(cancellationToken);
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?
@@ -423,7 +418,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 // There is a triple slash here, so the "host" portion of the URI is empty, similar to
                 // how file URIs work.
-                uri = "source-generated:///" + uri.Replace('\\', '/');
+                uri = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath);
+            }
+            else
+            {
+                uri = ProtocolConversions.CreateAbsoluteUri(document.FilePath);
             }
 
             return (uri, contentBase64Encoded);
@@ -437,17 +436,17 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             // Compute colorization data.
             //
-            // Unlike the mainline LSP scenario, where we control both the syntatic colorizer (in-proc syntax tagger)
-            // and the semantic colorizer (LSP semantic tokens) LSIF is more likely to be consumed by clients
-            // which may have different syntatic classification behavior than us, resulting in missing colors. To avoid
-            // this, we include syntax tokens in the generated data.
+            // Unlike the mainline LSP scenario, where we control both the syntactic colorizer (in-proc syntax tagger)
+            // and the semantic colorizer (LSP semantic tokens) LSIF is more likely to be consumed by clients which may
+            // have different syntactic classification behavior than us, resulting in missing colors. To avoid this, we
+            // include syntax tokens in the generated data.
             var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                // Just get the pure-lsp semantic tokens here.
+                new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true },
                 document,
-                SemanticTokensHelpers.TokenTypeToIndex,
-                range: null,
-                Classification.ClassificationOptions.Default,
-                includeSyntacticClassifications: true,
-                CancellationToken.None);
+                ranges: null,
+                options: Classification.ClassificationOptions.Default,
+                cancellationToken: CancellationToken.None);
 
             var semanticTokensResult = new SemanticTokensResult(new SemanticTokens { Data = data }, idFactory);
             var semanticTokensEdge = Edge.Create(Methods.TextDocumentSemanticTokensFullName, documentVertex.GetId(), semanticTokensResult.GetId(), idFactory);

@@ -178,14 +178,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     switch (ParameterSymbol.Language)
                     {
                         case LanguageNames.CSharp:
-                            return ModifierText("out", "ref", "in", "params", "this");
+                            return ModifierText("out", "ref", "ref readonly", "in", "params", "this");
                         case LanguageNames.VisualBasic:
-                            return ModifierText(@out: null, "ByRef", @in: null, "ParamArray", "Me");
+                            return ModifierText(@out: null, "ByRef", refReadonly: null, @in: null, "ParamArray", "Me");
                         default:
                             return string.Empty;
                     }
 
-                    string ModifierText(string? @out, string? @ref, string? @in, string? @params, string? @this)
+                    string ModifierText(string? @out, string? @ref, string? refReadonly, string? @in, string? @params, string? @this)
                     {
                         switch (ParameterSymbol.RefKind)
                         {
@@ -195,6 +195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                                 return @ref ?? string.Empty;
                             case RefKind.In:
                                 return @in ?? string.Empty;
+                            case RefKind.RefReadOnlyParameter:
+                                return refReadonly ?? string.Empty;
                         }
 
                         if (ParameterSymbol.IsParams)

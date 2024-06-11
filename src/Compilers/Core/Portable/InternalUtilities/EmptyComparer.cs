@@ -21,10 +21,7 @@ namespace Roslyn.Utilities
         }
 
         bool IEqualityComparer<object>.Equals(object? a, object? b)
-        {
-            Debug.Assert(false, "Are we using empty comparer with nonempty dictionary?");
-            return false;
-        }
+            => throw ExceptionUtilities.Unreachable();
 
         int IEqualityComparer<object>.GetHashCode(object s)
         {

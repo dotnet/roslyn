@@ -6,7 +6,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(SourceBuildToolsetTargetFrameworks);net472</TargetFrameworks>
     <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
 
     <!--
@@ -93,22 +93,22 @@
   </Target>
 
   <Target Name="GenerateCompilerVersionTargetsFile"
-          Inputs="$(MSBuildThisFileFullPath)"
           Outputs="$(CompilerVersionTargetsFileIntermediatePath)">
 
     <PropertyGroup>
-      <CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</CompilerApiVersion>
-      <CompilerVersionTargetsFileContent>
+      <_CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_CompilerApiVersion>
+      <_CompilerVersionTargetsFileContent>
 <![CDATA[<Project>
   <PropertyGroup>
-    <CompilerApiVersion>roslyn$(CompilerApiVersion)</CompilerApiVersion>
+    <CompilerApiVersion>roslyn$(_CompilerApiVersion)</CompilerApiVersion>
   </PropertyGroup>
 </Project>]]>
-      </CompilerVersionTargetsFileContent>
+      </_CompilerVersionTargetsFileContent>
     </PropertyGroup>
 
     <WriteLinesToFile File="$(CompilerVersionTargetsFileIntermediatePath)"
-                      Lines="$(CompilerVersionTargetsFileContent)"
-                      Overwrite="true" />
+                      Lines="$(_CompilerVersionTargetsFileContent)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
   </Target>
 </Project>

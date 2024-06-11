@@ -120,6 +120,9 @@
   <data name="CSharp" xml:space="preserve">
     <value>C#</value>
   </data>
+  <data name="CSharp_Interactive" xml:space="preserve">
+    <value>C# Interactive</value>
+  </data>
   <data name="Surround_With" xml:space="preserve">
     <value>Surround With</value>
   </data>
@@ -558,12 +561,6 @@
   </data>
   <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
     <value>Perform additional code cleanup during formatting</value>
-  </data>
-  <data name="CSharp_Coding_Conventions" xml:space="preserve">
-    <value>C# Coding Conventions</value>
-  </data>
-  <data name="CSharp_Formatting_Rules" xml:space="preserve">
-    <value>C# Formatting Rules</value>
   </data>
   <data name="Discard" xml:space="preserve">
     <value>Discard</value>

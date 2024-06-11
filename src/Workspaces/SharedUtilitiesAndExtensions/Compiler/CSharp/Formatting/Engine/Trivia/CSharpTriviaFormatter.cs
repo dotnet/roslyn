@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // if current line is the first line of the file, don't put extra line 1
                 var lines = (trivia1.IsKind(SyntaxKind.None) && this.Token1.IsKind(SyntaxKind.None)) ? 0 : 1;
 
-                if (trivia2.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia2.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                if (trivia2.Kind() is SyntaxKind.RegionDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia)
                 {
                     // When we have a '#region' in conditionally disabled conditional (e.g, `#if false`), we cannot determine a correct indentation for '#region'.
                     // So we preserve the existing indentation.

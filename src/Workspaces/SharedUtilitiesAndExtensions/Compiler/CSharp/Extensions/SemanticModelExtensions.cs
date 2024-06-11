@@ -249,12 +249,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // 9) The type of an indexer must be at least as accessible as the indexer itself.
             // 10) The return type of an operator must be at least as accessible as the operator
             //     itself.
-            if (type.IsParentKind(SyntaxKind.DelegateDeclaration) ||
-                type.IsParentKind(SyntaxKind.MethodDeclaration) ||
-                type.IsParentKind(SyntaxKind.PropertyDeclaration) ||
-                type.IsParentKind(SyntaxKind.EventDeclaration) ||
-                type.IsParentKind(SyntaxKind.IndexerDeclaration) ||
-                type.IsParentKind(SyntaxKind.OperatorDeclaration))
+            if (type.Parent.Kind()
+                    is SyntaxKind.DelegateDeclaration
+                    or SyntaxKind.MethodDeclaration
+                    or SyntaxKind.PropertyDeclaration
+                    or SyntaxKind.EventDeclaration
+                    or SyntaxKind.IndexerDeclaration
+                    or SyntaxKind.OperatorDeclaration)
             {
                 return semanticModel.GetDeclaredSymbol(
                     type.Parent, cancellationToken).DeclaredAccessibility;
@@ -272,10 +273,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //     as the instance constructor itself.
             if (type.IsParentKind(SyntaxKind.Parameter) && type.Parent.IsParentKind(SyntaxKind.ParameterList))
             {
-                if (type.Parent.Parent.IsParentKind(SyntaxKind.DelegateDeclaration) ||
-                    type.Parent.Parent.IsParentKind(SyntaxKind.MethodDeclaration) ||
-                    type.Parent.Parent.IsParentKind(SyntaxKind.IndexerDeclaration) ||
-                    type.Parent.Parent.IsParentKind(SyntaxKind.OperatorDeclaration))
+                if (type.Parent.Parent.Parent?.Kind()
+                        is SyntaxKind.DelegateDeclaration
+                        or SyntaxKind.MethodDeclaration
+                        or SyntaxKind.IndexerDeclaration
+                        or SyntaxKind.OperatorDeclaration)
                 {
                     return semanticModel.GetDeclaredSymbol(
                         type.Parent.Parent.Parent, cancellationToken).DeclaredAccessibility;
@@ -451,9 +453,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
-        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken)
+        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax syntax, CancellationToken cancellationToken)
         {
-            return semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IParameterSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ParameterSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IPropertySymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, PropertyDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, VariableDeclaratorSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
                 ?? throw new InvalidOperationException();
         }
     }

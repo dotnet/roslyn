@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var pair in diagnosticsBuilder)
             {
-                diagnostics.Add(pair.UseSiteInfo, pair.TypeParameter.Locations[0]);
+                diagnostics.Add(pair.UseSiteInfo, pair.TypeParameter.GetFirstLocation());
             }
 
             diagnosticsBuilder.Free();
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraintTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var interfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
 
                 // Resolve base types, determine the effective base class and
@@ -464,7 +465,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            type.CheckAllConstraints(new CheckConstraintsArgsBoxed(compilation, conversions, includeNullability, location, diagnostics));
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability, location, diagnostics);
+            type.CheckAllConstraints(boxedArgs);
+            boxedArgs.Free();
         }
 
         public static bool CheckAllConstraints(
@@ -472,12 +475,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             ConversionsBase conversions)
         {
-            var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
-            type.CheckAllConstraints(new CheckConstraintsArgsBoxed(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics));
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
+            type.CheckAllConstraints(boxedArgs);
             bool ok = !diagnostics.HasAnyErrors();
+            boxedArgs.Free();
             diagnostics.Free();
             return ok;
         }
@@ -518,20 +523,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private static readonly ObjectPool<CheckConstraintsArgsBoxed> s_checkConstraintsArgsBoxedPool = new ObjectPool<CheckConstraintsArgsBoxed>(static () => new CheckConstraintsArgsBoxed());
+
         internal sealed class CheckConstraintsArgsBoxed
         {
-            public readonly CheckConstraintsArgs Args;
+            public CheckConstraintsArgs Args;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public CheckConstraintsArgsBoxed(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
             {
-                Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics);
+                var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
+                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics);
+                return boxedArgs;
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public CheckConstraintsArgsBoxed(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
             {
-                Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics);
+                var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
+                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics);
+                return boxedArgs;
+            }
+
+            public void Free()
+            {
+                this.Args = default;
+                s_checkConstraintsArgsBoxedPool.Free(this);
             }
         }
 
@@ -760,8 +777,12 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, in args, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                                                ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(
+                method,
+                in args,
+                diagnosticsBuilder,
+                nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null,
+                ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {

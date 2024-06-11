@@ -150,4 +150,10 @@
   <data name="Sort_Usings" xml:space="preserve">
     <value>&amp;Sort Usings</value>
   </data>
+  <data name="CSharp_Formatting_Rules" xml:space="preserve">
+    <value>C# Formatting Rules</value>
+  </data>
+  <data name="CSharp_Coding_Conventions" xml:space="preserve">
+    <value>C# Coding Conventions</value>
+  </data>
 </root>

@@ -12,11 +12,17 @@ queue:
   demands: Cmd
   timeoutInMinutes: 90
 variables:
-  BuildConfiguration: Release
-  TeamName: DotNet-Roslyn
-  SignType: test
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  _DevDivDropAccessToken: $(System.AccessToken)
+  - group: DotNet-Roslyn-ApiScan
+  - name: BuildConfiguration
+    value: Release
+  - name: TeamName
+    value: DotNet-Roslyn
+  - name: SignType
+    value: test
+  - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+    value: true
+  - name: _DevDivDropAccessToken
+    value: $(System.AccessToken)
 
 steps:
 - template: eng/pipelines/checkout-windows-task.yml
@@ -97,7 +103,7 @@ steps:
     softwareBuildNum: '$(Build.BuildId)'
     symbolsFolder: 'SRV*http://symweb'
   env:
-    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(RoslynApiScanClientId);TenantId=$(RoslynApiScanTenant);AppKey=$(RoslynApiScanSecret)
   continueOnError: true
 
 - task: TSAUpload@2

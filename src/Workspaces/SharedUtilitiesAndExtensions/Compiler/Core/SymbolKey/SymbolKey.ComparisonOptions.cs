@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private readonly struct ComparisonOptions
+        private readonly struct ComparisonOptions(bool ignoreCase, bool ignoreAssemblyKeys)
         {
             [Flags]
             private enum Option : byte
@@ -18,14 +18,9 @@ namespace Microsoft.CodeAnalysis
                 IgnoreAssemblyKeys = 0x2,
             }
 
-            private readonly Option _flags;
-
-            public ComparisonOptions(bool ignoreCase, bool ignoreAssemblyKeys)
-            {
-                _flags =
+            private readonly Option _flags =
                     BoolToOption(ignoreCase, Option.IgnoreCase) |
                     BoolToOption(ignoreAssemblyKeys, Option.IgnoreAssemblyKeys);
-            }
 
             public bool IgnoreCase => (_flags & Option.IgnoreCase) == Option.IgnoreCase;
 

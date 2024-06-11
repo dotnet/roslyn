@@ -158,11 +158,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var solution = workspace.CurrentSolution;
 
             var document = new TestHostDocument(
-@"#if GOO
-class C { }
-#else
-class D { }
-#endif");
+                """
+                #if GOO
+                class C { }
+                #else
+                class D { }
+                #endif
+                """);
 
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
@@ -183,11 +185,13 @@ class D { }
             var solution = workspace.CurrentSolution;
 
             var document = new TestHostDocument(
-@"#if GOO
-class C { }
-#else
-class D { }
-#endif");
+                """
+                #if GOO
+                class C { }
+                #else
+                class D { }
+                #endif
+                """);
 
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
@@ -445,7 +449,11 @@ class D { }
             var document1 = new TestHostDocument(@"public class C { }");
             var project1 = new TestHostProject(workspace, document1, name: "project1");
 
-            var document2 = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
+            var document2 = new TestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
             var project2 = new TestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
 
             workspace.AddTestProject(project1);
@@ -469,7 +477,11 @@ class D { }
             var document1 = new TestHostDocument(@"public class C { }");
             var project1 = new TestHostProject(workspace, document1, name: "project1");
 
-            var document2 = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
+            var document2 = new TestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
             var project2 = new TestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
 
             workspace.AddTestProject(project1);
@@ -514,7 +526,11 @@ class D { }
             var document1 = new TestHostDocument(@"public class C { }");
             var project1 = new TestHostProject(workspace, document1, name: "project1");
 
-            var document2 = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
+            var document2 = new TestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
             var project2 = new TestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
 
             workspace.AddTestProject(project1);
@@ -571,7 +587,11 @@ class D { }
             var document1 = new TestHostDocument(@"public class C { }");
             var project1 = new TestHostProject(workspace, document1, name: "project1");
 
-            var document2 = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
+            var document2 = new TestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
             var project2 = new TestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
 
             workspace.AddTestProject(project1);
@@ -1052,8 +1072,12 @@ class D { }
         public async Task TestAdditionalFile_DocumentChanged()
         {
             using var workspace = CreateWorkspace();
-            var startText = @"<setting value = ""goo""";
-            var newText = @"<setting value = ""goo1""";
+            var startText = """
+                <setting value = "goo"
+                """;
+            var newText = """
+                <setting value = "goo1"
+                """;
             var document = new TestHostDocument("public class C { }");
             var additionalDoc = new TestHostDocument(startText);
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -1117,7 +1141,9 @@ class D { }
         public void TestAdditionalFile_OpenClose()
         {
             using var workspace = CreateWorkspace();
-            var startText = @"<setting value = ""goo""";
+            var startText = """
+                <setting value = "goo"
+                """;
             var document = new TestHostDocument("public class C { }");
             var additionalDoc = new TestHostDocument(startText);
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -1175,7 +1201,9 @@ class D { }
         public void TestAdditionalFile_AddRemove()
         {
             using var workspace = CreateWorkspace();
-            var startText = @"<setting value = ""goo""";
+            var startText = """
+                <setting value = "goo"
+                """;
             var document = new TestHostDocument("public class C { }");
             var additionalDoc = new TestHostDocument(startText, "original.config");
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -1247,7 +1275,9 @@ class D { }
         public void TestAdditionalFile_AddRemove_FromProject()
         {
             using var workspace = CreateWorkspace();
-            var startText = @"<setting value = ""goo""";
+            var startText = """
+                <setting value = "goo"
+                """;
             var document = new TestHostDocument("public class C { }");
             var additionalDoc = new TestHostDocument(startText, "original.config");
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -1305,7 +1335,9 @@ class D { }
             using var workspace = CreateWorkspace();
             const string docFilePath = "filePath1", additionalDocFilePath = "filePath2";
             var document = new TestHostDocument("public class C { }", filePath: docFilePath);
-            var additionalDoc = new TestHostDocument(@"<setting value = ""goo""", filePath: additionalDocFilePath);
+            var additionalDoc = new TestHostDocument("""
+                <setting value = "goo"
+                """, filePath: additionalDocFilePath);
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
             workspace.AddTestProject(project1);
 
@@ -1453,7 +1485,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
-            primaryWorkspace.GlobalOptions.OptionChanged += OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.AddOptionChangedHandler(this, OptionService_OptionChanged);
 
             // Change workspace options through primary workspace
             primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
@@ -1465,7 +1497,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Block, primaryWorkspace.Options.GetOption(optionKey));
             Assert.Equal(FormattingOptions2.IndentStyle.Block, secondaryWorkspace.Options.GetOption(optionKey));
 
-            primaryWorkspace.GlobalOptions.OptionChanged -= OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.RemoveOptionChangedHandler(this, OptionService_OptionChanged);
             return;
 
             void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)

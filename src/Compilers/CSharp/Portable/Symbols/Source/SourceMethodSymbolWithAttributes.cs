@@ -13,6 +13,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -126,6 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual IAttributeTargetSymbol AttributeOwner
         {
             get { return this; }
+        }
+
+        protected virtual AttributeLocation AttributeLocationForLoadAndValidateAttributes
+        {
+            get { return AttributeLocation.None; }
         }
 
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
@@ -280,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var (declarations, symbolPart) = forReturnType
                     ? (GetReturnTypeAttributeDeclarations(), AttributeLocation.Return)
-                    : (GetAttributeDeclarations(), AttributeLocation.None);
+                    : (GetAttributeDeclarations(), AttributeLocationForLoadAndValidateAttributes);
                 bagCreatedOnThisThread = LoadAndValidateAttributes(
                     declarations,
                     ref lazyCustomAttributesBag,
@@ -476,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(!arguments.Attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
@@ -539,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.RequiresLocationAttribute |
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.NullableContextAttribute |
@@ -590,6 +598,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptsLocationAttribute))
+            {
+                DecodeInterceptsLocationAttribute(arguments);
             }
             else
             {
@@ -733,6 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.DynamicAttribute |
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.RequiresLocationAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
@@ -929,6 +942,228 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void DecodeInterceptsLocationAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+            Debug.Assert(!arguments.Attribute.HasErrors);
+            var attributeData = arguments.Attribute;
+            var attributeArguments = attributeData.CommonConstructorArguments;
+            if (attributeArguments is not [
+                { Type.SpecialType: SpecialType.System_String },
+                { Kind: not TypedConstantKind.Array, Value: int lineNumberOneBased },
+                { Kind: not TypedConstantKind.Array, Value: int characterNumberOneBased }])
+            {
+                // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var attributeSyntax = arguments.AttributeSyntaxOpt;
+            var attributeLocation = attributeSyntax.Location;
+            const int filePathParameterIndex = 0;
+            const int lineNumberParameterIndex = 1;
+            const int characterNumberParameterIndex = 2;
+
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
+            var thisNamespaceNames = getNamespaceNames();
+            var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
+            if (!foundAnyMatch)
+            {
+                reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
+                thisNamespaceNames.Free();
+                return;
+            }
+            thisNamespaceNames.Free();
+
+            var attributeFilePath = (string?)attributeArguments[0].Value;
+            if (attributeFilePath is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax));
+                return;
+            }
+
+            if (ContainingType.IsGenericType)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
+                return;
+            }
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
+                return;
+            }
+
+            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
+            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
+            if (unmanagedCallersOnly != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
+                return;
+            }
+
+            var syntaxTrees = DeclaringCompilation.SyntaxTrees;
+            var matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
+            if (matchingTrees.Count == 0)
+            {
+                var referenceResolver = DeclaringCompilation.Options.SourceReferenceResolver;
+                // if we expect '/_/Program.cs':
+
+                // we might get: 'C:\Project\Program.cs' <-- path not mapped
+                var unmappedMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath == filePath, attributeFilePath);
+                if (unmappedMatch != null)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate,
+                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeFilePath,
+                        mapPath(referenceResolver, unmappedMatch));
+                    return;
+                }
+
+                // we might get: '\_\Program.cs' <-- slashes not normalized
+                // we might get: '\_/Program.cs' <-- slashes don't match
+                // we might get: 'Program.cs' <-- suffix match
+                // Force normalization of all '\' to '/', but when we recommend a path in the diagnostic message, ensure it will match what we expect if the user decides to use it.
+                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, pair)
+                    => mapPath(pair.referenceResolver, tree)
+                        .Replace('\\', '/')
+                        .EndsWith(pair.attributeFilePath),
+                    (referenceResolver, attributeFilePath: attributeFilePath.Replace('\\', '/')));
+                if (suffixMatch != null)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate,
+                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeFilePath,
+                        mapPath(referenceResolver, suffixMatch));
+                    return;
+                }
+
+                diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath);
+
+                return;
+            }
+            else if (matchingTrees.Count > 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath);
+                return;
+            }
+
+            SyntaxTree? matchingTree = matchingTrees[0];
+            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
+            int lineNumberZeroBased = lineNumberOneBased - 1;
+            int characterNumberZeroBased = characterNumberOneBased - 1;
+
+            if (lineNumberZeroBased < 0 || characterNumberZeroBased < 0)
+            {
+                var location = attributeData.GetAttributeArgumentSyntaxLocation(lineNumberZeroBased < 0 ? lineNumberParameterIndex : characterNumberParameterIndex, attributeSyntax);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, location);
+                return;
+            }
+
+            var referencedLines = matchingTree.GetText().Lines;
+            var referencedLineCount = referencedLines.Count;
+
+            if (lineNumberZeroBased >= referencedLineCount)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeData.GetAttributeArgumentSyntaxLocation(lineNumberParameterIndex, attributeSyntax), referencedLineCount, lineNumberOneBased);
+                return;
+            }
+
+            var line = referencedLines[lineNumberZeroBased];
+            var lineLength = line.End - line.Start;
+            if (characterNumberZeroBased >= lineLength)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeData.GetAttributeArgumentSyntaxLocation(characterNumberParameterIndex, attributeSyntax), lineLength, characterNumberOneBased);
+                return;
+            }
+
+            var referencedPosition = line.Start + characterNumberZeroBased;
+            var root = matchingTree.GetRoot();
+            var referencedToken = root.FindToken(referencedPosition);
+            switch (referencedToken)
+            {
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
+                    // happy case
+                    break;
+                case { Parent: SimpleNameSyntax { Parent: not MemberAccessExpressionSyntax } }:
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
+                    // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
+                    // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNameNotInvoked, attributeLocation, referencedToken.Text);
+                    return;
+                default:
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPositionBadToken, attributeLocation, referencedToken.Text);
+                    return;
+            }
+
+            // Did they actually refer to the start of the token, not the middle, or in trivia?
+            if (referencedPosition != referencedToken.Span.Start)
+            {
+                var linePositionZeroBased = referencedToken.GetLocation().GetLineSpan().StartLinePosition;
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, linePositionZeroBased.Line + 1, linePositionZeroBased.Character + 1);
+                return;
+            }
+
+            DeclaringCompilation.AddInterception(matchingTree.FilePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation, this);
+
+            static string mapPath(SourceReferenceResolver? referenceResolver, SyntaxTree tree)
+            {
+                return referenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+            }
+
+            // Caller must free the returned builder.
+            ArrayBuilder<string> getNamespaceNames()
+            {
+                var namespaceNames = ArrayBuilder<string>.GetInstance();
+                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                    namespaceNames.Add(containingNamespace.Name);
+                // order outermost->innermost
+                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
+                namespaceNames.ReverseContents();
+                return namespaceNames;
+            }
+
+            static bool isDeclaredInNamespace(ArrayBuilder<string> thisNamespaceNames, ImmutableArray<string> namespaceSegments)
+            {
+                Debug.Assert(namespaceSegments.Length > 0);
+                if (namespaceSegments is ["global"])
+                {
+                    return true;
+                }
+
+                if (namespaceSegments.Length > thisNamespaceNames.Count)
+                {
+                    // the enabled NS has more components than interceptor's NS, so it will never match.
+                    return false;
+                }
+
+                for (var i = 0; i < namespaceSegments.Length; i++)
+                {
+                    if (namespaceSegments[i] != thisNamespaceNames[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
+            {
+                if (namespaceNames.Count == 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeSyntax);
+                }
+                else
+                {
+                    var recommendedProperty = $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
+                }
+            }
+        }
+
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
@@ -937,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
                 DecodeUnmanagedCallersOnlyAttributeData(this, arguments.Attribute, arguments.AttributeSyntaxOpt.Location, diagnostics);
 
-            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, diagnostics);
+            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name, diagnostics);
 
             var returnTypeSyntax = this.ExtractReturnTypeSyntax();
 
@@ -1015,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1036,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsImplicitlyDeclared)
                             {
                                 // CS0669: A class with the ComImport attribute cannot have a user-defined constructor
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithUserCtor, this.Locations[0]);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithUserCtor, this.GetFirstLocation());
                             }
 
                             break;
@@ -1045,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsAbstract && !this.IsExtern)
                             {
                                 // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, ContainingType);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.GetFirstLocation(), this, ContainingType);
                             }
 
                             break;
@@ -1062,7 +1297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var errorCode = (this.MethodKind == MethodKind.Constructor || this.MethodKind == MethodKind.StaticConstructor) ?
                         ErrorCode.WRN_ExternCtorNoImplementation :
                         ErrorCode.WRN_ExternMethodNoImplementation;
-                    diagnostics.Add(errorCode, this.Locations[0], this);
+                    diagnostics.Add(errorCode, this.GetFirstLocation(), this);
                 }
             }
 
@@ -1071,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AsyncMethodChecks(BindingDiagnosticBag diagnostics)
         {
-            AsyncMethodChecks(verifyReturnType: true, this.Locations[0], diagnostics);
+            AsyncMethodChecks(verifyReturnType: true, this.GetFirstLocation(), diagnostics);
         }
 
         protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, BindingDiagnosticBag diagnostics)

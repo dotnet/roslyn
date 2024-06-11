@@ -14,24 +14,16 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private partial class PackageReference : Reference
+        private partial class PackageReference(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            SearchResult searchResult,
+            string source,
+            string packageName,
+            string versionOpt) : Reference(provider, searchResult)
         {
-            private readonly string _source;
-            private readonly string _packageName;
-            private readonly string _versionOpt;
-
-            public PackageReference(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                SearchResult searchResult,
-                string source,
-                string packageName,
-                string versionOpt)
-                : base(provider, searchResult)
-            {
-                _source = source;
-                _packageName = packageName;
-                _versionOpt = versionOpt;
-            }
+            private readonly string _source = source;
+            private readonly string _packageName = packageName;
+            private readonly string _versionOpt = versionOpt;
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)

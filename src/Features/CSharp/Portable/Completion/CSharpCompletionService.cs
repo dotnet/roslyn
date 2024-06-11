@@ -17,16 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     internal sealed class CSharpCompletionService : CommonCompletionService
     {
         [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
-        internal sealed class Factory : ILanguageServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class Factory(IAsynchronousOperationListenerProvider listenerProvider) : ILanguageServiceFactory
         {
-            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
-            {
-                _listenerProvider = listenerProvider;
-            }
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)

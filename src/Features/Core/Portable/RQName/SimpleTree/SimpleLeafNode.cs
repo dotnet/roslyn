@@ -4,8 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree
 {
-    internal class SimpleLeafNode : SimpleTreeNode
+    internal class SimpleLeafNode(string text) : SimpleTreeNode(text)
     {
-        public SimpleLeafNode(string text) : base(text) { }
     }
 }

@@ -73,46 +73,35 @@ namespace Microsoft.CodeAnalysis.Rename
     }
 
     [DataContract]
-    internal readonly struct SerializableRenameLocation
+    internal readonly struct SerializableRenameLocation(
+        TextSpan location,
+        DocumentId documentId,
+        CandidateReason candidateReason,
+        bool isRenamableAliasUsage,
+        bool isRenamableAccessor,
+        TextSpan containingLocationForStringOrComment,
+        bool isWrittenTo)
     {
         [DataMember(Order = 0)]
-        public readonly TextSpan Location;
+        public readonly TextSpan Location = location;
 
         [DataMember(Order = 1)]
-        public readonly DocumentId DocumentId;
+        public readonly DocumentId DocumentId = documentId;
 
         [DataMember(Order = 2)]
-        public readonly CandidateReason CandidateReason;
+        public readonly CandidateReason CandidateReason = candidateReason;
 
         [DataMember(Order = 3)]
-        public readonly bool IsRenamableAliasUsage;
+        public readonly bool IsRenamableAliasUsage = isRenamableAliasUsage;
 
         [DataMember(Order = 4)]
-        public readonly bool IsRenamableAccessor;
+        public readonly bool IsRenamableAccessor = isRenamableAccessor;
 
         [DataMember(Order = 5)]
-        public readonly TextSpan ContainingLocationForStringOrComment;
+        public readonly TextSpan ContainingLocationForStringOrComment = containingLocationForStringOrComment;
 
         [DataMember(Order = 6)]
-        public readonly bool IsWrittenTo;
-
-        public SerializableRenameLocation(
-            TextSpan location,
-            DocumentId documentId,
-            CandidateReason candidateReason,
-            bool isRenamableAliasUsage,
-            bool isRenamableAccessor,
-            TextSpan containingLocationForStringOrComment,
-            bool isWrittenTo)
-        {
-            Location = location;
-            DocumentId = documentId;
-            CandidateReason = candidateReason;
-            IsRenamableAliasUsage = isRenamableAliasUsage;
-            IsRenamableAccessor = isRenamableAccessor;
-            ContainingLocationForStringOrComment = containingLocationForStringOrComment;
-            IsWrittenTo = isWrittenTo;
-        }
+        public readonly bool IsWrittenTo = isWrittenTo;
 
         public static SerializableRenameLocation Dehydrate(RenameLocation location)
             => new(location.Location.SourceSpan,
@@ -179,31 +168,23 @@ namespace Microsoft.CodeAnalysis.Rename
     }
 
     [DataContract]
-    internal sealed class SerializableRenameLocations
+    internal sealed class SerializableRenameLocations(
+        SymbolRenameOptions options,
+        ImmutableArray<SerializableRenameLocation> locations,
+        ImmutableArray<SerializableReferenceLocation> implicitLocations,
+        ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
     {
         [DataMember(Order = 0)]
-        public readonly SymbolRenameOptions Options;
+        public readonly SymbolRenameOptions Options = options;
 
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<SerializableRenameLocation> Locations;
+        public readonly ImmutableArray<SerializableRenameLocation> Locations = locations;
 
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<SerializableReferenceLocation> ImplicitLocations;
+        public readonly ImmutableArray<SerializableReferenceLocation> ImplicitLocations = implicitLocations;
 
         [DataMember(Order = 3)]
-        public readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols;
-
-        public SerializableRenameLocations(
-            SymbolRenameOptions options,
-            ImmutableArray<SerializableRenameLocation> locations,
-            ImmutableArray<SerializableReferenceLocation> implicitLocations,
-            ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
-        {
-            Options = options;
-            Locations = locations;
-            ImplicitLocations = implicitLocations;
-            ReferencedSymbols = referencedSymbols;
-        }
+        public readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols = referencedSymbols;
 
         public async ValueTask<ImmutableArray<RenameLocation>> RehydrateLocationsAsync(
             Solution solution, CancellationToken cancellationToken)
@@ -217,19 +198,13 @@ namespace Microsoft.CodeAnalysis.Rename
     }
 
     [DataContract]
-    internal sealed class SerializableConflictResolution
+    internal sealed class SerializableConflictResolution(string? errorMessage, SuccessfulConflictResolution? resolution)
     {
         [DataMember(Order = 0)]
-        public readonly string? ErrorMessage;
+        public readonly string? ErrorMessage = errorMessage;
 
         [DataMember(Order = 1)]
-        public readonly SuccessfulConflictResolution? Resolution;
-
-        public SerializableConflictResolution(string? errorMessage, SuccessfulConflictResolution? resolution)
-        {
-            ErrorMessage = errorMessage;
-            Resolution = resolution;
-        }
+        public readonly SuccessfulConflictResolution? Resolution = resolution;
 
         public async Task<ConflictResolution> RehydrateAsync(Solution oldSolution, CancellationToken cancellationToken)
         {
@@ -255,51 +230,39 @@ namespace Microsoft.CodeAnalysis.Rename
     }
 
     [DataContract]
-    internal sealed class SuccessfulConflictResolution
+    internal sealed class SuccessfulConflictResolution(
+        bool replacementTextValid,
+        (DocumentId documentId, string newName) renamedDocument,
+        ImmutableArray<DocumentId> documentIds,
+        ImmutableArray<RelatedLocation> relatedLocations,
+        ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
+        ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> documentToModifiedSpansMap,
+        ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
+        ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> documentToRelatedLocationsMap)
     {
         [DataMember(Order = 0)]
-        public readonly bool ReplacementTextValid;
+        public readonly bool ReplacementTextValid = replacementTextValid;
 
         [DataMember(Order = 1)]
-        public readonly (DocumentId documentId, string newName) RenamedDocument;
+        public readonly (DocumentId documentId, string newName) RenamedDocument = renamedDocument;
 
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<DocumentId> DocumentIds;
+        public readonly ImmutableArray<DocumentId> DocumentIds = documentIds;
 
         [DataMember(Order = 3)]
-        public readonly ImmutableArray<RelatedLocation> RelatedLocations;
+        public readonly ImmutableArray<RelatedLocation> RelatedLocations = relatedLocations;
 
         [DataMember(Order = 4)]
-        public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges;
+        public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges = documentTextChanges;
 
         [DataMember(Order = 5)]
-        public readonly ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> DocumentToModifiedSpansMap;
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> DocumentToModifiedSpansMap = documentToModifiedSpansMap;
 
         [DataMember(Order = 6)]
-        public readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> DocumentToComplexifiedSpansMap;
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> DocumentToComplexifiedSpansMap = documentToComplexifiedSpansMap;
 
         [DataMember(Order = 7)]
-        public readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> DocumentToRelatedLocationsMap;
-
-        public SuccessfulConflictResolution(
-            bool replacementTextValid,
-            (DocumentId documentId, string newName) renamedDocument,
-            ImmutableArray<DocumentId> documentIds,
-            ImmutableArray<RelatedLocation> relatedLocations,
-            ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
-            ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> documentToModifiedSpansMap,
-            ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
-            ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> documentToRelatedLocationsMap)
-        {
-            ReplacementTextValid = replacementTextValid;
-            RenamedDocument = renamedDocument;
-            DocumentIds = documentIds;
-            RelatedLocations = relatedLocations;
-            DocumentTextChanges = documentTextChanges;
-            DocumentToModifiedSpansMap = documentToModifiedSpansMap;
-            DocumentToComplexifiedSpansMap = documentToComplexifiedSpansMap;
-            DocumentToRelatedLocationsMap = documentToRelatedLocationsMap;
-        }
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> DocumentToRelatedLocationsMap = documentToRelatedLocationsMap;
     }
 
     internal partial struct ConflictResolution

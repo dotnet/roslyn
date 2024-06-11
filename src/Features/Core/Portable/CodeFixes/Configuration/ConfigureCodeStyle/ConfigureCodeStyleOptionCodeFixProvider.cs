@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             => null;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(document.Project, diagnostics));
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(project, diagnostics));
 
-        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics)
         {
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                     nestedActions.Add(
                         SolutionChangeAction.Create(
                             optionValue,
-                            solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(optionName, optionValue, diagnostic, option.IsPerLanguage, project, cancellationToken),
+                            cancellationToken => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(optionName, optionValue, diagnostic, option.IsPerLanguage, project, cancellationToken),
                             optionValue));
                 }
             }

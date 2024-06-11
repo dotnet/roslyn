@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
@@ -96,3 +98,5 @@ namespace IdeCoreBenchmarks
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

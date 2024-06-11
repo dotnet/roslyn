@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Update: Dispose, Finalization, and Resource Management</see>. Additional notes regarding operating system
         /// behavior leveraged for efficiency are given in comments.</para>
         /// </remarks>
-        internal sealed class MemoryMappedInfo : IDisposable
+        internal sealed class MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size) : IDisposable
         {
             /// <summary>
             /// The memory mapped file.
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// However, the operating system does not actually close the views which are in use until the file handles
             /// are closed as well, even if the file is disposed first.</para>
             /// </remarks>
-            private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
+            private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile = memoryMappedFile;
 
             /// <summary>
             /// A weak reference to a read-only view for the memory mapped file.
@@ -61,14 +61,6 @@ namespace Microsoft.CodeAnalysis.Host
             /// </remarks>
             private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
-            public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
-            {
-                _memoryMappedFile = memoryMappedFile;
-                Name = name;
-                Offset = offset;
-                Size = size;
-            }
-
             public MemoryMappedInfo(string name, long offset, long size)
                 : this(new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(name)), name, offset, size)
             {
@@ -77,19 +69,19 @@ namespace Microsoft.CodeAnalysis.Host
             /// <summary>
             /// The name of the memory mapped file.
             /// </summary>
-            public string Name { get; }
+            public string Name { get; } = name;
 
             /// <summary>
             /// The offset into the memory mapped file of the region described by the current
             /// <see cref="MemoryMappedInfo"/>.
             /// </summary>
-            public long Offset { get; }
+            public long Offset { get; } = offset;
 
             /// <summary>
             /// The size of the region of the memory mapped file described by the current
             /// <see cref="MemoryMappedInfo"/>.
             /// </summary>
-            public long Size { get; }
+            public long Size { get; } = size;
 
             /// <summary>
             /// Caller is responsible for disposing the returned stream.

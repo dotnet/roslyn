@@ -119,21 +119,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         protected static string AddInsideMethod(string text)
         {
             return
-@"class C
-{
-  void F()
-  {
-    " + text +
-@"  }
-}";
+                """
+                class C
+                {
+                  void F()
+                  {
+                """ + text +
+                """
+                  }
+                }
+                """;
         }
 
         protected static string AddInsideClass(string text)
         {
             return
-@"class C
-{
-    " + text +
+                """
+                class C
+                {
+                """ + text +
 @"}";
         }
     }

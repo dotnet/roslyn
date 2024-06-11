@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     }
 
     [ExportWorkspaceService(typeof(IWorkspaceContextService), ServiceLayer.Default), Shared]
-    internal sealed class DefaultWorkspaceContextService : IWorkspaceContextService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class DefaultWorkspaceContextService(IGlobalOptionService globalOptionsService) : IWorkspaceContextService
     {
         /// <summary>
         /// Roslyn LSP feature flag name, as defined in the PackageRegistraion.pkgdef
@@ -34,14 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// </summary>
         public const string LspEditorFeatureFlagName = "Roslyn.LSP.Editor";
 
-        private readonly IGlobalOptionService _globalOptionsService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultWorkspaceContextService(IGlobalOptionService globalOptionsService)
-        {
-            _globalOptionsService = globalOptionsService;
-        }
+        private readonly IGlobalOptionService _globalOptionsService = globalOptionsService;
 
         public bool IsInLspEditorContext() => _globalOptionsService.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 

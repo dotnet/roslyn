@@ -4,13 +4,16 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -25,10 +28,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         {
         }
 
+        private protected static IReadOnlyDictionary<string, int> GetTokenTypeToIndex(TestLspServer server)
+            => SemanticTokensSchema.GetSchema(server.ClientCapabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
+
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
             var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
                 CreateSemanticTokensRangeParams(caret, range), CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
+
+        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangesAsync(TestLspServer testLspServer, LSP.Location caret, Range[] ranges)
+        {
+            var result = await testLspServer.ExecuteRequestAsync<SemanticTokensRangesParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
+                CreateSemanticTokensRangesParams(caret, ranges!), CancellationToken.None);
             Contract.ThrowIfNull(result);
             return result;
         }
@@ -38,6 +52,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
             {
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 Range = range
+            };
+
+        private static SemanticTokensRangesParams CreateSemanticTokensRangesParams(LSP.Location caret, Range[] ranges)
+            => new SemanticTokensRangesParams
+            {
+                TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
+                Ranges = ranges
             };
 
         protected static async Task UpdateDocumentTextAsync(string updatedText, Workspace workspace)
@@ -88,7 +109,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 var lineLength = text.Lines[currentLine].SpanIncludingLineBreak.Length;
 
                 // If this assertion fails, we didn't break up a multi-line token properly.
-                var kind = SemanticTokensHelpers.TokenTypeToIndex.Where(kvp => kvp.Value == tokens[i + 3]).Single().Key;
+                var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
+                var kind = tokenTypeToIndex.Where(kvp => kvp.Value == tokens[i + 3]).Single().Key;
 
                 Assert.True(currentChar + tokenLength <= lineLength,
                     $"Multi-line token of type {kind} found on line {currentLine} at character index {currentChar}. " +
@@ -101,13 +123,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         /// fail. This groups rows by five (so that way the diff can't desynced from the start of a new token), and also replaces the token index
         /// back with the string again.
         /// </summary>
-        protected static ImmutableArray<string> ConvertToReadableFormat(int[] data)
+        protected static ImmutableArray<string> ConvertToReadableFormat(
+            ClientCapabilities capabilities, int[] data)
         {
             var convertedStringsBuilder = ImmutableArray.CreateBuilder<string>(data.Length / 5);
+            var tokenTypeToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
 
             for (var i = 0; i < data.Length; i += 5)
             {
-                var kind = SemanticTokensHelpers.TokenTypeToIndex.Single(kvp => kvp.Value == data[i + 3]).Key;
+                var kind = tokenTypeToIndex.Single(kvp => kvp.Value == data[i + 3]).Key;
 
                 convertedStringsBuilder.Add($"{data[i]}, {data[i + 1]}, {data[i + 2]}, {kind}, {data[i + 4]}");
             }

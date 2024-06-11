@@ -16,19 +16,21 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Dim stringWriter = New StringWriter()
             Dim jsonWriter = New LineModeLsifJsonWriter(stringWriter)
 
+            Dim dir = "Z:\" & ChrW(&HE25B)
+
             Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
-                        <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
-                            <Document Name="A.cs" FilePath="Z:\A.cs"/>
+                        <Project Language="C#" Name="TestProject" FilePath=<%= dir & "\TestProject.csproj" %>>
+                            <Document Name="A.cs" FilePath=<%= dir & "\a.cs" %>/>
                         </Project>
                     </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition), jsonWriter)
 
             AssertEx.EqualOrDiff(
-"{""hoverProvider"":true,""declarationProvider"":false,""definitionProvider"":true,""referencesProvider"":true,""typeDefinitionProvider"":false,""documentSymbolProvider"":false,""foldingRangeProvider"":true,""diagnosticProvider"":false,""semanticTokensProvider"":{""tokenTypes"":[""namespace"",""type"",""class"",""enum"",""interface"",""struct"",""typeParameter"",""parameter"",""variable"",""property"",""enumMember"",""event"",""function"",""method"",""macro"",""keyword"",""modifier"",""comment"",""string"",""number"",""regexp"",""operator"",""class name"",""constant name"",""delegate name"",""enum member name"",""enum name"",""event name"",""excluded code"",""extension method name"",""field name"",""interface name"",""json - array"",""json - comment"",""json - constructor name"",""json - keyword"",""json - number"",""json - object"",""json - operator"",""json - property name"",""json - punctuation"",""json - string"",""json - text"",""keyword - control"",""label name"",""local name"",""method name"",""module name"",""namespace name"",""operator - overloaded"",""parameter name"",""preprocessor keyword"",""preprocessor text"",""property name"",""punctuation"",""record class name"",""record struct name"",""regex - alternation"",""regex - anchor"",""regex - character class"",""regex - comment"",""regex - grouping"",""regex - other escape"",""regex - quantifier"",""regex - self escaped character"",""regex - text"",""string - escape character"",""string - verbatim"",""struct name"",""text"",""type parameter name"",""whitespace"",""xml doc comment - attribute name"",""xml doc comment - attribute quotes"",""xml doc comment - attribute value"",""xml doc comment - cdata section"",""xml doc comment - comment"",""xml doc comment - delimiter"",""xml doc comment - entity reference"",""xml doc comment - name"",""xml doc comment - processing instruction"",""xml doc comment - text"",""xml literal - attribute name"",""xml literal - attribute quotes"",""xml literal - attribute value"",""xml literal - cdata section"",""xml literal - comment"",""xml literal - delimiter"",""xml literal - embedded expression"",""xml literal - entity reference"",""xml literal - name"",""xml literal - processing instruction"",""xml literal - text""],""tokenModifiers"":[""static""]},""id"":1,""type"":""vertex"",""label"":""capabilities""}
-{""kind"":""csharp"",""resource"":""file:///Z:/TestProject.csproj"",""name"":""TestProject"",""id"":2,""type"":""vertex"",""label"":""project""}
+"{""hoverProvider"":true,""declarationProvider"":false,""definitionProvider"":true,""referencesProvider"":true,""typeDefinitionProvider"":false,""documentSymbolProvider"":false,""foldingRangeProvider"":true,""diagnosticProvider"":false,""semanticTokensProvider"":{""tokenTypes"":[""namespace"",""type"",""class"",""enum"",""interface"",""struct"",""typeParameter"",""parameter"",""variable"",""property"",""enumMember"",""event"",""function"",""method"",""macro"",""keyword"",""modifier"",""comment"",""string"",""number"",""regexp"",""operator"",""class name"",""constant name"",""delegate name"",""enum member name"",""enum name"",""event name"",""excluded code"",""extension method name"",""field name"",""interface name"",""json - array"",""json - comment"",""json - constructor name"",""json - keyword"",""json - number"",""json - object"",""json - operator"",""json - property name"",""json - punctuation"",""json - string"",""json - text"",""keyword - control"",""label name"",""local name"",""method name"",""module name"",""namespace name"",""operator - overloaded"",""parameter name"",""preprocessor keyword"",""preprocessor text"",""property name"",""punctuation"",""record class name"",""record struct name"",""regex - alternation"",""regex - anchor"",""regex - character class"",""regex - comment"",""regex - grouping"",""regex - other escape"",""regex - quantifier"",""regex - self escaped character"",""regex - text"",""roslyn test code markdown"",""string - escape character"",""string - verbatim"",""struct name"",""text"",""type parameter name"",""whitespace"",""xml doc comment - attribute name"",""xml doc comment - attribute quotes"",""xml doc comment - attribute value"",""xml doc comment - cdata section"",""xml doc comment - comment"",""xml doc comment - delimiter"",""xml doc comment - entity reference"",""xml doc comment - name"",""xml doc comment - processing instruction"",""xml doc comment - text"",""xml literal - attribute name"",""xml literal - attribute quotes"",""xml literal - attribute value"",""xml literal - cdata section"",""xml literal - comment"",""xml literal - delimiter"",""xml literal - embedded expression"",""xml literal - entity reference"",""xml literal - name"",""xml literal - processing instruction"",""xml literal - text""],""tokenModifiers"":[""static""]},""id"":1,""type"":""vertex"",""label"":""capabilities""}
+{""kind"":""csharp"",""resource"":""file:///Z:/%EE%89%9B/TestProject.csproj"",""name"":""TestProject"",""id"":2,""type"":""vertex"",""label"":""project""}
 {""kind"":""begin"",""scope"":""project"",""data"":2,""id"":3,""type"":""vertex"",""label"":""$event""}
-{""uri"":""file:///Z:/A.cs"",""languageId"":""csharp"",""id"":4,""type"":""vertex"",""label"":""document""}
+{""uri"":""file:///Z:/%EE%89%9B/a.cs"",""languageId"":""csharp"",""id"":4,""type"":""vertex"",""label"":""document""}
 {""kind"":""begin"",""scope"":""document"",""data"":4,""id"":5,""type"":""vertex"",""label"":""$event""}
 {""outV"":4,""inVs"":[],""id"":6,""type"":""edge"",""label"":""contains""}
 {""result"":[],""id"":7,""type"":""vertex"",""label"":""foldingRangeResult""}
@@ -134,6 +136,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         ""regex - quantifier"",
         ""regex - self escaped character"",
         ""regex - text"",
+        ""roslyn test code markdown"",
         ""string - escape character"",
         ""string - verbatim"",
         ""struct name"",

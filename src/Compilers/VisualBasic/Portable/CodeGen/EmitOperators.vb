@@ -133,6 +133,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Select
         End Function
 
+        Private Function IsComparisonOperator(operationKind As BinaryOperatorKind) As Boolean
+            Select Case operationKind And BinaryOperatorKind.OpMask
+                Case BinaryOperatorKind.Equals,
+                     BinaryOperatorKind.NotEquals,
+                     BinaryOperatorKind.LessThanOrEqual,
+                     BinaryOperatorKind.GreaterThanOrEqual,
+                     BinaryOperatorKind.LessThan,
+                     BinaryOperatorKind.GreaterThan,
+                     BinaryOperatorKind.Is,
+                     BinaryOperatorKind.IsNot
+                    Return True
+
+                Case Else
+                    Return False
+            End Select
+        End Function
+
         Private Sub EmitBinaryOperator(expression As BoundBinaryOperator)
             ' Do not blow the stack due to a deep recursion on the left. 
 
@@ -591,12 +608,7 @@ BinaryOperatorKindEqual:
         ' generate a conditional (ie, boolean) expression...
         ' this will leave a value on the stack which conforms to sense, ie:(condition == sense)
         Private Function EmitCondExpr(condition As BoundExpression, sense As Boolean) As ConstResKind
-            While condition.Kind = BoundKind.UnaryOperator
-                Dim unOp = DirectCast(condition, BoundUnaryOperator)
-                Debug.Assert(unOp.OperatorKind = UnaryOperatorKind.Not AndAlso unOp.Type.IsBooleanType())
-                condition = unOp.Operand
-                sense = Not sense
-            End While
+            RemoveNegation(condition, sense)
 
             Debug.Assert(condition.Type.SpecialType = SpecialType.System_Boolean)
 
@@ -620,6 +632,65 @@ BinaryOperatorKindEqual:
 
             Return ConstResKind.NotAConst
         End Function
+
+        ''' <summary>
+        ''' Emits boolean expression without branching if possible (i.e., no logical operators, only comparisons).
+        ''' Leaves a boolean (int32, 0 or 1) value on the stack which conforms to sense, i.e., <c>condition = sense</c>.
+        ''' </summary>
+        Private Function TryEmitComparison(condition As BoundExpression, sense As Boolean) As Boolean
+            RemoveNegation(condition, sense)
+
+            Debug.Assert(condition.Type.SpecialType = SpecialType.System_Boolean)
+
+            If condition.IsConstant Then
+                Dim constValue = condition.ConstantValueOpt
+                Debug.Assert(constValue.IsBoolean)
+                Dim constant = constValue.BooleanValue
+
+                _builder.EmitBoolConstant(constant = sense)
+                Return True
+            End If
+
+            If condition.Kind = BoundKind.BinaryOperator Then
+                Dim binOp = DirectCast(condition, BoundBinaryOperator)
+                ' Intentionally don't optimize logical operators, they need branches to short-circuit.
+                If IsComparisonOperator(binOp.OperatorKind) Then
+                    EmitBinaryCondOperator(binOp, sense)
+                    Return True
+                End If
+            ElseIf condition.Kind = BoundKind.TypeOf Then
+                Dim typeOfExpression = DirectCast(condition, BoundTypeOf)
+
+                EmitTypeOfExpression(typeOfExpression, used:=True, optimize:=True)
+
+                If typeOfExpression.IsTypeOfIsNotExpression Then
+                    sense = Not sense
+                End If
+
+                ' Convert to 1 or 0.
+                _builder.EmitOpCode(ILOpCode.Ldnull)
+                _builder.EmitOpCode(If(sense, ILOpCode.Cgt_un, ILOpCode.Ceq))
+                Return True
+            Else
+                EmitExpression(condition, used:=True)
+
+                ' Convert to 1 or 0 (although `condition` is of type `Boolean`, it can contain any integer).
+                _builder.EmitOpCode(ILOpCode.Ldc_i4_0)
+                _builder.EmitOpCode(If(sense, ILOpCode.Cgt_un, ILOpCode.Ceq))
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        Private Sub RemoveNegation(ByRef condition As BoundExpression, ByRef sense As Boolean)
+            While condition.Kind = BoundKind.UnaryOperator
+                Dim unOp = DirectCast(condition, BoundUnaryOperator)
+                Debug.Assert(unOp.OperatorKind = UnaryOperatorKind.Not AndAlso unOp.Type.IsBooleanType())
+                condition = unOp.Operand
+                sense = Not sense
+            End While
+        End Sub
 
         ' emits IsTrue/IsFalse according to the sense
         ' IsTrue actually does nothing

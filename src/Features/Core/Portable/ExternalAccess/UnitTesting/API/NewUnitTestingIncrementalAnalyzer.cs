@@ -12,12 +12,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 {
-    private sealed class NewUnitTestingIncrementalAnalyzer : IUnitTestingIncrementalAnalyzer
+    private sealed class NewUnitTestingIncrementalAnalyzer(INewUnitTestingIncrementalAnalyzerImplementation implementation) : IUnitTestingIncrementalAnalyzer
     {
-        private readonly INewUnitTestingIncrementalAnalyzerImplementation _implementation;
-
-        public NewUnitTestingIncrementalAnalyzer(INewUnitTestingIncrementalAnalyzerImplementation implementation)
-            => _implementation = implementation;
+        private readonly INewUnitTestingIncrementalAnalyzerImplementation _implementation = implementation;
 
         public Task AnalyzeDocumentAsync(
             Document document,

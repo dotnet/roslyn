@@ -39,69 +39,71 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_Error()
             {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-using System;
+                var input = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { [|RuleName|] = foo.RuleName };
+                                var bar = new { [|RuleName|] = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig""></AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-using System;
+                var expected = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                             <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { RuleName = foo.RuleName };
+                                var bar = new { RuleName = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-# IDE0037: Use inferred member name
-dotnet_diagnostic.IDE0037.severity = error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                    # IDE0037: Use inferred member name
+                    dotnet_diagnostic.IDE0037.severity = error
+                    </AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
@@ -110,82 +112,84 @@ dotnet_diagnostic.IDE0037.severity = error
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_BothRulesExist_Error()
             {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-using System;
+                var input = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { [|RuleName|] = foo.RuleName };
+                                var bar = new { [|RuleName|] = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_tuple_names = true:suggestion
+                    </AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-using System;
+                var expected = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                             <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { RuleName = foo.RuleName };
+                                var bar = new { RuleName = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_tuple_names = true:error
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_tuple_names = true:error
 
-# IDE0037: Use inferred member name
-dotnet_diagnostic.IDE0037.severity = error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                    # IDE0037: Use inferred member name
+                    dotnet_diagnostic.IDE0037.severity = error
+                    </AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
@@ -194,76 +198,78 @@ dotnet_diagnostic.IDE0037.severity = error
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_OneRuleExists_Error()
             {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-using System;
+                var input = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { [|RuleName|] = foo.RuleName };
+                                var bar = new { [|RuleName|] = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
+                    </AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-using System;
+                var expected = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                             <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { RuleName = foo.RuleName };
+                                var bar = new { RuleName = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
 
-# IDE0037: Use inferred member name
-dotnet_diagnostic.IDE0037.severity = error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                    # IDE0037: Use inferred member name
+                    dotnet_diagnostic.IDE0037.severity = error
+                    </AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
@@ -272,85 +278,87 @@ dotnet_diagnostic.IDE0037.severity = error
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_AllPossibleEntriesExist_Error()
             {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-using System;
+                var input = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { [|RuleName|] = foo.RuleName };
+                                var bar = new { [|RuleName|] = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_tuple_names = true:suggestion
 
-# IDE0037: Use inferred member name
-dotnet_diagnostic.IDE0037.severity = silent
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                    # IDE0037: Use inferred member name
+                    dotnet_diagnostic.IDE0037.severity = silent
+                    </AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-using System;
+                var expected = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                             <Document FilePath="z:\\file.cs">
+                    using System;
 
-namespace ConsoleApp5
-{
-    class Foo 
-    {
-        public string RuleName = ""test"";
-    }
+                    namespace ConsoleApp5
+                    {
+                        class Foo 
+                        {
+                            public string RuleName = "test";
+                        }
 
-    class Bar
-    {
-        static void Main(string[] args)
-        {
-            var foo = new Foo();
+                        class Bar
+                        {
+                            static void Main(string[] args)
+                            {
+                                var foo = new Foo();
 
-            var bar = new { RuleName = foo.RuleName };
+                                var bar = new { RuleName = foo.RuleName };
 
-            Console.WriteLine(bar.RuleName);
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+                                Console.WriteLine(bar.RuleName);
+                            }
+                        }
+                    }
+                            </Document>
+                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
 
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_tuple_names = true:error
+                    # IDE0037: Use inferred member name
+                    dotnet_style_prefer_inferred_tuple_names = true:error
 
-# IDE0037: Use inferred member name
-dotnet_diagnostic.IDE0037.severity = error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+                    # IDE0037: Use inferred member name
+                    dotnet_diagnostic.IDE0037.severity = error
+                    </AnalyzerConfigDocument>
+                        </Project>
+                    </Workspace>
+                    """;
 
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }

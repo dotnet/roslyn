@@ -20,18 +20,12 @@ namespace Microsoft.CodeAnalysis.TaskList
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
     [DataContract]
-    internal readonly struct TaskListItemDescriptor
+    internal readonly struct TaskListItemDescriptor(string text, TaskListItemPriority priority)
     {
         [DataMember(Order = 0)]
-        public string Text { get; }
+        public string Text { get; } = text;
         [DataMember(Order = 1)]
-        public TaskListItemPriority Priority { get; }
-
-        public TaskListItemDescriptor(string text, TaskListItemPriority priority)
-        {
-            Text = text;
-            Priority = priority;
-        }
+        public TaskListItemPriority Priority { get; } = priority;
 
         public static ImmutableArray<TaskListItemDescriptor> Parse(ImmutableArray<string> items)
         {

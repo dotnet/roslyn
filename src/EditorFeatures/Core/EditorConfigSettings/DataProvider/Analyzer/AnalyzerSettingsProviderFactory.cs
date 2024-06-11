@@ -8,16 +8,10 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer
 {
-    internal class AnalyzerSettingsProviderFactory : IWorkspaceSettingsProviderFactory<AnalyzerSetting>
+    internal class AnalyzerSettingsProviderFactory(Workspace workspace, IDiagnosticAnalyzerService analyzerService) : IWorkspaceSettingsProviderFactory<AnalyzerSetting>
     {
-        private readonly Workspace _workspace;
-        private readonly IDiagnosticAnalyzerService _analyzerService;
-
-        public AnalyzerSettingsProviderFactory(Workspace workspace, IDiagnosticAnalyzerService analyzerService)
-        {
-            _workspace = workspace;
-            _analyzerService = analyzerService;
-        }
+        private readonly Workspace _workspace = workspace;
+        private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;
 
         public ISettingsProvider<AnalyzerSetting> GetForFile(string filePath)
         {

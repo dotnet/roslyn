@@ -13,16 +13,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportQuickInfoProviderAttribute : ExportAttribute
+    internal sealed class ExportQuickInfoProviderAttribute(string name, string language) : ExportAttribute(typeof(QuickInfoProvider))
     {
-        public string Name { get; }
-        public string Language { get; }
-
-        public ExportQuickInfoProviderAttribute(string name, string language)
-            : base(typeof(QuickInfoProvider))
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Language = language ?? throw new ArgumentNullException(nameof(language));
-        }
+        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
     }
 }

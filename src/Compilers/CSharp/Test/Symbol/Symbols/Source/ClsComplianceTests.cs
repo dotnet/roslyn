@@ -403,7 +403,7 @@ public class Generic<T>
                 // public class B : Generic<int*[]>
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "B").WithArguments("B", "Generic<int*[]>"));
 
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (10,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // public class B : Generic<int*[]>
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 26),
@@ -760,7 +760,7 @@ public interface Generic<T> { }
                 // unsafe public interface E : Bad, Generic<int*[]> { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "E").WithArguments("E", "Generic<int*[]>").WithLocation(14, 25));
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (6,18): warning CS3027: 'A' is not CLS-compliant because base interface 'Bad' is not CLS-compliant
                 // public interface A : Bad { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "A").WithArguments("A", "Bad"),
@@ -838,7 +838,7 @@ public interface Bad { }
 public interface Generic<T> { }
 ";
             // Implemented interfaces are not required to be compliant - only inherited ones.
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (8,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe public class B : Generic<int*[]> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 21),
@@ -847,7 +847,7 @@ public interface Generic<T> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(14, 21));
 
             // Implemented interfaces are not required to be compliant - only inherited ones.
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3165,6 +3165,7 @@ public class C
                     case SpecialType.System_Runtime_CompilerServices_IsVolatile: // static
                     case SpecialType.System_Runtime_CompilerServices_RuntimeFeature: // static and not available
                     case SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute: // not available
+                    case SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute: // not available
                         continue;
                 }
 

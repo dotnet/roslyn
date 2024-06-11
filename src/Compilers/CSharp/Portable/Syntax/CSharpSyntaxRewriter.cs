@@ -138,24 +138,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list) where TNode : SyntaxNode
         {
-            SyntaxListBuilder? alternate = null;
+            SyntaxListBuilder<TNode> alternate = default;
             for (int i = 0, n = list.Count; i < n; i++)
             {
                 var item = list[i];
                 var visited = this.VisitListElement(item);
-                if (item != visited && alternate == null)
+                if (item != visited && alternate.IsNull)
                 {
-                    alternate = new SyntaxListBuilder(n);
+                    alternate = new SyntaxListBuilder<TNode>(n);
                     alternate.AddRange(list, 0, i);
                 }
 
-                if (alternate != null && visited != null && !visited.IsKind(SyntaxKind.None))
+                if (!alternate.IsNull && visited != null && !visited.IsKind(SyntaxKind.None))
                 {
                     alternate.Add(visited);
                 }
             }
 
-            if (alternate != null)
+            if (!alternate.IsNull)
             {
                 return alternate.ToList();
             }

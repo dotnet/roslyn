@@ -12,46 +12,41 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
-    internal class UnitTestingIncrementalAnalyzer : IIncrementalAnalyzer
+    internal class UnitTestingIncrementalAnalyzer(IUnitTestingIncrementalAnalyzerImplementation implementation) : IIncrementalAnalyzer
     {
-        private readonly IUnitTestingIncrementalAnalyzerImplementation _implementation;
-
-        public UnitTestingIncrementalAnalyzer(IUnitTestingIncrementalAnalyzerImplementation implementation)
-            => _implementation = implementation;
-
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
+            => implementation.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
 
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
+            => implementation.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
 
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeSyntaxAsync(document, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
+            => implementation.AnalyzeSyntaxAsync(document, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            => _implementation.DocumentCloseAsync(document, cancellationToken);
+            => implementation.DocumentCloseAsync(document, cancellationToken);
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            => _implementation.DocumentOpenAsync(document, cancellationToken);
+            => implementation.DocumentOpenAsync(document, cancellationToken);
 
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            => _implementation.DocumentResetAsync(document, cancellationToken);
+            => implementation.DocumentResetAsync(document, cancellationToken);
 
         public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            => _implementation.NewSolutionSnapshotAsync(solution, cancellationToken);
+            => implementation.NewSolutionSnapshotAsync(solution, cancellationToken);
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            _implementation.RemoveDocument(documentId);
+            implementation.RemoveDocument(documentId);
             return Task.CompletedTask;
         }
 
         public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            _implementation.RemoveProject(projectId);
+            implementation.RemoveProject(projectId);
             return Task.CompletedTask;
         }
 

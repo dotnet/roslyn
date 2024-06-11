@@ -56,8 +56,9 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
 
-    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'net6.0'" />
+    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' == 'net472'" />
 
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'net6.0'" />
   </ItemGroup>

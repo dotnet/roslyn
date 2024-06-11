@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.StringIndentation
         Task<ImmutableArray<StringIndentationRegion>> GetStringIndentationRegionsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 
-    internal readonly struct StringIndentationRegion
+    internal readonly struct StringIndentationRegion(TextSpan indentSpan, ImmutableArray<TextSpan> holeSpans = default)
     {
         /// <summary>
         /// The entire span of the indent region.  Given code like:
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.StringIndentation
         ///         """;
         /// </code>
         /// </summary>
-        public readonly TextSpan IndentSpan;
+        public readonly TextSpan IndentSpan = indentSpan;
 
         /// <summary>
         /// Regions of the literal that count as 'code holes' and which the lines of the tagger should not draw through.
@@ -107,12 +107,6 @@ namespace Microsoft.CodeAnalysis.StringIndentation
         /// </code>
         /// 
         /// </summary>
-        public readonly ImmutableArray<TextSpan> OrderedHoleSpans;
-
-        public StringIndentationRegion(TextSpan indentSpan, ImmutableArray<TextSpan> holeSpans = default)
-        {
-            IndentSpan = indentSpan;
-            OrderedHoleSpans = holeSpans.NullToEmpty().Sort();
-        }
+        public readonly ImmutableArray<TextSpan> OrderedHoleSpans = holeSpans.NullToEmpty().Sort();
     }
 }

@@ -47,7 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
             static string GetSeverityString(ReportDiagnostic severity)
                 => severity switch
                 {
-                    ReportDiagnostic.Hidden => ServicesVSResources.Disabled,
+                    ReportDiagnostic.Suppress => ServicesVSResources.Disabled,
+                    ReportDiagnostic.Hidden => ServicesVSResources.Refactoring_Only,
                     ReportDiagnostic.Info => ServicesVSResources.Suggestion,
                     ReportDiagnostic.Warn => ServicesVSResources.Warning,
                     ReportDiagnostic.Error => ServicesVSResources.Error,

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal sealed class CompilerServerHost : ICompilerServerHost
     {
-        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; } = new ShadowCopyAnalyzerAssemblyLoader(baseDirectory: Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
 
         public static Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider { get; } = (path, properties) => new CachingMetadataReference(path, properties);
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Directory that contains mscorlib.  Can be null when the host is executing in a CoreCLR context.
         /// </summary>
-        private string SdkDirectory { get; }
+        private string? SdkDirectory { get; }
 
         public ICompilerServerLogger Logger { get; }
 
@@ -67,11 +67,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private readonly GeneratorDriverCache _driverCache = new GeneratorDriverCache();
 
-        internal CompilerServerHost(string clientDirectory, string sdkDirectory, ICompilerServerLogger logger)
+        internal CompilerServerHost(string clientDirectory, string? sdkDirectory, ICompilerServerLogger logger)
         {
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
             Logger = logger;
+            AnalyzerAssemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
         }
 
         public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)

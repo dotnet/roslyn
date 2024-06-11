@@ -99,6 +99,7 @@
          RefOnly="$(ProduceOnlyReferenceAssembly)"
          RemoveIntegerChecks="$(RemoveIntegerChecks)"
          ReportAnalyzer="$(ReportAnalyzer)"
+         ReportIVTs="$(ReportIVTs)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"
          RootNamespace="$(RootNamespace)"

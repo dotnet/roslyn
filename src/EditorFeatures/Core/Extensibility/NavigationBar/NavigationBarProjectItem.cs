@@ -8,27 +8,19 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal sealed class NavigationBarProjectItem : NavigationBarItem, IEquatable<NavigationBarProjectItem>
+    internal sealed class NavigationBarProjectItem(
+        string text,
+        Glyph glyph,
+        Workspace workspace,
+        DocumentId documentId,
+        string language) : NavigationBarItem(textVersion: null, text, glyph,
+                   spans: ImmutableArray<TextSpan>.Empty,
+                   childItems: ImmutableArray<NavigationBarItem>.Empty,
+                   indent: 0, bolded: false, grayed: false), IEquatable<NavigationBarProjectItem>
     {
-        public Workspace Workspace { get; }
-        public DocumentId DocumentId { get; }
-        public string Language { get; }
-
-        public NavigationBarProjectItem(
-            string text,
-            Glyph glyph,
-            Workspace workspace,
-            DocumentId documentId,
-            string language)
-                : base(textVersion: null, text, glyph,
-                       spans: ImmutableArray<TextSpan>.Empty,
-                       childItems: ImmutableArray<NavigationBarItem>.Empty,
-                       indent: 0, bolded: false, grayed: false)
-        {
-            this.Workspace = workspace;
-            this.DocumentId = documentId;
-            this.Language = language;
-        }
+        public Workspace Workspace { get; } = workspace;
+        public DocumentId DocumentId { get; } = documentId;
+        public string Language { get; } = language;
 
         internal void SwitchToContext()
         {

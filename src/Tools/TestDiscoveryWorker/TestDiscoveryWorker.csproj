@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>net8.0;net472</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   
@@ -10,6 +10,8 @@
     <PackageReference Include="xunit.abstractions" Version="$(xunitabstractionsVersion)" />
     <PackageReference Include="xunit.runner.utility" Version="$(xunitrunnerutilityVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
+    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
   </ItemGroup>
     
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">

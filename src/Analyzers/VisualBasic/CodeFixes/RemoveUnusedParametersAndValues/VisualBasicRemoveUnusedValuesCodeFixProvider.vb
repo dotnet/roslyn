@@ -68,6 +68,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Throw ExceptionUtilities.Unreachable
         End Function
 
+        Protected Overrides Function ComputeReplacementNode(originalOldNode As SyntaxNode, changedOldNode As SyntaxNode, proposedReplacementNode As SyntaxNode) As SyntaxNode
+            ' VB currently doesn't have recursive change scenarios
+            Return proposedReplacementNode.WithAdditionalAnnotations(Formatter.Annotation)
+        End Function
+
         Protected Overrides Function GetCandidateLocalDeclarationForRemoval(declarator As VariableDeclaratorSyntax) As LocalDeclarationStatementSyntax
             Return TryCast(declarator.Parent, LocalDeclarationStatementSyntax)
         End Function

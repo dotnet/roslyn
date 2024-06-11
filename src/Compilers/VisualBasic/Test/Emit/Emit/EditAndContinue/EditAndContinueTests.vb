@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.MetadataUtilities
@@ -236,6 +237,52 @@ End Class
                         Handle(1, TableIndex.Param),
                         Handle(2, TableIndex.StandAloneSig))
                 End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub ModifyMethod_ParameterModifiers_RefOut()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Public Sub F(ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+                    ",
+                    validator:=Sub(g)
+                               End Sub).
+                AddGeneration(
+                    source:="
+Imports System.Runtime.InteropServices
+Class C
+    Public Sub F(<Out> ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=Sub(g)
+                                   g.VerifyTypeDefNames()
+                                   g.VerifyMethodDefNames("F")
+
+                                   g.VerifyEncLogDefinitions(
+                                   {
+                                       Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                                   })
+
+                                   g.VerifyEncMapDefinitions(
+                                   {
+                                       Handle(2, TableIndex.MethodDef),
+                                       Handle(1, TableIndex.Param)
+                                   })
+                               End Sub).
+                Verify()
             End Using
         End Sub
 
@@ -641,167 +688,6 @@ End Namespace
   IL_0019:  ret
 }
 ")
-        End Sub
-
-        <WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")>
-        <Fact()>
-        Public Sub PrivateImplementationDetails_ArrayInitializer_FromMetadata()
-            Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
-Class C
-    Shared Sub M()
-        Dim a As Integer() = {1, 2, 3}
-        System.Console.Write(a(0))
-    End Sub
-End Class
-]]></file>
-                           </compilation>
-            Dim sources1 = <compilation>
-                               <file name="a.vb"><![CDATA[
-Class C
-    Shared Sub M()
-        Dim a As Integer() = {1, 2, 3}
-        System.Console.Write(a(1))
-    End Sub
-End Class
-]]></file>
-                           </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(sources0, TestOptions.DebugDll.WithModuleName("MODULE"))
-            Dim compilation1 = compilation0.WithSource(sources1)
-
-            Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
-            Dim methodData0 = testData0.GetMethodData("C.M")
-            methodData0.VerifyIL("
-{
-  // Code size       29 (0x1d)
-  .maxstack  3
-  .locals init (Integer() V_0) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""Integer""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
-  IL_000d:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.0
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldelem.i4
-  IL_0016:  call       ""Sub System.Console.Write(Integer)""
-  IL_001b:  nop
-  IL_001c:  ret
-}
-")
-            Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider)
-
-            Dim testData1 = New CompilationTestData()
-            Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
-            Dim diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(edit))
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       30 (0x1e)
-  .maxstack  4
-  .locals init (Integer() V_0) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""Integer""
-  IL_0007:  dup
-  IL_0008:  ldc.i4.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  stelem.i4
-  IL_000b:  dup
-  IL_000c:  ldc.i4.1
-  IL_000d:  ldc.i4.2
-  IL_000e:  stelem.i4
-  IL_000f:  dup
-  IL_0010:  ldc.i4.2
-  IL_0011:  ldc.i4.3
-  IL_0012:  stelem.i4
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  ldelem.i4
-  IL_0017:  call       ""Sub System.Console.Write(Integer)""
-  IL_001c:  nop
-  IL_001d:  ret
-}
-")
-        End Sub
-
-        ''' <summary>
-        ''' Should not generate method for string switch since
-        ''' the CLR only allows adding private members.
-        ''' </summary>
-        <WorkItem(834086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")>
-        <Fact()>
-        Public Sub PrivateImplementationDetails_ComputeStringHash()
-            Dim sources = <compilation>
-                              <file name="a.vb"><![CDATA[
-Class C
-    Shared Function F(s As String)
-        Select Case s
-            Case "1"
-                Return 1
-            Case "2"
-                Return 2
-            Case "3"
-                Return 3
-            Case "4"
-                Return 4
-            Case "5"
-                Return 5
-            Case "6"
-                Return 6
-            Case "7"
-                Return 7
-            Case Else
-                Return 0
-        End Select
-    End Function
-End Class
-]]></file>
-                          </compilation>
-            Const ComputeStringHashName As String = "ComputeStringHash"
-            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(sources, TestOptions.DebugDll)
-            Dim compilation1 = compilation0.WithSource(sources)
-
-            Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
-            Dim methodData0 = testData0.GetMethodData("C.F")
-            Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider)
-
-            ' Should have generated call to ComputeStringHash and
-            ' added the method to <PrivateImplementationDetails>.
-            Dim actualIL0 = methodData0.GetMethodIL()
-            Assert.True(actualIL0.Contains(ComputeStringHashName))
-
-            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim reader0 = md0.MetadataReader
-                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "F", ComputeStringHashName)
-
-                Dim testData1 = New CompilationTestData()
-                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-                Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
-                Dim diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(edit))
-
-                ' Should not have generated call to ComputeStringHash nor
-                ' added the method to <PrivateImplementationDetails>.
-                Dim actualIL1 = diff1.GetMethodIL("C.F")
-                Assert.False(actualIL1.Contains(ComputeStringHashName))
-
-                Using md1 = diff1.GetMetadata()
-                    Dim reader1 = md1.Reader
-                    Dim readers = {reader0, reader1}
-                    CheckNames(readers, reader1.GetMethodDefNames(), "F")
-                End Using
-            End Using
         End Sub
 
         ''' <summary>
@@ -1502,6 +1388,324 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
+        Public Sub Event_Delete()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(1)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(2)
+        End RemoveHandler
+        RaiseEvent()
+            System.Console.WriteLine(3)
+        End RaiseEvent
+    End Event
+End Class
+",
+                    validator:=
+                        Sub(g)
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.raise_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.E"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E")
+                            g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+
+                            ' We should update the Event table entry to indicate that the event has been deleted:
+                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(10)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(20)
+        End RemoveHandler
+        RaiseEvent()
+            System.Console.WriteLine(30)
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E")
+                            g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   30
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Event_TypeChange()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(1)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(2)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    validator:=
+                        Sub(g)
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Boolean)
+        AddHandler(value As System.Action(Of Boolean))
+            System.Console.WriteLine(10)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Boolean))
+            System.Console.WriteLine(20)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.add_E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.remove_E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' We do not update raise_E since its signature has not changed.
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
+                            g.VerifyDeletedMembers("C: {add_E, remove_E}")
+
+                            ' New event is added to the Event table associated with the new accessors.
+                            ' Events can't be overloaded on type so we will update the existing Event table entry.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(100)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(200)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.add_E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.remove_E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' We do not update raise_E since its signature has not changed.
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
+                            g.VerifyDeletedMembers("C: {add_E, remove_E}")
+
+                            ' Updating existing members, no new additions.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(9, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   100
+  IL_0003:  call       0x0A000008
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4     0xc8
+  IL_0006:  call       0x0A000008
+  IL_000b:  nop
+  IL_000c:  ret
+}
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000009
+  IL_0005:  throw
+}
+")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
         Public Sub UpdateType_AddAttributes()
             Dim source0 = "
 Class C
@@ -1519,7 +1723,7 @@ Class C
 End Class
 "
 
-            Dim compilation0 = CreateCompilation(source0, options:=TestOptions.DebugDll, TargetFramework:=TargetFramework.NetStandard20)
+            Dim compilation0 = CreateCompilation(source0, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandard20)
             Dim compilation1 = compilation0.WithSource(source1)
             Dim compilation2 = compilation1.WithSource(source2)
 
@@ -1734,7 +1938,7 @@ End Class" & attributeSource
                     SemanticEdit.Create(SemanticEditKind.Replace, Nothing, c1)))
 
             Dim md1 = diff1.GetMetadata()
-            ValidateReplacedType(diff1, {reader0, md1.Reader})
+            validateReplacedType(diff1, {reader0, md1.Reader})
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1846,7 +2050,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(837315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837315")>
-        Public Sub AddingSetAccessor()
+        Public Sub Property_Insert_Setter()
             Dim source0 =
 <compilation>
     <file name="a.vb">
@@ -1924,7 +2128,7 @@ End Module</file>
         End Sub
 
         <Fact>
-        Public Sub PropertyGetterReturnValueVariable()
+        Public Sub Property_GetterReturnValueVariable()
             Dim source0 =
 <compilation>
     <file name="a.vb">
@@ -1978,6 +2182,420 @@ End Module</file>
   IL_0008:  ldloc.0
   IL_0009:  ret
 }")
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
+        Public Sub Property_TypeChange()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Integer)
+        Get
+            Console.WriteLine(1)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Integer))
+            Console.WriteLine(2)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Boolean)
+        Get
+            Console.WriteLine(10)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Boolean))
+            Console.WriteLine(20)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' old accessors are updated to throw, new accessors are added:
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            ' New property is added to the Property table associated with the new accessors.
+                            ' Properties can be overloaded on name and signature, so we need to insert a new entry for the new signature.
+                            '
+                            ' We keep the existing entry as is, which is not ideal since reflection now returns both the old and the new properties rather than just the new one.
+                            ' Consider updating the existing Property table entry to change the property name to _deleted.
+                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' Action<int> get_P
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' set_P(Action<int>)
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' Action<bool> get_P
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' set_P(Action<bool>)
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty), ' Action<bool> P
+                                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<bool> P <-> Action<bool> get_P
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<bool> P <-> set_P(Action<bool>)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ldnull
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Integer)
+        Get
+            Console.WriteLine(100)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Integer))
+            Console.WriteLine(200)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' old accessors are updated to throw, new accessors are added:
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            ' Changing the signature back updates the the original property and accessors.
+                            ' No new property/method is added.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<bool> get_P
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<bool>)
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<int> get_P
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<int>)
+                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),  ' Action<int> P
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<int> P <-> Action<int> get_P
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<int> P <-> set_P(Action<int>)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   100
+  IL_0003:  call       0x0A000008
+  IL_0008:  nop
+  IL_0009:  ldnull
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4     0xc8
+  IL_0006:  call       0x0A000008
+  IL_000b:  nop
+  IL_000c:  ret
+}
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000009
+  IL_0005:  throw
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Property_Delete()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' deleted getter is updated to throw:
+                            g.VerifyMethodDefNames("get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000005
+  IL_0005:  throw
+}")
+                        End Sub).
+                        AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.get_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            g.VerifyMethodDefNames("get_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Property_DeleteGetter()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    WriteOnly Property P As Integer
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyDeletedMembers("C: {get_P}")
+
+                            ' deleted getter is updated to throw:
+                            g.VerifyMethodDefNames("get_P")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000005
+  IL_0005:  throw
+}")
+                        End Sub).
+                        AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.get_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyDeletedMembers("C: {get_P}")
+
+                            g.VerifyMethodDefNames("get_P")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}")
+                        End Sub).
+                    Verify()
             End Using
         End Sub
 
@@ -2214,7 +2832,7 @@ End Class
 }
 ")
 
-            diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
+            diff1.VerifyPdb({&H6000001UI, &H6000002UI, &H6000003UI, &H6000004UI, &H6000005UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -2266,7 +2884,7 @@ End Class
 }
 ")
 
-            diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
+            diff2.VerifyPdb({&H6000001UI, &H6000002UI, &H6000003UI, &H6000004UI, &H6000005UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -2324,7 +2942,7 @@ End Class
 }
 ")
 
-            diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
+            diff3.VerifyPdb({&H6000001UI, &H6000002UI, &H6000003UI, &H6000004UI, &H6000005UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -2413,7 +3031,7 @@ End Class
   IL_0009:  ret
 }
 ]]>.Value)
-            diff2.VerifyPdb({&H06000002UI},
+            diff2.VerifyPdb({&H6000002UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -5840,5 +6458,349 @@ End Class
             End Using
         End Sub
 
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        Public Sub PrivateImplDetails_DataFields_Arrays()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10")
+                            g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3")
+                            g.VerifyMethodDefNames(".ctor")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C..ctor"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyEncMapDefinitions(
+                            {
+                                Handle(1, TableIndex.MethodDef)
+                            })
+
+                            g.VerifyIL("C..ctor", "
+{
+  // Code size       65 (0x41)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Sub Object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   11
+  IL_000a:  newarr     ""Byte""
+  IL_000f:  dup
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  stelem.i1
+  IL_0013:  dup
+  IL_0014:  ldc.i4.2
+  IL_0015:  ldc.i4.2
+  IL_0016:  stelem.i1
+  IL_0017:  dup
+  IL_0018:  ldc.i4.3
+  IL_0019:  ldc.i4.3
+  IL_001a:  stelem.i1
+  IL_001b:  dup
+  IL_001c:  ldc.i4.4
+  IL_001d:  ldc.i4.4
+  IL_001e:  stelem.i1
+  IL_001f:  dup
+  IL_0020:  ldc.i4.5
+  IL_0021:  ldc.i4.5
+  IL_0022:  stelem.i1
+  IL_0023:  dup
+  IL_0024:  ldc.i4.6
+  IL_0025:  ldc.i4.6
+  IL_0026:  stelem.i1
+  IL_0027:  dup
+  IL_0028:  ldc.i4.7
+  IL_0029:  ldc.i4.7
+  IL_002a:  stelem.i1
+  IL_002b:  dup
+  IL_002c:  ldc.i4.8
+  IL_002d:  ldc.i4.8
+  IL_002e:  stelem.i1
+  IL_002f:  dup
+  IL_0030:  ldc.i4.s   9
+  IL_0032:  ldc.i4.s   9
+  IL_0034:  stelem.i1
+  IL_0035:  dup
+  IL_0036:  ldc.i4.s   10
+  IL_0038:  ldc.i4.s   10
+  IL_003a:  stelem.i1
+  IL_003b:  stfld      ""C.b As Byte()""
+  IL_0040:  ret
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        Public Sub PrivateImplDetails_ComputeStringHash()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Function F(s As String) As Integer
+        Select Case s
+            Case ""A_______""
+                Return 1
+            Case ""_B______""
+                Return 2
+            Case ""__C_____""
+                Return 3
+            Case ""___D____""
+                Return 4
+            Case ""____E___""
+                Return 5
+            Case ""_____F__""
+                Return 6
+            Case ""______G_""
+                Return 7
+            Case ""_______H""
+                Return 8
+            Case Else
+                Return 9
+        End Select
+    End Function
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>")
+                            g.VerifyMethodDefNames(".ctor", "F", "ComputeStringHash")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Function F(s As String) As Integer
+        Select Case s
+            Case ""A_______""
+                Return 10
+            Case ""_B______""
+                Return 20
+            Case ""__C_____""
+                Return 30
+            Case ""___D____""
+                Return 40
+            Case ""____E___""
+                Return 50
+            Case ""_____F__""
+                Return 60
+            Case ""______G_""
+                Return 70
+            Case ""_______H""
+                Return 80
+            Case Else
+                Return 90
+        End Select
+    End Function
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<PrivateImplementationDetails>#1")
+                            g.VerifyMethodDefNames("F", "ComputeStringHash")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyEncMapDefinitions(
+                            {
+                                Handle(4, TableIndex.TypeDef),
+                                Handle(2, TableIndex.MethodDef),
+                                Handle(4, TableIndex.MethodDef),
+                                Handle(1, TableIndex.Param),
+                                Handle(3, TableIndex.Param),
+                                Handle(5, TableIndex.CustomAttribute),
+                                Handle(3, TableIndex.StandAloneSig),
+                                Handle(4, TableIndex.StandAloneSig)
+                            })
+
+                            g.VerifyIL("C.F", "
+{
+  // Code size      332 (0x14c)
+  .maxstack  3
+  .locals init (Integer V_0, //F
+                String V_1,
+                UInteger V_2)
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  call       ""Function ComputeStringHash(String) As UInteger""
+  IL_000a:  stloc.2
+  IL_000b:  ldloc.2
+  IL_000c:  ldc.i4     0x56f95d19
+  IL_0011:  bgt.un.s   IL_004f
+  IL_0013:  ldloc.2
+  IL_0014:  ldc.i4     0x480fa108
+  IL_0019:  bgt.un.s   IL_0035
+  IL_001b:  ldloc.2
+  IL_001c:  ldc.i4     0xc7c1536
+  IL_0021:  beq.s      IL_009e
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4     0x480fa108
+  IL_002b:  beq        IL_0104
+  IL_0030:  br         IL_0144
+  IL_0035:  ldloc.2
+  IL_0036:  ldc.i4     0x4cb374b7
+  IL_003b:  beq        IL_00d4
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ldloc.2
+  IL_0043:  ldc.i4     0x56f95d19
+  IL_0048:  beq.s      IL_00b1
+  IL_004a:  br         IL_0144
+  IL_004f:  ldloc.2
+  IL_0050:  ldc.i4     0x7efadce5
+  IL_0055:  bgt.un.s   IL_0074
+  IL_0057:  ldloc.2
+  IL_0058:  ldc.i4     0x6b29f97a
+  IL_005d:  beq        IL_00e4
+  IL_0062:  br.s       IL_0064
+  IL_0064:  ldloc.2
+  IL_0065:  ldc.i4     0x7efadce5
+  IL_006a:  beq        IL_00f4
+  IL_006f:  br         IL_0144
+  IL_0074:  ldloc.2
+  IL_0075:  ldc.i4     0xc8d4cc33
+  IL_007a:  beq.s      IL_008b
+  IL_007c:  br.s       IL_007e
+  IL_007e:  ldloc.2
+  IL_007f:  ldc.i4     0xf3f3f8ec
+  IL_0084:  beq.s      IL_00c4
+  IL_0086:  br         IL_0144
+  IL_008b:  ldloc.1
+  IL_008c:  ldstr      ""A_______""
+  IL_0091:  ldc.i4.0
+  IL_0092:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_0097:  brfalse.s  IL_0114
+  IL_0099:  br         IL_0144
+  IL_009e:  ldloc.1
+  IL_009f:  ldstr      ""_B______""
+  IL_00a4:  ldc.i4.0
+  IL_00a5:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00aa:  brfalse.s  IL_011a
+  IL_00ac:  br         IL_0144
+  IL_00b1:  ldloc.1
+  IL_00b2:  ldstr      ""__C_____""
+  IL_00b7:  ldc.i4.0
+  IL_00b8:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00bd:  brfalse.s  IL_0120
+  IL_00bf:  br         IL_0144
+  IL_00c4:  ldloc.1
+  IL_00c5:  ldstr      ""___D____""
+  IL_00ca:  ldc.i4.0
+  IL_00cb:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00d0:  brfalse.s  IL_0126
+  IL_00d2:  br.s       IL_0144
+  IL_00d4:  ldloc.1
+  IL_00d5:  ldstr      ""____E___""
+  IL_00da:  ldc.i4.0
+  IL_00db:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00e0:  brfalse.s  IL_012c
+  IL_00e2:  br.s       IL_0144
+  IL_00e4:  ldloc.1
+  IL_00e5:  ldstr      ""_____F__""
+  IL_00ea:  ldc.i4.0
+  IL_00eb:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00f0:  brfalse.s  IL_0132
+  IL_00f2:  br.s       IL_0144
+  IL_00f4:  ldloc.1
+  IL_00f5:  ldstr      ""______G_""
+  IL_00fa:  ldc.i4.0
+  IL_00fb:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_0100:  brfalse.s  IL_0138
+  IL_0102:  br.s       IL_0144
+  IL_0104:  ldloc.1
+  IL_0105:  ldstr      ""_______H""
+  IL_010a:  ldc.i4.0
+  IL_010b:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_0110:  brfalse.s  IL_013e
+  IL_0112:  br.s       IL_0144
+  IL_0114:  nop
+  IL_0115:  ldc.i4.s   10
+  IL_0117:  stloc.0
+  IL_0118:  br.s       IL_014a
+  IL_011a:  nop
+  IL_011b:  ldc.i4.s   20
+  IL_011d:  stloc.0
+  IL_011e:  br.s       IL_014a
+  IL_0120:  nop
+  IL_0121:  ldc.i4.s   30
+  IL_0123:  stloc.0
+  IL_0124:  br.s       IL_014a
+  IL_0126:  nop
+  IL_0127:  ldc.i4.s   40
+  IL_0129:  stloc.0
+  IL_012a:  br.s       IL_014a
+  IL_012c:  nop
+  IL_012d:  ldc.i4.s   50
+  IL_012f:  stloc.0
+  IL_0130:  br.s       IL_014a
+  IL_0132:  nop
+  IL_0133:  ldc.i4.s   60
+  IL_0135:  stloc.0
+  IL_0136:  br.s       IL_014a
+  IL_0138:  nop
+  IL_0139:  ldc.i4.s   70
+  IL_013b:  stloc.0
+  IL_013c:  br.s       IL_014a
+  IL_013e:  nop
+  IL_013f:  ldc.i4.s   80
+  IL_0141:  stloc.0
+  IL_0142:  br.s       IL_014a
+  IL_0144:  nop
+  IL_0145:  ldc.i4.s   90
+  IL_0147:  stloc.0
+  IL_0148:  br.s       IL_014a
+  IL_014a:  ldloc.0
+  IL_014b:  ret
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
     End Class
 End Namespace

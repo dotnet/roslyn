@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             root As SyntaxNode)
 
             For Each child In root.ChildNodesAndTokens()
-                If child.IsNode Then
+                If child.IsNode And context.ShouldAnalyzeSpan(child.Span) Then
                     Dim declarationStatement = TryCast(child.AsNode(), DeclarationStatementSyntax)
                     If declarationStatement IsNot Nothing Then
                         If ShouldCheck(declarationStatement) Then

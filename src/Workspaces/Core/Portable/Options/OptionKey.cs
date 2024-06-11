@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Options
 {
     /// <inheritdoc cref="OptionKey2"/>
     [NonDefaultable]
-    public readonly struct OptionKey : IEquatable<OptionKey>
+    public readonly record struct OptionKey
     {
         /// <inheritdoc cref="OptionKey2.Option"/>
         public IOption Option { get; }
@@ -37,12 +37,6 @@ namespace Microsoft.CodeAnalysis.Options
 
             Option = option;
             Language = language;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is OptionKey key &&
-                   Equals(key);
         }
 
         public bool Equals(OptionKey other)
@@ -87,11 +81,5 @@ namespace Microsoft.CodeAnalysis.Options
 
             return languageDisplay + Option.ToString();
         }
-
-        public static bool operator ==(OptionKey left, OptionKey right)
-            => left.Equals(right);
-
-        public static bool operator !=(OptionKey left, OptionKey right)
-            => !left.Equals(right);
     }
 }

@@ -90,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_collection_initializer",
             IdeCodeStyleOptions.CommonDefaults.PreferCollectionInitializer);
 
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCollectionExpression = CreatePerLanguageOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
+            "dotnet_style_prefer_collection_expression",
+            IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpression);
+
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedBooleanExpressions = CreatePerLanguageOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             "dotnet_style_prefer_simplified_boolean_expressions",

@@ -875,6 +875,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
 
+        [return: NotNullIfNotNull(nameof(symbol))]
+        internal abstract TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class, ISymbolInternal;
+
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>
@@ -1830,9 +1833,16 @@ namespace Microsoft.CodeAnalysis
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(incoming is object);
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming, cancellationToken);
             incoming.Free();
             incoming = null;
+            return result;
+        }
+
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, DiagnosticBag incoming, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(incoming is object);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
             return result;
         }
 
@@ -3210,10 +3220,10 @@ namespace Microsoft.CodeAnalysis
                 var signKind = IsRealSigned
                     ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBuilder : EmitStreamSignKind.SignedWithFile)
                     : EmitStreamSignKind.None;
-                emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
+                emitPeStream = new EmitStream(peStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 emitMetadataStream = metadataPEStreamProvider == null
                     ? null
-                    : new EmitStream(metadataPEStreamProvider, signKind, Options.StrongNameProvider);
+                    : new EmitStream(metadataPEStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
@@ -3238,8 +3248,8 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         metadataDiagnostics,
                         MessageProvider,
-                        emitPeStream.GetCreateStreamFunc(metadataDiagnostics),
-                        emitMetadataStream?.GetCreateStreamFunc(metadataDiagnostics),
+                        emitPeStream.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
+                        emitMetadataStream?.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
@@ -3291,8 +3301,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return
-                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
-                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
+                    emitPeStream.Complete(MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(MessageProvider, diagnostics) ?? true);
             }
             finally
             {

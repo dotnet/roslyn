@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal sealed partial class DateAndTimeEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
+    internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language) : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly DateAndTimeEmbeddedLanguage _language;
-
-        public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language)
-            => _language = language;
+        private readonly DateAndTimeEmbeddedLanguage _language = language;
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');
 
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             // Note: it's acceptable if this fails to convert.  We just won't show the example in that case.
             var virtualChars = _language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<DateAndTimeItem>.GetInstance(out var items);
 
@@ -125,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                     properties: properties.ToImmutable(),
                     rules: embeddedItem.IsDefault
                         ? s_rules.WithMatchPriority(MatchPriority.Preselect)
-                        : s_rules));
+                        : s_rules,
+                    isComplexTextEdit: context.CompletionListSpan != textChange.Span));
             }
 
             context.IsExclusive = true;

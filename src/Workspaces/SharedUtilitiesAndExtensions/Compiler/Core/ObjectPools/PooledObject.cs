@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -41,32 +42,32 @@ namespace Microsoft.CodeAnalysis
         {
             return new PooledObject<StringBuilder>(
                 pool,
-                Allocator,
-                Releaser);
+                static p => Allocator(p),
+                static (p, v) => Releaser(p, v));
         }
 
         public static PooledObject<Stack<TItem>> Create<TItem>(ObjectPool<Stack<TItem>> pool)
         {
             return new PooledObject<Stack<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                static p => Allocator(p),
+                static (p, v) => Releaser(p, v));
         }
 
         public static PooledObject<Queue<TItem>> Create<TItem>(ObjectPool<Queue<TItem>> pool)
         {
             return new PooledObject<Queue<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                static p => Allocator(p),
+                static (p, v) => Releaser(p, v));
         }
 
         public static PooledObject<HashSet<TItem>> Create<TItem>(ObjectPool<HashSet<TItem>> pool)
         {
             return new PooledObject<HashSet<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                static p => Allocator(p),
+                static (p, v) => Releaser(p, v));
         }
 
         public static PooledObject<Dictionary<TKey, TValue>> Create<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
@@ -74,17 +75,26 @@ namespace Microsoft.CodeAnalysis
         {
             return new PooledObject<Dictionary<TKey, TValue>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                static p => Allocator(p),
+                static (p, v) => Releaser(p, v));
         }
 
         public static PooledObject<List<TItem>> Create<TItem>(ObjectPool<List<TItem>> pool)
         {
             return new PooledObject<List<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                static p => Allocator(p),
+                static (p, v) => Releaser(p, v));
         }
+
+        public static PooledObject<SegmentedList<TItem>> Create<TItem>(ObjectPool<SegmentedList<TItem>> pool)
+        {
+            return new PooledObject<SegmentedList<TItem>>(
+                pool,
+                static p => Allocator(p),
+                static (p, v) => Releaser(p, v));
+        }
+
         #endregion
 
         #region allocators and releasers
@@ -124,7 +134,13 @@ namespace Microsoft.CodeAnalysis
             => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<List<TItem>> pool, List<TItem> obj)
-            => pool.ClearAndFree(obj);
+            => pool.ClearAndFree(obj, pool.TrimOnFree);
+
+        private static SegmentedList<TItem> Allocator<TItem>(ObjectPool<SegmentedList<TItem>> pool)
+            => pool.AllocateAndClear();
+
+        private static void Releaser<TItem>(ObjectPool<SegmentedList<TItem>> pool, SegmentedList<TItem> obj)
+            => pool.ClearAndFree(obj, pool.TrimOnFree);
         #endregion
     }
 }

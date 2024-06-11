@@ -14,6 +14,8 @@ using System.Threading;
 namespace PrepareTests;
 internal class TestDiscovery
 {
+    private static readonly object s_lock = new();
+
     public static bool RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
     {
         var binDirectory = Path.Combine(repoRootDirectory, "artifacts", "bin");
@@ -32,11 +34,23 @@ internal class TestDiscovery
                 ? dotnetFrameworkWorker
                 : dotnetCoreWorker;
 
-            success &= RunWorker(dotnetPath, workerPath, assembly);
+            var result = RunWorker(dotnetPath, workerPath, assembly);
+            lock (s_lock)
+            {
+                success &= result;
+            }
         });
         stopwatch.Stop();
 
-        Console.WriteLine($"Discovered tests in {stopwatch.Elapsed}");
+        if (success)
+        {
+            Console.WriteLine($"Discovered tests in {stopwatch.Elapsed}");
+        }
+        else
+        {
+            Console.WriteLine($"Test discovery failed");
+        }
+
         return success;
     }
 
@@ -44,7 +58,7 @@ internal class TestDiscovery
     {
         var testDiscoveryWorkerFolder = Path.Combine(binDirectory, "TestDiscoveryWorker");
         var configuration = Directory.Exists(Path.Combine(testDiscoveryWorkerFolder, "Debug")) ? "Debug" : "Release";
-        return (Path.Combine(testDiscoveryWorkerFolder, configuration, "net7.0", "TestDiscoveryWorker.dll"),
+        return (Path.Combine(testDiscoveryWorkerFolder, configuration, "net8.0", "TestDiscoveryWorker.dll"),
                 Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
     }
 
@@ -95,6 +109,12 @@ internal class TestDiscovery
         pipeClient.WaitForExit();
         success &= pipeClient.ExitCode == 0;
         pipeClient.Close();
+
+        if (!success)
+        {
+            Console.WriteLine($"Failed to discover tests in {pathToAssembly}");
+        }
+
         return success;
     }
 

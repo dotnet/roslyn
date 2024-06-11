@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             }
             else
             {
-                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out ImmutableArray<TextSpan> spans);
+                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out var spans);
                 Assert.True(spans.Length < 2);
                 if (spans.Length == 1)
                 {
@@ -274,10 +273,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             var service = document.GetRequiredLanguageService<IClassificationService>();
             var options = ClassificationOptions.Default;
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            using var _ = Classifier.GetPooledList(out var result);
             await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
             await service.AddEmbeddedLanguageClassificationsAsync(document, span, options, result, CancellationToken.None);
-            return result.ToImmutable();
+            return result.ToImmutableArray();
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
@@ -285,9 +284,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var service = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var results);
+            using var _ = Classifier.GetPooledList(out var results);
             service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
-            return results.ToImmutable();
+            return results.ToImmutableArray();
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)

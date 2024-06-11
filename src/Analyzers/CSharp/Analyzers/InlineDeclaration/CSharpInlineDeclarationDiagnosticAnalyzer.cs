@@ -103,8 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var invocationOrCreation = argumentList.Parent;
-            if (!invocationOrCreation.IsKind(SyntaxKind.InvocationExpression) &&
-                !invocationOrCreation.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (invocationOrCreation?.Kind() is not SyntaxKind.InvocationExpression and not SyntaxKind.ObjectCreationExpression)
             {
                 // Out-variables are only legal with invocations and object creations.
                 // If we don't have one of those bail.  Note: we need hte parent to be
@@ -151,6 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 return;
             }
+
+            // Bail out early if the localDeclaration is outside the context's analysis span.
+            if (!context.ShouldAnalyzeSpan(localDeclaration.Span))
+                return;
 
             if (localDeclarator.SpanStart >= argumentNode.SpanStart)
             {

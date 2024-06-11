@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _globalOptions = globalOptions;
             _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
-                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
+                DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
         }
 
         public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 return new LSP.Location
                 {
-                    Uri = ProtocolConversions.GetUriFromFilePath(declarationFile.FilePath),
+                    Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
                     Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                 };
             }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     documentSpan.Value, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                var docText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var docText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var classifiedTextRuns = GetClassifiedTextRuns(_id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
                 return new ClassifiedTextElement(classifiedTextRuns.ToArray());

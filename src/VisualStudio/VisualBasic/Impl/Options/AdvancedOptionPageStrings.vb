@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BackgroundAnalysisScope.None
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File_Tag As BackgroundAnalysisScope =
-            BackgroundAnalysisScope.ActiveFile
+            BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_Tag As BackgroundAnalysisScope =
             BackgroundAnalysisScope.OpenFiles
@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             CompilerDiagnosticsScope.None
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files_Tag As CompilerDiagnosticsScope =
-            CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics
+            CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files_Tag As CompilerDiagnosticsScope =
             CompilerDiagnosticsScope.OpenFiles
@@ -75,6 +75,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
+
+        Public ReadOnly Property Option_run_code_analysis_on_dotnet As String =
+            ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart
 
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
@@ -144,9 +147,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Quick_Actions As String =
             ServicesVSResources.Quick_Actions
-
-        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
-            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
 
         Public ReadOnly Property Option_EnableOutlining As String =
             BasicVSResources.Enter_outlining_mode_when_files_open

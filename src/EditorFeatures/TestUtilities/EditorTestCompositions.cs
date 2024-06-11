@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(EditorFeaturesResources).Assembly,
                 typeof(CSharp.CSharpEditorResources).Assembly,
                 typeof(VisualBasic.VBEditorResources).Assembly,
-                typeof(LanguageServerResources).Assembly);
+                typeof(LanguageServerProtocolResources).Assembly);
 
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TestInteractiveWindowEditorFactoryService));
 
         public static readonly TestComposition LanguageServerProtocol = FeaturesTestCompositions.Features
-            .AddAssemblies(typeof(LanguageServerResources).Assembly);
+            .AddAssemblies(typeof(LanguageServerProtocolResources).Assembly);
 
         public static readonly TestComposition LanguageServerProtocolEditorFeatures = EditorFeatures
-            .AddAssemblies(typeof(LanguageServerResources).Assembly);
+            .AddAssemblies(typeof(LanguageServerProtocolResources).Assembly);
     }
 }

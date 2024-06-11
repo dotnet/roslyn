@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal static class SimplificationHelpers
     {
-        public static readonly SyntaxAnnotation DontSimplifyAnnotation = new();
+        public static readonly SyntaxAnnotation DoNotSimplifyAnnotation = new();
         public static readonly SyntaxAnnotation SimplifyModuleNameAnnotation = new();
 
         public static TNode CopyAnnotations<TNode>(SyntaxNode from, TNode to) where TNode : SyntaxNode
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             if (dontSimplifyResult)
             {
-                to = to.WithAdditionalAnnotations(DontSimplifyAnnotation);
+                to = to.WithAdditionalAnnotations(DoNotSimplifyAnnotation);
             }
 
             return to;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             if (dontSimplifyResult)
             {
-                to = to.WithAdditionalAnnotations(DontSimplifyAnnotation);
+                to = to.WithAdditionalAnnotations(DoNotSimplifyAnnotation);
             }
 
             return to;

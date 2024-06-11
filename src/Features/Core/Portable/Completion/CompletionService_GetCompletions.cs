@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             // Note: we keep any context with items *or* with a suggested item.  
             var triggeredContexts = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, sharedContext, cancellationToken).ConfigureAwait(false);
+                document, caretPosition, trigger, options, completionListSpan, triggeredProviders, sharedContext, cancellationToken).ConfigureAwait(false);
 
             // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
             if (!triggeredContexts.Any(static cc => cc.Items.Count > 0))
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // that's all we'll return.
             var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
             if (!exclusiveContexts.IsEmpty)
-                return MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true);
+                return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
 
             // Great!  We had some items.  Now we want to see if any of the other providers 
             // would like to augment the completion list.  For example, we might trigger
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
 
             var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan, augmentingProviders, sharedContext, cancellationToken).ConfigureAwait(false);
+                document, caretPosition, trigger, options, completionListSpan, augmentingProviders, sharedContext, cancellationToken).ConfigureAwait(false);
 
             GC.KeepAlive(semanticModel);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var allContexts = triggeredContexts.Concat(augmentingContexts)
                 .Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false);
+            return MergeAndPruneCompletionLists(allContexts, options, isExclusive: false);
 
             ImmutableArray<CompletionProvider> GetTriggeredProviders(
                 Document document, ConcatImmutableArray<CompletionProvider> providers, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
-            CompletionOptions options, TextSpan defaultItemSpan,
+            CompletionOptions options, TextSpan completionListSpan,
             ImmutableArray<CompletionProvider> providers,
             SharedSyntaxContextsWithSpeculativeModel sharedContext,
             CancellationToken cancellationToken)
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 completionContextTasks.Add(GetContextAsync(
                     provider, document, caretPosition, trigger,
-                    options, defaultItemSpan, sharedContext, cancellationToken));
+                    options, completionListSpan, sharedContext, cancellationToken));
             }
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
@@ -243,14 +243,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionList MergeAndPruneCompletionLists(
             ImmutableArray<CompletionContext> completionContexts,
-            TextSpan defaultSpan,
             in CompletionOptions options,
             bool isExclusive)
         {
-            // See if any contexts changed the completion list span.  If so, the first context that
-            // changed it 'wins' and picks the span that will be used for all items in the completion
-            // list.  If no contexts changed it, then just use the default span provided by the service.
-            var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
+            Debug.Assert(!completionContexts.IsDefaultOrEmpty);
+
             using var displayNameToItemsMap = new DisplayNameToItemsMap(this);
             CompletionItem? suggestionModeItem = null;
 
@@ -272,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return CompletionList.Create(
-                finalCompletionListSpan,
+                completionContexts[0].CompletionListSpan,   // All contexts have the same completion list span.
                 displayNameToItemsMap.SortToSegmentedList(),
                 GetRules(options),
                 suggestionModeItem,
@@ -326,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
+        private class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
         {
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
@@ -334,16 +331,10 @@ namespace Microsoft.CodeAnalysis.Completion
             private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
             private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
 
-            private readonly Dictionary<string, object> _displayNameToItemsMap;
-            private readonly CompletionService _service;
+            private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
+            private readonly CompletionService _service = service;
 
             public int Count { get; private set; }
-
-            public DisplayNameToItemsMap(CompletionService service)
-            {
-                _service = service;
-                _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
-            }
 
             public SegmentedList<CompletionItem> SortToSegmentedList()
             {

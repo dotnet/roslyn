@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -18,23 +15,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <summary>
 /// Provides C# analyzers a convenient access to editorconfig options with fallback to IDE default values.
 /// </summary>
-internal readonly struct CSharpAnalyzerOptionsProvider
+internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options, IdeAnalyzerOptions fallbackOptions)
 {
     /// <summary>
     /// Document editorconfig options.
     /// </summary>
-    private readonly IOptionsReader _options;
+    private readonly IOptionsReader _options = options;
 
     /// <summary>
     /// Fallback options - the default options in Code Style layer.
     /// </summary>
-    private readonly IdeAnalyzerOptions _fallbackOptions;
-
-    public CSharpAnalyzerOptionsProvider(IOptionsReader options, IdeAnalyzerOptions fallbackOptions)
-    {
-        _options = options;
-        _fallbackOptions = fallbackOptions;
-    }
+    private readonly IdeAnalyzerOptions _fallbackOptions = fallbackOptions;
 
     public CSharpAnalyzerOptionsProvider(IOptionsReader options, AnalyzerOptions fallbackOptions)
         : this(options, fallbackOptions.GetIdeOptions())
@@ -52,7 +43,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
     internal CSharpSimplifierOptions GetSimplifierOptions()
-        => new CSharpSimplifierOptions(_options, FallbackSimplifierOptions);
+        => new(_options, FallbackSimplifierOptions);
 
     // SyntaxFormattingOptions
 
@@ -90,6 +81,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement => GetOption(CSharpCodeStyleOptions.UnusedValueExpressionStatement, FallbackCodeStyleOptions.UnusedValueExpressionStatement);
     public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment => GetOption(CSharpCodeStyleOptions.UnusedValueAssignment, FallbackCodeStyleOptions.UnusedValueAssignment);
     public CodeStyleOption2<bool> PreferMethodGroupConversion => GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, FallbackCodeStyleOptions.PreferMethodGroupConversion);
+    public CodeStyleOption2<bool> PreferPrimaryConstructors => GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors, FallbackCodeStyleOptions.PreferPrimaryConstructors);
 
     // CodeGenerationOptions
 

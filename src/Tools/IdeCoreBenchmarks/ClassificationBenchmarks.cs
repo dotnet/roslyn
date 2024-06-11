@@ -96,9 +96,9 @@ namespace IdeCoreBenchmarks
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
             var service = document.GetRequiredLanguageService<IClassificationService>();
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            using var _ = Classifier.GetPooledList(out var result);
             await service.AddSemanticClassificationsAsync(document, span, ClassificationOptions.Default, result, CancellationToken.None);
-            return result.ToImmutable();
+            return result.ToImmutableArray();
         }
 
         [Benchmark]

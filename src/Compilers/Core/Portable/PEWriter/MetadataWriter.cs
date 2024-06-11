@@ -4,6 +4,10 @@
 
 #nullable disable
 
+// We're not actually doing formatter-based serialization in this file.
+// We're simply propagating along the attributes of symbols we are emitting to metadata.
+#pragma warning disable SYSLIB0050 // 'FieldAttributes.NotSerialized' is obsolete: 'Formatter-based serialization is obsolete and should not be used.'
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

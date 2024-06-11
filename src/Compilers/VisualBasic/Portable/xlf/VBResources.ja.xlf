@@ -17,6 +17,11 @@
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">必要なメンバーがあるため、'{0}' から継承できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">行連結文字の後のコメントを使用するには、言語バージョン {0} 以上をご使用ください。</target>
@@ -32,9 +37,19 @@
         <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' は、コンパイラのみで使用するために予約されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' は、コンパイラでのみ使用するために予約されています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">複数のアナライザー構成ファイルを同じディレクトリに入れることはできません ('{0}')。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' は、ジェネリック型またはメソッド '{0}' のパラメーター '{1}' の 'New' 制約を満たすことはできません。これは、'{2}' に必要なメンバーが含まれているためです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">型 '{0}' には基底インターフェイスからのメンバーの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">必要なメンバー '{0}' は、オブジェクト初期化子または属性引数に設定する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">'{0}' に必要なメンバーの一覧の形式が正しくないため、解釈できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">ターゲット ランタイムは、既定のインターフェイスの実装をサポートしていません。</target>
@@ -67,6 +92,11 @@
         <target state="translated">共有された WithEvents 変数のイベントを、別の種類のメソッドで処理することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' はアセンブリ '{1}' で定義されています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}' には、共有された抽象または仮想 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}' にはコンパイラ機能 '{1}' が必要ですが、このバージョンのVisual Basic コンパイラではサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">参照によって返されるメソッドまたはプロパティの呼び出しは、非同期メソッドまたは反復子メソッドで 'With' ステートメント式として、またはラムダで暗黙的に参照される場合は使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -273,61 +311,49 @@
 
                                  - 出力ファイル -
 -out:&lt;file&gt;                       出力ファイル名を指定します。
--target:exe                       コンソール アプリケーション (既定)を作成します。
+-target:exe                       コンソール アプリケーション (既定) を作成します。
                                  (短い形式: -t)
 -target:winexe                    Windows アプリケーションを作成します。
 -target:library                   ライブラリ アセンブリを作成します。
--target:module                    
-に追加できるモジュールを作成する
-                                 アセンブリ。
--target:appcontainerexe           
-で実行される Windows アプリケーションを作成する
-                                 AppContainer。
--target:winmdobj                  Windows メタデータ中間ファイル
-の作成
+-target:module                    アセンブリに追加できるモジュールを
+                                 作成します。
+-target:appcontainerexe           AppContainer で実行される Windows アプリケーションを
+                                 作成します。
+-target:winmdobj                  Windows メタデータ中間ファイルを作成します
 -doc[+|-]                         XML ドキュメント ファイルを生成します。
 -doc:&lt;file&gt;                       &lt;file&gt; に XML ドキュメント ファイルを生成します。
--refout:&lt;file&gt;                    アセンブリ出力を参照して
-を生成します
+-refout:&lt;file&gt;                    生成する参照アセンブリ出力です
 
                                  - 入力ファイル -
--addmodule:&lt;file_list&gt;            指定されたモジュールからの参照メタデータ
--link:&lt;file_list&gt;                 指定された相互運用機能からメタデータの埋め込み
-                                 アセンブリ。(短い形式: -l)
--recurse:&lt;wildcard&gt;               現在のディレクトリ内のすべてのファイルを含める
-                                 と 
- に従ったサブディレクトリ
-                                 ワイルドカードの指定。
--reference:&lt;file_list&gt;            指定した
-からの参照メタデータ
-                                 アセンブリ。(短い形式: -r)
--analyzer:&lt;file_list&gt;             このアセンブリからアナライザーを実行
+-addmodule:&lt;file_list&gt;            指定されたモジュールからのメタデータを参照します
+-link:&lt;file_list&gt;                 指定された相互運用アセンブリからのメタデータを
+                                 埋め込みます。(短い形式: -l)
+-recurse:&lt;wildcard&gt;               ワイルドカードの仕様に従って、現在のディレクトリと
+                                 サブディレクトリ内のすべての
+                                 ファイルを含めます。
+-reference:&lt;file_list&gt;            指定されたアセンブリからのメタデータを
+                                 参照します。(短い形式: -r)
+-analyzer:&lt;file_list&gt;             このアセンブリからアナライザーを実行します
                                  (短い形式: -a)
--additionalfile:&lt;file list&gt;       コード
-に直接影響しない追加ファイル
-                                 生成しますが、アナライザーで
-を生成するために使用できます
-                                 エラーまたは警告。
+-additionalfile:&lt;file list&gt;       コードの生成に直接影響しないものの、エラーまたは警告を
+                                 生成するためにアナライザーが使用する可能性がある
+                                 追加ファイルです。
 
                                  - リソース -
--linkresource:&lt;resinfo&gt;           指定したファイルを外部
-としてリンクします
-                                 アセンブリ リソース。
+-linkresource:&lt;resinfo&gt;           指定されたファイルを外部アセンブリ リソースとして
+                                 リンクします。
                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                  (短い形式: -linkres)
--nowin32manifest                  既定のマニフェストを埋め込むべきではありません
-                                 出力 PE のマニフェスト セクションに。
--resource:&lt;resinfo&gt;               指定したファイルを埋め込み
-として追加します
-                                 アセンブリ リソース。
+-nowin32manifest                  既定のマニフェストを、出力 PE のマニフェスト セクション
+                                 に埋め込みません。
+-resource:&lt;resinfo&gt;               指定したファイルを埋め込みアセンブリ リソース
+                                 として追加します。
                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                  (短い形式: -res)
--win32icon:&lt;file&gt;                 
-の Win32 アイコン ファイル (.ico) を指定します
-                                 既定の Win32 リソース。
--win32manifest:&lt;file&gt;             指定されたファイルはマニフェスト
-に埋め込まれています
-                                 出力 PE のセクション。
+-win32icon:&lt;file&gt;                 既定の Win32 リソースに、Win32 アイコン ファイル (.ico)
+                                 を指定します。
+-win32manifest:&lt;file&gt;             指定されたファイルを出力 PE のマニフェスト セクションに
+                                 埋め込みます。
 -win32resource:&lt;file&gt;             Win32 リソース ファイル (.res) を指定します。
 
                                  - コード生成 -
@@ -337,17 +363,15 @@
 -debug:full                       完全なデバッグ情報を出力します (既定)。
 -debug:pdbonly                    完全なデバッグ情報を出力します。
 -debug:portable                   クロスプラットフォーム デバッグ情報を出力します。
--debug:embedded                   クロスプラットフォーム デバッグ情報を 
- に出力する
-                                 ターゲット .dll または .exe。
+-debug:embedded                   クロスプラットフォームのデバッグ情報を、ターゲットの .dll または .exe に
+                                 出力します。
 -deterministic                   決定論的アセンブリ
-を生成する
+を生成します
                                  (モジュール バージョン GUID とタイムスタンプを含む)
 -refonly                          メイン出力
-の代わりに参照アセンブリを生成する
--instrument:TestCoverage          
- を収集するようにインストルメント化されたアセンブリを生成する
-                                 カバレッジ情報
+の代わりに参照アセンブリを生成します
+-instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを
+                                 生成します
 -sourcelink:&lt;file&gt;                PDB に埋め込むソース リンク情報。
 
                                  - エラーと警告 -
@@ -355,49 +379,43 @@
 -nowarn:&lt;number_list&gt;             個々の警告の一覧を無効にします。
 -warnaserror[+|-]                 すべての警告をエラーとして扱います。
 -warnaserror[+|-]: &lt;number_list&gt;   警告の一覧をエラーとして扱います。
--ruleset:&lt;file&gt;                   特定の
-を無効にするルールセット ファイルを指定します
-                                 診断。
+-ruleset:&lt;file&gt;                   特定の診断を無効にするルールセット ファイルを
+                                 指定します。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                 すべてのコンパイラとアナライザーをログに記録するファイルの指定
-                                 SARIF 形式の診断。
-                                 sarif_version:{1|2|2.1} 既定値は 1. 2 と 2.1
-                                 両方とも SARIF バージョン 2.1.0 を意味します
--reportanalyzer                   レポート
-などの追加のアナライザー情報
-                                 実行時間。
+                                 すべてのコンパイラとアナライザーの診断を SARIF 形式でログに記録する
+                                 ファイルを指定します。
+                                 sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
+                                 両方とも SARIF バージョン 2.1.0 を意味します。
+-reportanalyzer                   実行時間などの追加のアナライザー情報を
+                                 報告します。
 -skipanalyzers[+|-]               診断アナライザーの実行をスキップします。
 
                                  - 言語 -
--define:&lt;symbol_list&gt;             グローバル条件付きコンパイルを宣言する
-                                 シンボル。symbol_list:name=value,...
+-define:&lt;symbol_list&gt;             グローバル条件付きコンパイル シンボルを
+                                 宣言します。symbol_list:name=value,...
                                  (短い形式: -d)
--imports:&lt;import_list&gt;            
-で名前空間のグローバル インポートを宣言する
-                                 参照されたメタデータ ファイル。
+-imports:&lt;import_list&gt;            参照されたメタデータ ファイルの名前空間に対するグローバル インポートを
+                                 宣言します。
                                  import_list:namespace,...
--langversion:?                  言語バージョン
-で使用できる値を表示する
--langversion:&lt;string&gt;             
-などの言語バージョンを指定します
+-langversion:?                  言語バージョンに指定できる値を表示します
+-langversion:&lt;string&gt;             次のような言語バージョンを指定します。
                                  'default' (最新のメジャー バージョン)、または
-                                 'latest' (マイナー バージョンを含む最新バージョン)
+                                 'latest' (マイナー バージョンを含む最新バージョン)、
                                  または `14` や `15.3` などの特定のバージョン
 -optionexplicit[+|-]              変数の明示的な宣言が必要です。
 -optioninfer[+|-]                 変数の型推論を許可します。
--rootnamespace:&lt;string&gt;           すべての型のルート名前空間を指定
-                                 宣言。
+-rootnamespace:&lt;string&gt;           すべての型宣言に対するルート名前空間を
+                                 指定します。
 -optionstrict[+|-]                厳密な言語セマンティクスを適用します。
--optionstrict:custom              厳密な言語セマンティクスが
-でない場合の警告
-                                 尊敬される。
+-optionstrict:custom              厳密な言語セマンティクスが守られていないときに
+                                 警告します。
 -optioncompare:binary             バイナリ スタイルの文字列比較を指定します。
                                  これは既定です。
 -optioncompare:text               テキスト スタイルの文字列比較を指定します。
 
                                  - その他 -
 -help                             この使用状況メッセージを表示します。(短い形式: -?)
--noconfig                         VBC.RSP ファイルを自動インクルードしないでください。
+-noconfig                         VBC.RSP ファイルを自動的に含めません。
 -nologo                           コンパイラの著作権バナーを表示しません。
 -quiet                            非表示出力モード。
 -verbose                          詳細メッセージを表示します。
@@ -407,62 +425,58 @@
                                  - 詳細設定 -
 -baseaddress:&lt;number&gt;             ライブラリまたはモジュールのベース アドレス
                                  (16 進数)。
--checksumalgorithm:&lt;alg&gt;          ソース ファイル
-を計算するためのアルゴリズムを指定します
-                                 PDB に格納されているチェックサム。サポートされている値:
+-checksumalgorithm:&lt;alg&gt;          PDB に格納されているソース ファイルのチェックサムを計算するためのアルゴリズムを
+                                 指定します。サポートされている値:
                                  SHA1 または SHA256 (既定値)。
--codepage:&lt;number&gt;                
-を開くときに使用するコードページを指定します。
-                                 ソース ファイル。
--delaysign[+|-]                   パブリックのみを使用してアセンブリに遅延署名する
-                                 厳密な名前キーの部分。
--publicsign[+|-]                  パブリックのみを使用してアセンブリに公開署名する
-                                 厳密な名前キーの部分。
--errorreport:&lt;string&gt;             内部コンパイラを処理する方法を指定します
-                                 エラー; プロンプト、送信、なし、またはキューである必要があります
-                                 (既定値)。
--generatedfilesout:&lt;dir&gt;          コンパイル中に生成されたファイルを
-に配置します
-                                 指定したディレクトリ。
--filealign:&lt;number&gt;               出力ファイルに使用する配置を指定します
-                                 セクション。
+-codepage:&lt;number&gt;                ソース ファイルを開くときに使用するコードページを
+                                 指定します。
+-delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
+                                 アセンブリに遅延署名します。
+-publicsign[+|-]                  厳密な名前キーの公開部分のみを使用して
+                                 アセンブリに公開署名します。
+-errorreport:&lt;string&gt;             内部コンパイラ エラーを処理する方法を指定します。
+                                 prompt、send、none、queue
+                                 (既定値) のいずれかです。
+-generatedfilesout:&lt;dir&gt;          コンパイル中に生成されたファイルを指定した
+                                 ディレクトリに配置します。
+-filealign:&lt;number&gt;               出力ファイルのセクションに使用する配置を
+                                 指定します。
 -highentropyva[+|-]               高エントロピ ASLR を有効にします。
 -keycontainer:&lt;string&gt;            厳密な名前のキー コンテナーを指定します。
 -keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します。
--libpath:&lt;path_list&gt;              メタデータを検索するディレクトリの一覧
-                                 参照。(セミコロン区切り)。
--main:&lt;class&gt;                     
-を含むクラスまたはモジュールを指定します。
-                                 サブ メイン。また、
-というクラスにすることもできます。
-                                 System.Windows.Forms.Form から継承します。
+-libpath:&lt;path_list&gt;              メタデータ参照を検索するディレクトリの
+                                 一覧です。(セミコロン区切り)。
+-main:&lt;class&gt;                     Sub Main を含むクラスまたはモジュールを
+                                 指定します。また、System.Windows.Forms.Form から
+                                 継承するクラスを指定することもできます。
                                  (短い形式: -m)
--moduleassemblyname:&lt;string&gt;      このモジュールが
-するアセンブリの名前
-                                 の一部です。
--netcf                            .NET Compact Frameworkをターゲットに設定します。
--nostdlib                         標準ライブラリを参照しない
+-moduleassemblyname:&lt;string&gt;      このモジュールが属することになるアセンブリの
+                                 名前です。
+-netcf                            .NET Compact Framework をターゲットに設定します。
+-nostdlib                         標準ライブラリを参照しません
                                  (system.dll と VBC.RSP ファイル)。
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                 
-で出力されるソース パス名のマッピングを指定する
-                                 コンパイラ。
--platform:&lt;string&gt;                このコードを実行できるプラットフォームを制限します;
-                                 x86, x64, Itanium, arm, arm64 である必要があります
-                                 AnyCPU32BitPreferred または anycpu (既定値)。
+                                 コンパイラが出力するソース パス名のマッピングを
+                                 指定します。
+-platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。
+                                 x86、x64、Itanium、arm、arm64
+                                 AnyCPU32BitPreferred、anycpu (既定値) のいずれかである必要があります。
 -preferreduilang                  優先する出力言語名を指定します。
 -nosdkpath                        標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
+-reportivts[+|-]                  すべての依存関係によってこのアセンブリに
+                                 付与されたすべての IVT に関する情報を出力し、外部アセンブリの
+                                 アクセシビリティ エラーに、発生元のアセンブリに関する注釈をつけます。
 -sdkpath:&lt;path&gt;                   .NET Framework SDK ディレクトリの場所
                                  (mscorlib.dll)。
 -subsystemversion:&lt;version&gt;       出力 PE のサブシステム バージョンを指定します。
                                  version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  UTF-8 文字でコンパイラ出力を出力する
-                                 エンコード。
-@&lt;file&gt;                           テキスト ファイルからコマンド ライン設定を挿入
--vbruntime[+|-|*]                 既定の Visual Basic の有無にかかわらずコンパイルする
-                                 ランタイム。
--vbruntime:&lt;file&gt;                 代替 Visual Basic を使用してコンパイルする
-                                 &lt;file&gt; のランタイム。
+-utf8output[+|-]                  UTF-8 文字エンコードでコンパイラ出力を
+                                 作成します。
+@&lt;file&gt;                           テキスト ファイルからコマンド ライン設定を挿入します
+-vbruntime[+|-|*]                 コンパイル時に既定の Visual Basic ランタイムを使用するかどうかを
+                                 指定します。
+-vbruntime:&lt;file&gt;                 &lt;file&gt; で指定された代替の Visual Basic ランタイムを使用して
+                                 コンパイルします。
 </target>
         <note />
       </trans-unit>
@@ -602,16 +616,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">ジェネレーターで次の例外がスローされました:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -619,16 +631,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">ジェネレーターで次の例外がスローされました:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.LocalFunctionStatement:
                     lambdaBody1 = GetLocalFunctionBody((LocalFunctionStatementSyntax)node);
-                    return true;
+                    return lambdaBody1 != null;
             }
 
             return false;
@@ -478,9 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (node is SwitchExpressionSyntax switchExpression) ? switchExpression.SwitchKeyword.SpanStart : node.SpanStart;
         }
 
-        private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
-        {
-            return (SyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody!.Expression;
-        }
+        private static SyntaxNode? GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
+            => (SyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody?.Expression;
     }
 }

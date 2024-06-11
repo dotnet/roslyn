@@ -8,15 +8,9 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class GenerateMethod : AbstractGenerateCodeItem, IEquatable<GenerateMethod>
+        public class GenerateMethod(string text, Glyph glyph, SymbolKey destinationTypeSymbolId, SymbolKey methodToReplicateSymbolId) : AbstractGenerateCodeItem(RoslynNavigationBarItemKind.GenerateMethod, text, glyph, destinationTypeSymbolId), IEquatable<GenerateMethod>
         {
-            public readonly SymbolKey MethodToReplicateSymbolKey;
-
-            public GenerateMethod(string text, Glyph glyph, SymbolKey destinationTypeSymbolId, SymbolKey methodToReplicateSymbolId)
-                : base(RoslynNavigationBarItemKind.GenerateMethod, text, glyph, destinationTypeSymbolId)
-            {
-                MethodToReplicateSymbolKey = methodToReplicateSymbolId;
-            }
+            public readonly SymbolKey MethodToReplicateSymbolKey = methodToReplicateSymbolId;
 
             protected internal override SerializableNavigationBarItem Dehydrate()
                 => SerializableNavigationBarItem.GenerateMethod(Text, Glyph, DestinationTypeSymbolKey, MethodToReplicateSymbolKey);

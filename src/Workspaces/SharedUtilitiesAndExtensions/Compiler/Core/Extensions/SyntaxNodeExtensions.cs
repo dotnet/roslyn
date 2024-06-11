@@ -4,25 +4,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SyntaxNodeExtensions
+    internal static partial class SyntaxNodeExtensions
     {
         public static SyntaxNode GetRequiredParent(this SyntaxNode node)
             => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
 
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
             => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
+
+        public static IEnumerable<SyntaxNode> DepthFirstTraversalNodes(this SyntaxNode node)
+            => SyntaxNodeOrTokenExtensions.DepthFirstTraversalNodes(node);
 
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
@@ -794,6 +799,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return token.WithTrailingTrivia(default(SyntaxTriviaList));
         }
 
+        /// <summary>
+        /// Finds the node within the given <paramref name="root"/> corresponding to the given <paramref name="span"/>.
+        /// If the <paramref name="span"/> is <see langword="null"/>, then returns the given <paramref name="root"/> node.
+        /// </summary>
+        public static SyntaxNode FindNode(this SyntaxNode root, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie)
+        {
+            return span.HasValue
+                ? root.FindNode(span.Value, findInTrivia, getInnermostNodeForTie)
+                : root;
+        }
+
         // Copy of the same function in SyntaxNode.cs
         public static SyntaxNode? GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {
@@ -828,43 +844,146 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
+        public static DirectiveInfo<TDirectiveTriviaSyntax> GetDirectiveInfoForRoot<TDirectiveTriviaSyntax>(
+            SyntaxNode root,
+            ISyntaxKinds syntaxKinds,
+            CancellationToken cancellationToken)
+            where TDirectiveTriviaSyntax : SyntaxNode
+        {
+            return DirectiveTriviaUtilities<TDirectiveTriviaSyntax>.GetDirectiveInfoForRoot(root, syntaxKinds, cancellationToken);
+        }
+
+        private static class DirectiveTriviaUtilities<TDirectiveTriviaSyntax>
+            where TDirectiveTriviaSyntax : SyntaxNode
+        {
+            private sealed class DirectiveSyntaxEqualityComparer : IEqualityComparer<TDirectiveTriviaSyntax>
+            {
+                public static readonly DirectiveSyntaxEqualityComparer Instance = new();
+
+                private DirectiveSyntaxEqualityComparer()
+                {
+                }
+
+                public bool Equals(TDirectiveTriviaSyntax? x, TDirectiveTriviaSyntax? y)
+                    => x?.SpanStart == y?.SpanStart;
+
+                public int GetHashCode(TDirectiveTriviaSyntax obj)
+                    => obj.SpanStart;
+            }
+
+            private static readonly ObjectPool<Stack<TDirectiveTriviaSyntax>> s_stackPool = new(() => new());
+
+            public static DirectiveInfo<TDirectiveTriviaSyntax> GetDirectiveInfoForRoot(
+                SyntaxNode root,
+                ISyntaxKinds syntaxKinds,
+                CancellationToken cancellationToken)
+            {
+                var directiveMap = new Dictionary<TDirectiveTriviaSyntax, TDirectiveTriviaSyntax?>(
+                    DirectiveSyntaxEqualityComparer.Instance);
+                var conditionalMap = new Dictionary<TDirectiveTriviaSyntax, ImmutableArray<TDirectiveTriviaSyntax>>(
+                    DirectiveSyntaxEqualityComparer.Instance);
+
+                using var pooledRegionStack = s_stackPool.GetPooledObject();
+                using var pooledIfStack = s_stackPool.GetPooledObject();
+
+                var regionStack = pooledRegionStack.Object;
+                var ifStack = pooledIfStack.Object;
+
+                foreach (var token in root.DescendantTokens(descendIntoChildren: static node => node.ContainsDirectives))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!token.ContainsDirectives)
+                        continue;
+
+                    foreach (var trivia in token.LeadingTrivia)
+                    {
+                        if (trivia.RawKind == syntaxKinds.RegionDirectiveTrivia)
+                        {
+                            regionStack.Push((TDirectiveTriviaSyntax)trivia.GetStructure()!);
+                        }
+                        else if (trivia.RawKind == syntaxKinds.IfDirectiveTrivia ||
+                            trivia.RawKind == syntaxKinds.ElifDirectiveTrivia ||
+                            trivia.RawKind == syntaxKinds.ElseDirectiveTrivia)
+                        {
+                            ifStack.Push((TDirectiveTriviaSyntax)trivia.GetStructure()!);
+                        }
+                        else if (trivia.RawKind == syntaxKinds.EndRegionDirectiveTrivia)
+                        {
+                            if (regionStack.Count > 0)
+                            {
+                                var directive = (TDirectiveTriviaSyntax)trivia.GetStructure()!;
+                                var previousDirective = regionStack.Pop();
+
+                                directiveMap.Add(directive, previousDirective);
+                                directiveMap.Add(previousDirective, directive);
+                            }
+                        }
+                        else if (trivia.RawKind == syntaxKinds.EndIfDirectiveTrivia)
+                        {
+                            if (ifStack.Count > 0)
+                                FinishIf((TDirectiveTriviaSyntax)trivia.GetStructure()!);
+                        }
+                    }
+                }
+
+                while (regionStack.Count > 0)
+                    directiveMap.Add(regionStack.Pop(), null);
+
+                while (ifStack.Count > 0)
+                    FinishIf(directive: null);
+
+                return new DirectiveInfo<TDirectiveTriviaSyntax>(directiveMap, conditionalMap);
+
+                void FinishIf(TDirectiveTriviaSyntax? directive)
+                {
+                    using var _ = ArrayBuilder<TDirectiveTriviaSyntax>.GetInstance(out var condDirectivesBuilder);
+                    if (directive != null)
+                        condDirectivesBuilder.Add(directive);
+
+                    while (ifStack.Count > 0)
+                    {
+                        var poppedDirective = ifStack.Pop();
+                        condDirectivesBuilder.Add(poppedDirective);
+                        if (poppedDirective.RawKind == syntaxKinds.IfDirectiveTrivia)
+                            break;
+                    }
+
+                    condDirectivesBuilder.Sort(static (n1, n2) => n1.SpanStart.CompareTo(n2.SpanStart));
+                    var condDirectives = condDirectivesBuilder.ToImmutableAndClear();
+
+                    foreach (var cond in condDirectives)
+                        conditionalMap.Add(cond, condDirectives);
+
+                    // #If should be the first one in sorted order
+                    var ifDirective = condDirectives.First();
+                    if (directive != null)
+                    {
+                        directiveMap.Add(directive, ifDirective);
+                        directiveMap.Add(ifDirective, directive);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Gets a list of ancestor nodes (including this node) 
         /// </summary>
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
             => new(syntaxNode, ascendOutOfTrivia);
 
-        public readonly struct ValueAncestorsAndSelfEnumerable
+        public readonly struct ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
         {
-            private readonly SyntaxNode _syntaxNode;
-            private readonly bool _ascendOutOfTrivia;
-
-            public ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
-            {
-                _syntaxNode = syntaxNode;
-                _ascendOutOfTrivia = ascendOutOfTrivia;
-            }
-
             public Enumerator GetEnumerator()
-                => new(_syntaxNode, _ascendOutOfTrivia);
+                => new(syntaxNode, ascendOutOfTrivia);
 
-            public struct Enumerator
+            public struct Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
             {
-                private readonly SyntaxNode _start;
-                private readonly bool _ascendOutOfTrivia;
-
-                public Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
-                {
-                    _start = syntaxNode;
-                    _ascendOutOfTrivia = ascendOutOfTrivia;
-                    Current = null!;
-                }
-
-                public SyntaxNode Current { get; private set; }
+                public SyntaxNode Current { get; private set; } = null!;
 
                 public bool MoveNext()
                 {
-                    Current = Current == null ? _start : GetParent(Current, _ascendOutOfTrivia)!;
+                    Current = Current == null ? syntaxNode : GetParent(Current, ascendOutOfTrivia)!;
                     return Current != null;
                 }
             }

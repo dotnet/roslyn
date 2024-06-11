@@ -60,21 +60,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             if (IsVerbatim(literalExpression))
             {
                 // always offer to convert from verbatim string to normal string.
-                context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                context.RegisterRefactoring(CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_regular_string,
                     c => ConvertToRegularStringAsync(document, literalExpression, c),
-                    nameof(CSharpFeaturesResources.Convert_to_regular_string)));
+                    nameof(CSharpFeaturesResources.Convert_to_regular_string),
+                    CodeActionPriority.Low));
             }
             else if (ContainsSimpleEscape(charService, subStringTokens))
             {
                 // Offer to convert to a verbatim string if the normal string contains simple
                 // escapes that can be directly embedded in the verbatim string.
-                context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                context.RegisterRefactoring(CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
                     c => ConvertToVerbatimStringAsync(document, literalExpression, c),
-                    nameof(CSharpFeaturesResources.Convert_to_verbatim_string)));
+                    nameof(CSharpFeaturesResources.Convert_to_verbatim_string),
+                    CodeActionPriority.Low));
             }
         }
 

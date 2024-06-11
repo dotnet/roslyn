@@ -293,16 +293,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property MightContainExtensionMethods As Boolean
 
-        ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        ''' </summary>
-        Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-            Get
-                Return Nothing
-            End Get
-        End Property
-
 #Region "IModuleSymbol"
         Private ReadOnly Property IModuleSymbol_GlobalNamespace As INamespaceSymbol Implements IModuleSymbol.GlobalNamespace
             Get

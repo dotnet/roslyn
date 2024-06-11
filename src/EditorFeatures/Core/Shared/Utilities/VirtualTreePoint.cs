@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    internal readonly struct VirtualTreePoint : IComparable<VirtualTreePoint>, IEquatable<VirtualTreePoint>
+    internal readonly record struct VirtualTreePoint : IComparable<VirtualTreePoint>
     {
         private readonly SyntaxTree _tree;
         private readonly SourceText _text;
@@ -28,17 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _virtualSpaces = virtualSpaces;
         }
 
-        public static bool operator !=(VirtualTreePoint left, VirtualTreePoint right)
-            => !(left == right);
-
         public static bool operator <(VirtualTreePoint left, VirtualTreePoint right)
             => left.CompareTo(right) < 0;
 
         public static bool operator <=(VirtualTreePoint left, VirtualTreePoint right)
             => left.CompareTo(right) <= 0;
-
-        public static bool operator ==(VirtualTreePoint left, VirtualTreePoint right)
-            => object.Equals(left, right);
 
         public static bool operator >(VirtualTreePoint left, VirtualTreePoint right)
             => left.CompareTo(right) > 0;
@@ -74,9 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public bool Equals(VirtualTreePoint other)
             => CompareTo(other) == 0;
-
-        public override bool Equals(object? obj)
-            => (obj is VirtualTreePoint) && Equals((VirtualTreePoint)obj);
 
         public override int GetHashCode()
             => Text.GetHashCode() ^ Position.GetHashCode() ^ VirtualSpaces.GetHashCode();

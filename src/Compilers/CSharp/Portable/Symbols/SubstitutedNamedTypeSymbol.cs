@@ -39,11 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
+        private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
+
         // computed on demand
         private int _hashCode;
 
         // lazily created, does not need to be unique
         private ConcurrentCache<string, ImmutableArray<Symbol>> _lazyMembersByNameCache;
+
+        private ImmutableArray<Symbol> _lazyMembers;
 
         protected SubstitutedNamedTypeSymbol(Symbol newContainer, TypeMap map, NamedTypeSymbol originalDefinition, NamedTypeSymbol constructedFrom = null, bool unbound = false, TupleExtraData tupleData = null)
             : base(originalDefinition, tupleData)
@@ -148,7 +152,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            => _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
+        {
+            get
+            {
+                if (_unbound)
+                {
+                    return null;
+                }
+
+                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+                {
+                    var baseType = Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
+                    Interlocked.CompareExchange(ref _lazyBaseType, baseType, ErrorTypeSymbol.UnknownResultType);
+                }
+
+                Debug.Assert(!ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType));
+                return _lazyBaseType;
+            }
+        }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
@@ -195,20 +216,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.GetTypeMembers().SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return OriginalDefinition.GetTypeMembers(name).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        internal sealed override bool HasDeclaredRequiredMembers => OriginalDefinition.HasDeclaredRequiredMembers;
+        internal sealed override bool HasDeclaredRequiredMembers => !_unbound && OriginalDefinition.HasDeclaredRequiredMembers;
 
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
+            if (!_lazyMembers.IsDefault)
+            {
+                return _lazyMembers;
+            }
+
             var builder = ArrayBuilder<Symbol>.GetInstance();
 
             if (_unbound)
@@ -232,7 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             builder = AddOrWrapTupleMembersIfNecessary(builder);
 
-            return builder.ToImmutableAndFree();
+            var result = builder.ToImmutableAndFree();
+            ImmutableInterlocked.InterlockedInitialize(ref _lazyMembers, result);
+            return _lazyMembers;
         }
 
         private ArrayBuilder<Symbol> AddOrWrapTupleMembersIfNecessary(ArrayBuilder<Symbol> builder)
@@ -409,6 +437,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return OriginalDefinition.ComImportCoClass; }
         }
 
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            return _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
+        }
+#nullable disable
+
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
             throw ExceptionUtilities.Unreachable();
@@ -429,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
-        internal sealed override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+        internal sealed override bool IsFileLocal => _underlyingType.IsFileLocal;
+        internal sealed override FileIdentifier AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
@@ -438,5 +474,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
         internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            return _underlyingType.HasInlineArrayAttribute(out length);
+        }
     }
 }

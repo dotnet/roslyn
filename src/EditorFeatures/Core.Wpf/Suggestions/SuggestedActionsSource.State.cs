@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         private partial class SuggestedActionsSource
         {
-            protected sealed class State : IDisposable
+            private sealed class State : IDisposable
             {
                 private readonly SuggestedActionsSource _source;
 

@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -151,6 +152,17 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 return ImmutableArray<V>.Empty;
             }
+        }
+
+        public OneOrMany<V> GetAsOneOrMany(K k)
+        {
+            if (_dictionary is object && _dictionary.TryGetValue(k, out var valueSet))
+            {
+                Debug.Assert(valueSet.Count >= 1);
+                return valueSet.Count == 1 ? OneOrMany.Create(valueSet[0]) : OneOrMany.Create(valueSet.Items);
+            }
+
+            return OneOrMany<V>.Empty;
         }
 
         public bool Contains(K key, V value)

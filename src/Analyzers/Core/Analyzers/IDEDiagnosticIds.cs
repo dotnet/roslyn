@@ -190,6 +190,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseNameofInAttributeDiagnosticId = "IDE0280";
 
+        public const string UsePrimaryConstructorDiagnosticId = "IDE0290";
+
+        public const string UseCollectionExpressionForArrayDiagnosticId = "IDE0300";
+        public const string UseCollectionExpressionForEmptyDiagnosticId = "IDE0301";
+        public const string UseCollectionExpressionForStackAllocDiagnosticId = "IDE0302";
+        public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
+        public const string UseCollectionExpressionForBuilderDiagnosticId = "IDE0304";
+        public const string UseCollectionExpressionForFluentDiagnosticId = "IDE0305";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

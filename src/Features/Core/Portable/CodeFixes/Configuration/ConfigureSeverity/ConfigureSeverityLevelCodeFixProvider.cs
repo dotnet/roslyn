@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                     nestedActions.Add(
                         SolutionChangeAction.Create(
                             title,
-                            solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
+                            cancellationToken => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
                             value));
                 }
 

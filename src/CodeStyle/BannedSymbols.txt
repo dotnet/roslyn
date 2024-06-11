@@ -1,4 +1,5 @@
 P:Microsoft.CodeAnalysis.Project.LanguageServices; Use 'GetExtendedLanguageServices' instead
+P:Microsoft.CodeAnalysis.Project.Services; Use 'GetExtendedLanguageServices' instead
 M:Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetLanguageServices(System.String); Use 'GetExtendedLanguageServices' or directly get the language service by invoking 'GetLanguageService' or 'GetRequiredLanguageService'
 T:Microsoft.CodeAnalysis.Options.OptionSet; 'OptionSet' is not available in CodeStyle layer. Add a using/Imports statement defining 'OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions' when preprocessor variable 'CODE_STYLE' is defined
 T:Microsoft.CodeAnalysis.Options.OptionKey; Use 'Microsoft.CodeAnalysis.Options.OptionKey2' instead

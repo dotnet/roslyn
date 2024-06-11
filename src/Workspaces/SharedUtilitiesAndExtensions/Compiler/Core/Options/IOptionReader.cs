@@ -16,14 +16,9 @@ internal interface IOptionsReader
     bool TryGetOption<T>(OptionKey2 optionKey, out T value);
 }
 
-internal sealed class AnalyzerConfigOptionsReader : IOptionsReader
+internal sealed class AnalyzerConfigOptionsReader(AnalyzerConfigOptions options) : IOptionsReader
 {
-    public readonly AnalyzerConfigOptions Options;
-
-    public AnalyzerConfigOptionsReader(AnalyzerConfigOptions options)
-    {
-        Options = options;
-    }
+    public readonly AnalyzerConfigOptions Options = options;
 
     public bool TryGetOption<T>(OptionKey2 optionKey, out T value)
         => Options.TryGetEditorConfigOption(optionKey.Option, out value);

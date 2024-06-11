@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,56 +23,133 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     internal static class CodeActionHelpers
     {
         /// <summary>
-        /// Get, order, and filter code actions, and then transform them into VSCodeActions.
+        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="hasVsLspCapability"/>.
         /// </summary>
         /// <remarks>
         /// Used by CodeActionsHandler.
         /// </remarks>
-        public static async Task<VSInternalCodeAction[]> GetVSCodeActionsAsync(
+        public static async Task<LSP.CodeAction[]> GetVSCodeActionsAsync(
             CodeActionParams request,
             Document document,
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
+            bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
                 document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
-                return Array.Empty<VSInternalCodeAction>();
+                return Array.Empty<LSP.CodeAction>();
 
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            // Each suggested action set should have a unique set number, which is used for grouping code actions together.
-            var currentHighestSetNumber = 0;
-
-            using var _ = ArrayBuilder<VSInternalCodeAction>.GetInstance(out var codeActions);
-            foreach (var set in actionSets)
+            using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
+            // VS-LSP support nested code action, but standard LSP doesn't.
+            if (hasVsLspCapability)
             {
-                var currentSetNumber = ++currentHighestSetNumber;
-                foreach (var suggestedAction in set.Actions)
+                var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // Each suggested action set should have a unique set number, which is used for grouping code actions together.
+                var currentHighestSetNumber = 0;
+
+                foreach (var set in actionSets)
                 {
-                    // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
-                        continue;
-
-                    // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
-                    // https://github.com/dotnet/roslyn/issues/48698
-                    if (suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange))
-                        continue;
-
-                    codeActions.Add(GenerateVSCodeAction(
-                        request, documentText,
-                        suggestedAction: suggestedAction,
-                        codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!),
-                        setPriority: set.Priority,
-                        applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
-                        currentSetNumber: currentSetNumber,
-                        currentHighestSetNumber: ref currentHighestSetNumber));
+                    var currentSetNumber = ++currentHighestSetNumber;
+                    foreach (var suggestedAction in set.Actions)
+                    {
+                        if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                        {
+                            codeActions.Add(GenerateVSCodeAction(
+                                request, documentText,
+                                suggestedAction: suggestedAction,
+                                codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!),
+                                setPriority: set.Priority,
+                                applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
+                                currentSetNumber: currentSetNumber,
+                                currentHighestSetNumber: ref currentHighestSetNumber));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var set in actionSets)
+                {
+                    foreach (var suggestedAction in set.Actions)
+                    {
+                        if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                        {
+                            codeActions.AddRange(GenerateCodeActions(
+                                request,
+                                suggestedAction,
+                                GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!)));
+                        }
+                    }
                 }
             }
 
             return codeActions.ToArray();
+        }
+
+        private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
+            // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
+            => suggestedAction.OriginalCodeAction is CodeActionWithOptions
+            // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
+            // https://github.com/dotnet/roslyn/issues/48698
+            || suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
+
+        /// <summary>
+        /// Generate the matching code actions for <paramref name="suggestedAction"/>. If it contains nested code actions, flatten them into an array.
+        /// </summary>
+        private static LSP.CodeAction[] GenerateCodeActions(
+            CodeActionParams request,
+            IUnifiedSuggestedAction suggestedAction,
+            LSP.CodeActionKind codeActionKind,
+            string currentTitle = "")
+        {
+            if (!string.IsNullOrEmpty(currentTitle))
+            {
+                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
+                currentTitle += '|';
+            }
+
+            var codeAction = suggestedAction.OriginalCodeAction;
+            currentTitle += codeAction.Title;
+
+            var diagnosticsForFix = GetApplicableDiagnostics(request.Context, suggestedAction);
+
+            using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var builder);
+            if (suggestedAction is UnifiedSuggestedActionWithNestedActions unifiedSuggestedActions)
+            {
+                foreach (var actionSet in unifiedSuggestedActions.NestedActionSets)
+                {
+                    foreach (var action in actionSet.Actions)
+                    {
+                        // Filter the configure and suppress fixer if it is not VS LSP, because it would generate many nested code actions.
+                        // Tracking issue: https://github.com/microsoft/language-server-protocol/issues/994 
+                        if (action.OriginalCodeAction is not AbstractConfigurationActionWithNestedActions)
+                        {
+                            builder.AddRange(GenerateCodeActions(
+                                request,
+                                action,
+                                codeActionKind,
+                                currentTitle));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                builder.Add(new LSP.CodeAction
+                {
+                    // Change this to -> because it is shown to the user
+                    Title = currentTitle.Replace("|", " -> "),
+                    Kind = codeActionKind,
+                    Diagnostics = diagnosticsForFix,
+                    Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
+                });
+            }
+
+            return builder.ToArray();
         }
 
         private static VSInternalCodeAction GenerateVSCodeAction(
@@ -143,29 +219,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
                 return nestedActions.ToArray();
             }
+        }
 
-            static LSP.Diagnostic[]? GetApplicableDiagnostics(LSP.CodeActionContext context, IUnifiedSuggestedAction action)
+        private static LSP.Diagnostic[]? GetApplicableDiagnostics(CodeActionContext context, IUnifiedSuggestedAction action)
+        {
+            if (action is UnifiedCodeFixSuggestedAction codeFixAction && context.Diagnostics != null)
             {
-                if (action is UnifiedCodeFixSuggestedAction codeFixAction && context.Diagnostics != null)
+                // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
+                // The request diagnostics are already restricted to the code fix location by the request.
+                var diagnosticCodesFixedByAction = codeFixAction.CodeFix.Diagnostics.Select(d => d.Id);
+                using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
+                foreach (var requestDiagnostic in context.Diagnostics)
                 {
-                    // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
-                    // The request diagnostics are already restricted to the code fix location by the request.
-                    var diagnosticCodesFixedByAction = codeFixAction.CodeFix.Diagnostics.Select(d => d.Id);
-                    using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
-                    foreach (var requestDiagnostic in context.Diagnostics)
+                    var diagnosticCode = requestDiagnostic.Code?.Value?.ToString();
+                    if (diagnosticCodesFixedByAction.Contains(diagnosticCode))
                     {
-                        var diagnosticCode = requestDiagnostic.Code?.Value?.ToString();
-                        if (diagnosticCodesFixedByAction.Contains(diagnosticCode))
-                        {
-                            diagnosticsBuilder.Add(requestDiagnostic);
-                        }
+                        diagnosticsBuilder.Add(requestDiagnostic);
                     }
-
-                    return diagnosticsBuilder.ToArray();
                 }
 
-                return null;
+                return diagnosticsBuilder.ToArray();
             }
+
+            return null;
         }
 
         /// <summary>
@@ -237,16 +313,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
-                CodeActionRequestPriority.None,
-                fallbackOptions, isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+                new DefaultCodeActionRequestPriorityProvider(),
+                fallbackOptions, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, fallbackOptions, isBlocking: false,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null, fallbackOptions,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
@@ -269,7 +345,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 CodeActionPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
                 CodeActionPriority.Low => LSP.VSInternalPriorityLevel.Low,
-                CodeActionPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
+                CodeActionPriority.Default => LSP.VSInternalPriorityLevel.Normal,
                 CodeActionPriority.High => LSP.VSInternalPriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };

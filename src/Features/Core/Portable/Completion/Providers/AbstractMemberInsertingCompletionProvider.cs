@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
 
             var newDocument = await DetermineNewDocumentAsync(document, item, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             int? newPosition = null;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // The span we're going to replace
             var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];

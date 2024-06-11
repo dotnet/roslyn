@@ -13,9 +13,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ColorSchemeApplier(
             IThreadingContext threadingContext,
+            IVsService<SVsFontAndColorStorage, IVsFontAndColorStorage> fontAndColorStorage,
             IGlobalOptionService globalOptions,
             SVsServiceProvider serviceProvider)
         {
@@ -52,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 
             _settings = new ColorSchemeSettings(threadingContext, _serviceProvider, globalOptions);
             _colorSchemes = ColorSchemeSettings.GetColorSchemes();
-            _classificationVerifier = new ClassificationVerifier(threadingContext, _asyncServiceProvider, _colorSchemes);
+            _classificationVerifier = new ClassificationVerifier(threadingContext, fontAndColorStorage, _colorSchemes);
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)

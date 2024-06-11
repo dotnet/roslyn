@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // looking up file-local types. If there is no document name, use an invalid FilePathChecksumOpt.
             FileIdentifier fileIdentifier = methodDebugInfo.ContainingDocumentName is { } documentName
                 ? FileIdentifier.Create(documentName)
-                : new FileIdentifier { EncoderFallbackErrorMessage = null, FilePathChecksumOpt = ImmutableArray<byte>.Empty, DisplayFilePath = string.Empty };
+                : FileIdentifier.Create(filePathChecksumOpt: ImmutableArray<byte>.Empty, displayFilePath: string.Empty);
 
             NamespaceBinder = CreateBinderChain(
                 Compilation,
@@ -395,7 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var itemsAdded = PooledHashSet<string>.GetInstance();
 
                     // Method parameters
-                    int parameterIndex = m.IsStatic ? 0 : 1;
                     foreach (var parameter in m.Parameters)
                     {
                         var parameterName = parameter.Name;
@@ -426,10 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 }
                             }
 
-                            AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex);
+                            AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, m.IsStatic);
                         }
-
-                        parameterIndex++;
                     }
 
                     // In case of iterator or async state machine, the 'm' method has no parameters
@@ -541,14 +538,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ArrayBuilder<MethodSymbol> methodBuilder,
             ParameterSymbol parameter,
             EENamedTypeSymbol container,
-            int parameterIndex)
+            bool isStaticMethod)
         {
             // Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
             // the ResultProvider needs to be able to disambiguate cases like "this" and "@this",
             // which it can't do correctly without semantic information.
             var name = SyntaxHelpers.EscapeKeywordIdentifiers(parameter.Name);
             var methodName = GetNextMethodName(methodBuilder);
-            var method = GetParameterMethod(container, methodName, name, parameterIndex);
+            var method = GetParameterMethod(container, methodName, name, parameterIndex: parameter.Ordinal + (isStaticMethod ? 0 : 1));
             localBuilder.Add(new CSharpLocalAndMethod(name, name, method, DkmClrCompilationResultFlags.None));
             methodBuilder.Add(method);
         }
@@ -629,8 +626,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 int indexInside = localIndex - method.LocalsForBindingOutside.Length;
                 var local = indexInside >= 0 ? method.LocalsForBindingInside[indexInside] : method.LocalsForBindingOutside[localIndex];
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, new BindingDiagnosticBag(diagnostics)), type: local.Type);
+
+                var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                RoslynDebug.AssertNotNull(bindingDiagnostics.DiagnosticBag);
+
+                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, bindingDiagnostics), type: local.Type);
+
+                diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+                bindingDiagnostics.Free();
                 properties = default;
+
                 return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
             });
         }
@@ -677,15 +682,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement? BindExpression(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics, out ResultProperties resultProperties)
         {
             var flags = DkmClrCompilationResultFlags.None;
-            var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
             // In addition to C# expressions, the native EE also supports
             // type names which are bound to a representation of the type
             // (but not System.Type) that the user can expand to see the
             // base type. Instead, we only allow valid C# expressions.
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            RoslynDebug.AssertNotNull(bindingDiagnostics.DiagnosticBag);
             var expression = IsDeconstruction(syntax)
                 ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, bindingDiagnostics, resultIsUsedOverride: true)
                 : binder.BindRValueWithoutTargetType(syntax, bindingDiagnostics);
+            diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+            bindingDiagnostics.Free();
+            bindingDiagnostics = null;
+
             if (diagnostics.HasAnyErrors())
             {
                 resultProperties = default;
@@ -709,12 +719,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var expressionType = expression.Type;
             if (expressionType is null)
             {
+                bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                RoslynDebug.AssertNotNull(bindingDiagnostics.DiagnosticBag);
+
                 expression = binder.CreateReturnConversion(
                     syntax,
                     bindingDiagnostics,
                     expression,
                     RefKind.None,
                     binder.Compilation.GetSpecialType(SpecialType.System_Object));
+
+                diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+                bindingDiagnostics.Free();
+
                 if (diagnostics.HasAnyErrors())
                 {
                     resultProperties = default;
@@ -756,7 +773,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
         {
             properties = new ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            return binder.BindStatement(syntax, new BindingDiagnosticBag(diagnostics));
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            RoslynDebug.Assert(bindingDiagnostics.DiagnosticBag is { });
+
+            var result = binder.BindStatement(syntax, bindingDiagnostics);
+            diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+            bindingDiagnostics.Free();
+
+            return result;
         }
 
         private static bool IsAssignableExpression(Binder binder, BoundExpression expression)
@@ -767,7 +791,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundStatement? BindAssignment(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            var expression = binder.BindValue(syntax, new BindingDiagnosticBag(diagnostics), Binder.BindValueKind.RValue);
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            RoslynDebug.AssertNotNull(bindingDiagnostics.DiagnosticBag);
+
+            var expression = binder.BindValue(syntax, bindingDiagnostics, Binder.BindValueKind.RValue);
+            diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+            bindingDiagnostics.Free();
+
             if (diagnostics.HasAnyErrors())
             {
                 return null;
@@ -1681,11 +1711,11 @@ REPARSE:
                         continue;
                 }
 
-                if (displayClassVariablesBuilder.ContainsKey(variableName))
+                if (displayClassVariablesBuilder.TryGetValue(variableName, out var displayClassVariable))
                 {
                     // Only expecting duplicates for async state machine
                     // fields (that should be at the top-level).
-                    Debug.Assert(displayClassVariablesBuilder[variableName].DisplayClassFields.Count() == 1);
+                    Debug.Assert(displayClassVariable.DisplayClassFields.Count() == 1);
 
                     if (!instance.Fields.Any())
                     {

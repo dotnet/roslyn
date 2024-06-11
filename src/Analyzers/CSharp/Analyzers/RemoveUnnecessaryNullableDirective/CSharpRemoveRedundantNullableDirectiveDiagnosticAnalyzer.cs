@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -46,7 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 var defaultNullableContext = ((CSharpCompilation)context.Compilation).Options.NullableContextOptions;
                 context.RegisterSyntaxTreeAction(context =>
                 {
-                    var root = context.Tree.GetCompilationUnitRoot(context.CancellationToken);
+                    var root = context.GetAnalysisRoot(findInTrivia: true);
+
+                    // Bail out if the root contains no nullable directives.
+                    if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
+                        return;
+
                     var initialState = context.Tree.IsGeneratedCode(context.Options, CSharpSyntaxFacts.Instance, context.CancellationToken)
                         ? NullableContextOptions.Disable
                         : defaultNullableContext;

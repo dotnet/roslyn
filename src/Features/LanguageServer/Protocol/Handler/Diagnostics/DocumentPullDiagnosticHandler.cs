@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -20,9 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public DocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService analyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IDiagnosticsRefresher diagnosticRefresher,
             IGlobalOptionService globalOptions)
-            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+            : base(analyzerService, diagnosticRefresher, globalOptions)
         {
         }
 
@@ -74,13 +76,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
 
             if (category == PullDiagnosticCategories.Task)
-                return new(GetDiagnosticSources(diagnosticKind: default, taskList: true, context, GlobalOptions));
+                return new(GetDiagnosticSources(diagnosticKind: default, nonLocalDocumentDiagnostics: false, taskList: true, context, GlobalOptions));
 
             var diagnosticKind = category switch
             {
                 PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
                 PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
-                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSyntax,
                 PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
                 // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
                 null => DiagnosticKind.All,
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (diagnosticKind is null)
                 return new(ImmutableArray<IDiagnosticSource>.Empty);
 
-            return new(GetDiagnosticSources(diagnosticKind.Value, taskList: false, context, GlobalOptions));
+            return new(GetDiagnosticSources(diagnosticKind.Value, nonLocalDocumentDiagnostics: false, taskList: false, context, GlobalOptions));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(
-            DiagnosticKind diagnosticKind, bool taskList, RequestContext context, IGlobalOptionService globalOptions)
+            DiagnosticKind diagnosticKind, bool nonLocalDocumentDiagnostics, bool taskList, RequestContext context, IGlobalOptionService globalOptions)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -123,9 +125,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
+            if (nonLocalDocumentDiagnostics)
+                return GetNonLocalDiagnosticSources();
+
             return taskList
                 ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document, globalOptions))
                 : ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, document));
+
+            ImmutableArray<IDiagnosticSource> GetNonLocalDiagnosticSources()
+            {
+                Debug.Assert(!taskList);
+
+                // This code path is currently only invoked from the public LSP handler, which always uses 'DiagnosticKind.All'
+                Debug.Assert(diagnosticKind == DiagnosticKind.All);
+
+                // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
+                if (globalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.FullSolution)
+                    return ImmutableArray<IDiagnosticSource>.Empty;
+
+                return ImmutableArray.Create<IDiagnosticSource>(new NonLocalDocumentDiagnosticSource(document, ShouldIncludeAnalyzer));
+
+                // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
+                bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();
+            }
         }
     }
 }

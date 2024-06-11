@@ -194,8 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             Assert.Equal(this.Language, result.Language);
             Assert.Equal(navigateToItemKind, result.Kind);
 
-            MarkupTestFile.GetSpans(displayMarkup, out displayMarkup,
-                out ImmutableArray<TextSpan> expectedDisplayNameSpans);
+            MarkupTestFile.GetSpans(displayMarkup, out displayMarkup, out var expectedDisplayNameSpans);
 
             var itemDisplay = (NavigateToItemDisplay)result.DisplayFactory.CreateItemDisplay(result);
 

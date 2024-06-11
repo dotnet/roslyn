@@ -27,18 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
-    internal class GoToAdjacentMemberCommandHandler :
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService) :
         ICommandHandler<GoToNextMemberCommandArgs>,
         ICommandHandler<GoToPreviousMemberCommandArgs>
     {
-        private readonly IOutliningManagerService _outliningManagerService;
+        private readonly IOutliningManagerService _outliningManagerService = outliningManagerService;
 
         public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)
-            => _outliningManagerService = outliningManagerService;
 
         public CommandState GetCommandState(GoToNextMemberCommandArgs args)
             => GetCommandStateImpl(args);

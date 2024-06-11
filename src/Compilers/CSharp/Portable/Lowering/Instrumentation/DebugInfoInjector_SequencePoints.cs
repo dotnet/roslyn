@@ -45,29 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(usingSyntax, rewrittenStatement, span);
         }
 
-        private static TextSpan CreateSpanForConstructorInitializer(ConstructorDeclarationSyntax constructorSyntax)
-        {
-            if (constructorSyntax.Initializer != null)
-            {
-                //  [SomeAttribute] public MyCtorName(params int[] values): [|base()|] { ... }
-                var start = constructorSyntax.Initializer.ThisOrBaseKeyword.SpanStart;
-                var end = constructorSyntax.Initializer.ArgumentList.CloseParenToken.Span.End;
-                return TextSpan.FromBounds(start, end);
-            }
-
-            if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
-            {
-                Debug.Assert(constructorSyntax.Body != null);
-
-                // [SomeAttribute] static MyCtorName(...) [|{|] ... }
-                var start = constructorSyntax.Body.OpenBraceToken.SpanStart;
-                var end = constructorSyntax.Body.OpenBraceToken.Span.End;
-                return TextSpan.FromBounds(start, end);
-            }
-
-            //  [SomeAttribute] [|public MyCtorName(params int[] values)|] { ... }
-            return CreateSpan(constructorSyntax.Modifiers, constructorSyntax.Identifier, constructorSyntax.ParameterList.CloseParenToken);
-        }
+        private static TextSpan CreateSpan(ParameterSyntax parameter)
+            // exclude attributes and default value:
+            // [A] [|in T p|] = default
+            => CreateSpan(parameter.Modifiers, parameter.Type, parameter.Identifier);
 
         private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
         {

@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var ch = CurrentChar;
             if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
             {
+                var ctor = TryScanConstructor();
+                if (ctor.HasValue)
+                {
+                    return ctor.Value;
+                }
+
                 // If we scan only trivia but don't get an identifier, we want to make sure
                 // to reset back to this original position to let the trivia be consumed
                 // in some other fashion if necessary 
@@ -459,6 +465,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return null;
         }
 
+        private StackFrameToken? TryScanStringToken(string valueToLookFor, StackFrameKind tokenKind)
+        {
+            if (IsStringAtPosition(valueToLookFor))
+            {
+                var start = Position;
+                Position += valueToLookFor.Length;
+
+                return CreateToken(tokenKind, GetSubSequenceToCurrentPos(start));
+            }
+
+            return null;
+        }
+
         private StackFrameTrivia? TryScanWhiteSpace()
         {
             var startPosition = Position;
@@ -474,6 +493,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             return CreateTrivia(StackFrameKind.WhitespaceTrivia, GetSubSequenceToCurrentPos(startPosition));
+        }
+
+        /// <summary>
+        /// Scans for .ctor or .cctor as a ConstructorToken
+        /// </summary>
+        private StackFrameToken? TryScanConstructor()
+        {
+            return TryScanStringToken(".ctor", StackFrameKind.ConstructorToken) ??
+                   TryScanStringToken(".cctor", StackFrameKind.ConstructorToken);
         }
 
         private static StackFrameKind GetKind(VirtualChar ch)

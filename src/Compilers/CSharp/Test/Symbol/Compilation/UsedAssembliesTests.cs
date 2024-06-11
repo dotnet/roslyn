@@ -3573,7 +3573,7 @@ public struct S<T>
             comp1.VerifyDiagnostics();
             var comp1Ref = comp1.ToMetadataReference();
 
-            verify(comp0Ref, comp1Ref,
+            verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 public class C2
 {
@@ -3582,9 +3582,24 @@ public class C2
         _ = C1<S<C0>*[]>.E1.F1 + 1;
     }
 }
-");
+",
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = C1<S<C0>*[]>.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = C1<S<C0>*[]>.E1.F1 + 1").WithLocation(6, 9),
+                // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = C1<S<C0>*[]>.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C1<S<C0>*[]>").WithLocation(6, 13),
+                // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = C1<S<C0>*[]>.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C1<S<C0>*[]>.E1").WithLocation(6, 13),
+                // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = C1<S<C0>*[]>.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C1<S<C0>*[]>.E1.F1").WithLocation(6, 13),
+                // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = C1<S<C0>*[]>.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C1<S<C0>*[]>.E1.F1 + 1").WithLocation(6, 13));
 
-            verify(comp0Ref, comp1Ref,
+            verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using static C1<S<C0>*[]>;
 public class C2
@@ -3594,9 +3609,18 @@ public class C2
         _ = E1.F1 + 1;
     }
 }
-");
+",
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E1.F1").WithLocation(7, 13),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E1.F1 + 1").WithLocation(7, 13),
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = E1.F1 + 1").WithLocation(7, 9));
 
-            verify(comp0Ref, comp1Ref,
+            verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using static C1<S<C0>*[]>.E1;
 public class C2
@@ -3606,9 +3630,18 @@ public class C2
         _ = F1 + 1;
     }
 }
-");
+",
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = F1 + 1").WithLocation(7, 9),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1").WithLocation(7, 13),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1 + 1").WithLocation(7, 13));
 
-            verify(comp0Ref, comp1Ref,
+            verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using @alias = C1<S<C0>*[]>.E1;
 public class C2
@@ -3618,9 +3651,18 @@ public class C2
         _ = alias.F1 + 1;
     }
 }
-");
+",
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = alias.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = alias.F1 + 1").WithLocation(7, 9),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = alias.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "alias.F1").WithLocation(7, 13),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = alias.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "alias.F1 + 1").WithLocation(7, 13));
 
-            verify(comp0Ref, comp1Ref,
+            verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using @alias = C1<S<C0>*[]>;
 public class C2
@@ -3630,12 +3672,25 @@ public class C2
         _ = alias.E1.F1 + 1;
     }
 }
-");
+",
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = alias.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = alias.E1.F1 + 1").WithLocation(7, 9),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = alias.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "alias.E1").WithLocation(7, 13),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = alias.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "alias.E1.F1").WithLocation(7, 13),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = alias.E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "alias.E1.F1 + 1").WithLocation(7, 13));
 
-            void verify(MetadataReference reference0, MetadataReference reference1, string source)
+            void verifyDiagnostics(MetadataReference reference0, MetadataReference reference1, string source, params DiagnosticDescription[] diagnostics)
             {
                 var references = new[] { reference0, reference1 };
-                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.Regular11);
+                Compilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, references: references);
+                comp.VerifyDiagnostics(diagnostics);
             }
         }
 
@@ -3677,7 +3732,6 @@ public class C2
 }
 ");
 
-            // Support for `using unsafe static` tracked by https://github.com/dotnet/roslyn/issues/67329
             verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using static C1<S<C0>*[]>;
@@ -3691,9 +3745,29 @@ public class C2
 ",
                 // (2,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using static C1<S<C0>*[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17),
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = E1.F1 + 1").WithLocation(7, 9),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E1.F1").WithLocation(7, 13),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = E1.F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E1.F1 + 1").WithLocation(7, 13));
 
-            // Support for `using unsafe static` tracked by https://github.com/dotnet/roslyn/issues/67329
+            verifyDiagnostics(comp0Ref, comp1Ref,
+@"
+using static unsafe C1<S<C0>*[]>;
+public class C2
+{
+    public static unsafe void Main()
+    {
+        _ = E1.F1 + 1;
+    }
+}
+");
+
             verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using static C1<S<C0>*[]>.E1;
@@ -3707,14 +3781,35 @@ public class C2
 ",
                 // (2,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using static C1<S<C0>*[]>.E1;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17),
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = F1 + 1").WithLocation(7, 9),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1").WithLocation(7, 13),
+                // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = F1 + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1 + 1").WithLocation(7, 13));
+
+            verifyDiagnostics(comp0Ref, comp1Ref,
+@"
+using static unsafe C1<S<C0>*[]>.E1;
+public class C2
+{
+    public static unsafe void Main()
+    {
+        _ = F1 + 1;
+    }
+}
+");
 
             verify(comp0Ref, comp1Ref,
 @"
 using unsafe @alias = C1<S<C0>*[]>.E1;
 public class C2
 {
-    public static void Main()
+    public unsafe static void Main()
     {
         _ = alias.F1 + 1;
     }
@@ -3726,7 +3821,7 @@ public class C2
 using unsafe @alias = C1<S<C0>*[]>;
 public class C2
 {
-    public static void Main()
+    public unsafe static void Main()
     {
         _ = alias.E1.F1 + 1;
     }

@@ -44,6 +44,9 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     Private Shared ReadOnly s_keyPairFile As String = SigningTestHelpers.KeyPairFile
     Private Shared ReadOnly s_publicKeyFile As String = SigningTestHelpers.PublicKeyFile
     Private Shared ReadOnly s_publicKey As ImmutableArray(Of Byte) = SigningTestHelpers.PublicKey
+    Private Shared ReadOnly s_providerNoSigningTempPath As StrongNameProvider = New DesktopStrongNameProvider(
+        ImmutableArray(Of String).Empty,
+        New VirtualizedStrongNameFileSystem(tempPath:=Nothing))
 
     Private Shared Function GetDesktopProviderWithPath(keyFilePath As String) As StrongNameProvider
         Return New DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), New VirtualizedStrongNameFileSystem())
@@ -297,6 +300,35 @@ End Class
 BC36980: Error extracting public key from file 'goo': <%= CodeAnalysisResources.FileNotFound %>
             </errors>)
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
+    End Sub
+
+    <ConditionalFact(GetType(WindowsOnly))>
+    Public Sub PubKeyFileSigningTempPathMissing()
+        Dim options = TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_providerNoSigningTempPath)
+        Dim compilation As VisualBasicCompilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class C
+ Friend Sub Goo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>,
+        options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_providerNoSigningTempPath), parseOptions:=TestOptions.RegularWithLegacyStrongName)
+
+        CompilationUtils.AssertTheseEmitDiagnostics(compilation,
+            <errors>
+BC36980: Error extracting public key from file '<%= s_keyPairFile %>': <%= CodeAnalysisResources.SigningTempPathUnavailable %>
+            </errors>)
+
+        ' Once the temp path is available this will succeed.
+        options = options.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+        compilation = compilation.WithOptions(options)
+        CompilationUtils.AssertTheseEmitDiagnostics(compilation,
+            <errors>
+            </errors>)
+
     End Sub
 
     <Theory>

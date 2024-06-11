@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -37,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
 
         private readonly VisualStudioWorkspace _workspace;
+        private readonly IVsService<IVsStatusbar> _statusbar;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
@@ -50,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticAnalyzerService(
             VisualStudioWorkspace workspace,
+            IVsService<SVsStatusbar, IVsStatusbar> statusbar,
             IDiagnosticAnalyzerService diagnosticService,
             IThreadingContext threadingContext,
             IVsHierarchyItemManager vsHierarchyItemManager,
@@ -58,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             IGlobalOptionService globalOptions)
         {
             _workspace = workspace;
+            _statusbar = statusbar;
             _diagnosticService = diagnosticService;
             _threadingContext = threadingContext;
             _vsHierarchyItemManager = vsHierarchyItemManager;
@@ -149,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, scope: null);
 
         private void OnSetAnalysisScopeCurrentDocumentStatus(object sender, EventArgs e)
-            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.ActiveFile);
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
 
         private void OnSetAnalysisScopeOpenDocumentsStatus(object sender, EventArgs e)
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFiles);
@@ -190,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 command.Text = GetBackgroundAnalysisScope(_workspace.CurrentSolution, _globalOptions) switch
                 {
-                    BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
+                    BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => ServicesVSResources.Default_Current_Document,
                     BackgroundAnalysisScope.OpenFiles => ServicesVSResources.Default_Open_Documents,
                     BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
                     BackgroundAnalysisScope.None => ServicesVSResources.Default_None,
@@ -230,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScope(scope: null);
 
         private void OnSetAnalysisScopeCurrentDocument(object sender, EventArgs args)
-            => OnSetAnalysisScope(BackgroundAnalysisScope.ActiveFile);
+            => OnSetAnalysisScope(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
 
         private void OnSetAnalysisScopeOpenDocuments(object sender, EventArgs args)
             => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFiles);
@@ -335,35 +340,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 }
             }
 
-            // Add a message to VS status bar that we are running code analysis.
-            var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
-            var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
-            var statusBarUpdater = statusBar != null
-                ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, (uint)totalProjectCount)
-                : null;
-
             // Force complete analyzer execution in background.
-            var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
-            Task.Run(async () =>
+            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                try
-                {
-                    var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
-                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                using var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
 
-                    foreach (var otherProject in otherProjectsForMultiTfmProject)
-                        await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
+                // Add a message to VS status bar that we are running code analysis.
+                var statusBar = await _statusbar.GetValueOrNullAsync().ConfigureAwait(true);
+                var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
+                using var statusBarUpdater = statusBar != null
+                    ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, (uint)totalProjectCount)
+                    : null;
 
-                    // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
-                    // then ForceAnalyzeAsync will not cause analyzers to execute.
-                    // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
-                    HandleProjectsWithDisabledAnalysis();
-                }
-                finally
-                {
-                    statusBarUpdater?.Dispose();
-                }
-            }).CompletesAsyncOperation(asyncToken);
+                await TaskScheduler.Default;
+
+                var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
+                await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+
+                foreach (var otherProject in otherProjectsForMultiTfmProject)
+                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
+
+                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
+                // then ForceAnalyzeAsync will not cause analyzers to execute.
+                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
+                HandleProjectsWithDisabledAnalysis();
+            });
 
             return;
 
@@ -384,19 +385,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
                 if (!projectsWithDisabledAnalysis.IsEmpty)
                 {
-                    // Compute diagnostics by overidding project's RunCodeAnalysis flag to true.
+                    // Compute diagnostics by overriding project's RunCodeAnalysis flag to true.
                     var tasks = new System.Threading.Tasks.Task<ImmutableArray<DiagnosticData>>[projectsWithDisabledAnalysis.Length];
                     for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
                     {
                         var project = projectsWithDisabledAnalysis[index];
                         project = project.Solution.WithRunAnalyzers(project.Id, runAnalyzers: true).GetProject(project.Id)!;
                         tasks[index] = Task.Run(
-                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id));
+                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id, documentId: null,
+                                        includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None));
                     }
 
                     Task.WhenAll(tasks).Wait();
 
-                    // Report new host diagostics.
+                    // Report new host diagnostics.
                     for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
                     {
                         var project = projectsWithDisabledAnalysis[index];

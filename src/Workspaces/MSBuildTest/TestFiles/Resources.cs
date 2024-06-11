@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string WithPrefer32Bit => GetText("ProjectFiles.CSharp.WithPrefer32Bit.csproj");
                 public static string WithChecksumAlgorithm => GetText("ProjectFiles.CSharp.WithChecksumAlgorithm.csproj");
                 public static string WithLink => GetText("ProjectFiles.CSharp.WithLink.csproj");
+                public static string WithClassNotInProjectFolder => GetText("ProjectFiles.CSharp.WithClassNotInProjectFolder.csproj");
                 public static string WithSystemNumerics => GetText("ProjectFiles.CSharp.WithSystemNumerics.csproj");
                 public static string WithXaml => GetText("ProjectFiles.CSharp.WithXaml.csproj");
                 public static string WithoutPrefer32Bit => GetText("ProjectFiles.CSharp.WithoutPrefer32Bit.csproj");

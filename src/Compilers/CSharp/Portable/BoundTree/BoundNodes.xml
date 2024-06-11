@@ -24,6 +24,7 @@
   <ValueType Name="ConversionKind"/>
   <ValueType Name="Conversion"/>
   <ValueType Name="TextSpan"/>
+  <ValueType Name="ThreeState"/>
   <ValueType Name="UnaryOperatorKind"/>
   <ValueType Name="BinaryOperatorKind"/>
   <ValueType Name="LookupResultKind"/>
@@ -35,6 +36,8 @@
   <ValueType Name="ErrorCode"/>
   <ValueType Name="ImmutableBindingDiagnostic"/>
   <ValueType Name="InterpolatedStringHandlerData"/>
+  <ValueType Name="WellKnownMember"/>
+  <ValueType Name="CollectionExpressionTypeKind"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -687,6 +690,7 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow"/>
+    <Field Name="DebugInfo" Type="BoundAwaitExpressionDebugInfo" Null="NotApplicable"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -1784,6 +1788,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
@@ -1865,7 +1871,57 @@
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
-  
+
+  <AbstractNode Name="BoundCollectionExpressionBase" Base="BoundExpression">
+    <!-- Collection expression elements. -->
+    <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </AbstractNode>
+
+  <!--
+  An unconverted collection expression.
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundUnconvertedCollectionExpression" Base="BoundCollectionExpressionBase">
+    <!-- Type is not significant for this node type; always null -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+  </Node>
+
+  <Node Name="BoundCollectionExpression" Base="BoundCollectionExpressionBase">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
+    <!-- An expression placeholder value representing the initialized collection. -->
+    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
+    <!-- Constructor call to create the empty collection type. -->
+    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <!-- Construct method for collection types with [CollectionBuilder]. -->
+    <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
+    <!-- Placeholder for collection builder method invocation. -->
+    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Conversion from collection builder method invocation to collection type. -->
+    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundCollectionExpressionSpreadExpressionPlaceholder" Base="BoundValuePlaceholderBase"/>
+
+  <Node Name="BoundCollectionExpressionSpreadElement" Base="BoundExpression">
+    <!-- Type is not significant for this node type; always null -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <!-- Collection being spread. -->
+    <Field Name="Expression" Type="BoundExpression"/>
+    <!-- Collection placeholder, used in Conversion and LengthOrCount fields. -->
+    <Field Name="ExpressionPlaceholder" Type="BoundCollectionExpressionSpreadExpressionPlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Collection conversion to the type expected for foreach. -->
+    <Field Name="Conversion" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <!-- Collection enumerator info. -->
+    <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
+    <!-- Collection Length or Count property value. -->
+    <Field Name="LengthOrCount" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <!-- Collection element placeholder, used in IteratorBody. -->
+    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Statement executed for each collection element. -->
+    <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
+  </Node>
 
   <!-- 
   Tuple literals can exist in two forms - literal and converted literal.
@@ -2106,6 +2162,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
@@ -2125,6 +2183,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
@@ -2159,6 +2219,21 @@
 
     <!-- The receiver placeholder(s) of type Int32 for indexer access (one if implicit Index indexer, two if implicit Range indexer) -->
     <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundImplicitIndexerValuePlaceholder&gt;" Null="disallow" SkipInVisitor="true" />
+  </Node>
+
+  <Node Name="BoundInlineArrayAccess" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
+
+    <!-- The target of the operation -->
+    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
+
+    <!-- An expression with type int, Index or Range -->
+    <Field Name="Argument" Type="BoundExpression" Null="disallow" />
+
+    <!-- The access is an element access rather than a slice access, and it produces a value rather than a variable -->
+    <Field Name="IsValue" Type="bool" />
+
+    <Field Name="GetItemOrSliceHelper" Type="WellKnownMember"/>
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">

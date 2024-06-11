@@ -118,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 #nullable disable
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
@@ -476,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal void OnNewTypeDeclarationsLoaded(
-            Dictionary<string, ImmutableArray<PENamedTypeSymbol>> typesDict)
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> typesDict)
         {
             bool keepLookingForDeclaredCorTypes = (_ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes);
 
@@ -691,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal NamedTypeSymbol LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
             NamedTypeSymbol? result;
-            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegmentsMemory);
 
             if ((object?)scope == null)
             {
@@ -854,6 +856,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return foundAttributeType
                         ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
                         : RefSafetyRulesAttributeVersion.NoAttribute;
+                }
+            }
+        }
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, computeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
+
+                ObsoleteAttributeData? computeObsoleteAttributeData()
+                {
+                    foreach (var attrData in GetAttributes())
+                    {
+                        if (attrData.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+                        {
+                            return attrData.DecodeExperimentalAttribute();
+                        }
+                    }
+
+                    return null;
                 }
             }
         }
