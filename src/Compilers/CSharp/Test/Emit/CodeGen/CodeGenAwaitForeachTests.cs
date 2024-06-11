@@ -9343,7 +9343,7 @@ struct S2 : ICustomEnumerator, IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncD
         return ValueTask.CompletedTask;
     }
 
-    public int Current => 123;
+    public int Current => throw null;
     public ValueTask<bool> MoveNextAsync()
     {
         return ValueTask.FromResult(false);
@@ -9370,7 +9370,7 @@ class C
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "D" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
     }
