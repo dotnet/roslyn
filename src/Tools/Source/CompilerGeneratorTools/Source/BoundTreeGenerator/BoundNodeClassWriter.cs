@@ -1376,7 +1376,7 @@ namespace BoundTreeGenerator
                         Brace();
                         foreach (var node in _tree.Types.OfType<Node>())
                         {
-                            if (!AllNodeOrNodeListFields(node).Any() && !AllTypeFields(node).Any())
+                            if (!AllNodeOrNodeListFields(node).Any() && !AllTypeFields(node).Any() && !AllNonTypeSymbolOrNonTypeSymbolListFields(node).Any())
                             {
                                 WriteLine($"{GetVisitFunctionDeclaration(node.Name, isOverride: true)} => node;");
                                 continue;
@@ -1384,6 +1384,28 @@ namespace BoundTreeGenerator
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
+
+                            foreach (var field in AllNonTypeSymbolOrNonTypeSymbolListFields(node))
+                            {
+                                hadField = true;
+
+                                if (!IsImmutableArray(field.Type, out string elementType))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.Visit{field.Type.TrimEnd('?')}(node.{field.Name});");
+                                }
+                                else if (elementType.TrimEnd('?') == "LocalSymbol")
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitLocals(node.{field.Name});");
+                                }
+                                else if (elementType.TrimEnd('?') == "MethodSymbol" && field.Name.EndsWith("LocalFunctions"))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitDeclaredLocalFunctions(node.{field.Name});");
+                                }
+                                else
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitSymbols<{elementType}>(node.{field.Name});");
+                                }
+                            }
 
                             foreach (Field field in AllNodeOrNodeListFields(node))
                             {
@@ -1395,20 +1417,6 @@ namespace BoundTreeGenerator
                             {
                                 hadField = true;
                                 WriteLine("TypeSymbol? {0} = this.VisitType(node.{1});", ToCamelCase(field.Name), field.Name);
-                            }
-
-                            foreach (var field in AllNonTypeSymbolOrNonTypeSymbolListFields(node))
-                            {
-                                hadField = true;
-
-                                if (!IsImmutableArray(field.Type, out string elementType))
-                                {
-                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.Visit{field.Type.TrimEnd('?')}(node.{field.Name});");
-                                }
-                                else
-                                {
-                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitSymbols<{elementType}>(node.{field.Name});");
-                                }
                             }
 
                             if (hadField)

@@ -192,6 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return builder is null ? symbols : builder.ToImmutableAndFree();
         }
+
+        protected virtual ImmutableArray<LocalSymbol> VisitLocals(ImmutableArray<LocalSymbol> locals) => locals;
+
+        protected virtual ImmutableArray<MethodSymbol> VisitDeclaredLocalFunctions(ImmutableArray<MethodSymbol> localFunctions) => localFunctions;
     }
 
     internal abstract class BoundTreeRewriterWithStackGuard : BoundTreeRewriter

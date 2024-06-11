@@ -2329,7 +2329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportUnusedVariables(ImmutableArray<LocalFunctionSymbol> locals)
+        private void ReportUnusedVariables(ImmutableArray<MethodSymbol> locals)
         {
             foreach (var symbol in locals)
             {
@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportIfUnused(LocalFunctionSymbol symbol)
+        private void ReportIfUnused(MethodSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
