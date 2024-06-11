@@ -38,7 +38,7 @@ internal readonly record struct WorkspaceConfigurationOptions(
     [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
     [property: DataMember(Order = 2)] bool DisableRecoverableText = false,
     [property: DataMember(Order = 3)] SourceGeneratorExecutionPreference SourceGeneratorExecution = SourceGeneratorExecutionPreference.Automatic,
-    [property: DataMember(Order = 4)] bool OnlyUnifyDocumentsAcrossProjectFlavors = true,
+    [property: DataMember(Order = 4)] bool UnifyLinkedDocumentContentsAcrossProjectFlavors = true,
     [property: DataMember(Order = 5)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
         true
@@ -62,5 +62,5 @@ internal readonly record struct WorkspaceConfigurationOptions(
         CacheStorage: StorageDatabase.None,
         EnableOpeningSourceGeneratedFiles: false,
         DisableRecoverableText: false,
-        OnlyUnifyDocumentsAcrossProjectFlavors: true);
+        UnifyLinkedDocumentContentsAcrossProjectFlavors: true);
 }
