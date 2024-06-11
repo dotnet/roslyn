@@ -66,7 +66,7 @@ internal abstract class AsyncLazy<T>
         /// by using a single lock for all AsyncLazy instances.  Only trivial and non-reentrant work
         /// should be done while holding the lock.
         /// </summary>
-        private static readonly NonReentrantLock s_gate = new(useThisInstanceForSynchronization: true);
+        private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
         /// <summary>
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,
