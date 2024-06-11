@@ -225,6 +225,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
 #endif
 
+        // We use a Guid for the marker because it is used as a key in an exceptions Data dictionary, so we must make sure
+        // it's serializable if the exception crosses an RPC boundary. In particular System.Text.Json doesn't like plain
+        // object dictionary keys.
         private static readonly object s_reportedMarker = Guid.NewGuid();
 
         // Do not allow this method to be inlined.  That way when we have a dump we can see this frame in the stack and
