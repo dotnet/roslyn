@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 if (value < _size)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.value, ExceptionResource.ArgumentOutOfRange_SmallCapacity);
+                    ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.@value, ExceptionResource.ArgumentOutOfRange_SmallCapacity);
                 }
 
                 if (value != _items.Length)
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Collections
             get => this[index];
             set
             {
-                ThrowHelper.IfNullAndNullsAreIllegalThenThrow<T>(value, ExceptionArgument.value);
+                ThrowHelper.IfNullAndNullsAreIllegalThenThrow<T>(value, ExceptionArgument.@value);
 
                 try
                 {
