@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             _renameService = renameService;
         }
 
+        public Task<ImmutableDictionary<string, string[]>> GetRenameContextAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableDictionary<string, string[]>.Empty);
+        }
+
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var renameInfo = await _renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);

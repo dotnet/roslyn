@@ -90,7 +90,12 @@ internal sealed class InlineRenameService(
         var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
             document, textSpan.Start, cancellationToken).ConfigureAwait(false);
 
+        var context = await editorRenameService.GetRenameContextAsync(renameInfo, cancellationToken).ConfigureAwait(false);
         var docComment = symbol.GetDocumentationCommentXml();
+        if (!string.IsNullOrWhiteSpace(docComment))
+        {
+            context = context.Add("documentation", new[] { docComment });
+        }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var snapshot = text.FindCorrespondingEditorTextSnapshot();
@@ -115,6 +120,7 @@ internal sealed class InlineRenameService(
             document.Project.Solution.Workspace,
             renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
             renameInfo,
+            context,
             options,
             previewChanges,
             _uiThreadOperationExecutor,

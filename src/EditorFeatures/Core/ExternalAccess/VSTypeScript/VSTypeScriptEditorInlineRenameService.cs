@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -21,6 +23,11 @@ internal sealed class VSTypeScriptEditorInlineRenameService(
     [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service) : IEditorInlineRenameService
 {
     private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service = service;
+
+    public Task<ImmutableDictionary<string, string[]>> GetRenameContextAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ImmutableDictionary<string, string[]>.Empty);
+    }
 
     public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
     {

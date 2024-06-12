@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -29,5 +32,15 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
 
         return new SymbolInlineRenameInfo(
             _refactorNotifyServices, symbolicInfo, _globalOptions.CreateProvider(), cancellationToken);
+    }
+
+    public Task<ImmutableDictionary<string, string[]>> GetRenameContextAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
+    {
+        return GetRenameContextCoreAsync(renameInfo, cancellationToken);
+    }
+
+    protected virtual Task<ImmutableDictionary<string, string[]>> GetRenameContextCoreAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ImmutableDictionary<string, string[]>.Empty);
     }
 }

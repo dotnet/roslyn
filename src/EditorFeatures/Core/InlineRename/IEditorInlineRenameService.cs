@@ -24,8 +24,8 @@ internal readonly struct InlineRenameLocation
 
     public InlineRenameLocation(Document document, TextSpan textSpan) : this()
     {
-        this.Document = document;
-        this.TextSpan = textSpan;
+        Document = document;
+        TextSpan = textSpan;
     }
 }
 
@@ -72,9 +72,9 @@ internal readonly struct InlineRenameReplacement
 
     public InlineRenameReplacement(InlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan) : this()
     {
-        this.Kind = kind;
-        this.OriginalSpan = originalSpan;
-        this.NewSpan = newSpan;
+        Kind = kind;
+        OriginalSpan = originalSpan;
+        NewSpan = newSpan;
     }
 
     internal InlineRenameReplacement(RelatedLocation location, TextSpan newSpan)
@@ -254,4 +254,6 @@ internal interface IInlineRenameInfo
 internal interface IEditorInlineRenameService : ILanguageService
 {
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
+
+    Task<ImmutableDictionary<string, string[]>> GetRenameContextAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken);
 }

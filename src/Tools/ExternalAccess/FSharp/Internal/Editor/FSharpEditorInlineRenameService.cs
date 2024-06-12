@@ -5,10 +5,10 @@
 #nullable disable
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -200,6 +200,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         {
             _legacyService = legacyService;
             _service = service;
+        }
+
+        public Task<ImmutableDictionary<string, string[]>> GetRenameContextAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableDictionary<string, string[]>.Empty);
         }
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)

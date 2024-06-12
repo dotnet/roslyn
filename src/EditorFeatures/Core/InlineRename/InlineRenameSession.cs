@@ -89,6 +89,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// of the rename operation, as determined by the language
     /// </summary>
     public InlineRenameFileRenameInfo FileRenameInfo { get; }
+    public ImmutableDictionary<string, string[]> Context { get; }
 
     /// <summary>
     /// Keep-alive session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
@@ -138,6 +139,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         Workspace workspace,
         SnapshotSpan triggerSpan,
         IInlineRenameInfo renameInfo,
+        ImmutableDictionary<string, string[]> context,
         SymbolRenameOptions options,
         bool previewChanges,
         IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -189,6 +191,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
         FileRenameInfo = _renameInfo.GetFileRenameInfo();
+        Context = context;
 
         // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
         // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
