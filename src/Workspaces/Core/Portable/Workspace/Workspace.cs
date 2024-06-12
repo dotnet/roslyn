@@ -309,7 +309,7 @@ public abstract partial class Workspace : IDisposable
                 changedDocumentIds.AddRange(projectChanges.GetChangedDocuments());
             }
 
-            var configService = newSolution.Workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+            var configService = newSolution.Services.GetRequiredService<IWorkspaceConfigurationService>();
             return configService.Options.UnifyLinkedDocumentContentsAcrossProjectFlavors
                 ? UnifyLinkedDocumentContentsAcrossProjectFlavors(newSolution, addedDocumentIds, changedDocumentIds)
                 : UnifyLinkedDocumentContentsAcrossEntireSolution(newSolution, addedDocumentIds, changedDocumentIds);
