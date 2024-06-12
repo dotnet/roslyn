@@ -36,16 +36,13 @@ internal sealed class CSharpEditorInlineRenameService(
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false) ??
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false);
 
-            var syntaxTree = await renameDefinition.Document.GetSyntaxTreeAsync(cancellationToken);
-            var textSpan = await syntaxTree?.GetTextAsync(cancellationToken);
-            var lineSpan = syntaxTree?.GetLineSpan(renameDefinition.SourceSpan, cancellationToken);
-
-            if (lineSpan is null || textSpan is null)
+            var documentText = await renameDefinition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (documentText is null)
             {
                 continue;
             }
 
-            AddSpanOfInterest(textSpan, lineSpan.Value, containingStatementOrDeclarationSpan, definitions);
+            AddSpanOfInterest(documentText, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
         }
 
         var renameLocationOptions = new Rename.SymbolRenameOptions(RenameOverloads: true, RenameInStrings: true, RenameInComments: true);
@@ -57,16 +54,13 @@ internal sealed class CSharpEditorInlineRenameService(
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false);
 
-            var syntaxTree = await renameLocation.Document.GetSyntaxTreeAsync(cancellationToken);
-            var textSpan = await syntaxTree?.GetTextAsync(cancellationToken);
-            var lineSpan = syntaxTree?.GetLineSpan(renameLocation.TextSpan, cancellationToken);
-
-            if (lineSpan is null || textSpan is null)
+            var documentText = await renameLocation.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (documentText is null)
             {
                 continue;
             }
 
-            AddSpanOfInterest(textSpan, lineSpan.Value, containingStatementOrDeclarationSpan, references);
+            AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
         }
 
         var context = ImmutableDictionary<string, string[]>.Empty
@@ -74,7 +68,7 @@ internal sealed class CSharpEditorInlineRenameService(
             .Add("reference", references.ToArrayAndFree());
         return context;
 
-        void AddSpanOfInterest(SourceText documentText, FileLinePositionSpan lineSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<string> resultBuilder)
+        void AddSpanOfInterest(SourceText documentText, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<string> resultBuilder)
         {
             int startPosition, endPosition, startLine = 0, endLine = 0, lineCount = 0;
             if (surroundingSpanOfInterest is not null)
@@ -90,8 +84,8 @@ internal sealed class CSharpEditorInlineRenameService(
             // select a span that encompasses 5 lines above and 5 lines below the error squiggle.
             if (surroundingSpanOfInterest is null || lineCount <= 0 || lineCount > 10)
             {
-                startLine = Math.Max(0, lineSpan.StartLinePosition.Line - 5);
-                endLine = Math.Min(documentText.Lines.Count - 1, lineSpan.EndLinePosition.Line + 5);
+                startLine = Math.Max(0, documentText.Lines.GetLineFromPosition(fallbackSpan.Start).LineNumber - 5);
+                endLine = Math.Min(documentText.Lines.Count - 1, documentText.Lines.GetLineFromPosition(fallbackSpan.End).LineNumber + 5);
             }
 
             // If the start and end positions are not at the beginning and end of the start and end lines respectively,
