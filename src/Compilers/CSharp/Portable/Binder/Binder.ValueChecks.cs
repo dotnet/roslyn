@@ -391,15 +391,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        private AccessorKind GetIndexerAccessorKind(BoundIndexerAccess indexerAccess, BindValueKind valueKind)
         {
             var coreValueKind = valueKind & ValueKindSignificantBitsMask;
             var returnsByRef = indexerAccess.Indexer.RefKind != RefKind.None;
-            var useSetAccessor = coreValueKind == BindValueKind.Assignable && !returnsByRef;
-            var accessorForDefaultArguments = useSetAccessor
-                ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
-                : indexerAccess.Indexer.GetOwnOrInheritedGetMethod();
-
             AccessorKind kind = (returnsByRef, coreValueKind) switch
             {
                 (true, _) => AccessorKind.Get,
@@ -414,7 +409,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => AccessorKind.Unknown,
             };
             Debug.Assert(kind != AccessorKind.Unknown);
+            return kind;
+        }
 
+        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        {
+            var coreValueKind = valueKind & ValueKindSignificantBitsMask;
+            var returnsByRef = indexerAccess.Indexer.RefKind != RefKind.None;
+            AccessorKind kind = GetIndexerAccessorKind(indexerAccess, valueKind);
+            var useSetAccessor = coreValueKind == BindValueKind.Assignable && !returnsByRef;
+            var accessorForDefaultArguments = useSetAccessor
+                ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
+                : indexerAccess.Indexer.GetOwnOrInheritedGetMethod();
             if (accessorForDefaultArguments is not null)
             {
                 var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArguments.ParameterCount);
@@ -542,12 +548,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var implicitIndexer = (BoundImplicitIndexerAccess)expr;
                         if (implicitIndexer.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
                         {
+                            var kind = GetIndexerAccessorKind(indexerAccess, valueKind);
                             expr = implicitIndexer.Update(
                                 implicitIndexer.Receiver,
                                 implicitIndexer.Argument,
                                 implicitIndexer.LengthOrCountAccess,
                                 implicitIndexer.ReceiverPlaceholder,
-                                CheckValue(indexerAccess, valueKind, diagnostics),
+                                indexerAccess.Update(kind),
                                 implicitIndexer.ArgumentPlaceholders,
                                 implicitIndexer.Type);
                         }
