@@ -93,7 +93,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// <summary>
     /// Information on references of rename symbol.
     /// </summary>
-    public ImmutableDictionary<string, string[]> Context { get; }
+    public ImmutableDictionary<string, ImmutableArray<string>> Context { get; }
 
     /// <summary>
     /// Keep-alive session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on

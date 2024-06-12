@@ -24,7 +24,7 @@ internal sealed class CSharpEditorInlineRenameService(
     [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
     IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
 {
-    protected override async Task<ImmutableDictionary<string, string[]>> GetRenameContextCoreAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
+    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
     {
         var seen = PooledHashSet<TextSpan>.GetInstance();
         var definitions = ArrayBuilder<string>.GetInstance();
@@ -63,9 +63,9 @@ internal sealed class CSharpEditorInlineRenameService(
             AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
         }
 
-        var context = ImmutableDictionary<string, string[]>.Empty
-            .Add("definition", definitions.ToArrayAndFree())
-            .Add("reference", references.ToArrayAndFree());
+        var context = ImmutableDictionary<string, ImmutableArray<string>>.Empty
+            .Add("definition", definitions.ToImmutableAndFree())
+            .Add("reference", references.ToImmutableAndFree());
         return context;
 
         void AddSpanOfInterest(SourceText documentText, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<string> resultBuilder)

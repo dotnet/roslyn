@@ -154,36 +154,12 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
 
+            // TODO: Context should be lazily evaluated now.
+            var context = ImmutableDictionary.CreateRange<string, string[]>(
+                BaseViewModel.Session.Context
+                .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
 
-
-            // TODO: fix threading
-            /*
-
-
-            if (allRenameLocations.Locations.Count > 0)
-            {
-                var references = new List<string>();
-                foreach (var renameLocation in allRenameLocations.Locations)
-                {
-                    var syntaxTree = renameLocation.Document.GetSyntaxTreeSynchronously(_cancellationTokenSource.Token);
-                    var text = syntaxTree.GetText(_cancellationTokenSource.Token);
-                    var lineSpan = syntaxTree.GetLineSpan(renameLocation.TextSpan, _cancellationTokenSource.Token);
-
-                    var startLine = lineSpan.StartLinePosition.Line;
-                    var endLine = lineSpan.EndLinePosition.Line;
-
-                    var documentContent = string.Join(
-                        Environment.NewLine,
-                        text.Lines.Skip(startLine).Take(endLine - startLine + 1).Select(l => l.ToString()));
-                    references.Add(documentContent);
-                }
-                var contextBuilder = ImmutableDictionary.CreateBuilder<string, string[]>();
-                contextBuilder.Add("Reference", references.ToArray());
-                context = contextBuilder.ToImmutableDictionary();
-            }
-            */
-            var context = BaseViewModel.Session.Context;
-
+            // TODO: This is for local prototyping.
             _smartRenameSession.PromptOverride = """
                 Your task is to help a software developer improve the identifier name indicated by [NameThisIdentifier]. The existing identifier name is {identifier}
 
