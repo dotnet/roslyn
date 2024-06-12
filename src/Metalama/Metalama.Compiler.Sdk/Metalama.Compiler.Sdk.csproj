@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -34,8 +34,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(LowestSupportedRoslynVersion)" />
-    <!-- Required to override central package version. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(LowestSupportedRoslynVersion)" />
 
     <ProjectReference Include="..\Metalama.Compiler.BuildTasks\Metalama.Compiler.BuildTasks.csproj" PrivateAssets="All" ReferenceOutputAssembly="False" SetTargetFramework="TargetFramework=net6.0"/>
     <ProjectReference Include="..\Metalama.Compiler.BuildTasks\Metalama.Compiler.BuildTasks.csproj" PrivateAssets="All" ReferenceOutputAssembly="False" SetTargetFramework="TargetFramework=net8.0"/>
