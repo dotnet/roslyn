@@ -759,7 +759,7 @@
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="translated">按下 Enter 时始终添加新行(_A)</target>
+        <target state="translated">始终在按下 Enter 时添加新行(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
