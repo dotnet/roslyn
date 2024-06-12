@@ -36,9 +36,8 @@ internal sealed class DefaultWorkspaceConfigurationService() : IWorkspaceConfigu
 internal readonly record struct WorkspaceConfigurationOptions(
     [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
     [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
-    [property: DataMember(Order = 2)] bool DisableRecoverableText = false,
-    [property: DataMember(Order = 3)] SourceGeneratorExecutionPreference SourceGeneratorExecution = SourceGeneratorExecutionPreference.Automatic,
-    [property: DataMember(Order = 4)] bool ValidateCompilationTrackerStates =
+    [property: DataMember(Order = 2)] SourceGeneratorExecutionPreference SourceGeneratorExecution = SourceGeneratorExecutionPreference.Automatic,
+    [property: DataMember(Order = 3)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
         true
 #else
@@ -59,6 +58,5 @@ internal readonly record struct WorkspaceConfigurationOptions(
     /// </summary>
     public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
         CacheStorage: StorageDatabase.None,
-        EnableOpeningSourceGeneratedFiles: false,
-        DisableRecoverableText: false);
+        EnableOpeningSourceGeneratedFiles: false);
 }
