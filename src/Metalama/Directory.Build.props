@@ -4,7 +4,7 @@
     <Import Sdk="PostSharp.Engineering.Sdk" Project="MetalamaBranding.props"/>
 
     <PropertyGroup>
-    <!--  warning NU5118: File 'C:\Users\GaelFraiteur\.nuget\packages\microsoft.dotnet.arcade.sdk\7.0.0-beta.21569.2\tools\Assets\DotNetPackageIcon.png' is not added
+        <!--  warning NU5118: File 'C:\Users\GaelFraiteur\.nuget\packages\microsoft.dotnet.arcade.sdk\7.0.0-beta.21569.2\tools\Assets\DotNetPackageIcon.png' is not added
          because the package already contains file 'metalama.png' -->
         <NoWarn>$(NoWarn);NU5118</NoWarn>
     </PropertyGroup>
