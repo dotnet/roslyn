@@ -74,7 +74,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// <summary>
     /// Guards any updates to the maps here that aren't updated via interlocked updates.
     /// </summary>
+    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
     /// <summary>
     /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.

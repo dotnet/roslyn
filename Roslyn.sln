@@ -504,6 +504,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler", "src\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj", "{E5E0BF73-95F7-4BC3-8443-2336C4FF4297}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests", "src\Tools\ExternalAccess\RazorCompilerTest\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj", "{828FD0DB-9927-42AC-B6C2-D1514965D6C3}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer", "src\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj", "{2A3C94F7-5B5E-4CDC-B645-672815E61DEB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.UnitTests", "src\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj", "{9A90AA02-4275-40ED-B1F1-731AF17E675C}"
@@ -1282,6 +1286,14 @@ Global
 		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5E0BF73-95F7-4BC3-8443-2336C4FF4297}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5E0BF73-95F7-4BC3-8443-2336C4FF4297}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5E0BF73-95F7-4BC3-8443-2336C4FF4297}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5E0BF73-95F7-4BC3-8443-2336C4FF4297}.Release|Any CPU.Build.0 = Release|Any CPU
+		{828FD0DB-9927-42AC-B6C2-D1514965D6C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{828FD0DB-9927-42AC-B6C2-D1514965D6C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{828FD0DB-9927-42AC-B6C2-D1514965D6C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{828FD0DB-9927-42AC-B6C2-D1514965D6C3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2A3C94F7-5B5E-4CDC-B645-672815E61DEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2A3C94F7-5B5E-4CDC-B645-672815E61DEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A3C94F7-5B5E-4CDC-B645-672815E61DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1600,6 +1612,8 @@ Global
 		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{8A29449D-411E-49E4-B99E-E8428076BB21} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{E5E0BF73-95F7-4BC3-8443-2336C4FF4297} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{828FD0DB-9927-42AC-B6C2-D1514965D6C3} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{2A3C94F7-5B5E-4CDC-B645-672815E61DEB} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{9A90AA02-4275-40ED-B1F1-731AF17E675C} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{521ADC3E-CC15-414B-9356-D87C5BCF3A24} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}

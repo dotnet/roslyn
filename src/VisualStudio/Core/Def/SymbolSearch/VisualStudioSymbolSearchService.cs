@@ -42,7 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
 internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
 {
+    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
     // Note: A remote engine is disposable as it maintains a connection with ServiceHub,
     // but we want to keep it alive until the VS is closed, so we don't dispose it.
