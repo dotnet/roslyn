@@ -613,7 +613,7 @@ function Deploy-VsixViaTool() {
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
 
   # Run source generators automatically during integration tests.
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\SourceGeneratorExecutionBalanced" Value dword 0
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\SourceGeneratorExecutionManual" Value dword 0
 
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()

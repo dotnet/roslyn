@@ -135,7 +135,7 @@ internal static class PredefinedCommandHandlerNames
 
     /// <summary>
     /// Command handler for detecting user save commands, and using that to issue a request to run source generators
-    /// (when in <see cref="SourceGeneratorExecutionPreference.Balanced"/> mode).
+    /// (when in <see cref="SourceGeneratorExecutionPreference.Manual"/> mode).
     /// </summary>
     public const string SourceGeneratorSave = "Source Generator Save Command Handler";
 

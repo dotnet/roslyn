@@ -414,7 +414,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Automatic_Run_generators_after_any_change
             => ServicesVSResources.Automatic_Run_generators_after_any_change;
 
-        public static string Option_Balanced_Run_generators_after_saving_or_building
-            => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
+        public static string Option_Manual_Run_generators_after_saving_or_building
+            => ServicesVSResources.Manual_Run_generators_after_saving_or_building;
     }
 }

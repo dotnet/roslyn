@@ -17,7 +17,7 @@ internal static class WorkspaceConfigurationOptionsStorage
                 globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             SourceGeneratorExecution:
                 globalOptions.GetOption(SourceGeneratorExecution) ??
-                (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecutionPreference.Balanced : SourceGeneratorExecutionPreference.Automatic),
+                (globalOptions.GetOption(SourceGeneratorExecutionManualFeatureFlag) ? SourceGeneratorExecutionPreference.Manual : SourceGeneratorExecutionPreference.Automatic),
 
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
@@ -45,6 +45,6 @@ internal static class WorkspaceConfigurationOptionsStorage
             s => SourceGeneratorExecutionPreferenceUtilities.Parse(s),
             SourceGeneratorExecutionPreferenceUtilities.GetEditorConfigString));
 
-    public static readonly Option2<bool> SourceGeneratorExecutionBalancedFeatureFlag = new(
+    public static readonly Option2<bool> SourceGeneratorExecutionManualFeatureFlag = new(
         "dotnet_source_generator_execution_balanced_feature_flag", true);
 }
