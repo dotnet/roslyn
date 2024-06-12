@@ -53,6 +53,7 @@ internal sealed class CSharpEditorInlineRenameService(
         foreach (var renameLocation in renameLocations.Locations)
         {
             var containingStatementOrDeclarationSpan =
+                await renameLocation.Document.TryGetSurroundingNodeSpanAsync<BaseMethodDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false);
 
@@ -80,8 +81,8 @@ internal sealed class CSharpEditorInlineRenameService(
             {
                 startPosition = surroundingSpanOfInterest.Value.Start;
                 endPosition = surroundingSpanOfInterest.Value.End;
-                startLine = lineSpan.StartLinePosition.Line;
-                endLine = lineSpan.EndLinePosition.Line;
+                startLine = documentText.Lines.GetLineFromPosition(surroundingSpanOfInterest.Value.Start).LineNumber;
+                endLine = documentText.Lines.GetLineFromPosition(surroundingSpanOfInterest.Value.End).LineNumber;
                 lineCount = endLine - startLine + 1;
             }
 
