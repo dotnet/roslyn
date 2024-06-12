@@ -235,9 +235,7 @@ public class VisualStudioOptionStorageTests
             "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
             "FeatureOnOffOptions_RenameTracking",                                           // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "file_header_template",                                                         // repository specific
-            "dotnet_internal_wrapping_column",                                              // TODO: https://github.com/dotnet/roslyn/issues/66062
-            "dotnet_internal_conditional_expression_wrapping_length",                       // TODO: https://github.com/dotnet/roslyn/issues/66062
-            "csharp_internal_collection_expression_wrapping_length",                        // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "dotnet_unsupported_wrapping_column",                                           // TODO: https://github.com/dotnet/roslyn/issues/66062
             "insert_final_newline",                                                         // TODO: https://github.com/dotnet/roslyn/issues/66062
             "RazorDesignTimeDocumentFormattingOptions_TabSize",                             // TODO: remove once Razor removes design-time documents
             "RazorDesignTimeDocumentFormattingOptions_UseTabs",                             // TODO: remove once Razor removes design-time documents

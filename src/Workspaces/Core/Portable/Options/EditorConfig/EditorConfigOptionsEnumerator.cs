@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Options;
 internal sealed class EditorConfigOptionsEnumerator(
     [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsEnumerator, LanguageMetadata>> optionEnumerators)
 {
-    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(string language, bool includeUndocumented = false)
+    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(string language, bool includeUnsupported = false)
         => optionEnumerators
             .Where(e => e.Metadata.Language == language)
-            .SelectMany(e => e.Value.GetOptions(includeUndocumented));
+            .SelectMany(e => e.Value.GetOptions(includeUnsupported));
 
-    internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions(bool includeUndocumented)
+    internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions(bool includeUnsupported)
     {
         yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.EditorConfigOptions);
 
-        if (includeUndocumented)
+        if (includeUnsupported)
         {
             yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.UndocumentedOptions);
         }

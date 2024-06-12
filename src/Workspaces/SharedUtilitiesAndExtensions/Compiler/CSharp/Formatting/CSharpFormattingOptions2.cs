@@ -276,8 +276,8 @@ internal static partial class CSharpFormattingOptions2
     /// Internal option -- not exposed to editorconfig tooling via <see cref="EditorConfigOptions"/>.
     /// </summary>
     public static readonly Option2<int> CollectionExpressionWrappingLength = new(
-        $"csharp_internal_collection_expression_wrapping_length",
-        defaultValue: 120,
+        $"csharp_unsupported_collection_expression_wrapping_length",
+        defaultValue: CSharpSyntaxFormattingOptions.Default.CollectionExpressionWrappingLength,
         languageName: LanguageNames.CSharp,
         isEditorConfigOption: true);
 

@@ -75,19 +75,19 @@ internal sealed partial class FormattingOptions2
     /// 
     /// TODO: Currently the option has no storage and always has its default value. See https://github.com/dotnet/roslyn/pull/30422#issuecomment-436118696.
     /// 
-    /// Internal option -- not exposed to tooling via <see cref="EditorConfigOptions"/>.
+    /// Internal option -- not exposed to tooling.
     /// </summary>
     public static readonly PerLanguageOption2<int> WrappingColumn = new(
-        $"dotnet_internal_wrapping_column",
-        defaultValue: 120,
+        $"dotnet_unsupported_wrapping_column",
+        defaultValue: SyntaxFormattingOptions.CommonDefaults.WrappingColumn,
         isEditorConfigOption: true);
 
     /// <summary>
-    /// Internal option -- not exposed to editorconfig tooling via <see cref="EditorConfigOptions"/>.
+    /// Internal option -- not exposed to editorconfig tooling.
     /// </summary>
     public static readonly Option2<int> ConditionalExpressionWrappingLength = new(
-        $"dotnet_internal_conditional_expression_wrapping_length",
-        defaultValue: 120,
+        $"dotnet_unsupported_conditional_expression_wrapping_length",
+        defaultValue: SyntaxFormattingOptions.CommonDefaults.ConditionalExpressionWrappingLength,
         isEditorConfigOption: true);
 
 #if !CODE_STYLE

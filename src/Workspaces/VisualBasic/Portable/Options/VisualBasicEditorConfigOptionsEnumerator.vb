@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Options
         Public Sub New()
         End Sub
 
-        Public Iterator Function GetOptions(includeUndocumented As Boolean) As IEnumerable(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsEnumerator.GetOptions
-            For Each entry In EditorConfigOptionsEnumerator.GetLanguageAgnosticEditorConfigOptions(includeUndocumented)
+        Public Iterator Function GetOptions(includeUnsupported As Boolean) As IEnumerable(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsEnumerator.GetOptions
+            For Each entry In EditorConfigOptionsEnumerator.GetLanguageAgnosticEditorConfigOptions(includeUnsupported)
                 Yield entry
             Next
 

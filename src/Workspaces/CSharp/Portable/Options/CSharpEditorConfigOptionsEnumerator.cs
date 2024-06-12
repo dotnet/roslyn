@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Options;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpEditorConfigOptionsEnumerator() : IEditorConfigOptionsEnumerator
 {
-    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(bool includeUndocumented)
+    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(bool includeUnsupported)
     {
-        foreach (var entry in EditorConfigOptionsEnumerator.GetLanguageAgnosticEditorConfigOptions(includeUndocumented))
+        foreach (var entry in EditorConfigOptionsEnumerator.GetLanguageAgnosticEditorConfigOptions(includeUnsupported))
         {
             yield return entry;
         }
@@ -28,7 +28,7 @@ internal sealed class CSharpEditorConfigOptionsEnumerator() : IEditorConfigOptio
         yield return (CSharpWorkspaceResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.EditorConfigOptions);
         yield return (CSharpWorkspaceResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.EditorConfigOptions);
 
-        if (includeUndocumented)
+        if (includeUnsupported)
         {
             yield return (CSharpWorkspaceResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.UndocumentedOptions);
         }
