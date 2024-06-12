@@ -89,6 +89,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// of the rename operation, as determined by the language
     /// </summary>
     public InlineRenameFileRenameInfo FileRenameInfo { get; }
+
+    /// <summary>
+    /// Information on references of rename symbol.
+    /// </summary>
     public ImmutableDictionary<string, string[]> Context { get; }
 
     /// <summary>
@@ -103,11 +107,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// snapshot.
     /// </summary>
     private JoinableTask<IInlineRenameLocationSet> _allRenameLocationsTask;
-
-    /// <summary>
-    /// Expose <see cref="_allRenameLocationsTask"/>
-    /// </summary>
-    internal JoinableTask<IInlineRenameLocationSet> AllRenameLocationsTask => _allRenameLocationsTask;
 
     /// <summary>
     /// The cancellation token for most work being done by the inline rename session. This
@@ -185,10 +184,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _previewChanges = previewChanges;
 
         _initialRenameText = triggerSpan.GetText();
-        ReplacementText = _initialRenameText;
+        this.ReplacementText = _initialRenameText;
 
         _baseSolution = _triggerDocument.Project.Solution;
-        UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
+        this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
         FileRenameInfo = _renameInfo.GetFileRenameInfo();
         Context = context;
@@ -254,7 +253,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             _triggerView.SetSelection(new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
         }
 
-        UndoManager.CreateInitialState(ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
+        this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
         _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans([startingSpan.ToTextSpan()]);
 
         UpdateReferenceLocationsTask();
@@ -449,7 +448,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         _threadingContext.ThrowIfNotOnUIThread();
         VerifyNotDismissed();
-        ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
+        this.ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
 
         var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ApplyReplacementText));
 
@@ -520,12 +519,12 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         // If the replacement text is empty, we do not update the results of the conflict
         // resolution task. We instead wait for a non-empty identifier.
-        if (ReplacementText == string.Empty)
+        if (this.ReplacementText == string.Empty)
         {
             return;
         }
 
-        var replacementText = ReplacementText;
+        var replacementText = this.ReplacementText;
         var options = _options;
         var cancellationToken = _conflictResolutionTaskCancellationSource.Token;
 
@@ -553,7 +552,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         // If the replacement text is empty, we do not update the results of the conflict
         // resolution task. We instead wait for a non-empty identifier.
-        if (ReplacementText == string.Empty)
+        if (this.ReplacementText == string.Empty)
         {
             return;
         }
@@ -716,7 +715,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 openBuffer.DisconnectAndRollbackEdits(isClosed);
             }
 
-            UndoManager.Disconnect();
+            this.UndoManager.Disconnect();
 
             if (_triggerView != null && !_triggerView.IsClosed)
             {
@@ -761,8 +760,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // still 'rename' even if the identifier went away (or was unchanged).  But that isn't
         // a case we're aware of, so it's fine to be opinionated here that we can quickly bail
         // in these cases.
-        if (ReplacementText == string.Empty ||
-            ReplacementText == _initialRenameText)
+        if (this.ReplacementText == string.Empty ||
+            this.ReplacementText == _initialRenameText)
         {
             Cancel();
             return false;
@@ -772,7 +771,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         try
         {
-            if (canUseBackgroundWorkIndicator && RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+            if (canUseBackgroundWorkIndicator && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
             {
                 // We do not cancel on edit because as part of the rename system we have asynchronous work still
                 // occurring that itself may be asynchronously editing the buffer (for example, updating reference
@@ -828,7 +827,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 newSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                     "vs.csharp.refactoring.rename",
-                    string.Format(EditorFeaturesResources.Rename_0_to_1_colon, OriginalSymbolName, ReplacementText),
+                    string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                     _renameInfo.FullDisplayName,
                     _renameInfo.Glyph,
                     newSolution,
@@ -878,7 +877,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
 
-        if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, ReplacementText))
+        if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
             return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
         if (!_workspace.TryApplyChanges(finalSolution))
@@ -905,7 +904,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
                 .ToList();
 
-            if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, ReplacementText))
+            if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
                 return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
             return null;
