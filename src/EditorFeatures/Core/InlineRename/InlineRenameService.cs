@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,7 +97,7 @@ internal sealed class InlineRenameService(
             var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
             if (!string.IsNullOrWhiteSpace(docComment))
             {
-                context = context.Add("documentation", new[] { docComment });
+                context = context.Add("documentation", ImmutableArray<string>.Empty.Add(docComment));
             }
         }
 

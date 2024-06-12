@@ -138,7 +138,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         Workspace workspace,
         SnapshotSpan triggerSpan,
         IInlineRenameInfo renameInfo,
-        ImmutableDictionary<string, string[]> context,
+        ImmutableDictionary<string, ImmutableArray<string>> context,
         SymbolRenameOptions options,
         bool previewChanges,
         IUIThreadOperationExecutor uiThreadOperationExecutor,
