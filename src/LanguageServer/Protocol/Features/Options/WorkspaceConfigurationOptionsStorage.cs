@@ -11,7 +11,6 @@ internal static class WorkspaceConfigurationOptionsStorage
 {
     public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
         => new(
-            CacheStorage: globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles:
                 globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                 globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
@@ -20,9 +19,6 @@ internal static class WorkspaceConfigurationOptionsStorage
                 (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecutionPreference.Balanced : SourceGeneratorExecutionPreference.Automatic),
 
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
-
-    public static readonly Option2<StorageDatabase> Database = new(
-        "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);

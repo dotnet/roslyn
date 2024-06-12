@@ -68,7 +68,6 @@ public class OptionSerializerTests
         var options = new IOption2[]
         {
             InlineDiagnosticsOptionsStorage.Location,
-            WorkspaceConfigurationOptionsStorage.Database,
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
             ImplementTypeOptionsStorage.InsertionBehavior,
