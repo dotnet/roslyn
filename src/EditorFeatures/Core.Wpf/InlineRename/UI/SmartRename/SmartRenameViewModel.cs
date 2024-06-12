@@ -151,9 +151,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
 
-            var delayTask = Task.Delay(1000, _cancellationTokenSource.Token);
+            var delayTask = listener.Delay(DelayTimeSpan.Idle, _cancellationTokenSource.Token);
             var coreTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
-            _getSuggestionsTask = delayTask
+            _getSuggestionsTask = listener.Delay(DelayTimeSpan.Idle, _cancellationTokenSource.Token)
                 .ContinueWith(_ => coreTask)
                 .CompletesAsyncOperation(listenerToken);
         }
