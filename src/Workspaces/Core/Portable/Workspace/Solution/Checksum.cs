@@ -119,7 +119,9 @@ namespace Microsoft.CodeAnalysis
         public void WriteTo(Span<byte> span)
         {
             Contract.ThrowIfFalse(span.Length >= HashSize);
+#pragma warning disable CS9191 // The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum)));
+#pragma warning restore CS9191
         }
 
         public static Checksum ReadFrom(ObjectReader reader)
