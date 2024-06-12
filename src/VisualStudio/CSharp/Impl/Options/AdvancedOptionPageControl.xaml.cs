@@ -95,12 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
                 return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
             });
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
-            });
 
             // Go To Definition
             BindToOption(Enable_navigation_to_sourcelink_and_embedded_sources, MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources);

@@ -397,11 +397,6 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">ソース ジェネレーターから開いたファイル内のすべての機能を有効にする (試験段階)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">ドキュメント アウトラインを有効にする (試験段階、再起動が必要)</target>
