@@ -397,11 +397,6 @@
         <target state="translated">O elemento é inválido.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">Habilitar todos os recursos nos arquivos abertos dos geradores de origem (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">Habilitar resumo do documento (experimental, requer reinicialização)</target>
