@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -34,9 +33,8 @@ internal sealed class DefaultWorkspaceConfigurationService() : IWorkspaceConfigu
 /// </summary>
 [DataContract]
 internal readonly record struct WorkspaceConfigurationOptions(
-    [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
-    [property: DataMember(Order = 1)] SourceGeneratorExecutionPreference SourceGeneratorExecution = SourceGeneratorExecutionPreference.Automatic,
-    [property: DataMember(Order = 2)] bool ValidateCompilationTrackerStates =
+    [property: DataMember(Order = 0)] SourceGeneratorExecutionPreference SourceGeneratorExecution = SourceGeneratorExecutionPreference.Automatic,
+    [property: DataMember(Order = 1)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
         true
 #else
@@ -44,17 +42,11 @@ internal readonly record struct WorkspaceConfigurationOptions(
 #endif
     )
 {
-    public WorkspaceConfigurationOptions()
-        : this(CacheStorage: StorageDatabase.SQLite)
-    {
-    }
-
     public static readonly WorkspaceConfigurationOptions Default = new();
 
     /// <summary>
     /// These values are such that the correctness of remote services is not affected if these options are changed from defaults
     /// to non-defaults while the services have already been executing.
     /// </summary>
-    public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
-        CacheStorage: StorageDatabase.None);
+    public static readonly WorkspaceConfigurationOptions RemoteDefault = new();
 }
