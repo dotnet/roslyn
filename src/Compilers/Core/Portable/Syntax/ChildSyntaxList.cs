@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public readonly int PositionAtSlotIndex;
 
+            public SlotData(SyntaxNode node)
+                : this(slotIndex: 0, precedingOccupantSlotCount: 0, node.Position)
+            {
+            }
+
             public SlotData(int slotIndex, int precedingOccupantSlotCount, int positionAtSlotIndex)
             {
                 SlotIndex = slotIndex;
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
         {
-            var slotData = new SlotData(slotIndex: 0, precedingOccupantSlotCount: 0, positionAtSlotIndex: node.Position);
+            var slotData = new SlotData(node);
 
             return ItemInternal(node, index, ref slotData);
         }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var childCnt = node.ChildNodesAndTokens().Count;
             int i = 0;
-            var slotData = new ChildSyntaxList.SlotData(slotIndex: 0, precedingOccupantSlotCount: 0, node.Position);
+            var slotData = new ChildSyntaxList.SlotData(node);
 
             do
             {

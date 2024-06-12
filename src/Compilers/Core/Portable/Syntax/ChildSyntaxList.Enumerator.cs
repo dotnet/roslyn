@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                 _node = node;
                 _count = count;
                 _childIndex = -1;
-                _slotData = new SlotData(slotIndex: 0, precedingOccupantSlotCount: 0, node.Position);
+                _slotData = new SlotData(node);
             }
 
             // PERF: Initialize an Enumerator directly from a SyntaxNode without going
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 _node = node;
                 _count = CountNodes(node.Green);
                 _childIndex = -1;
-                _slotData = new SlotData(slotIndex: 0, precedingOccupantSlotCount: 0, node.Position);
+                _slotData = new SlotData(node);
             }
 
             /// <summary>Advances the enumerator to the next element of the <see cref="ChildSyntaxList" />.</summary>
