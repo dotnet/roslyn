@@ -2184,7 +2184,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute peut uniquement être appliqué aux méthodes et propriétés d’instance de struct, et ne peut pas être appliqué aux constructeurs ou aux membres init uniquement.</target>
+        <target state="new">UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -5195,12 +5195,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Le {0} '{1}' non-nullable doit contenir une valeur non-null lors de la fermeture du constructeur. Envisagez de déclarer le {0} comme nullable.</target>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="needs-review-translation">Un champ non-nullable doit contenir une valeur non-null lors de la fermeture du constructeur. Envisagez de déclarer le champ comme nullable.</target>
+        <target state="new">Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6685,7 +6685,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
         <source>The new() constraint must be the last restrictive constraint specified</source>
-        <target state="needs-review-translation">La contrainte new() doit être la dernière contrainte spécifiée</target>
+        <target state="new">The new() constraint must be the last restrictive constraint specified</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -10636,7 +10636,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
         <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'await' ne peut pas être utilisé dans une expression contenant le type '{0}'</target>
+        <target state="new">Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11223,7 +11223,7 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <target state="translated">Impossible d'utiliser une instance de type '{0}' dans une fonction imbriquée, une expression de requête, un bloc itérateur ou une méthode async</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">

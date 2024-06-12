@@ -2184,7 +2184,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="needs-review-translation">"UnscopedRefAttribute" kann nur auf Strukturinstanzmethoden und -eigenschaften und nicht auf Konstruktoren oder init-only-Member angewendet werden.</target>
+        <target state="new">UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -5195,12 +5195,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Non-Nullable-{0} "{1}" muss beim Beenden des Konstruktors einen Wert ungleich NULL enthalten. Erwägen Sie eine Deklaration von "{0}" als Nullable.</target>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="needs-review-translation">Ein Non-Nullable-Feld muss beim Beenden des Konstruktors einen Wert ungleich NULL enthalten. Erwägen Sie die Deklaration als Nullable.</target>
+        <target state="new">Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6685,7 +6685,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
         <source>The new() constraint must be the last restrictive constraint specified</source>
-        <target state="needs-review-translation">Die new()-Einschränkung muss zuletzt angegeben werden.</target>
+        <target state="new">The new() constraint must be the last restrictive constraint specified</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -10636,7 +10636,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
         <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'"await" kann nicht in einem Ausdruck verwendet werden, der den Typ "{0}" enthält</target>
+        <target state="new">Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11223,7 +11223,7 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <target state="translated">Eine Instanz des Typs "{0}" kann nicht in einer geschachtelten Funktion, einem Abfrageausdruck, einem Iteratorblock oder einer Async-Methode verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
