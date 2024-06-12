@@ -319,28 +319,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 #endif
         }
 
-        internal sealed class UnitTestingRegistration
+        internal sealed class UnitTestingRegistration(
+            UnitTestingSolutionCrawlerRegistrationService owner,
+            int correlationId,
+            string workspaceKind,
+            SolutionServices solutionServices,
+            UnitTestingSolutionCrawlerProgressReporter progressReporter)
         {
-            private readonly UnitTestingSolutionCrawlerRegistrationService _owner;
+            private readonly UnitTestingSolutionCrawlerRegistrationService _owner = owner;
 
-            public readonly int CorrelationId;
-            public readonly string WorkspaceKind;
-            public readonly SolutionServices Services;
-            public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
-
-            public UnitTestingRegistration(
-                UnitTestingSolutionCrawlerRegistrationService owner,
-                int correlationId,
-                string workspaceKind,
-                SolutionServices solutionServices,
-                UnitTestingSolutionCrawlerProgressReporter progressReporter)
-            {
-                _owner = owner;
-                CorrelationId = correlationId;
-                WorkspaceKind = workspaceKind;
-                Services = solutionServices;
-                ProgressReporter = progressReporter;
-            }
+            public readonly int CorrelationId = correlationId;
+            public readonly string WorkspaceKind = workspaceKind;
+            public readonly SolutionServices Services = solutionServices;
+            public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter = progressReporter;
 
             public Solution GetSolutionToAnalyze()
             {

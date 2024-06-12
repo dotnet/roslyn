@@ -19,37 +19,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             Constant,
         }
 
-        public readonly struct Result
+        public readonly struct Result(
+            ResultKind kind,
+            IInvocationOperation invocationOperation,
+            InvocationExpressionSyntax invocation,
+            IMethodSymbol sliceLikeMethod,
+            MemberInfo memberInfo,
+            IOperation op1,
+            IOperation? op2)
         {
-            public readonly ResultKind Kind;
-            public readonly IInvocationOperation InvocationOperation;
-            public readonly InvocationExpressionSyntax Invocation;
-            public readonly IMethodSymbol SliceLikeMethod;
-            public readonly MemberInfo MemberInfo;
-            public readonly IOperation Op1;
+            public readonly ResultKind Kind = kind;
+            public readonly IInvocationOperation InvocationOperation = invocationOperation;
+            public readonly InvocationExpressionSyntax Invocation = invocation;
+            public readonly IMethodSymbol SliceLikeMethod = sliceLikeMethod;
+            public readonly MemberInfo MemberInfo = memberInfo;
+            public readonly IOperation Op1 = op1;
 
             /// <summary>
             /// Can be null, if we are dealing with one-argument call to a slice-like method.
             /// </summary>
-            public readonly IOperation? Op2;
-
-            public Result(
-                ResultKind kind,
-                IInvocationOperation invocationOperation,
-                InvocationExpressionSyntax invocation,
-                IMethodSymbol sliceLikeMethod,
-                MemberInfo memberInfo,
-                IOperation op1,
-                IOperation? op2)
-            {
-                Kind = kind;
-                InvocationOperation = invocationOperation;
-                Invocation = invocation;
-                SliceLikeMethod = sliceLikeMethod;
-                MemberInfo = memberInfo;
-                Op1 = op1;
-                Op2 = op2;
-            }
+            public readonly IOperation? Op2 = op2;
         }
     }
 }

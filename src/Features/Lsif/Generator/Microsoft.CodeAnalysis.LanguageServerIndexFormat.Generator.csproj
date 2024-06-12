@@ -45,6 +45,7 @@
                               Condition="'%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' and '%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
 
       <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
+      <TfmSpecificPackageFile Include="$(ProjectDepsFilePath)" PackagePath="tools\$(TargetFramework)\any" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
     </ItemGroup>
   </Target>
 
@@ -58,7 +59,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.CommandLine.Experimental" Version="$(SystemCommandLineExperimentalVersion)" />
+    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
 
     <!-- Since we're using Microsoft.Build.Locator, it's important to ensure that absolutely no MSBuild binaries are deployed alongside our application,
          or else those can get picked up first and break things. Since we're referencing MSBuild.StructuredLogger, it'll bring along extra dependencies by default. -->
@@ -82,6 +83,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
     <ProjectReference Include="..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />

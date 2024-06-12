@@ -22,6 +22,11 @@
         <target state="translated">&amp;Seřadit importy</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">Konvence kódování ve VB</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;událost&gt;</target>

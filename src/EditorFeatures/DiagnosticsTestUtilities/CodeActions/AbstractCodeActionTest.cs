@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
             => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
-        internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
+        internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ? CodeActionOptionsStorage.GetCodeActionOptionsProvider(workspace.GlobalOptions)
                 : CodeActionOptions.DefaultProvider;
 
-            var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, isBlocking: false, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider), codeActionOptionsProvider) : null;
             actions.Free();

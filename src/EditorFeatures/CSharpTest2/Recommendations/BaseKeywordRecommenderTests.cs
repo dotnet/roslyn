@@ -24,34 +24,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotInTopLevelMethod()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"void Goo()
-{
-    $$
-}");
+                """
+                void Goo()
+                {
+                    $$
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement()
         {
             await VerifyAbsenceAsync(
-@"System.Console.WriteLine();
-$$", options: CSharp9ParseOptions);
+                """
+                System.Console.WriteLine();
+                $$
+                """, options: CSharp9ParseOptions);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration()
         {
             await VerifyAbsenceAsync(
-@"int i = 0;
-$$", options: CSharp9ParseOptions);
+                """
+                int i = 0;
+                $$
+                """, options: CSharp9ParseOptions);
         }
 
         [Fact]
@@ -72,8 +80,10 @@ $$", options: CSharp9ParseOptions);
         public async Task TestInClassConstructorInitializer()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C() : $$");
+                """
+                class C {
+                    public C() : $$
+                """);
         }
 
         [Fact]
@@ -81,33 +91,40 @@ $$", options: CSharp9ParseOptions);
         {
             // The recommender doesn't work in record in script
             // Tracked by https://github.com/dotnet/roslyn/issues/44865
-            await VerifyWorkerAsync(@"
-record C {
-    public C() : $$", absent: false, options: TestOptions.RegularPreview);
+            await VerifyWorkerAsync("""
+                record C {
+                    public C() : $$
+                """, absent: false, options: TestOptions.RegularPreview);
         }
 
         [Fact]
         public async Task TestNotInStaticClassConstructorInitializer()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    static C() : $$");
+                """
+                class C {
+                    static C() : $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInStructConstructorInitializer()
         {
             await VerifyAbsenceAsync(
-@"struct C {
-    public C() : $$");
+                """
+                struct C {
+                    public C() : $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterCast()
         {
             await VerifyKeywordAsync(
-@"struct C {
-    new internal ErrorCode Code { get { return (ErrorCode)$$");
+                """
+                struct C {
+                    new internal ErrorCode Code { get { return (ErrorCode)$$
+                """);
         }
 
         [Fact]
@@ -123,31 +140,35 @@ record C {
         public async Task TestNotInEnumMemberInitializer1()
         {
             await VerifyAbsenceAsync(
-@"enum E {
-    a = $$
-}");
+                """
+                enum E {
+                    a = $$
+                }
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    public int x, y;
-    void M()
-    {
-        var c = new C { x = 2, y = 3, $$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    public int x, y;
+                    void M()
+                    {
+                        var c = new C { x = 2, y = 3, $$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16335")]
         public async Task InExpressionBodyAccessor()
         {
-            await VerifyKeywordAsync(@"
-class B
-{
-    public virtual int T { get => bas$$ }
-}");
+            await VerifyKeywordAsync("""
+                class B
+                {
+                    public virtual int T { get => bas$$ }
+                }
+                """);
         }
 
         [Fact]

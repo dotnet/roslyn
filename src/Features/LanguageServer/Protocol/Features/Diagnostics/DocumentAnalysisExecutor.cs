@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (span.HasValue && document != null)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
                 // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
@@ -235,6 +236,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (_lazySyntaxDiagnostics == null)
             {
+                using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSyntaxDiagnosticsAsync)}.{nameof(GetAnalysisResultAsync)}");
+
                 var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
                 var syntaxDiagnostics = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
                 Interlocked.CompareExchange(ref _lazySyntaxDiagnostics, syntaxDiagnostics, null);
@@ -269,6 +272,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (_lazySemanticDiagnostics == null)
             {
+                using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSemanticDiagnosticsAsync)}.{nameof(GetAnalysisResultAsync)}");
+
                 var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
                 var semanticDiagnostics = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
                 Interlocked.CompareExchange(ref _lazySemanticDiagnostics, semanticDiagnostics, null);

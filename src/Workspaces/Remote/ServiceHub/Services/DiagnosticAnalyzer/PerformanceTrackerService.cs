@@ -14,6 +14,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -61,6 +62,33 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis)
         {
+            foreach (var perfInfo in snapshot)
+            {
+                const int PerformAnalysisTelemetryDelay = 250;
+
+                var delay = (int)perfInfo.TimeSpan.TotalMilliseconds;
+
+                TelemetryLogging.LogAggregated(FunctionId.PerformAnalysis_Summary, $"IndividualTimes", delay);
+
+                if (delay > PerformAnalysisTelemetryDelay)
+                {
+                    const string AnalyzerId = nameof(AnalyzerId);
+                    const string Delay = nameof(Delay);
+                    const string ForSpanAnalysis = nameof(ForSpanAnalysis);
+
+                    var analyzerId = perfInfo.BuiltIn ? perfInfo.AnalyzerId : perfInfo.BuiltIn.GetHashCode().ToString();
+
+                    var logMessage = KeyValueLogMessage.Create(m =>
+                    {
+                        m[AnalyzerId] = analyzerId;
+                        m[Delay] = delay;
+                        m[ForSpanAnalysis] = forSpanAnalysis;
+                    });
+
+                    TelemetryLogging.Log(FunctionId.PerformAnalysis_Delay, logMessage);
+                }
+            }
+
             Logger.Log(FunctionId.PerformanceTrackerService_AddSnapshot, s_snapshotLogger, snapshot, unitCount, forSpanAnalysis);
 
             RecordBuiltInAnalyzers(snapshot);

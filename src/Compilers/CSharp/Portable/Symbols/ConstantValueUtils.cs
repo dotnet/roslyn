@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             var compilation = symbol.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.Locations[0].SourceTree);
+            var binderFactory = compilation.GetBinderFactory(equalsValueNode.SyntaxTree);
             var binder = binderFactory.GetBinder(equalsValueNode);
 
             binder = new WithPrimaryConstructorParametersBinder(symbol.ContainingType, binder);
@@ -45,9 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             var inProgressBinder = new ConstantFieldsInProgressBinder(new ConstantFieldsInProgress(symbol, dependencies), binder);
             BoundFieldEqualsValue boundValue = BindFieldOrEnumInitializer(inProgressBinder, symbol, equalsValueNode, diagnostics);
-            var initValueNodeLocation = equalsValueNode.Value.Location;
 
-            var value = GetAndValidateConstantValue(boundValue.Value, symbol, symbol.Type, initValueNodeLocation, diagnostics);
+            var value = GetAndValidateConstantValue(boundValue.Value, symbol, symbol.Type, equalsValueNode.Value, diagnostics);
             Debug.Assert(value != null);
 
             return value;
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression boundValue,
             Symbol thisSymbol,
             TypeSymbol typeSymbol,
-            Location initValueNodeLocation,
+            SyntaxNode initValueNode,
             BindingDiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InvalidConstantDeclarationType, initValueNodeLocation, thisSymbol, typeSymbol);
+                    diagnostics.Add(ErrorCode.ERR_InvalidConstantDeclarationType, initValueNode.Location, thisSymbol, typeSymbol);
                 }
                 else
                 {
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // from string.
                         //
                         // Give a special error for that case.
-                        diagnostics.Add(ErrorCode.ERR_NotNullConstRefField, initValueNodeLocation, thisSymbol, typeSymbol);
+                        diagnostics.Add(ErrorCode.ERR_NotNullConstRefField, initValueNode.Location, thisSymbol, typeSymbol);
 
                         // If we get here, then the constantValue will likely be null.
                         // However, it seems reasonable to assume that the programmer will correct the error not
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.ERR_NotConstantExpression, initValueNodeLocation, thisSymbol);
+                        diagnostics.Add(ErrorCode.ERR_NotConstantExpression, initValueNode.Location, thisSymbol);
                     }
                 }
             }

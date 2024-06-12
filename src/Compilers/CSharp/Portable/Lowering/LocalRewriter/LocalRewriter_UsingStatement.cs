@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(resourceTypeSyntax, local.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 // local.GetValueOrDefault()
-                disposedExpression = BoundCall.Synthesized(resourceSyntax, local, getValueOrDefault);
+                disposedExpression = BoundCall.Synthesized(resourceSyntax, local, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
             }
             else
             {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _sawAwaitInExceptionHandler = true;
 
                     TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
-                    disposeCall = RewriteAwaitExpression(resourceSyntax, disposeCall, awaitOpt, awaitExpressionType, false);
+                    disposeCall = RewriteAwaitExpression(resourceSyntax, disposeCall, awaitOpt, awaitExpressionType, debugInfo: default, used: false);
                 }
             }
 
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(expression == null);
                 Debug.Assert(method.Parameters.AsSpan()[1..].All(assertParametersAreOptional, (p, assertOptional) => (p.IsOptional || p.IsParams || !assertOptional) && p.RefKind == RefKind.None));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.None);
+                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None);
             }
             else
             {

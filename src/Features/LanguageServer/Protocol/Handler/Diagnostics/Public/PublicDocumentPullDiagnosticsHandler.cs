@@ -23,14 +23,20 @@ using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, Re
 using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
 
 [Method(Methods.TextDocumentDiagnosticName)]
-internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
+internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
+    private readonly string _nonLocalDiagnosticsSourceRegistrationId;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+
     public PublicDocumentPullDiagnosticsHandler(
+        IClientLanguageServerManager clientLanguageServerManager,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IDiagnosticsRefresher diagnosticsRefresher,
         IGlobalOptionService globalOptions)
-        : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        : base(analyzerService, diagnosticsRefresher, globalOptions)
     {
+        _nonLocalDiagnosticsSourceRegistrationId = Guid.NewGuid().ToString();
+        _clientLanguageServerManager = clientLanguageServerManager;
     }
 
     /// <summary>
@@ -40,6 +46,8 @@ internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagno
         => null;
 
     public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
+
+    protected override string? GetDiagnosticSourceIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.Identifier;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {
@@ -85,8 +93,10 @@ internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagno
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(DocumentDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
     {
+        var nonLocalDocumentDiagnostics = diagnosticParams.Identifier == DocumentNonLocalDiagnosticIdentifier.ToString();
+
         // Task list items are not reported through the public LSP diagnostic API.
-        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(DiagnosticKind.All, taskList: false, context, GlobalOptions));
+        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(DiagnosticKind.All, nonLocalDocumentDiagnostics, taskList: false, context, GlobalOptions));
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

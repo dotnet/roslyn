@@ -1025,16 +1025,19 @@ Public Module VerificationHelpers
 
         Public Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
             _Items.Add(Node)
-            If _Dict.ContainsKey(NodeKey) Then
-                _Dict(NodeKey) = _Dict(NodeKey) + 1 'Increment Count
+
+            Dim count As Integer = Nothing
+            If _Dict.TryGetValue(NodeKey, count) Then
+                _Dict(NodeKey) = count + 1 'Increment Count
             Else
                 _Dict.Add(NodeKey, 1) ' New Item
             End If
         End Sub
 
         Public Function GetCount(Node As String) As Integer
-            If _Dict.ContainsKey(Node) Then
-                Return _Dict(Node)
+            Dim count As Integer = Nothing
+            If _Dict.TryGetValue(Node, count) Then
+                Return count
             Else
                 Return 0
             End If

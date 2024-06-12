@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -22,16 +23,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public class CompilationWithAnalyzers
     {
         private readonly Compilation _compilation;
-        private readonly CompilationData _compilationData;
+        private readonly AnalysisScope _compilationAnalysisScope;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<DiagnosticSuppressor> _suppressors;
         private readonly CompilationWithAnalyzersOptions _analysisOptions;
-        private readonly CancellationToken _cancellationToken;
-        private readonly AnalyzerManager _analyzerManager;
-
-        /// <summary>
-        /// Pool of <see cref="AnalyzerDriver"/>s used for analyzer execution.
-        /// </summary>
-        private readonly ObjectPool<AnalyzerDriver> _driverPool;
 
         /// <summary>
         /// Builder for storing current, possibly partial, analysis results:
@@ -45,10 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
 
-        /// <summary>
-        /// Pool of event queues to serve each diagnostics request.
-        /// </summary>
-        private readonly ObjectPool<AsyncQueue<CompilationEvent>> _eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
         private static readonly AsyncQueue<CompilationEvent> s_EmptyEventQueue = new AsyncQueue<CompilationEvent>();
 
         /// <summary>
@@ -70,7 +61,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// An optional cancellation token which can be used to cancel analysis.
         /// Note: This token is only used if the API invoked to get diagnostics doesn't provide a cancellation token.
         /// </summary>
-        public CancellationToken CancellationToken => _cancellationToken;
+        [Obsolete("This CancellationToken is always 'None'", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CancellationToken CancellationToken => CancellationToken.None;
+
+        /// <inheritdoc cref="CompilationWithAnalyzers(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions?)"/>
+        [Obsolete("Use constructor without a cancellation token")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options, CancellationToken cancellationToken)
+            : this(compilation, analyzers, options)
+        {
+        }
 
         /// <summary>
         /// Creates a new compilation by attaching diagnostic analyzers to an existing compilation.
@@ -78,9 +79,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilation">The original compilation.</param>
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options, CancellationToken cancellationToken)
-            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false), cancellationToken)
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options)
+            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false))
         {
         }
 
@@ -91,11 +91,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="analysisOptions">Options to configure analyzer execution.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions)
-            : this(compilation, analyzers, analysisOptions, cancellationToken: CancellationToken.None)
-        {
-        }
-
-        private CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions, CancellationToken cancellationToken)
         {
             VerifyArguments(compilation, analyzers, analysisOptions);
 
@@ -105,13 +100,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
             _compilation = compilation;
             _analyzers = analyzers;
+            _suppressors = analyzers.OfType<DiagnosticSuppressor>().ToImmutableArrayOrEmpty();
             _analysisOptions = analysisOptions;
-            _cancellationToken = cancellationToken;
 
-            _compilationData = new CompilationData(_compilation);
             _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers, _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty);
-            _analyzerManager = new AnalyzerManager(analyzers);
-            _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None));
+            _compilationAnalysisScope = AnalysisScope.Create(_compilation, _analyzers, this);
         }
 
         #region Helper methods for public API argument validation
@@ -235,15 +228,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns diagnostics produced by all <see cref="Analyzers"/>.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync()
         {
-            return GetAnalyzerDiagnosticsAsync(_cancellationToken);
+            return GetAnalyzerDiagnosticsAsync(CancellationToken.None);
         }
 
         /// <summary>
         /// Returns diagnostics produced by all <see cref="Analyzers"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(CancellationToken cancellationToken)
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(CancellationToken cancellationToken = default)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         {
             return await GetAnalyzerDiagnosticsCoreAsync(Analyzers, cancellationToken).ConfigureAwait(false);
         }
@@ -283,15 +279,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns all diagnostics produced by compilation and by all <see cref="Analyzers"/>.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
         {
-            return GetAllDiagnosticsAsync(_cancellationToken);
+            return GetAllDiagnosticsAsync(CancellationToken.None);
         }
 
         /// <summary>
         /// Returns all diagnostics produced by compilation and by all <see cref="Analyzers"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken cancellationToken = default)
         {
             var diagnostics = await getAllDiagnosticsWithoutStateTrackingAsync(Analyzers, cancellationToken: cancellationToken).ConfigureAwait(false);
             return diagnostics.AddRange(_exceptionDiagnostics);
@@ -303,34 +300,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //       'ComputeAnalyzerDiagnosticsAsync(AnalysisScope, CancellationToken)'.
             async Task<ImmutableArray<Diagnostic>> getAllDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
             {
-                AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
-                AnalyzerDriver? driver = null;
+                // Clone the compilation with new event queue.
+                var compilation = _compilation.WithEventQueue(new AsyncQueue<CompilationEvent>());
 
-                try
-                {
-                    // Clone the compilation with new event queue.
-                    var compilation = _compilation.WithEventQueue(eventQueue);
-                    var compilationData = new CompilationData(compilation);
+                // Create and attach the driver to compilation.
+                var analysisScope = AnalysisScope.Create(compilation, analyzers, this);
+                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, _suppressors, categorizeDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: false, cancellationToken);
 
-                    // Create and attach the driver to compilation.
-                    var categorizeDiagnostics = false;
-                    driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
-                    driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, trackSuppressedDiagnosticIds: false, cancellationToken);
-                    var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
-                    var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
-                    driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: false, cancellationToken);
-
-                    // Force compilation diagnostics and wait for analyzer execution to complete.
-                    var compDiags = compilation.GetDiagnostics(cancellationToken);
-                    var analyzerDiags = await driver.GetDiagnosticsAsync(compilation).ConfigureAwait(false);
-                    var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
-                    return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation);
-                }
-                finally
-                {
-                    driver?.Dispose();
-                    FreeEventQueue(eventQueue, _eventQueuePool);
-                }
+                // Force compilation diagnostics and wait for analyzer execution to complete.
+                var compDiags = compilation.GetDiagnostics(cancellationToken);
+                var analyzerDiags = await driver.GetDiagnosticsAsync(compilation, cancellationToken).ConfigureAwait(false);
+                var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
+                return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation, cancellationToken);
             }
         }
 
@@ -358,37 +340,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerCompilationDiagnosticsCoreAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
-            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = _compilationAnalysisScope.WithAnalyzers(analyzers, this);
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: false, getNonLocalDiagnostics: true);
         }
 
         private async Task<AnalysisResult> GetAnalysisResultCoreAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
-            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = _compilationAnalysisScope.WithAnalyzers(analyzers, this);
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsCoreAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
-            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = _compilationAnalysisScope.WithAnalyzers(analyzers, this);
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
-        private static AnalyzerDriver CreateDriverForComputingDiagnosticsWithoutStateTracking(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static async Task<AnalyzerDriver> CreateAndInitializeDriverAsync(
+            Compilation compilation,
+            CompilationWithAnalyzersOptions analysisOptions,
+            AnalysisScope analysisScope,
+            ImmutableArray<DiagnosticSuppressor> suppressors,
+            bool categorizeDiagnostics,
+            CancellationToken cancellationToken)
         {
-            // Create and attach a new driver instance to compilation, do not used a pooled instance from '_driverPool'.
-            // Additionally, use a new AnalyzerManager and don't use the analyzer manager instance
-            // stored onto the field '_analyzerManager'.
-            // Pooled _driverPool and shared _analyzerManager is used for partial/state-based analysis, and
-            // we want to compute diagnostics without any state tracking here.
+            var analyzers = analysisScope.Analyzers;
+            if (!suppressors.IsEmpty)
+            {
+                // Always provide all the diagnostic suppressors to the driver.
+                // We also need to ensure we are not passing any duplicate suppressor instances.
+                var suppressorsInAnalysisScope = analysisScope.Analyzers.OfType<DiagnosticSuppressor>().ToImmutableHashSet();
+                analyzers = analyzers.AddRange(suppressors.Where(suppressor => !suppressorsInAnalysisScope.Contains(suppressor)));
+            }
 
-            return compilation.CreateAnalyzerDriver(analyzers, new AnalyzerManager(analyzers), severityFilter: SeverityFilter.None);
+            var driver = compilation.CreateAnalyzerDriver(analyzers, new AnalyzerManager(analyzers), severityFilter: SeverityFilter.None);
+            driver.Initialize(compilation, analysisOptions, new CompilationData(compilation), analysisScope, categorizeDiagnostics, trackSuppressedDiagnosticIds: false, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            await driver.WhenInitializedTask.ConfigureAwait(false);
+            return driver;
         }
 
         /// <summary>
@@ -403,7 +395,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyTree(tree);
 
-            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, Analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, Analyzers, filterSpan: null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Returns syntax diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree or filter span,
+        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
+        /// can be absent.
+        /// </summary>
+        /// <param name="tree">Syntax tree to analyze.</param>
+        /// <param name="filterSpan">Optional filter span to analyze within the tree.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree tree, TextSpan? filterSpan, CancellationToken cancellationToken)
+        {
+            VerifyTree(tree);
+
+            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, Analyzers, filterSpan, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -420,7 +428,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyTree(tree);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, analyzers, filterSpan: null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Returns syntax diagnostics produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree or filter span,
+        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
+        /// can be absent.
+        /// </summary>
+        /// <param name="tree">Syntax tree to analyze.</param>
+        /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
+        /// <param name="filterSpan">Optional filter span to analyze within the tree.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree tree, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            VerifyTree(tree);
+            VerifyExistingAnalyzersArgument(analyzers);
+
+            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, analyzers, filterSpan, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -433,7 +459,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyTree(tree);
 
-            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), Analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), Analyzers, filterSpan: null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SyntaxDiagnostics"/> produced by all <see cref="Analyzers"/>
+        /// from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="tree">Syntax tree to analyze.</param>
+        /// <param name="filterSpan">Optional filter span to analyze within the tree.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public Task<AnalysisResult> GetAnalysisResultAsync(SyntaxTree tree, TextSpan? filterSpan, CancellationToken cancellationToken)
+        {
+            VerifyTree(tree);
+
+            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), Analyzers, filterSpan, cancellationToken);
         }
 
         /// <summary>
@@ -448,7 +489,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyTree(tree);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), analyzers, filterSpan: null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SyntaxDiagnostics"/> produced by given <paramref name="analyzers"/>
+        /// from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="tree">Syntax tree to analyze.</param>
+        /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
+        /// <param name="filterSpan">Optional filter span to analyze within the tree.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public Task<AnalysisResult> GetAnalysisResultAsync(SyntaxTree tree, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            VerifyTree(tree);
+            VerifyExistingAnalyzersArgument(analyzers);
+
+            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), analyzers, filterSpan, cancellationToken);
         }
 
         /// <summary>
@@ -462,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAdditionalFile(file);
 
-            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), Analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), Analyzers, filterSpan: null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -478,19 +536,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyAdditionalFile(file);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), analyzers, filterSpan: null, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SourceOrAdditionalFile file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> produced by all <see cref="Analyzers"/> from analyzing the given additional <paramref name="file"/>,
+        /// optionally scoped to a <paramref name="filterSpan"/>.
+        /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="file">Additional file to analyze.</param>
+        /// <param name="filterSpan">Optional filter span to analyze within the <paramref name="file"/>.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task<AnalysisResult> GetAnalysisResultAsync(AdditionalText file, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, file, filterSpan: null, isSyntacticSingleFileAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            VerifyAdditionalFile(file);
+
+            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), Analyzers, filterSpan, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> produced by given <paramref name="analyzers"/> from analyzing the given additional <paramref name="file"/>,
+        /// optionally scoped to a <paramref name="filterSpan"/>.
+        /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="file">Additional file to analyze.</param>
+        /// <param name="filterSpan">Optional filter span to analyze within the <paramref name="file"/>.</param>
+        /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task<AnalysisResult> GetAnalysisResultAsync(AdditionalText file, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            VerifyAdditionalFile(file);
+            VerifyExistingAnalyzersArgument(analyzers);
+
+            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), analyzers, filterSpan, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SourceOrAdditionalFile file, ImmutableArray<DiagnosticAnalyzer> analyzers, TextSpan? filterSpan, CancellationToken cancellationToken)
+        {
+            var analysisScope = AnalysisScope.Create(analyzers, file, filterSpan, isSyntacticSingleFileAnalysis: true, this);
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
-        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = AnalysisScope.Create(analyzers, new SourceOrAdditionalFile(tree), filterSpan, isSyntacticSingleFileAnalysis: true, this);
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
         }
@@ -557,14 +649,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = AnalysisScope.Create(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, this);
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = AnalysisScope.Create(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, this);
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
         }
@@ -615,27 +707,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Debug.Assert(analysisScope != null);
 
-            var originalAnalyzers = analysisScope.Analyzers;
-            Compilation compilation;
-            AnalyzerDriver? driver = null;
-            bool driverAllocatedFromPool = false;
-
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                analysisScope = GetPendingAnalysisScope(analysisScope, _analysisResultBuilder);
+                analysisScope = GetPendingAnalysisScope(analysisScope);
                 if (analysisScope == null)
                     return;
 
-                (compilation, driver, driverAllocatedFromPool) = await getCompilationAndDriverAsync().ConfigureAwait(false);
+                // Get the compilation to execute analysis.
+                // PERF: We reuse the root "_compilation" when computing single-file diagnostics only for the compiler analyzer.
+                // For rest of the cases, we use a cloned compilation with a new event queue and semantic model provider
+                // to allow us to execute analyzers on this compilation without any partial state tracking and
+                // subsequently discard this compilation.
+                var compilation = analysisScope.IsSingleFileAnalysisForCompilerAnalyzer
+                    ? _compilation
+                    : _compilation.WithSemanticModelProvider(new CachingSemanticModelProvider()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+
+                // Get the analyzer driver to execute analysis.
+                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, _suppressors, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                 // Driver must have been initialized.
                 Debug.Assert(driver.IsInitialized);
                 Debug.Assert(!driver.WhenInitializedTask.IsCanceled);
 
                 (var analyzerActionCounts, var hasAnyActionsRequiringCompilationEvents) = await getAnalyzerActionCountsAsync(
-                    originalAnalyzers, driver, compilation, cancellationToken).ConfigureAwait(false);
+                    driver, compilation, analysisScope, cancellationToken).ConfigureAwait(false);
                 Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts = analyzer => analyzerActionCounts[analyzer];
 
                 // We use different analyzer execution models based on whether we are analyzing the full compilation or not.
@@ -660,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Wait for analyzer execution to complete.
                     await driver.WhenCompletedTask.ConfigureAwait(false);
 
-                    _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts);
+                    _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts, cancellationToken);
                 }
                 else
                 {
@@ -689,21 +786,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         builder.Clear();
                         if (!otherAnalyzers.IsEmpty)
                         {
-                            var otherAnalyzersAnalysisScope = analysisScope.WithAnalyzers(otherAnalyzers, hasAllAnalyzers: false);
+                            var otherAnalyzersAnalysisScope = analysisScope.WithAnalyzers(otherAnalyzers, this);
                             builder.Add((otherAnalyzersAnalysisScope, compilationEvents));
                         }
 
-                        var tree = analysisScope.FilterFileOpt!.Value.SourceTree!;
-                        processSymbolStartAnalyzers(tree, compilationEvents, symbolStartAnalyzers, compilation,
-                            _analysisResultBuilder, builder, AdditionalFiles, analysisScope.ConcurrentAnalysis, cancellationToken);
+                        processSymbolStartAnalyzers(analysisScope.FilterFileOpt!.Value, analysisScope.FilterSpanOpt, compilationEvents, symbolStartAnalyzers, compilation,
+                            _analysisResultBuilder, builder, AdditionalFiles, cancellationToken);
                     }
 
-                    await attachQueueAndProcessAllEventsAsync(builder, driver, _eventQueuePool, cancellationToken).ConfigureAwait(false);
+                    await attachQueueAndProcessAllEventsAsync(builder, driver, cancellationToken).ConfigureAwait(false);
 
                     // Update the diagnostic results based on the diagnostics reported on the driver.
                     foreach (var (scope, _) in builder)
                     {
-                        _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(scope, driver, compilation, getAnalyzerActionCounts);
+                        _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(scope, driver, compilation, getAnalyzerActionCounts, cancellationToken);
                     }
                 }
             }
@@ -711,80 +807,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw ExceptionUtilities.Unreachable();
             }
-            finally
-            {
-                if (driverAllocatedFromPool)
-                    FreeDriver(driver);
-            }
 
-            async Task<(Compilation compilation, AnalyzerDriver driver, bool driverAllocatedFromPool)> getCompilationAndDriverAsync()
-            {
-                Debug.Assert(analysisScope != null);
-
-                Compilation compilation;
-                AnalyzerDriver driver;
-                bool driverAllocatedFromPool;
-
-                // We reuse the root "_compilation" when performing purely syntactic analysis or computing semantic diagnostics
-                // only for the compiler analyzer.
-                // For rest of the cases, we use a cloned compilation with a new event queue to allow us to execute analyzers on this
-                // compilation without any partial state tracking and subsequently discard this compilation.
-                if (analysisScope.IsSyntacticSingleFileAnalysis ||
-                    analysisScope.IsSemanticSingleFileAnalysisForCompilerAnalyzer)
-                {
-                    compilation = _compilation;
-                    driver = await GetAnalyzerDriverFromPoolAsync(cancellationToken).ConfigureAwait(false);
-                    driverAllocatedFromPool = true;
-                }
-                else
-                {
-                    // Clone the compilation with new event queue and semantic model provider.
-                    compilation = _compilation.WithSemanticModelProvider(new CachingSemanticModelProvider()).WithEventQueue(new AsyncQueue<CompilationEvent>());
-
-                    // Get the analyzer driver to execute analysis.
-                    driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, originalAnalyzers);
-                    driverAllocatedFromPool = false;
-
-                    // Initialize the driver.
-                    driver.Initialize(compilation, _analysisOptions, new CompilationData(compilation), categorizeDiagnostics: true, trackSuppressedDiagnosticIds: false, cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    await driver.WhenInitializedTask.ConfigureAwait(false);
-                }
-
-                return (compilation, driver, driverAllocatedFromPool);
-            }
+            return;
 
             static async Task attachQueueAndProcessAllEventsAsync(
                 ArrayBuilder<(AnalysisScope, ImmutableArray<CompilationEvent>)> builder,
                 AnalyzerDriver driver,
-                ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool,
                 CancellationToken cancellationToken)
             {
                 foreach (var (analysisScope, compilationEvents) in builder)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    AsyncQueue<CompilationEvent>? eventQueue = null;
+                    var eventQueue = CreateEventsQueue(compilationEvents);
 
-                    try
-                    {
-                        eventQueue = CreateEventsQueue(compilationEvents, eventQueuePool);
-
-                        // Perform analysis to compute new diagnostics.
-                        await driver.AttachQueueAndProcessAllEventsAsync(eventQueue, analysisScope, cancellationToken).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        FreeEventQueue(eventQueue, eventQueuePool);
-                    }
+                    // Perform analysis to compute new diagnostics.
+                    await driver.AttachQueueAndProcessAllEventsAsync(eventQueue, analysisScope, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             static async Task<(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerActionCounts> analyzerActionCounts, bool hasAnyActionsRequiringCompilationEvents)> getAnalyzerActionCountsAsync(
-                ImmutableArray<DiagnosticAnalyzer> analyzers,
                 AnalyzerDriver driver,
                 Compilation compilation,
+                AnalysisScope analysisScope,
                 CancellationToken cancellationToken)
             {
                 Debug.Assert(driver.IsInitialized);
@@ -792,9 +837,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Get analyzer action counts.
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerActionCounts>();
                 var hasAnyActionsRequiringCompilationEvents = false;
-                foreach (var analyzer in analyzers)
+                foreach (var analyzer in analysisScope.Analyzers)
                 {
-                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, compilation.Options, cancellationToken).ConfigureAwait(false);
+                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, compilation.Options, analysisScope, cancellationToken).ConfigureAwait(false);
                     builder.Add(analyzer, actionCounts);
 
                     if (actionCounts.HasAnyActionsRequiringCompilationEvents)
@@ -826,15 +871,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return (symbolStartAnalyzersBuilder.ToImmutableAndFree(), otherAnalyzersBuilder.ToImmutableAndFree());
             }
 
-            static void processSymbolStartAnalyzers(
-                SyntaxTree tree,
+            void processSymbolStartAnalyzers(
+                SourceOrAdditionalFile originalFile,
+                TextSpan? originalSpan,
                 ImmutableArray<CompilationEvent> compilationEventsForTree,
                 ImmutableArray<DiagnosticAnalyzer> symbolStartAnalyzers,
                 Compilation compilation,
                 AnalysisResultBuilder analysisResultBuilder,
                 ArrayBuilder<(AnalysisScope, ImmutableArray<CompilationEvent>)> builder,
                 ImmutableArray<AdditionalText> additionalFiles,
-                bool concurrentAnalysis,
                 CancellationToken cancellationToken)
             {
                 // This method processes all the compilation events generated for the tree in the
@@ -848,6 +893,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // compilation events generated for each tree.
 
                 var partialTrees = PooledHashSet<SyntaxTree>.GetInstance();
+                var tree = originalFile.SourceTree!;
                 partialTrees.Add(tree);
 
                 try
@@ -890,10 +936,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     scopeAndEvents = null;
 
                     var file = new SourceOrAdditionalFile(partialTree);
-                    var analysisScope = new AnalysisScope(symbolStartAnalyzers, file, filterSpan: null,
-                        isSyntacticSingleFileAnalysis: false, concurrentAnalysis, categorizeDiagnostics: true);
+                    var analysisScope = AnalysisScope.Create(symbolStartAnalyzers, file, filterSpan: null,
+                        originalFile, originalSpan, isSyntacticSingleFileAnalysis: false, this);
 
-                    analysisScope = GetPendingAnalysisScope(analysisScope, analysisResultBuilder);
+                    analysisScope = GetPendingAnalysisScope(analysisScope);
                     if (analysisScope == null)
                         return false;
 
@@ -920,12 +966,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static AnalysisScope? GetPendingAnalysisScope(AnalysisScope analysisScope, AnalysisResultBuilder analysisResultBuilder)
+        private AnalysisScope? GetPendingAnalysisScope(AnalysisScope analysisScope)
         {
             (SourceOrAdditionalFile file, bool syntax)? filterScope = analysisScope.FilterFileOpt.HasValue ?
                 (analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis) :
                 null;
-            var pendingAnalyzers = analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers, filterScope);
+            var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers, filterScope);
             if (pendingAnalyzers.IsEmpty)
             {
                 // All analyzers have already executed on the requested scope.
@@ -933,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return pendingAnalyzers.Length < analysisScope.Analyzers.Length ?
-                analysisScope.WithAnalyzers(pendingAnalyzers, hasAllAnalyzers: false) :
+                analysisScope.WithAnalyzers(pendingAnalyzers, this) :
                 analysisScope;
         }
 
@@ -1037,17 +1083,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         case SymbolDeclaredCompilationEvent symbolDeclaredCompilationEvent:
-                            var hasLocationInTree = false;
-                            foreach (var location in symbolDeclaredCompilationEvent.Symbol.Locations)
-                            {
-                                if (tree == location.SourceTree)
-                                {
-                                    hasLocationInTree = true;
-                                    break;
-                                }
-                            }
-
-                            if (!hasLocationInTree)
+                            if (!symbolDeclaredCompilationEvent.SymbolInternal.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken))
                                 continue;
 
                             break;
@@ -1068,99 +1104,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<AnalyzerDriver> GetAnalyzerDriverFromPoolAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Get instance of analyzer driver from the driver pool.
-                AnalyzerDriver driver = _driverPool.Allocate();
-
-                bool success = false;
-                try
-                {
-                    // Start the initialization task, if required.
-                    if (!driver.IsInitialized)
-                    {
-                        driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, trackSuppressedDiagnosticIds: false, cancellationToken: cancellationToken);
-                    }
-
-                    // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
-                    await driver.WhenInitializedTask.ConfigureAwait(false);
-
-                    success = true;
-                    return driver;
-                }
-                finally
-                {
-                    if (!success)
-                    {
-                        FreeDriver(driver);
-                    }
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        private void FreeDriver(AnalyzerDriver? driver)
-        {
-            if (driver != null)
-            {
-                // Throw away the driver instance if the initialization didn't succeed.
-                if (!driver.IsInitialized || driver.WhenInitializedTask.IsCanceled)
-                {
-                    _driverPool.ForgetTrackedObject(driver);
-                }
-                else
-                {
-                    _driverPool.Free(driver);
-                }
-            }
-        }
-
-        private static AsyncQueue<CompilationEvent> CreateEventsQueue(ImmutableArray<CompilationEvent> compilationEvents, ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool)
+        private static AsyncQueue<CompilationEvent> CreateEventsQueue(ImmutableArray<CompilationEvent> compilationEvents)
         {
             if (compilationEvents.IsEmpty)
             {
                 return s_EmptyEventQueue;
             }
 
-            var eventQueue = eventQueuePool.Allocate();
-            Debug.Assert(!eventQueue.IsCompleted);
-            Debug.Assert(eventQueue.Count == 0);
-
+            var eventQueue = new AsyncQueue<CompilationEvent>();
             foreach (var compilationEvent in compilationEvents)
             {
                 eventQueue.TryEnqueue(compilationEvent);
             }
 
             return eventQueue;
-        }
-
-        private static void FreeEventQueue(AsyncQueue<CompilationEvent>? eventQueue, ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool)
-        {
-            if (eventQueue == null || ReferenceEquals(eventQueue, s_EmptyEventQueue))
-            {
-                return;
-            }
-
-            if (eventQueue.Count > 0)
-            {
-                while (eventQueue.TryDequeue(out _)) ;
-            }
-
-            if (!eventQueue.IsCompleted)
-            {
-                eventQueuePool.Free(eventQueue);
-            }
-            else
-            {
-                eventQueuePool.ForgetTrackedObject(eventQueue);
-            }
         }
 
         /// <summary>
@@ -1229,7 +1186,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="onAnalyzerException">
         /// Optional delegate which is invoked when an analyzer throws an exception.
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
-        /// </param>        
+        /// </param>
+        [Obsolete("This API is no longer supported. See https://github.com/dotnet/roslyn/issues/67592 for details")]
         public static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,
@@ -1244,10 +1202,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerManager = new AnalyzerManager(analyzer);
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? wrappedOnAnalyzerException =
-                onAnalyzerException == null ? null : (ex, analyzer, diagnostic, _) => onAnalyzerException(ex, analyzer, diagnostic);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(wrappedOnAnalyzerException, analyzerManager);
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor, severityFilter: SeverityFilter.None);
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> wrappedOnAnalyzerException =
+                (ex, analyzer, diagnostic, _) => onAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors = analyzer =>
+            {
+                try
+                {
+                    return analyzer.SupportedDiagnostics;
+                }
+                catch (Exception ex) when (AnalyzerExecutor.HandleAnalyzerException(ex, analyzer, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None))
+                {
+                    return ImmutableArray<DiagnosticDescriptor>.Empty;
+                }
+            };
+
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors = suppressor =>
+            {
+                try
+                {
+                    return suppressor.SupportedSuppressions;
+                }
+                catch (Exception ex) when (AnalyzerExecutor.HandleAnalyzerException(ex, suppressor, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None))
+                {
+                    return ImmutableArray<SuppressionDescriptor>.Empty;
+                }
+            };
+
+            return AnalyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, IsCompilerAnalyzer, severityFilter: SeverityFilter.None,
+                isEnabledWithAnalyzerConfigOptions: _ => false, getSupportedDiagnosticDescriptors, getSupportedSuppressionDescriptors, CancellationToken.None); ;
         }
 
         /// <summary>
@@ -1285,17 +1268,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            AnalyzerDriver? driver = null;
-            try
-            {
-                driver = await GetAnalyzerDriverFromPoolAsync(cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-                return await driver.GetAnalyzerActionCountsAsync(analyzer, _compilation.Options, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                FreeDriver(driver);
-            }
+            var analysisScope = _compilationAnalysisScope.WithAnalyzers(ImmutableArray.Create(analyzer), this);
+            using var driver = await CreateAndInitializeDriverAsync(_compilation, _analysisOptions, analysisScope, _suppressors, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return await driver.GetAnalyzerActionCountsAsync(analyzer, _compilation.Options, analysisScope, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

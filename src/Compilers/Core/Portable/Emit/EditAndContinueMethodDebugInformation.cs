@@ -325,14 +325,30 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (count > 0)
                     {
                         int syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
+                        int lastSyntaxOffset = int.MinValue;
+                        int relativeOrdinal = 0;
 
                         while (count > 0)
                         {
                             int stateNumber = blobReader.ReadCompressedSignedInteger();
                             int syntaxOffset = syntaxOffsetBaseline + blobReader.ReadCompressedInteger();
 
-                            mapBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, (StateMachineState)stateNumber));
+                            // The entries are ordered by syntax offset.
+                            // The relative ordinal is the index of the entry relative to the last entry with a different syntax offset.
+                            if (syntaxOffset < lastSyntaxOffset)
+                            {
+                                throw CreateInvalidDataException(compressedStateMachineStates, blobReader.Offset);
+                            }
+
+                            relativeOrdinal = (syntaxOffset == lastSyntaxOffset) ? relativeOrdinal + 1 : 0;
+                            if (relativeOrdinal > byte.MaxValue)
+                            {
+                                throw CreateInvalidDataException(compressedStateMachineStates, blobReader.Offset);
+                            }
+
+                            mapBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, new AwaitDebugId((byte)relativeOrdinal), (StateMachineState)stateNumber));
                             count--;
+                            lastSyntaxOffset = syntaxOffset;
                         }
                     }
                 }
@@ -356,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 int syntaxOffsetBaseline = Math.Min(StateMachineStates.Min(state => state.SyntaxOffset), 0);
                 writer.WriteCompressedInteger(-syntaxOffsetBaseline);
 
-                foreach (StateMachineStateDebugInfo state in StateMachineStates)
+                foreach (StateMachineStateDebugInfo state in StateMachineStates.OrderBy(s => s.SyntaxOffset).ThenBy(s => s.AwaitId.RelativeStateOrdinal))
                 {
                     writer.WriteCompressedSignedInteger((int)state.StateNumber);
                     writer.WriteCompressedInteger(state.SyntaxOffset - syntaxOffsetBaseline);

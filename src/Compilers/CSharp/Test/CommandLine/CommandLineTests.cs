@@ -1618,7 +1618,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("12")]
+        [InlineData("13")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1674,7 +1674,7 @@ class C
             // - update all the tests that call this canary
             // - update MaxSupportedLangVersion (a relevant test should break when new version is introduced)
             // - email release management to add to the release notes (see old example: https://github.com/dotnet/core/pull/1454)
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "latest", "latestmajor", "preview" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1708,6 +1708,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion9,
                 ErrorCode.ERR_FeatureNotAvailableInVersion10,
                 ErrorCode.ERR_FeatureNotAvailableInVersion11,
+                ErrorCode.ERR_FeatureNotAvailableInVersion12,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1731,9 +1732,10 @@ class C
             InlineData(LanguageVersion.CSharp9, LanguageVersion.CSharp9),
             InlineData(LanguageVersion.CSharp10, LanguageVersion.CSharp10),
             InlineData(LanguageVersion.CSharp11, LanguageVersion.CSharp11),
-            InlineData(LanguageVersion.CSharp11, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp11, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp11, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp12, LanguageVersion.CSharp12),
+            InlineData(LanguageVersion.CSharp12, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp12, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp12, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -1776,6 +1778,8 @@ class C
             InlineData("10.0", true, LanguageVersion.CSharp10),
             InlineData("11", true, LanguageVersion.CSharp11),
             InlineData("11.0", true, LanguageVersion.CSharp11),
+            InlineData("12", true, LanguageVersion.CSharp12),
+            InlineData("12.0", true, LanguageVersion.CSharp12),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
@@ -3514,6 +3518,81 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 expected.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries),
                 outWriter.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries),
                 itemSeparator: "\r\n");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")]
+        public void DiagnosticFormatting_UrlFormat_ObsoleteAttribute()
+        {
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText("""
+                #pragma warning disable CS0436 // System.Obsolete conflict
+                #nullable enable
+                using System;
+
+                var c1 = new C1();
+                var c2 = new C2();
+                var c3 = new C3();
+                var c4 = new C4();
+
+                [Obsolete("Do not use C1", UrlFormat = "https://example.org/{0}")]
+                public class C1 { }
+                [Obsolete("Do not use C2", error: true, UrlFormat = "https://example.org/2/{0}")]
+                public class C2 { }
+                [Obsolete("Do not use C3", error: true, DiagnosticId = "OBSOLETEC3", UrlFormat = "https://example.org/3/{0}")]
+                public class C3 { }
+                [Obsolete("Do not use C4", DiagnosticId = "OBSOLETEC4", UrlFormat = "https://example.org/4")]
+                public class C4 { }
+
+                namespace System
+                {
+                    public class ObsoleteAttribute : Attribute
+                    {
+                        public ObsoleteAttribute() { }
+                        public ObsoleteAttribute(string? message) { }
+                        public ObsoleteAttribute(string? message, bool error) { }
+
+                        public string? DiagnosticId { get; set; }
+                        public string? UrlFormat { get; set; }
+                    }
+                }
+                """);
+
+            var output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 2,
+                expectedErrorCount: 2,
+                additionalFlags: new[] { "/t:exe" });
+
+            AssertEx.Equal("""
+                a.cs(5,14): warning CS0618: 'C1' is obsolete: 'Do not use C1' (https://example.org/CS0618)
+                a.cs(6,14): error CS0619: 'C2' is obsolete: 'Do not use C2' (https://example.org/2/CS0619)
+                a.cs(7,14): error OBSOLETEC3: 'C3' is obsolete: 'Do not use C3' (https://example.org/3/OBSOLETEC3)
+                a.cs(8,14): warning OBSOLETEC4: 'C4' is obsolete: 'Do not use C4' (https://example.org/4)
+                """,
+                output.Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")]
+        public void DiagnosticFormatting_DiagnosticAnalyzer()
+        {
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText("class C { }");
+
+            var output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 1,
+                analyzers: new[] { new WarningWithUrlDiagnosticAnalyzer() });
+
+            AssertEx.Equal("""
+                a.cs(1,7): warning Warning02: Throwing a diagnostic for types declared (https://example.org/analyzer)
+                """,
+                output.Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")]
@@ -8635,7 +8714,7 @@ class Program3
             fsDll.Dispose();
             fsPdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
         }
 
         /// <summary>
@@ -8692,7 +8771,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             peDll.Dispose();
             pePdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
 
             // files can be deleted now:
             File.Delete(libSrc.Path);
@@ -8733,7 +8812,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             fsDll.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
         }
 
         [Fact]
@@ -11792,15 +11871,15 @@ class C
                 $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
 System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass21_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info, CancellationToken cancellationToken)
 -----
-Analyzer 'TestAnalyzer' threw the following exception:
-'System.NotImplementedException: 28
+Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
+System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.CreateDisablingMessage(DiagnosticAnalyzer analyzer, String analyzerName)
 -----
-'.", outputWithoutPaths);
+", outputWithoutPaths);
 
             Assert.Equal(0, result.ExitCode);
         }
@@ -12053,6 +12132,47 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             Assert.True(!comp.SignUsingBuilder);
+        }
+
+        [Theory]
+        [InlineData(@"/features:InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4")]
+        [InlineData(@"/features:""InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4""")]
+        public void FeaturesInterceptorsPreviewNamespaces_OptionParsing(string features)
+        {
+            var tempDir = Temp.CreateDirectory();
+            var workingDir = Temp.CreateDirectory();
+            workingDir.CreateFile("a.cs");
+
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { features, "a.cs" });
+            var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
+            var options = comp.SyntaxTrees[0].Options;
+            Assert.Equal(1, options.Features.Count);
+            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsPreviewNamespaces"]);
+
+            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsPreviewNamespaces;
+            Assert.Equal(2, previewNamespaces.Length);
+            Assert.Equal(new[] { "NS1", "NS2" }, previewNamespaces[0]);
+            Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[1]);
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewNamespaces_Duplicate()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var workingDir = Temp.CreateDirectory();
+            workingDir.CreateFile("a.cs");
+
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2", @"/features:InterceptorsPreviewNamespaces=NS3.NS4", "a.cs" });
+            var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
+            var options = comp.SyntaxTrees[0].Options;
+            Assert.Equal(1, options.Features.Count);
+            Assert.Equal("NS3.NS4", options.Features["InterceptorsPreviewNamespaces"]);
+
+            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsPreviewNamespaces;
+            Assert.Equal(1, previewNamespaces.Length);
+            Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[0]);
         }
 
         public class QuotedArgumentTests : CommandLineTestBase
@@ -14582,6 +14702,179 @@ public class Generator : ISourceGenerator
         [InlineData("abc/a.txt", "./../ABC/a.txt", 2)]
         public void TestDuplicateAdditionalFiles_Linux(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
+        public void CanSuppressAnalyzerLoadWarning()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C {} 
+");
+            var notAnalyzer = dir.CreateFile("random.txt");
+
+            // not suppresssed
+            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
+
+            // supressed
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/nowarn:CS8034" }, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
+
+            // elevated
+            output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/warnAsError:CS8034" }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS8034", output, StringComparison.Ordinal);
+        }
+
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
+        public void GlobalAnalyzerConfigCanSuppressAnalyzerLoadWarning()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C {} 
+");
+            var globalconfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+dotnet_diagnostic.CS8034.severity = none
+");
+            var notAnalyzer = dir.CreateFile("random.txt");
+
+            // not suppresssed
+            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
+
+            // suppresssed via global analyzer config
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        public void ExperimentalAttribute_SuppressedWithEditorConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+    }
+}
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+public class C
+{
+    public static void M() { }
+}
+""");
+
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.DiagID1.severity = none
+""");
+            // Without editorconfig
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            // With editorconfig
+            cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+        }
+
+        [Fact]
+        public void ExperimentalAttribute_SuppressedWithSpecificNoWarn()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+    }
+}
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+public class C
+{
+    public static void M() { }
+}
+""");
+
+            // Without nowarn
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+               "/nologo",
+               "/t:exe",
+               "/preferreduilang:en",
+               src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            // With nowarn
+            cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+               "/nologo",
+               "/t:exe",
+               "/preferreduilang:en",
+               "/nowarn:DiagID1",
+               src.Path });
+
+            outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+        }
+
+        [Fact]
+        public void ExperimentalAttribute_SuppressedWithGlobalNoWarn()
+        {
+            var src = """
+C.M();
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+    }
+}
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+public class C
+{
+    public static void M() { }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+            comp.VerifyDiagnostics();
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -14667,6 +14960,23 @@ public class Generator : ISourceGenerator
                 (symbolContext) =>
                 {
                     symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, symbolContext.Symbol.Locations.First()));
+                },
+                SymbolKind.NamedType);
+        }
+    }
+
+    internal class WarningWithUrlDiagnosticAnalyzer : CompilationStartedAnalyzer
+    {
+        internal static readonly DiagnosticDescriptor Warning02 = new DiagnosticDescriptor("Warning02", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://example.org/analyzer");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning02);
+
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        {
+            context.RegisterSymbolAction(
+                static (symbolContext) =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning02, symbolContext.Symbol.Locations.First()));
                 },
                 SymbolKind.NamedType);
         }

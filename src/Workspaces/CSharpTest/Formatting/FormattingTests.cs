@@ -2308,7 +2308,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
         }
 
         [Fact]
-        public async Task DontInsertLineBreaksInSingleLineEnum()
+        public async Task DoNotInsertLineBreaksInSingleLineEnum()
             => await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
 
         [Fact]
@@ -2602,7 +2602,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddLineBreakBeforeWhere1_Bug2582()
+        public async Task DoNotAddLineBreakBeforeWhere1_Bug2582()
         {
             await AssertFormatAsync(@"class C
 {
@@ -2618,7 +2618,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddLineBreakBeforeWhere2_Bug2582()
+        public async Task DoNotAddLineBreakBeforeWhere2_Bug2582()
         {
             await AssertFormatAsync(@"class C<T> where T : I
 {
@@ -2628,7 +2628,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddSpaceAfterUnaryMinus()
+        public async Task DoNotAddSpaceAfterUnaryMinus()
         {
             await AssertFormatAsync(@"class C
 {
@@ -2646,7 +2646,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddSpaceAfterUnaryPlus()
+        public async Task DoNotAddSpaceAfterUnaryPlus()
         {
             await AssertFormatAsync(@"class C
 {
@@ -2664,7 +2664,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceAfterIncrement()
+        public async Task DoNotAddSpaceAfterIncrement()
         {
             var code = @"class C
 {
@@ -2677,7 +2677,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceBeforeIncrement()
+        public async Task DoNotAddSpaceBeforeIncrement()
         {
             var code = @"class C
 {
@@ -2690,7 +2690,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceAfterDecrement()
+        public async Task DoNotAddSpaceAfterDecrement()
         {
             var code = @"class C
 {
@@ -2703,7 +2703,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceBeforeDecrement()
+        public async Task DoNotAddSpaceBeforeDecrement()
         {
             var code = @"class C
 {
@@ -3541,6 +3541,118 @@ static void Main(string[] args)
 ");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer0()
+        {
+            await AssertFormatAsync("""
+                F(stackalloc int[]
+                    {
+                        1,
+                        2,
+                    });
+                """, """
+                F(stackalloc int[]
+                    {
+                        1,
+                        2,
+                    }                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer0_Implicit()
+        {
+            await AssertFormatAsync("""
+                F(stackalloc[]
+                    {
+                        1,
+                        2,
+                    }
+                );
+                """, """
+                F(                    stackalloc []
+                    {
+                        1,
+                        2,
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer1()
+        {
+            await AssertFormatAsync("""
+                F(
+                    stackalloc int[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """, """
+                F(
+                    stackalloc int[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer1_Implicit()
+        {
+            await AssertFormatAsync("""
+                F(
+                    stackalloc[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """, """
+                F(
+                    stackalloc []
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer2()
+        {
+            await AssertFormatAsync("""
+                var x = (stackalloc int[] {1,2,
+                     3
+                });
+                """, """
+                var x = (stackalloc int[] {1,2,
+                     3
+                });
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer2_Implicit()
+        {
+            await AssertFormatAsync("""
+                var x = (stackalloc[]
+                {1,
+                    2, 3
+                });
+                """, """
+                var x = (stackalloc []
+                {1,
+                    2, 3
+                });
+                """);
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
         public async Task CollectionInitializer()
         {
@@ -3930,6 +4042,26 @@ public       void       Method      (       )           {
         Main(args: null);
     }
 }";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        public async Task RefReadonlyParameters()
+        {
+            var code = """
+                class C
+                {
+                    int   this  [   ref     readonly    int      x   ,   ref    readonly   int   y   ]   {   get ;   set ;  }
+                    void    M  (   ref    readonly     int   x    ,   ref    readonly   int   y   )  {   }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    int this[ref readonly int x, ref readonly int y] { get; set; }
+                    void M(ref readonly int x, ref readonly int y) { }
+                }
+                """;
             await AssertFormatAsync(expected, code);
         }
 
@@ -7409,7 +7541,7 @@ class C
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991547")]
-        public async Task DontWrappingTryCatchFinallyIfOnSingleLine()
+        public async Task DoNotWrappingTryCatchFinallyIfOnSingleLine()
         {
             var code = @"
 class C
@@ -8105,7 +8237,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1118")]
-        public void DontAssumeCertainNodeAreAlwaysParented()
+        public void DoNotAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
             Formatter.Format(block, new AdhocWorkspace().Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
@@ -8187,7 +8319,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1298")]
-        public async Task DontforceAccessorsToNewLineWithPropertyInitializers()
+        public async Task DoNotforceAccessorsToNewLineWithPropertyInitializers()
         {
             var code = @"using System.Collections.Generic;
 
@@ -8216,7 +8348,7 @@ public class ExcludeValidation
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1339")]
-        public async Task DontFormatAutoPropertyInitializerIfNotDifferentLine()
+        public async Task DoNotFormatAutoPropertyInitializerIfNotDifferentLine()
         {
             var code = @"class Program
 {
@@ -8396,7 +8528,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/939")]
-        public async Task DontFormatInsideArrayInitializers()
+        public async Task DoNotFormatInsideArrayInitializers()
         {
             var code = @"class Program
 {

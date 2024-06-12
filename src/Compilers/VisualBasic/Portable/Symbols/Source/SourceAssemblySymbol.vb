@@ -5,10 +5,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports System.Reflection.Metadata
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports System.Security.Cryptography
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -903,6 +900,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return If(result IsNot Nothing, result.Keys, SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))())
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            EnsureAttributesAreBound()
+
+            If _lazyInternalsVisibleToMap Is Nothing Then
+                Return SpecializedCollections.EmptyEnumerable(Of String)()
+            End If
+
+            Return _lazyInternalsVisibleToMap.Keys
+        End Function
+
         Friend ReadOnly Property DeclaresTheObjectClass As Boolean
             Get
                 If Me.CorLibrary IsNot Me Then
@@ -1082,6 +1089,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().RuntimeCompatibilityWrapNonExceptionThrows = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DebuggableAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasDebuggableAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().ExperimentalAttributeData = attrData.DecodeExperimentalAttribute()
             Else
                 Dim signature As Integer = attrData.GetTargetAttributeSignatureIndex(Me, AttributeDescription.AssemblyAlgorithmIdAttribute)
 
@@ -1770,5 +1779,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _compilation
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                ' <assembly: Experimental> may have been specified in the assembly or one of the modules
+                Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazySourceAttributesBag
+                If attributesBag IsNot Nothing AndAlso attributesBag.IsDecodedWellKnownAttributeDataComputed Then
+                    Dim experimentalData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData)?.ExperimentalAttributeData
+                    If experimentalData IsNot Nothing Then
+                        Return experimentalData
+                    End If
+                End If
+
+                attributesBag = Me._lazyNetModuleAttributesBag
+                If attributesBag IsNot Nothing AndAlso attributesBag.IsDecodedWellKnownAttributeDataComputed Then
+                    Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData)?.ExperimentalAttributeData
+                End If
+
+                If GetAttributeDeclarations().IsEmpty Then
+                    Return Nothing
+                End If
+
+                Return ObsoleteAttributeData.Uninitialized
+            End Get
+        End Property
+
     End Class
 End Namespace

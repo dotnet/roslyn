@@ -10,22 +10,16 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A class that represents both a tree and its top level signature version
     /// </summary>
-    internal sealed class TreeAndVersion
+    internal sealed class TreeAndVersion(SyntaxTree tree, VersionStamp version)
     {
         /// <summary>
         /// The syntax tree
         /// </summary>
-        public SyntaxTree Tree { get; }
+        public SyntaxTree Tree { get; } = tree;
 
         /// <summary>
         /// The version of the top level signature of the tree
         /// </summary>
-        public VersionStamp Version { get; }
-
-        public TreeAndVersion(SyntaxTree tree, VersionStamp version)
-        {
-            Tree = tree;
-            Version = version;
-        }
+        public VersionStamp Version { get; } = version;
     }
 }

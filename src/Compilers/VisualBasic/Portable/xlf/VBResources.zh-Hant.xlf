@@ -17,6 +17,11 @@
         <target state="translated">命令列語法錯誤: '{0}' 對 '{1}' 選項而言不是有效的值。此值的格式必須是 '{2}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">'{0}' 具有必要的成員，因此無法從其繼承。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">若要在行接續字元後使用註解，請使用 {0} 或更高的語言版本。</target>
@@ -32,9 +37,19 @@
         <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' 僅保留給編譯器使用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' 僅保留給編譯器使用。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">多個分析器組態檔無法處於相同目錄 ('{0}') 中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' 無法滿足泛型型別或方法 '{0}' 中參數 '{1}' 的 'New' 限制式，因為 '{2}' 具有必要的成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">因為類型 '{0}' 有重新抽象成員 (來自基底介面)，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">必要成員 '{0}' 必須在物件初始設定式或屬性引數中進行設定。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">'{0}' 的必要成員清單格式錯誤，無法解譯。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">目標執行階段不支援預設介面實作。</target>
@@ -67,6 +92,11 @@
         <target state="translated">無法使用其他類型的方法，處理共用 WithEvents 變數的事件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' 於組件 '{1}' 中定義。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}' 無法實作介面 '{3}' 因為其包含共用摘要或虛擬效果 '{2}'。</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}' 需要編譯器功能 '{1}'，此版本的 Visual Basic 編譯器不支援此功能。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">針對會藉傳址傳回的方法或屬性所進行的呼叫，不可在 Async 或 Iterator 方法中作為 'With' 陳述式運算式使用，也不可在 Lambda 中隱含參考。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -289,20 +327,21 @@
                                  - INPUT FILES -
 -addmodule:&lt;file_list&gt;            從指定的模組參考中繼資料。
 -link:&lt;file_list&gt;                 從指定的 Interop
-                                 中繼資料。(簡短形式: -l)
--recurse:&lt;wildcard&gt;               根據萬用字元規格
-                                 包含目前目錄和子目錄
-                                 中的所有檔案。
--reference:&lt;file_list&gt;            從指定的組件參考
-                                 中繼資料。(簡短形式: -r)
+                                 組件內嵌中繼資料。(簡短形式: -l)
+-recurse:&lt;wildcard&gt;               根據
+萬用字元
+                                 規格
+                                 包含目前目錄和子目錄中的所有檔案。
+-reference:&lt;file_list&gt;            從指定的
+                                 組件參考中繼資料。(簡短形式: -r)
 -analyzer:&lt;file_list&gt;             從此組件執行分析器
                                  (簡短形式: -a)
--additionalfile:&lt;file list&gt;       不會影響程式碼產生
+-additionalfile:&lt;file list&gt;       不會直接影響程式碼產生
                                  但可由分析器用來產生錯誤或警告
                                  的其他檔案。
 
                                  - RESOURCES -
--linkresource:&lt;resinfo&gt;           連結指定的檔案做為外部檔案
+-linkresource:&lt;resinfo&gt;           連結指定的檔案做為外部
                                  組件資源。
                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                  (簡短形式: -linkres)
@@ -367,7 +406,7 @@
 -rootnamespace:&lt;string&gt;           指定所有類型宣告
                                  的根命名空間。
 -optionstrict[+|-]                強制執行嚴格的語言語意。
--optionstrict:custom              未遵守嚴格的語言語意時警告
+-optionstrict:custom              未遵守嚴格的語言語意時提出警告
                                  。
 -optioncompare:binary             指定二進位樣式字串比較。
                                  這是預設值。
@@ -379,21 +418,21 @@
 -nologo                           不要顯示編譯器著作權橫幅。
 -quiet                            無訊息輸出模式。
 -verbose                          顯示詳細訊息。
--parallel[+|-]                    並行建置。
+-parallel[+|-]                    同時建置。
 -version                          顯示編譯器版本號碼並結束。
 
                                  - ADVANCED -
 -baseaddress:&lt;number&gt;             程式庫或模組的基本位址
                                  (十六進位)。
 -checksumalgorithm:&lt;alg&gt;          指定計算儲存在 PDB 中
-                                 來源檔案總和檢查碼的演算法。支援的值包括: 
+                                 來源檔案總和檢查碼的演算法。支援的值為: 
                                  SHA1 或 SHA256 (預設)。
 -codepage:&lt;number&gt;                指定開啟來源檔案時
                                  要使用的字碼頁。
 -delaysign[+|-]                   只使用強式名稱金鑰的公開
-                                 部分延遲為組件簽章簽署。
+                                 部分對組件進行延遲簽屬。
 -publicsign[+|-]                  只使用強式名稱金鑰的公開
-                                 部分公開為組件簽章簽署。
+                                 部分對組件進行公開簽屬。
 -errorreport:&lt;string&gt;             指定如何處理內部編譯器
                                  錯誤; 必須是提示、傳送、無或佇列
                                  (預設)。
@@ -416,13 +455,16 @@
 -nostdlib                         不參考標準程式庫
                                  (system.dll 和 VBC.RSP 檔案)。
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                 指定編譯器的來源路徑名稱輸出的對應
+                                 指定由編譯器輸出之來源路徑名稱的對應
                                  。
 -platform:&lt;string&gt;                限制此程式碼可在哪些平台上執行;
                                  必須是 x86、x64、Itanium、arm、arm64
                                  AnyCPU32BitPreferred 或 anycpu (預設)。
--preferreduilang                  指定偏好的輸出語言名稱。
+-preferreduilang                  指定喜好的輸出語言名稱。
 -nosdkpath                        停用搜尋標準程式庫組件的預設 SDK 路徑。
+-reportivts[+|-]                  輸出有關所有相依項授與至此
+                                 組件的所有 IVT 的資訊，並使用它們來自的組件
+                                 標註外部組件的可存取性錯誤。
 -sdkpath:&lt;path&gt;                   .NET Framework SDK 目錄的位置
                                  (mscorlib.dll)。
 -subsystemversion:&lt;version&gt;       指定輸出 PE 的子系統版本。
@@ -573,16 +615,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">產生器 '{0}' 無法產生來源。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">產生器擲回了下列例外狀況:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">產生器 '{0}' 無法產生來源。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -590,16 +630,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">產生器 '{0}' 無法初始化。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">產生器擲回了下列例外狀況:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">產生器 '{0}' 無法初始化。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

@@ -18,27 +18,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private sealed class ConstructorDelegatingCodeAction : CodeAction
+        private sealed class ConstructorDelegatingCodeAction(
+            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            Document document,
+            State state,
+            bool addNullChecks,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly bool _addNullChecks;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
-
-            public ConstructorDelegatingCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document,
-                State state,
-                bool addNullChecks,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _state = state;
-                _addNullChecks = addNullChecks;
-                _fallbackOptions = fallbackOptions;
-            }
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly bool _addNullChecks = addNullChecks;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

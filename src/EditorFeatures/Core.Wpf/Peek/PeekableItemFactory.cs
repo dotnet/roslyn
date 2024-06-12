@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
             var solution = project.Solution;
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
-            symbol = await GoToDefinitionHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
             if (symbol is null)
                 return ImmutableArray<IPeekableItem>.Empty;
 

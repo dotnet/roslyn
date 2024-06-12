@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindUsages;
 /// user immediately if the find command completes quickly, or which will be pushed into the streaming presenter 
 /// if the search is taking too long.
 /// </summary>
-internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreamingProgressTracker
+internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptions) : IFindUsagesContext, IStreamingProgressTracker
 {
     private class State
     {
@@ -29,7 +29,7 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         public ImmutableArray<DefinitionItem>.Builder Definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
     }
 
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     /// <summary>
     /// Lock which controls access to all members below.
@@ -47,11 +47,6 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
     /// we'll push the values into it and forward all future calls from that point to it.
     /// </summary> 
     private State? _state = new();
-
-    public BufferedFindUsagesContext(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
 
     [MemberNotNullWhen(true, nameof(_streamingPresenterContext))]
     [MemberNotNullWhen(false, nameof(_state))]

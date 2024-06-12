@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         }
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.EndOfLineTrivia) || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+            => trivia.Kind() is SyntaxKind.EndOfLineTrivia or SyntaxKind.SingleLineDocumentationCommentTrivia;
 
         protected override bool IsEndOfFileToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.EndOfFileToken;

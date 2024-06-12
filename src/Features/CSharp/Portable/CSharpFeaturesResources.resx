@@ -345,9 +345,11 @@
     <value>switch statement</value>
     <comment>{Locked="switch"} "switch" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="global_statement" xml:space="preserve">
-    <value>global statement</value>
-    <comment>{Locked="global"} "global" is a C# keyword and should not be localized.</comment>
+  <data name="top_level_statement" xml:space="preserve">
+    <value>top-level statement</value>
+  </data>
+  <data name="top_level_code" xml:space="preserve">
+    <value>top-level code</value>
   </data>
   <data name="extern_alias" xml:space="preserve">
     <value>extern alias</value>
@@ -590,5 +592,21 @@
   </data>
   <data name="init_only_property" xml:space="preserve">
     <value>init-only property</value>
+  </data>
+  <data name="for_loop" xml:space="preserve">
+    <value>for loop</value>
+    <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="reversed_for_loop" xml:space="preserve">
+    <value>reversed for loop</value>
+    <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="static_void_Main" xml:space="preserve">
+    <value>static void Main</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="static_int_Main" xml:space="preserve">
+    <value>static int Main</value>
+    <comment>{Locked}</comment>
   </data>
 </root>

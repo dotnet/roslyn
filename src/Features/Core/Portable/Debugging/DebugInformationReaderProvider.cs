@@ -39,12 +39,9 @@ namespace Microsoft.CodeAnalysis.Debugging
                 => throw ExceptionUtilities.Unreachable();
         }
 
-        private sealed class Portable : DebugInformationReaderProvider
+        private sealed class Portable(MetadataReaderProvider pdbReaderProvider) : DebugInformationReaderProvider
         {
-            private readonly MetadataReaderProvider _pdbReaderProvider;
-
-            public Portable(MetadataReaderProvider pdbReaderProvider)
-                => _pdbReaderProvider = pdbReaderProvider;
+            private readonly MetadataReaderProvider _pdbReaderProvider = pdbReaderProvider;
 
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
                 => EditAndContinueMethodDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
@@ -65,18 +62,11 @@ namespace Microsoft.CodeAnalysis.Debugging
                 => _pdbReaderProvider.Dispose();
         }
 
-        private sealed class Native : DebugInformationReaderProvider
+        private sealed class Native(Stream stream, ISymUnmanagedReader5 symReader, int version) : DebugInformationReaderProvider
         {
-            private readonly Stream _stream;
-            private readonly int _version;
-            private ISymUnmanagedReader5 _symReader;
-
-            public Native(Stream stream, ISymUnmanagedReader5 symReader, int version)
-            {
-                _stream = stream;
-                _symReader = symReader;
-                _version = version;
-            }
+            private readonly Stream _stream = stream;
+            private readonly int _version = version;
+            private ISymUnmanagedReader5 _symReader = symReader;
 
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
                 => EditAndContinueMethodDebugInfoReader.Create(_symReader, _version);

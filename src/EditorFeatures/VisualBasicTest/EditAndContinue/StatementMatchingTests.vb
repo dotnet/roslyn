@@ -71,8 +71,8 @@ End If
             Dim m1 = MakeMethodBody(src1)
             Dim m2 = MakeMethodBody(src2)
 
-            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1, m2)}
-            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
+            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.RootNodes.First(), m2.RootNodes().First())}
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -569,7 +569,6 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             Dim src1 = "Dim result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()" & vbLf
             Dim src2 = "Dim result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()" & vbLf
 
-            ' TODO
             Dim match = GetMethodMatches(src1, src2)
             Dim actual = ToMatchingPairs(match)
 
@@ -588,6 +587,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
                 {"b", "b"},
                 {"Function() 1", "Function() 2"},
                 {"Function()", "Function()"},
+                {"()", "()"},
                 {"Join c In Q(Function() 3) On c Equals b", "Join c In Q(Function() 4) On c Equals b"},
                 {"c In Q(Function() 3)", "c In Q(Function() 4)"},
                 {"c", "c"},
@@ -867,10 +867,19 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
                 {"F(Function(a) Function(b) Function(c) d)", "F(Function(a) Function(b) Function(c) d)"},
                 {"Function(a) Function(b) Function(c) d", "Function(a) Function(b) Function(c) d"},
                 {"Function(a)", "Function(a)"},
+                {"(a)", "(a)"},
+                {"a", "a"},
+                {"a", "a"},
                 {"Function(b) Function(c) d", "Function(b) Function(c) d"},
                 {"Function(b)", "Function(b)"},
+                {"(b)", "(b)"},
+                {"b", "b"},
+                {"b", "b"},
                 {"Function(c) d", "Function(c) d"},
                 {"Function(c)", "Function(c)"},
+                {"(c)", "(c)"},
+                {"c", "c"},
+                {"c", "c"},
                 {"End Sub", "End Sub"}
             }
 
@@ -891,10 +900,19 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
                 {"F(Function(a) Function(b) Function(c) d)", "F(Function(a) G(Function(b) H(Function(c) d)))"},
                 {"Function(a) Function(b) Function(c) d", "Function(a) G(Function(b) H(Function(c) d))"},
                 {"Function(a)", "Function(a)"},
+                {"(a)", "(a)"},
+                {"a", "a"},
+                {"a", "a"},
                 {"Function(b) Function(c) d", "Function(b) H(Function(c) d)"},
                 {"Function(b)", "Function(b)"},
+                {"(b)", "(b)"},
+                {"b", "b"},
+                {"b", "b"},
                 {"Function(c) d", "Function(c) d"},
                 {"Function(c)", "Function(c)"},
+                {"(c)", "(c)"},
+                {"c", "c"},
+                {"c", "c"},
                 {"End Sub", "End Sub"}
             }
 
@@ -934,22 +952,42 @@ F(Sub(a)
                 {"Sub(a)     F(Function(c) d)     F(Sub(u, v)         F(Function(w) Function(c)  d )         F(Function(p) p)       End Sub)   End Sub",
                  "Sub(a)     F(Function(c) d + 1)     F(Sub(u, v)         F(Function(w) Function(c) d  +  1)         F(Function(p) p*2)       End Sub)   End Sub"},
                 {"Sub(a)", "Sub(a)"},
+                {"(a)", "(a)"},
+                {"a", "a"},
+                {"a", "a"},
                 {"F(Function(c) d)", "F(Function(c) d + 1)"},
                 {"Function(c) d", "Function(c) d + 1"},
                 {"Function(c)", "Function(c)"},
+                {"(c)", "(c)"},
+                {"c", "c"},
+                {"c", "c"},
                 {"F(Sub(u, v)         F(Function(w) Function(c)  d )         F(Function(p) p)       End Sub)",
                  "F(Sub(u, v)         F(Function(w) Function(c) d  +  1)         F(Function(p) p*2)       End Sub)"},
                 {"Sub(u, v)         F(Function(w) Function(c)  d )         F(Function(p) p)       End Sub",
                  "Sub(u, v)         F(Function(w) Function(c) d  +  1)         F(Function(p) p*2)       End Sub"},
                 {"Sub(u, v)", "Sub(u, v)"},
+                {"(u, v)", "(u, v)"},
+                {"u", "u"},
+                {"u", "u"},
+                {"v", "v"},
+                {"v", "v"},
                 {"F(Function(w) Function(c)  d )", "F(Function(w) Function(c) d  +  1)"},
                 {"Function(w) Function(c)  d", "Function(w) Function(c) d  +  1"},
                 {"Function(w)", "Function(w)"},
+                {"(w)", "(w)"},
+                {"w", "w"},
+                {"w", "w"},
                 {"Function(c)  d", "Function(c) d  +  1"},
                 {"Function(c)", "Function(c)"},
+                {"(c)", "(c)"},
+                {"c", "c"},
+                {"c", "c"},
                 {"F(Function(p) p)", "F(Function(p) p*2)"},
                 {"Function(p) p", "Function(p) p*2"},
                 {"Function(p)", "Function(p)"},
+                {"(p)", "(p)"},
+                {"p", "p"},
+                {"p", "p"},
                 {"End Sub", "End Sub"},
                 {"End Sub", "End Sub"},
                 {"End Sub", "End Sub"}
@@ -1134,16 +1172,28 @@ Dim q = From a In seq1
                 {"F(Function(u) u) Equals G(Function(s) s)", "F(Function(u) u + 1) Equals G(Function(s) s + 3)"},
                 {"Function(u) u", "Function(u) u + 1"},
                 {"Function(u)", "Function(u)"},
+                {"(u)", "(u)"},
+                {"u", "u"},
+                {"u", "u"},
                 {"Function(s) s", "Function(s) s + 3"},
                 {"Function(s)", "Function(s)"},
+                {"(s)", "(s)"},
+                {"s", "s"},
+                {"s", "s"},
                 {"Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)", "Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)"},
                 {"l In seq3", "l In seq3"},
                 {"l", "l"},
                 {"F(Function(v) v) Equals G(Function(t) t)", "F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)"},
                 {"Function(v) v", "Function(vv) vv + 2"},
                 {"Function(v)", "Function(vv)"},
+                {"(v)", "(vv)"},
+                {"v", "vv"},
+                {"v", "vv"},
                 {"Function(t) t", "Function(tt) tt + 4"},
                 {"Function(t)", "Function(tt)"},
+                {"(t)", "(tt)"},
+                {"t", "tt"},
+                {"t", "tt"},
                 {"Select a", "Select a + 1"},
                 {"a", "a + 1"},
                 {"End Sub", "End Sub"}
@@ -1172,20 +1222,36 @@ Dim q = From a In seq1
                 {"c", "c"},
                 {"Function() d", "Function() d + 1"},
                 {"Function()", "Function()"},
+                {"()", "()"},
                 {"Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2)", "Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2)"},
                 {"Function(e1) Function(e2) (e1 - e2)", "Function(e1) Function(e2) (e1 + e2)"},
                 {"Function(e1)", "Function(e1)"},
+                {"(e1)", "(e1)"},
+                {"e1", "e1"},
+                {"e1", "e1"},
                 {"Function(e2) (e1 - e2)", "Function(e2) (e1 + e2)"},
                 {"Function(e2)", "Function(e2)"},
+                {"(e2)", "(e2)"},
+                {"e2", "e2"},
+                {"e2", "e2"},
                 {"Function(f1) Function(f2) (f1 - f2)", "Function(f1) Function(f2) (f1 + f2)"},
                 {"Function(f1)", "Function(f1)"},
+                {"(f1)", "(f1)"},
+                {"f1", "f1"},
+                {"f1", "f1"},
                 {"Function(f2) (f1 - f2)", "Function(f2) (f1 + f2)"},
                 {"Function(f2)", "Function(f2)"},
+                {"(f2)", "(f2)"},
+                {"f2", "f2"},
+                {"f2", "f2"},
                 {"g", "g"},
                 {"h", "h"},
                 {"Sum(Function(f) f + 1)", "Sum(Function(f) f + 2)"},
                 {"Function(f) f + 1", "Function(f) f + 2"},
                 {"Function(f)", "Function(f)"},
+                {"(f)", "(f)"},
+                {"f", "f"},
+                {"f", "f"},
                 {"Select g", "Select g"},
                 {"g", "g"},
                 {"End Sub", "End Sub"}
@@ -1325,12 +1391,14 @@ End Try
             Dim src1 = "Console.WriteLine(1   ) : Console.WriteLine( 1  )"
             Dim src2 = "Console.WriteLine(  1 ) : Console.WriteLine(   1)"
 
-            Dim m1 = DirectCast(MakeMethodBody(src1), MethodBlockSyntax)
-            Dim m2 = DirectCast(MakeMethodBody(src2), MethodBlockSyntax)
-            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.Statements(1), m2.Statements(0))}
+            Dim m1 = MakeMethodBody(src1)
+            Dim m2 = MakeMethodBody(src2)
+            Dim b1 = DirectCast(m1.RootNodes.First(), MethodBlockSyntax)
+            Dim b2 = DirectCast(m2.RootNodes.First(), MethodBlockSyntax)
+            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(b1.Statements(1), b2.Statements(0))}
 
             ' pre-matched:
-            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1344,7 +1412,7 @@ End Try
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = SyntaxComparer.Statement.ComputeMatch(m1, m2)
+            match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From

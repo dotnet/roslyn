@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(tree, position)));
         }
 
-        private ImmutableArray<HighlightSpan> GetHighlights(RegexTree tree, int positionInDocument)
+        private static ImmutableArray<HighlightSpan> GetHighlights(RegexTree tree, int positionInDocument)
         {
             var referencesOnTheRight = GetReferences(tree, positionInDocument);
             if (!referencesOnTheRight.IsEmpty)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             return referencesOnTheLeft;
         }
 
-        private ImmutableArray<HighlightSpan> GetReferences(RegexTree tree, int position)
+        private static ImmutableArray<HighlightSpan> GetReferences(RegexTree tree, int position)
         {
             var virtualChar = tree.Text.Find(position);
             if (virtualChar == null)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             return FindReferenceHighlights(tree, ch);
         }
 
-        private ImmutableArray<HighlightSpan> FindReferenceHighlights(RegexTree tree, VirtualChar ch)
+        private static ImmutableArray<HighlightSpan> FindReferenceHighlights(RegexTree tree, VirtualChar ch)
         {
             var node = FindReferenceNode(tree.Root, ch);
             if (node == null)
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 _ => throw new InvalidOperationException(),
             };
 
-        private RegexEscapeNode? FindReferenceNode(RegexNode node, VirtualChar virtualChar)
+        private static RegexEscapeNode? FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
             if (node.Kind is RegexKind.BackreferenceEscape or
                 RegexKind.CaptureEscape or

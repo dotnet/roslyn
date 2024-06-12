@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var identifier = propertyDeclaration.Identifier;
             var type = propertyDeclaration.Type;
 
-            arrayBuilder.Add(new SnippetPlaceholder(identifier: type.ToString(), placeholderPositions: ImmutableArray.Create(type.SpanStart)));
-            arrayBuilder.Add(new SnippetPlaceholder(identifier: identifier.ValueText, placeholderPositions: ImmutableArray.Create(identifier.SpanStart)));
+            arrayBuilder.Add(new SnippetPlaceholder(type.ToString(), type.SpanStart));
+            arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
             return arrayBuilder.ToImmutableArray();
         }
 

@@ -458,7 +458,7 @@ class A
 
     public void Main(string[] args)
     {
-        UseParams(list: 1, 2, 3, 4, 5, 6); 
+        UseParams(1, 2, 3, 4, 5, 6); 
     } 
 }
                     </Document>

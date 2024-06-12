@@ -17,14 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         Document GetDocument(ITextSnapshot snapshot, CancellationToken cancellationToken);
     }
 
-    internal class DocumentProvider : IDocumentProvider
+    internal class DocumentProvider(IThreadingContext threadingContext) : IDocumentProvider
     {
-        private readonly IThreadingContext _threadingContext;
-
-        public DocumentProvider(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
 
         public Document GetDocument(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {

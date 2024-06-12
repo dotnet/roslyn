@@ -456,9 +456,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
-                private class UnitTestingAnalyzersGetter
+                private class UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
                 {
-                    private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders;
+                    private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders = analyzerProviders.ToList();
                     private readonly Dictionary<(string workspaceKind, SolutionServices services), ImmutableArray<
 #if false // Not used in unit testing crawling
                         (IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
@@ -466,11 +466,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         IUnitTestingIncrementalAnalyzer
 #endif
                         >> _analyzerMap = new();
-
-                    public UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
-                    {
-                        _analyzerProviders = analyzerProviders.ToList();
-                    }
 
                     public ImmutableArray<IUnitTestingIncrementalAnalyzer> GetOrderedAnalyzers(string workspaceKind, SolutionServices services, bool onlyHighPriorityAnalyzer)
                     {

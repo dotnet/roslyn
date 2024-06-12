@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands
     /// Arguments for the Organize Document command being invoked.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    internal class OrganizeDocumentCommandArgs : EditorCommandArgs
+    internal class OrganizeDocumentCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
     {
-        public OrganizeDocumentCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
-            : base(textView, subjectBuffer)
-        {
-        }
     }
 }

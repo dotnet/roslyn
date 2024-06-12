@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (currentBlock != destinationBlock)
             {
                 var localFunctionOrMethodDeclaration = currentBlock.AncestorsAndSelf()
-                    .FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration));
+                    .FirstOrDefault(node => node.Kind() is SyntaxKind.LocalFunctionStatement or SyntaxKind.MethodDeclaration);
                 var localFunctionStatement = destinationBlock.FirstAncestorOrSelf<LocalFunctionStatementSyntax>();
 
                 if (localFunctionOrMethodDeclaration != localFunctionStatement &&

@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public abstract class CodeFixProvider
     {
+        private protected ImmutableArray<string> CustomTags = ImmutableArray<string>.Empty;
+
         /// <summary>
         /// A list of diagnostic IDs that this provider can provide fixes for.
         /// </summary>
@@ -38,20 +41,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => null;
 
         /// <summary>
-        /// What priority this provider should run at.
+        /// Computes the <see cref="CodeActionRequestPriority"/> group this provider should be considered to run at. Legal values
+        /// this can be must be between <see cref="CodeActionRequestPriority.Low"/> and <see cref="CodeActionPriority.High"/>.
         /// </summary>
-        internal CodeActionRequestPriority RequestPriority
+        /// <remarks>
+        /// Values outside of this range will be clamped to be within that range.  Requests for <see
+        /// cref="CodeActionRequestPriority.High"/> may be downgraded to <see cref="CodeActionRequestPriority.Default"/> as they
+        /// poorly behaving high-priority providers can cause a negative user experience.
+        /// </remarks>
+        protected virtual CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.Default;
+
+        /// <summary>
+        /// Priority class this refactoring provider should run at. Returns <see
+        /// cref="CodeActionRequestPriority.Default"/> if not overridden.  Slower, or less relevant, providers should
+        /// override this and return a lower value to not interfere with computation of normal priority providers.
+        /// </summary>
+        public CodeActionRequestPriority RequestPriority
         {
             get
             {
                 var priority = ComputeRequestPriority();
-                // Note: CodeActionRequestPriority.Lowest is reserved for IConfigurationFixProvider.
-                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Low or CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
-                return priority;
+                Debug.Assert(priority is CodeActionRequestPriority.Low or CodeActionRequestPriority.Default or CodeActionRequestPriority.High, "Provider returned invalid priority");
+                return priority.Clamp(this.CustomTags);
             }
         }
-
-        private protected virtual CodeActionRequestPriority ComputeRequestPriority()
-            => CodeActionRequestPriority.Normal;
     }
 }

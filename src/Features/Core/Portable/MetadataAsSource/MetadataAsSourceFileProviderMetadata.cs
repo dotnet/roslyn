@@ -7,11 +7,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
-    internal class MetadataAsSourceFileProviderMetadata : OrderableLanguageMetadata
+    internal class MetadataAsSourceFileProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
     {
-        public MetadataAsSourceFileProviderMetadata(IDictionary<string, object> data)
-            : base(data)
-        {
-        }
     }
 }

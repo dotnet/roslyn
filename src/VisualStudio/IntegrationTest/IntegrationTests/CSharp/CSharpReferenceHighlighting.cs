@@ -126,14 +126,14 @@ class C
 
             AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
 
-            if (spans.ContainsKey("reference"))
+            if (spans.TryGetValue("reference", out var referenceSpans))
             {
-                AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
+                AssertEx.SetEqual(referenceSpans, VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
             }
 
-            if (spans.ContainsKey("writtenreference"))
+            if (spans.TryGetValue("writtenreference", out var writtenReferenceSpans))
             {
-                AssertEx.SetEqual(spans["writtenreference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenreference'\r\n");
+                AssertEx.SetEqual(writtenReferenceSpans, VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenreference'\r\n");
             }
         }
 

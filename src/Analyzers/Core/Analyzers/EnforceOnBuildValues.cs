@@ -89,6 +89,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UsePatternMatchingAsAndMemberAccess = /*IDE0260*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseCoalesceExpressionForIfNullCheck = /*IDE0270*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseNameofInAttribute = /*IDE0280*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UsePrimaryConstructor = /*IDE0290*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForArray = /*IDE0300*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForEmpty = /*IDE0301*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForStackAlloc = /*IDE0302*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForCreate = /*IDE0303*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForBuilder = /*IDE0304*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForFluent = /*IDE0305*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304

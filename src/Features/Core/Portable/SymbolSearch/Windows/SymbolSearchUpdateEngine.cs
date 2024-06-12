@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 select symbol);
         }
 
-        private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
+        private static PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
         {
             var nameParts = ArrayBuilder<string>.GetInstance();
             GetFullName(nameParts, type.FullName.Parent);
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private static bool IsType(Symbol symbol)
             => symbol.Type.IsType();
 
-        private void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
+        private static void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
         {
             if (!path.IsEmpty)
             {

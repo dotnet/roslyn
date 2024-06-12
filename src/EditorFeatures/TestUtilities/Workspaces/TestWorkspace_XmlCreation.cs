@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] metadataReferences = null,
             string extension = null,
             bool commonReferences = true,
-            bool isMarkup = true)
+            bool isMarkup = true,
+            string[] fileContainingFolders = null)
         {
             var documentElements = new List<XElement>();
 
@@ -32,10 +34,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
-                foreach (var file in files)
+                // Each document is expecting to have a containing folder if it is not null.
+                if (fileContainingFolders != null)
                 {
-                    documentElements.Add(CreateDocumentElement(
-                        file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions, isMarkup));
+                    Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length, "Please specify containing folder for each file.");
+                    foreach (var (file, folders) in files.Zip(fileContainingFolders, (file, containingFolders) => (file, containingFolders)))
+                    {
+                        documentElements.Add(CreateDocumentElement(
+                            file, Path.Combine(folders, GetDefaultTestSourceDocumentName(index++, extension)), folders: folders, parseOptions: parseOptions, isMarkup: isMarkup));
+                    }
+                }
+                else
+                {
+                    foreach (var file in files)
+                    {
+                        documentElements.Add(CreateDocumentElement(
+                            file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions: parseOptions, isMarkup: isMarkup));
+                    }
                 }
             }
 
@@ -172,12 +187,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             => new XElement(MetadataReferenceElementName, path);
 
         protected static XElement CreateDocumentElement(
-            string code, string filePath, ParseOptions parseOptions = null, bool isMarkup = true)
+            string code, string filePath, string folders = null, ParseOptions parseOptions = null, bool isMarkup = true)
         {
             var element = new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
+                new XAttribute(NormalizeAttributeName, false),
                 CreateParseOptionsElement(parseOptions),
-                code.Replace("\r\n", "\n"));
+                code);
+
+            if (folders != null)
+                element.Add(new XAttribute(FoldersAttributeName, folders));
 
             if (!isMarkup)
                 element.Add(new XAttribute(MarkupAttributeName, isMarkup));
@@ -189,8 +208,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             return new XElement(DocumentFromSourceGeneratorElementName,
                 new XAttribute(FilePathAttributeName, hintName),
+                new XAttribute(NormalizeAttributeName, false),
                 CreateParseOptionsElement(parseOptions),
-                code.Replace("\r\n", "\n"));
+                code);
         }
 
         private static XElement CreateParseOptionsElement(ParseOptions parseOptions)

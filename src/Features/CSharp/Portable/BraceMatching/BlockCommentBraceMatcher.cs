@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
         public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var trivia = root.FindTrivia(position);
 
             if (trivia.Kind() is SyntaxKind.MultiLineCommentTrivia &&

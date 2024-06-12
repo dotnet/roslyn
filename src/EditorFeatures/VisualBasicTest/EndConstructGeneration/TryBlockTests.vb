@@ -28,7 +28,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForMatchedTryWithCatch()
+        Public Sub DoNotApplyForMatchedTryWithCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()
@@ -41,7 +41,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForMatchedTryWithoutCatch()
+        Public Sub DoNotApplyForMatchedTryWithoutCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()

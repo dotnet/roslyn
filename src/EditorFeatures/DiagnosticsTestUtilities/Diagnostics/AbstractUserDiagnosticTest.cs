@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,8 +12,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -20,11 +26,10 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using FixAllContext = Microsoft.CodeAnalysis.CodeFixes.FixAllContext;
+using FixAllProvider = Microsoft.CodeAnalysis.CodeFixes.FixAllProvider;
+using FixAllState = Microsoft.CodeAnalysis.CodeFixes.FixAllState;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -84,6 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (dxs, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
             return dxs;
         }
+
+        internal override Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters)
+            => throw new NotImplementedException("No refactoring provided in diagnostic test");
 
         protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
         {
@@ -154,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
                     testDriver.FallbackOptions,
-                    isBlocking: false,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
@@ -246,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string diagnosticId = null,
             TestParameters parameters = null)
         {
-            MarkupTestFile.GetSpans(initialMarkup, out var unused, out ImmutableArray<TextSpan> spansList);
+            MarkupTestFile.GetSpans(initialMarkup, out var unused, out var spansList);
 
             var ps = parameters ?? TestParameters.Default;
             var expectedTextSpans = spansList.ToSet();

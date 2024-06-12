@@ -174,7 +174,7 @@
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
@@ -315,6 +315,26 @@
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                case ErrorCode.WRN_BadArgRef:
+                case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.WRN_ArgExpectedIn:
+                case ErrorCode.WRN_OverridingDifferentRefness:
+                case ErrorCode.WRN_HidingDifferentRefness:
+                case ErrorCode.WRN_TargetDifferentRefness:
+                case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
                     return true;
                 default:
                     return false;

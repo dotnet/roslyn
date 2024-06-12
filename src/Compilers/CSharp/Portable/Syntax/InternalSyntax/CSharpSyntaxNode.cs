@@ -78,22 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public override bool IsStructuredTrivia
-        {
-            get
-            {
-                return this is StructuredTriviaSyntax;
-            }
-        }
-
-        public override bool IsDirective
-        {
-            get
-            {
-                return this is DirectiveTriviaSyntax;
-            }
-        }
-
         public override bool IsSkippedTokensTrivia => this.Kind == SyntaxKind.SkippedTokensTrivia;
         public override bool IsDocumentationCommentTrivia => SyntaxFacts.IsDocumentationCommentTrivia(this.Kind);
 

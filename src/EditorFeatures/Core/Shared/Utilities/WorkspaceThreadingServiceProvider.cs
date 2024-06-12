@@ -10,16 +10,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     [ExportWorkspaceService(typeof(IWorkspaceThreadingServiceProvider)), Shared]
-    internal sealed class WorkspaceThreadingServiceProvider : IWorkspaceThreadingServiceProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class WorkspaceThreadingServiceProvider(
+        IWorkspaceThreadingService service) : IWorkspaceThreadingServiceProvider
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceThreadingServiceProvider(
-            IWorkspaceThreadingService service)
-        {
-            Service = service;
-        }
-
-        public IWorkspaceThreadingService Service { get; }
+        public IWorkspaceThreadingService Service { get; } = service;
     }
 }

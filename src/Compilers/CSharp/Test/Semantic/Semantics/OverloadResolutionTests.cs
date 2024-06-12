@@ -7528,13 +7528,12 @@ class Test
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,14): error CS0123: No overload for 'goo' matches delegate 'System.EventHandler'
+                // (9,14): error CS0123: No overload for 'goo' matches delegate 'EventHandler'
                 //         y += goo;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler"),
-                // (10,14): error CS1593: Delegate 'System.EventHandler' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler").WithLocation(9, 14),
+                // (10,16): error CS1593: Delegate 'EventHandler' does not take 1 arguments
                 //         y += x => 2;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "x => 2").WithArguments("System.EventHandler", "1")
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.EventHandler", "1").WithLocation(10, 16));
         }
 
         [Fact]
@@ -7577,22 +7576,12 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-    // (8,28): error CS1513: } expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(8, 28),
-    // (8,36): error CS1002: ; expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 36),
-    // (8,37): error CS1597: Semicolon after method or accessor block is not valid
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(8, 37),
-    // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1),
-    // (2,1): info CS8019: Unnecessary using directive.
-    // using System.Collections.Generic;
-    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
-);
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
+                // (8,28): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var d = new int[] {[1] = 3 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[1]").WithLocation(8, 28));
         }
 
         [Fact]
@@ -9471,10 +9460,414 @@ public static class Program
     }
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
-                // (11,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (11,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         Method(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(11, 20));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,20): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         Method(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(11, 20)
+            };
+
+            CompileAndVerify(code, expectedOutput: "5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            var verifier = CompileAndVerify(code, expectedOutput: "5").VerifyDiagnostics(expectedDiagnostics);
+
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  1
+                  .locals init (int V_0) //x
+                  IL_0000:  ldc.i4.5
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  call       "void Program.Method(in int)"
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_ReadonlyRef()
+        {
+            var code = """
+                public static class Program
+                {
+                    public static void Method(in int p)
+                    {
+                        System.Console.WriteLine(p);
+                    }
+                    static readonly int x = 5;
+                    public static void Main()
+                    {
+                        Method(ref x);
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,20): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "x").WithLocation(10, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_RValue()
+        {
+            var code = """
+                public static class Program
+                {
+                    public static void Method(in int p)
+                    {
+                        System.Console.WriteLine(p);
+                    }
+                    public static void Main()
+                    {
+                        Method(ref 5);
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,20): error CS1510: A ref or out value must be an assignable variable
+                //         Method(ref 5);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "5").WithLocation(9, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_CrossAssembly()
+        {
+            var source1 = """
+                public class C
+                {
+                    public void M(in int p) { }
+                    void M2()
+                    {
+                        int x = 5;
+                        M(x);
+                        M(ref x);
+                        M(in x);
+                    }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics(
+                // (8,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 15));
+            var comp1Ref = comp1.ToMetadataReference();
+
+            var source2 = """
+                class D
+                {
+                    void M(C c)
+                    {
+                        int x = 6;
+                        c.M(x);
+                        c.M(ref x);
+                        c.M(in x);
+                    }
+                }
+                """;
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         c.M(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(7, 17));
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,17): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         c.M(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(7, 17)
+            };
+
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_Ctor()
+        {
+            var source = """
+                class C
+                {
+                    private C(in int p) => System.Console.Write(p);
+                    static void Main()
+                    {
+                        int x = 5;
+                        new C(x);
+                        new C(ref x);
+                        new C(in x);
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,19): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         new C(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(8, 19));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,19): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         new C(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 19)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_Indexer()
+        {
+            var source = """
+                class C
+                {
+                    private int this[in int p]
+                    {
+                        get
+                        {
+                            System.Console.Write(p);
+                            return 0;
+                        }
+                    }
+                    static void Main()
+                    {
+                        int x = 5;
+                        _ = new C()[x];
+                        _ = new C()[ref x];
+                        _ = new C()[in x];
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (15,25): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         _ = new C()[ref x];
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(15, 25));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,25): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         _ = new C()[ref x];
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(15, 25)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_FunctionPointer()
+        {
+            var source = """
+                class C
+                {
+                    static void M(in int p) => System.Console.Write(p);
+                    static unsafe void Main()
+                    {
+                        delegate*<in int, void> f = &M;
+                        int x = 5;
+                        f(x);
+                        f(ref x);
+                        f(in x);
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (9,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         f(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(9, 15));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         f(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(9, 15)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", options: TestOptions.UnsafeReleaseExe,
+                parseOptions: TestOptions.Regular12, verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
+
+            CompileAndVerify(source, expectedOutput: "555", options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void PassingArgumentsToInParameters_Arglist()
+        {
+            var source = """
+                class C
+                {
+                    static void M(in int p, __arglist) => System.Console.Write(p);
+                    static void Main()
+                    {
+                        int x = 5;
+                        M(x, __arglist(x));
+                        M(ref x, __arglist(x));
+                        M(in x, __arglist(x));
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         M(ref x, __arglist(x));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(8, 15));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,15): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(ref x, __arglist(x));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 15)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", verify: Verification.FailsILVerify, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555", verify: Verification.FailsILVerify).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_NamedArguments()
+        {
+            var source = """
+                class C
+                {
+                    static void M(in int a, ref int b)
+                    {
+                        System.Console.Write(a);
+                        System.Console.Write(b);
+                    }
+                    static void Main()
+                    {
+                        int x = 5;
+                        int y = 6;
+                        M(b: ref x, a: y); // 1
+                        M(b: ref x, a: ref y); // 2
+                        M(a: x, ref y); // 3
+                        M(a: ref x, ref y); // 4
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "65655656").VerifyDiagnostics(
+                // (13,28): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(b: ref x, a: ref y); // 2
+                Diagnostic(ErrorCode.WRN_BadArgRef, "y").WithArguments("2").WithLocation(13, 28),
+                // (15,18): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(a: ref x, ref y); // 4
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(15, 18));
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_01()
+        {
+            var source = """
+                class C
+                {
+                    static string M1(string s, ref int i) => "string" + i;
+                    static string M1(object o, in int i) => "object" + i;
+                    static void Main()
+                    {
+                        int i = 5;
+                        System.Console.WriteLine(M1(null, ref i));
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_01_Ctor()
+        {
+            var source = """
+                class C
+                {
+                    private C(string s, ref int i) => System.Console.WriteLine("string" + i);
+                    private C(object o, in int i) => System.Console.WriteLine("object" + i);
+                    static void Main()
+                    {
+                        int i = 5;
+                        new C(null, ref i);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_02()
+        {
+            var source = """
+                class C
+                {
+                    static string M1(string s, ref int i) => "string" + i;
+                    static string M1(object o, in int i) => "object" + i;
+                    static void Main()
+                    {
+                        int i = 5;
+                        System.Console.WriteLine(M1(default(object), ref i));
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,37): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                //         System.Console.WriteLine(M1(default(object), ref i));
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(object)").WithArguments("1", "object", "string").WithLocation(8, 37));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,58): warning CS9190: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         System.Console.WriteLine(M1(default(object), ref i));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 58)
+            };
+
+            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_02_Ctor()
+        {
+            var source = """
+                class C
+                {
+                    private C(string s, ref int i) => System.Console.WriteLine("string" + i);
+                    private C(object o, in int i) => System.Console.WriteLine("object" + i);
+                    static void Main()
+                    {
+                        int i = 5;
+                        new C(default(object), ref i);
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,15): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                //         new C(default(object), ref i);
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(object)").WithArguments("1", "object", "string").WithLocation(8, 15));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,36): warning CS9190: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         new C(default(object), ref i);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 36)
+            };
+
+            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -9535,14 +9928,43 @@ public static class Program
     {
         System.Exception x = null;
         Method(x);
+        Method(ref x);
+        Method(in x);
+        Method(out x);
     }
 }";
-
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
                 //         Method(x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16)
-            );
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
+                // (12,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(12, 20),
+                // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(14, 20));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
+                // (12,20): error CS1503: Argument 1: cannot convert from 'ref System.Exception' to 'in int'
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "ref System.Exception", "in int").WithLocation(12, 20),
+                // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(14, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]

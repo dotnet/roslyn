@@ -9,14 +9,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal abstract partial class AbstractMoveToNamespaceCodeAction
     {
-        private class MoveItemsToNamespaceCodeAction : AbstractMoveToNamespaceCodeAction
+        private class MoveItemsToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions) : AbstractMoveToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions)
         {
             public override string Title => FeaturesResources.Move_contents_to_namespace;
-
-            public MoveItemsToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
-                : base(changeNamespaceService, analysisResult, cleanupOptions)
-            {
-            }
         }
     }
 }

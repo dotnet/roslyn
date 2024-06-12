@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -25,18 +24,26 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class PrivateImplementationDetails : DefaultTypeDef, Cci.INamespaceTypeDefinition
     {
+        private const string TypeNamePrefix = "<PrivateImplementationDetails>";
+
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
         internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
         internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
 
-        internal const string SynthesizedThrowIfNullFunctionName = "ThrowIfNull";
-        internal const string SynthesizedThrowFunctionName = "Throw";
-
         internal const string SynthesizedThrowSwitchExpressionExceptionFunctionName = "ThrowSwitchExpressionException";
         internal const string SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName = "ThrowSwitchExpressionExceptionParameterless";
         internal const string SynthesizedThrowInvalidOperationExceptionFunctionName = "ThrowInvalidOperationException";
+
+        internal const string SynthesizedInlineArrayAsSpanName = "InlineArrayAsSpan";
+        internal const string SynthesizedInlineArrayAsReadOnlySpanName = "InlineArrayAsReadOnlySpan";
+
+        internal const string SynthesizedInlineArrayElementRefName = "InlineArrayElementRef";
+        internal const string SynthesizedInlineArrayElementRefReadOnlyName = "InlineArrayElementRefReadOnly";
+
+        internal const string SynthesizedInlineArrayFirstElementRefName = "InlineArrayFirstElementRef";
+        internal const string SynthesizedInlineArrayFirstElementRefReadOnlyName = "InlineArrayFirstElementRefReadOnly";
 
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type
@@ -73,6 +80,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<string, Cci.IMethodDefinition> _synthesizedMethods =
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
+        // synthesized top-level types (for inline arrays and collection expression types currently)
+        private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedTopLevelTypes;
+        private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
+
         // field types for different block sizes.
         private ImmutableArray<Cci.ITypeReference> _orderedProxyTypes;
         private readonly ConcurrentDictionary<(uint Size, ushort Alignment), Cci.ITypeReference> _proxyTypes = new ConcurrentDictionary<(uint Size, ushort Alignment), Cci.ITypeReference>();
@@ -103,24 +114,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
-            var isNetModule = moduleBuilder.OutputKind == OutputKind.NetModule;
-            _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
-        }
+            _name = getClassName();
 
-        private static string GetClassName(string moduleName, int submissionSlotIndex, bool isNetModule)
-        {
-            // we include the module name in the name of the PrivateImplementationDetails class so that more than
-            // one of them can be included in an assembly as part of netmodules.    
-            var name = isNetModule ?
-                        $"<PrivateImplementationDetails><{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" :
-                        $"<PrivateImplementationDetails>";
-
-            if (submissionSlotIndex >= 0)
+            string getClassName()
             {
-                name += submissionSlotIndex.ToString();
-            }
+                // we include the module name in the name of the PrivateImplementationDetails class so that more than
+                // one of them can be included in an assembly as part of netmodules.    
+                var name = (moduleBuilder.OutputKind == OutputKind.NetModule) ?
+                    $"{TypeNamePrefix}<{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" : TypeNamePrefix;
 
-            return name;
+                if (submissionSlotIndex >= 0)
+                {
+                    name += submissionSlotIndex.ToString();
+                }
+
+                if (moduleBuilder.CurrentGenerationOrdinal > 0)
+                {
+                    name += "#" + moduleBuilder.CurrentGenerationOrdinal;
+                }
+
+                return name;
+            }
         }
 
         internal void Freeze()
@@ -146,11 +160,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Sort methods.
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
 
+            // Sort top-level types.
+            _orderedTopLevelTypes = _synthesizedTopLevelTypes.OrderBy(kvp => kvp.Key).Select(kvp => (Cci.INamespaceTypeDefinition)kvp.Value).AsImmutable();
+
             // Sort proxy types.
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).AsImmutable();
         }
 
-        private bool IsFrozen => _frozen != 0;
+        internal bool IsFrozen => _frozen != 0;
 
         /// <summary>
         /// Gets a field that can be used to cache an array allocated to store data from a corresponding <see cref="CreateDataField"/> call.
@@ -303,12 +320,43 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _orderedSynthesizedMethods;
         }
 
+        public IEnumerable<Cci.IMethodDefinition> GetTopLevelTypeMethods(EmitContext context)
+        {
+            Debug.Assert(IsFrozen);
+            foreach (var type in _orderedTopLevelTypes)
+            {
+                foreach (var method in type.GetMethods(context))
+                {
+                    yield return method;
+                }
+            }
+        }
+
         // Get method by name, if one exists. Otherwise return null.
         internal Cci.IMethodDefinition? GetMethod(string name)
         {
             Cci.IMethodDefinition? method;
             _synthesizedMethods.TryGetValue(name, out method);
             return method;
+        }
+
+        internal bool TryAddSynthesizedType(Cci.INamespaceTypeDefinition type)
+        {
+            Debug.Assert(!IsFrozen);
+            Debug.Assert(type.Name is { });
+            return _synthesizedTopLevelTypes.TryAdd(type.Name, type);
+        }
+
+        internal Cci.INamespaceTypeDefinition? GetSynthesizedType(string name)
+        {
+            _synthesizedTopLevelTypes.TryGetValue(name, out var type);
+            return type;
+        }
+
+        internal IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypes()
+        {
+            Debug.Assert(IsFrozen);
+            return _orderedTopLevelTypes;
         }
 
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)

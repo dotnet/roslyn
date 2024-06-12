@@ -2526,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")]
-        public async Task TestThis_DontOfferToFixTheConstructorWithTheDiagnosticOnIt()
+        public async Task TestThis_DoNotOfferToFixTheConstructorWithTheDiagnosticOnIt()
         {
             // error CS1729: 'C' does not contain a constructor that takes 1 arguments
             var code =
@@ -2938,7 +2938,7 @@ var b = ""B"";
 var r = new R(1, b);
 
 class R(int A, string b);
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
@@ -2980,7 +2980,7 @@ var b = ""B"";
 var r = new R(1, b);
 
 struct R(int A, string b);
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]

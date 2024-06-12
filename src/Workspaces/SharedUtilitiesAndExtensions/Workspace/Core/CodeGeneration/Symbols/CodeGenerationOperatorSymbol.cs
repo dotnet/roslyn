@@ -15,33 +15,28 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationOperatorSymbol : CodeGenerationMethodSymbol
+    internal class CodeGenerationOperatorSymbol(
+        INamedTypeSymbol containingType,
+        ImmutableArray<AttributeData> attributes,
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        ITypeSymbol returnType,
+        CodeGenerationOperatorKind operatorKind,
+        ImmutableArray<IParameterSymbol> parameters,
+        ImmutableArray<AttributeData> returnTypeAttributes,
+        string documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
+             attributes,
+             accessibility,
+             modifiers,
+             returnType,
+             refKind: RefKind.None,
+             explicitInterfaceImplementations: default,
+             GetMetadataName(operatorKind),
+             typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+             parameters,
+             returnTypeAttributes,
+             documentationCommentXml)
     {
-        public CodeGenerationOperatorSymbol(
-            INamedTypeSymbol containingType,
-            ImmutableArray<AttributeData> attributes,
-            Accessibility accessibility,
-            DeclarationModifiers modifiers,
-            ITypeSymbol returnType,
-            CodeGenerationOperatorKind operatorKind,
-            ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<AttributeData> returnTypeAttributes,
-            string documentationCommentXml)
-            : base(containingType,
-                 attributes,
-                 accessibility,
-                 modifiers,
-                 returnType,
-                 refKind: RefKind.None,
-                 explicitInterfaceImplementations: default,
-                 GetMetadataName(operatorKind),
-                 typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                 parameters,
-                 returnTypeAttributes,
-                 documentationCommentXml)
-        {
-        }
-
         public override MethodKind MethodKind => MethodKind.UserDefinedOperator;
 
         public static int GetParameterCount(CodeGenerationOperatorKind operatorKind)

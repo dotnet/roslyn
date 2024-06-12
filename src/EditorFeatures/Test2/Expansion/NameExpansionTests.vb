@@ -151,7 +151,7 @@ namespace NS
         End Function
 
         <Fact>
-        Public Async Function TestCSharp_GenericNameExpansion_DontExpandAnonymousTypes() As Task
+        Public Async Function TestCSharp_GenericNameExpansion_DoNotExpandAnonymousTypes() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -186,7 +186,7 @@ class C
         End Function
 
         <Fact>
-        Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes1() As Task
+        Public Async Function TestCSharp_LambdaParameter_DoNotExpandAnonymousTypes1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -223,7 +223,7 @@ class C
         End Function
 
         <Fact>
-        Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2() As Task
+        Public Async Function TestCSharp_LambdaParameter_DoNotExpandAnonymousTypes2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -260,7 +260,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11979")>
-        Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2_variation() As Task
+        Public Async Function TestCSharp_LambdaParameter_DoNotExpandAnonymousTypes2_variation() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

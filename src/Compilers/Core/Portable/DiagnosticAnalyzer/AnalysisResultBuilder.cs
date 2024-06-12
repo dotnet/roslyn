@@ -184,14 +184,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts)
+        public void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, CancellationToken cancellationToken)
         {
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 // Dequeue reported analyzer diagnostics from the driver and store them in our maps.
-                var syntaxDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: true, compilation: compilation);
-                var semanticDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: false, compilation: compilation);
-                var compilationDiagnostics = driver.DequeueNonLocalDiagnosticsAndApplySuppressions(analyzer, compilation);
+                var syntaxDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: true, compilation: compilation, cancellationToken);
+                var semanticDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: false, compilation: compilation, cancellationToken);
+                var compilationDiagnostics = driver.DequeueNonLocalDiagnosticsAndApplySuppressions(analyzer, compilation, cancellationToken);
 
                 lock (_gate)
                 {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // Already stored analysis result for this analyzer for the analyzed file.
                             continue;
                         }
-                        else if (!analysisScope.FilterSpanOpt.HasValue)
+                        else if (!analysisScope.FilterSpanOpt.HasValue && !analysisScope.OriginalFilterSpan.HasValue)
                         {
                             // We have complete analysis result for this file.
                             // Mark this file as completely analyzed for this analyzer.

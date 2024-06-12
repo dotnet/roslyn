@@ -6,18 +6,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal readonly struct FirstFixResult
+    internal readonly struct FirstFixResult(bool upToDate, CodeFixCollection? codeFixCollection)
     {
-        public readonly bool UpToDate;
-        public readonly CodeFixCollection? CodeFixCollection;
+        public readonly bool UpToDate = upToDate;
+        public readonly CodeFixCollection? CodeFixCollection = codeFixCollection;
 
         [MemberNotNullWhen(true, nameof(CodeFixCollection))]
         public bool HasFix => CodeFixCollection != null;
-
-        public FirstFixResult(bool upToDate, CodeFixCollection? codeFixCollection)
-        {
-            UpToDate = upToDate;
-            CodeFixCollection = codeFixCollection;
-        }
     }
 }

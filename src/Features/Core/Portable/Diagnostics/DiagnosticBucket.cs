@@ -4,34 +4,26 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal readonly struct DiagnosticBucket
+    internal readonly struct DiagnosticBucket(object id, Workspace workspace, ProjectId? projectId, DocumentId? documentId)
     {
         /// <summary>
         /// The identity of bucket group. 
         /// </summary>
-        public readonly object Id;
+        public readonly object Id = id;
 
         /// <summary>
         /// <see cref="Workspace"/> this bucket is associated with.
         /// </summary>
-        public readonly Workspace Workspace;
+        public readonly Workspace Workspace = workspace;
 
         /// <summary>
         /// <see cref="ProjectId"/> this bucket is associated with, or <see langword="null"/>.
         /// </summary>
-        public readonly ProjectId? ProjectId;
+        public readonly ProjectId? ProjectId = projectId;
 
         /// <summary>
         /// <see cref="DocumentId"/> this bucket is associated with, or <see langword="null"/>.
         /// </summary>
-        public readonly DocumentId? DocumentId;
-
-        public DiagnosticBucket(object id, Workspace workspace, ProjectId? projectId, DocumentId? documentId)
-        {
-            Id = id;
-            Workspace = workspace;
-            ProjectId = projectId;
-            DocumentId = documentId;
-        }
+        public readonly DocumentId? DocumentId = documentId;
     }
 }

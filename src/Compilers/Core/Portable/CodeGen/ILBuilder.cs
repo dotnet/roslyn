@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// don't know the actual IL offset, but only {block/offset-in-the-block} pair.
         ///
         /// Thus, whenever we need to mark some IL position we allocate a new marker id, store it
-        /// in allocatedILMarkers and reference this IL marker in the entity requiring the IL offset.
+        /// in <see cref="_allocatedILMarkers"/> and reference this IL marker in the entity requiring the IL offset.
         ///
         /// IL markers will be 'materialized' when the builder is realized; the resulting offsets
-        /// will be put into allocatedILMarkers array. Note that only markers from reachable blocks
+        /// will be put into <see cref="_allocatedILMarkers"/> array. Note that only markers from reachable blocks
         /// are materialized, the rest will have offset -1.
         /// </summary>
         private ArrayBuilder<ILMarker> _allocatedILMarkers;
@@ -321,6 +321,10 @@ tryAgain:
                         MarkReachableFromTry(reachableBlocks, block);
                         break;
 
+                    case BlockType.Filter:
+                        MarkReachableFromFilter(reachableBlocks, block);
+                        break;
+
                     default:
                         MarkReachableFromBranch(reachableBlocks, block);
                         break;
@@ -461,6 +465,15 @@ tryAgain:
                 }
             }
 
+            MarkReachableFromBranch(reachableBlocks, block);
+        }
+
+        private static void MarkReachableFromFilter(ArrayBuilder<BasicBlock> reachableBlocks, BasicBlock block)
+        {
+            Debug.Assert(block.EnclosingHandler.LastFilterConditionBlock.BranchCode == ILOpCode.Endfilter);
+
+            // End filter block should be preserved and is considered always reachable
+            PushReachableBlockToProcess(reachableBlocks, block.EnclosingHandler.LastFilterConditionBlock);
             MarkReachableFromBranch(reachableBlocks, block);
         }
 

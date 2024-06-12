@@ -705,8 +705,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath) =>
-                throw new FileNotFoundException(fullPath);
+            protected override string PreparePathToLoad(string fullPath)
+                => throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference

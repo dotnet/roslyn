@@ -1,16 +1,13 @@
 # Shallow checkout sources on Windows
 
-# Git path based on https://github.com/microsoft/azure-pipelines-agent/blob/f98a479ab3cc323ff17b8cb75d5ab5f953f342cc/src/Agent.Plugins/GitCliManager.cs#L90
-steps:
-  - checkout: none
+parameters:
+- name: depth
+  type: number
+  default: 1
 
-  - script: |
-      set PATH=$(Agent.HomeDirectory)\externals\git\cmd;%PATH%
-      @echo on
-      git init
-      git config --local checkout.workers 0
-      git config --local fetch.parallel 0
-      git remote add origin "$(Build.Repository.Uri)"
-      git fetch --no-tags --no-auto-maintenance --depth=1 origin "$(Build.SourceVersion)"
-      git checkout "$(Build.SourceVersion)"
-    displayName: Shallow Checkout
+steps:
+  - checkout: self
+    fetchDepth: ${{ parameters.depth }}
+    fetchTags: false
+
+  

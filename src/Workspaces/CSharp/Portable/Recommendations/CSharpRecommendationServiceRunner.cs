@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -192,9 +193,7 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForGlobalStatementContext()
         {
-            var syntaxTree = _context.SyntaxTree;
-            var position = _context.Position;
-            var token = _context.LeftToken;
+            var token = _context.TargetToken;
 
             // The following code is a hack to get around a binding problem when asking binding
             // questions immediately after a using directive. This is special-cased in the binder
@@ -205,16 +204,8 @@ internal partial class CSharpRecommendationService
             // using System;
             // |
 
-            if (token.Kind() == SyntaxKind.SemicolonToken &&
-                token.Parent.IsKind(SyntaxKind.UsingDirective) &&
-                position >= token.Span.End)
-            {
-                var compUnit = (CompilationUnitSyntax)syntaxTree.GetRoot(_cancellationToken);
-                if (compUnit.Usings.Count > 0 && compUnit.Usings.Last().SemicolonToken == token)
-                {
-                    token = token.GetNextToken(includeZeroWidth: true);
-                }
-            }
+            if (_context.IsRightAfterUsingOrImportDirective)
+                token = token.GetNextToken(includeZeroWidth: true);
 
             var symbols = _context.SemanticModel.LookupSymbols(token.SpanStart);
 
@@ -271,9 +262,9 @@ internal partial class CSharpRecommendationService
                 return symbols.WhereAsArray(s => s.IsNamespace());
             }
 
-            if (_context.TargetToken.IsStaticKeywordInUsingDirective())
+            if (_context.TargetToken.IsStaticKeywordContextInUsingDirective())
             {
-                return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
+                return symbols.WhereAsArray(s => !s.IsDelegateType());
             }
 
             return symbols;
@@ -307,27 +298,124 @@ internal partial class CSharpRecommendationService
                 ? _context.SemanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
                 : _context.SemanticModel.LookupSymbols(_context.LeftToken.SpanStart);
 
-            // filter our top level locals if we're inside a type declaration.
-            if (_context.ContainingTypeDeclaration != null)
-                symbols = symbols.WhereAsArray(s => s.ContainingSymbol.Name != WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
-
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
             var contextOuterTypes = ComputeOuterTypes(_context, _cancellationToken);
             var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
 
-            symbols = symbols.WhereAsArray(symbol =>
-                !symbol.IsExtensionMethod() ||
-                Equals(contextEnclosingNamedType, symbol.ContainingType) ||
-                contextOuterTypes.Any(outerType => outerType.Equals(symbol.ContainingType)));
+            return symbols.WhereAsArray(
+                static (symbol, args) => !IsUndesirable(args._context, args.contextEnclosingNamedType, args.contextOuterTypes, args.filterOutOfScopeLocals, symbol, args._cancellationToken),
+                (_context, contextOuterTypes, contextEnclosingNamedType, filterOutOfScopeLocals, _cancellationToken));
 
-            // The symbols may include local variables that are declared later in the method and
-            // should not be included in the completion list, so remove those. Filter them away,
-            // unless we're in the debugger, where we show all locals in scope.
-            if (filterOutOfScopeLocals)
-                symbols = symbols.WhereAsArray(symbol => !symbol.IsInaccessibleLocal(_context.Position));
+            static bool IsUndesirable(
+                CSharpSyntaxContext context,
+                INamedTypeSymbol? enclosingNamedType,
+                ISet<INamedTypeSymbol> outerTypes,
+                bool filterOutOfScopeLocals,
+                ISymbol symbol,
+                CancellationToken cancellationToken)
+            {
+                // filter our top level locals if we're inside a type declaration.
+                if (context.ContainingTypeDeclaration != null && symbol.ContainingSymbol.Name == WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)
+                    return true;
 
-            return symbols;
+                if (symbol.IsExtensionMethod() &&
+                    !Equals(enclosingNamedType, symbol.ContainingType) &&
+                    !outerTypes.Any(outerType => outerType.Equals(symbol.ContainingType)))
+                {
+                    return true;
+                }
+
+                // The symbols may include local variables that are declared later in the method and should not be
+                // included in the completion list, so remove those. Filter them away, unless we're in the debugger,
+                // where we show all locals in scope.
+                if (filterOutOfScopeLocals && symbol.IsInaccessibleLocal(context.Position))
+                    return true;
+
+                if (IsCapturedPrimaryConstructorParameter(context, enclosingNamedType, symbol, cancellationToken))
+                    return true;
+
+                return false;
+            }
+
+            static bool IsCapturedPrimaryConstructorParameter(
+                CSharpSyntaxContext context,
+                INamedTypeSymbol? enclosingNamedType,
+                ISymbol symbol,
+                CancellationToken cancellationToken)
+            {
+                if (enclosingNamedType is null)
+                    return false;
+
+                if (symbol is not IParameterSymbol parameterSymbol)
+                    return false;
+
+                if (!parameterSymbol.IsPrimaryConstructor(cancellationToken))
+                    return false;
+
+                // Fine to offer primary constructor parameters in field/property initializers 
+                var initializer = context.TargetToken.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
+                if (initializer is
+                    {
+                        Parent: PropertyDeclarationSyntax or
+                                VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } }
+                    })
+                {
+                    return false;
+                }
+
+                // We're not in an initializer.  Filter out this primary constructor parameter if it's already been
+                // captured by an existing field or property initializer.
+
+                var parameterName = parameterSymbol.Name;
+                foreach (var reference in enclosingNamedType.DeclaringSyntaxReferences)
+                {
+                    if (reference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
+                        continue;
+
+                    // See if the parameter was captured into a base-type constructor through the base list.
+                    if (typeDeclaration.BaseList != null)
+                    {
+                        foreach (var baseType in typeDeclaration.BaseList.Types)
+                        {
+                            if (baseType is PrimaryConstructorBaseTypeSyntax primaryConstructorBase)
+                            {
+                                foreach (var argument in primaryConstructorBase.ArgumentList.Arguments)
+                                {
+                                    if (argument.Expression is IdentifierNameSyntax { Identifier: var argumentIdentifier } &&
+                                        argumentIdentifier.ValueText == parameterName)
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Next, see if any field or property in the type captures the primary constructor parameter in its initializer.
+                    foreach (var member in typeDeclaration.Members)
+                    {
+                        if (member is FieldDeclarationSyntax fieldDeclaration)
+                        {
+                            foreach (var variableDeclarator in fieldDeclaration.Declaration.Variables)
+                            {
+                                if (variableDeclarator.Initializer?.Value is IdentifierNameSyntax { Identifier: var fieldInitializerIdentifier } &&
+                                    fieldInitializerIdentifier.ValueText == parameterName)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        else if (member is PropertyDeclarationSyntax { Initializer.Value: IdentifierNameSyntax { Identifier: var propertyInitializerIdentifier } } &&
+                                 propertyInitializerIdentifier.ValueText == parameterName)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         private RecommendedSymbols GetSymbolsOffOfName(NameSyntax name)
@@ -372,7 +460,7 @@ internal partial class CSharpRecommendationService
             if (usingDirective != null && usingDirective.Alias == null)
             {
                 return new RecommendedSymbols(usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
-                    ? symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType())
+                    ? symbols.WhereAsArray(s => !s.IsDelegateType())
                     : symbols.WhereAsArray(s => s.IsNamespace()));
             }
 
@@ -487,7 +575,7 @@ internal partial class CSharpRecommendationService
 
                 if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.TypeParameter)
                 {
-                    // For named typed, namespaces, and type parameters (potentially constrainted to interface with statics), we flip things around.
+                    // For named typed, namespaces, and type parameters (potentially constrained to interface with statics), we flip things around.
                     // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
@@ -537,25 +625,52 @@ internal partial class CSharpRecommendationService
             var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
             var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
 
-            // If we're showing instance members, don't include nested types
-            var namedSymbols = excludeStatic
-                ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : symbols;
-
-            //If container type is "ref struct" then we should exclude methods from object and ValueType that are not overriden
-            //if recomendations are requested not in nameof context,
-            //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
-            if (excludeBaseMethodsForRefStructs && containerType is not null && containerType.IsRefLikeType)
-            {
-                namedSymbols = namedSymbols.RemoveAll(s => s.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType);
-            }
+            var namedSymbols = symbols.WhereAsArray(
+                static (s, a) => !IsUndesirable(s, a.containerType, a.excludeStatic, a.excludeInstance, a.excludeBaseMethodsForRefStructs),
+                (containerType, excludeStatic, excludeInstance, excludeBaseMethodsForRefStructs, 3));
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.
             var unnamedSymbols = _context.IsNameOfContext || excludeInstance
                 ? default
                 : GetUnnamedSymbols(originalExpression);
+
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
+
+            static bool IsUndesirable(
+                ISymbol symbol,
+                ITypeSymbol? containerType,
+                bool excludeStatic,
+                bool excludeInstance,
+                bool excludeBaseMethodsForRefStructs)
+            {
+                // If we're showing instance members, don't include nested types
+                if (excludeStatic)
+                {
+                    if (symbol.IsStatic || symbol is ITypeSymbol)
+                        return true;
+                }
+
+                // If container type is "ref struct" then we should exclude methods from object and ValueType that are not
+                // overridden if recommendations are requested not in nameof context, because calling them produces a
+                // compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
+                if (excludeBaseMethodsForRefStructs &&
+                    containerType is { IsRefLikeType: true } &&
+                    symbol.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
+                {
+                    return true;
+                }
+
+                // We're accessing virtual statics off of an type parameter.  We cannot access normal static this
+                // way, so filter them out.
+                if (excludeInstance && containerType is ITypeParameterSymbol && symbol.IsStatic)
+                {
+                    if (!(symbol.IsVirtual || symbol.IsAbstract))
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         private ImmutableArray<ISymbol> GetUnnamedSymbols(ExpressionSyntax originalExpression)

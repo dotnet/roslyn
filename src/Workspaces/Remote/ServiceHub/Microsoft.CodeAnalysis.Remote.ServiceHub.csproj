@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj" />
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
@@ -39,8 +40,14 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="Host\Storage\CloudCachePersistentStorage.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="Host\Storage\ProjectContainerKeyCache.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\FileDownloader.cs" Link="Host\Storage\FileDownloader.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TelemetryLogger.cs" Link="Services\ProcessTelemetry\TelemetryLogger.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AggregatingTelemetryLog.cs" Link="Services\ProcessTelemetry\AggregatingTelemetryLog.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AggregatingTelemetryLogManager.cs" Link="Services\ProcessTelemetry\AggregatingTelemetryLogManager.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TelemetryLogger.cs" Link="Services\ProcessTelemetry\TelemetryLogger.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TelemetryLogProvider.cs" Link="Services\ProcessTelemetry\TelemetryLogProvider.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TimedTelemetryLogBlock.cs" Link="Services\ProcessTelemetry\TimedTelemetryLogBlock.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VisualStudioTelemetryLog.cs" Link="Services\ProcessTelemetry\VisualStudioTelemetryLog.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VisualStudioTelemetryLogManager.cs" Link="Services\ProcessTelemetry\VisualStudioTelemetryLogManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />

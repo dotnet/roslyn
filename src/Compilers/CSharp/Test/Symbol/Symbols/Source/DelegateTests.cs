@@ -756,8 +756,7 @@ class C
             comp.VerifyDiagnostics(
                 // (4,11): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'D' because it has one or more out parameters
                 //     D d = delegate { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate { }").WithArguments("D").WithLocation(4, 11)
-                );
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("D").WithLocation(4, 11));
 
             var syntaxTree = comp.SyntaxTrees.Single();
             var root = syntaxTree.GetRoot();

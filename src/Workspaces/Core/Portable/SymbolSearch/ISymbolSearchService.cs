@@ -70,45 +70,31 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     }
 
     [DataContract]
-    internal sealed class PackageWithTypeResult : PackageResult
+    internal sealed class PackageWithTypeResult(
+        string packageName,
+        int rank,
+        string typeName,
+        string? version,
+        ImmutableArray<string> containingNamespaceNames) : PackageResult(packageName, rank)
     {
         [DataMember(Order = 2)]
-        public readonly string TypeName;
+        public readonly string TypeName = typeName;
 
         [DataMember(Order = 3)]
-        public readonly string? Version;
+        public readonly string? Version = version;
 
         [DataMember(Order = 4)]
-        public readonly ImmutableArray<string> ContainingNamespaceNames;
-
-        public PackageWithTypeResult(
-            string packageName,
-            int rank,
-            string typeName,
-            string? version,
-            ImmutableArray<string> containingNamespaceNames)
-            : base(packageName, rank)
-        {
-            TypeName = typeName;
-            Version = version;
-            ContainingNamespaceNames = containingNamespaceNames;
-        }
+        public readonly ImmutableArray<string> ContainingNamespaceNames = containingNamespaceNames;
     }
 
     [DataContract]
-    internal sealed class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
+    internal sealed class PackageWithAssemblyResult(
+        string packageName,
+        int rank,
+        string version) : PackageResult(packageName, rank), IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
     {
         [DataMember(Order = 2)]
-        public readonly string? Version;
-
-        public PackageWithAssemblyResult(
-            string packageName,
-            int rank,
-            string version)
-            : base(packageName, rank)
-        {
-            Version = version;
-        }
+        public readonly string? Version = version;
 
         public override int GetHashCode()
             => PackageName.GetHashCode();
@@ -132,26 +118,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     }
 
     [DataContract]
-    internal sealed class ReferenceAssemblyWithTypeResult
+    internal sealed class ReferenceAssemblyWithTypeResult(
+        string assemblyName,
+        string typeName,
+        ImmutableArray<string> containingNamespaceNames)
     {
         [DataMember(Order = 0)]
-        public readonly string AssemblyName;
+        public readonly string AssemblyName = assemblyName;
 
         [DataMember(Order = 1)]
-        public readonly string TypeName;
+        public readonly string TypeName = typeName;
 
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<string> ContainingNamespaceNames;
-
-        public ReferenceAssemblyWithTypeResult(
-            string assemblyName,
-            string typeName,
-            ImmutableArray<string> containingNamespaceNames)
-        {
-            AssemblyName = assemblyName;
-            TypeName = typeName;
-            ContainingNamespaceNames = containingNamespaceNames;
-        }
+        public readonly ImmutableArray<string> ContainingNamespaceNames = containingNamespaceNames;
     }
 
     [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]

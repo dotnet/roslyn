@@ -550,13 +550,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             return -1;
         }
 
-        public IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> TokenIterator
-        {
-            get
-            {
-                return new Iterator(_tokens);
-            }
-        }
+        public Iterator TokenIterator
+            => new(_tokens);
 
         private sealed class TokenOrderComparer : IComparer<SyntaxToken>
         {

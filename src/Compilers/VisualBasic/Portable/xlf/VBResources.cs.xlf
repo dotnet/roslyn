@@ -17,6 +17,11 @@
         <target state="translated">Chyba syntaxe příkazového řádku: {0} není platná hodnota možnosti {1}. Hodnota musí mít tvar {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">Z {0} nelze dědit, protože obsahuje požadované členy.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">Použijte prosím verzi jazyka {0} nebo vyšší, abyste mohli používat komentáře za znakem pro pokračování řádku.</target>
@@ -32,9 +37,19 @@
         <target state="translated">Atribut System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute je vyhrazen pouze pro použití kompilátorem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">Atribut System.Runtime.CompilerServices.RequiredMemberAttribute je vyhrazen pouze pro použití kompilátoru.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Ve stejném adresáři nemůže být více konfiguračních souborů analyzátoru ({0}).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">{2} nemůže splňovat omezení New u parametru {1} v obecném typu nebo metodě {0}, protože {2} má požadované členy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">Typ {0} nemůže být vložený, protože má reabstrakci člena ze základního rozhraní. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">V inicializátoru objektu nebo argumentech atributu musí být nastaven požadovaný člen {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">Seznam požadovaných členů pro {0} má chybný formát a nelze ho interpretovat.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">Cílový modul runtime nepodporuje implementaci výchozího rozhraní.</target>
@@ -67,6 +92,11 @@
         <target state="translated">Události sdílených proměnných WithEvents se nedají zpracovat metodami v jiném typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">{0} je definováno v sestavení {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní nebo virtuální {2}.</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">{0} vyžaduje funkci kompilátoru {1}, což tato verze kompilátoru Visual Basic nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Volání metody nebo vlastnosti, které vrací odkaz, nelze použít jako výraz příkazu With v asynchronní nebo iterační metodě, nebo v případě, že je odkazováno implicitně ve výrazu lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -269,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Možnosti kompilátoru jazyka Visual Basic
+        <target state="translated">                  Možnosti kompilátoru Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
 -out:&lt;file&gt;                       Určuje název výstupního souboru.
@@ -281,13 +319,13 @@
                                   sestavení.
 -target:appcontainerexe           Vytvoří aplikaci systému Windows, která běží v
                                   AppContainer.
--target:winmdobj                  Vytvoří pomocný soubor metadat systému Windows.
+-target:winmdobj                  Vytvoří pomocný soubor metadat systému Windows
 -doc[+|-]                         Generuje soubor dokumentace XML.
 -doc:&lt;file&gt;                       Generuje soubor dokumentace XML do souboru &lt;file&gt;.
--refout:&lt;file&gt;                    Výstup referenčního sestavení, který se má vygenerovat.
+-refout:&lt;file&gt;                    Výstup referenčního sestavení, který se má vygenerovat
 
                                   - VSTUPNÍ SOUBORY -
--addmodule:&lt;file_list&gt;            Odkazuje na metadata ze zadaných modulů.
+-addmodule:&lt;file_list&gt;            Odkazuje na metadata ze zadaných modulů
 -link:&lt;file_list&gt;                 Vloží metadata ze zadaného definičního
                                   sestavení. (Krátký tvar: -l)
 -recurse:&lt;wildcard&gt;               Zahrne všechny soubory v aktuálním adresáři
@@ -295,7 +333,7 @@
                                   specifikace zástupných znaků.
 -reference:&lt;file_list&gt;            Odkazuje na metadata ze zadaného
                                   sestavení. (Krátký tvar: -r)
--analyzer:&lt;file_list&gt;             Spustí analyzátory z tohoto sestavení.
+-analyzer:&lt;file_list&gt;             Spustí analyzátory z tohoto sestavení
                                   (Krátký tvar: -a)
 -additionalfile:&lt;file list&gt;       Další soubory, které nemají přímý vliv na generování
                                   kódu, ale můžou je používat analyzátory k vytváření
@@ -328,10 +366,10 @@
 -debug:embedded                   Generuje ladicí informace pro různé platformy do
                                   cílového souboru .dll nebo .exe.
 -deterministic                    Vytvoří deterministické sestavení
-                                  (včetně verze modulu GUID a časového razítka).
--refonly                          Vytvoří referenční sestavení místo hlavního výstupu.
+                                  (včetně verze modulu GUID a časového razítka)
+-refonly                          Vytvoří referenční sestavení místo hlavního výstupu
 -instrument:TestCoverage          Vytvoří sestavení instrumentované ke shromažďování
-                                  informací o pokrytí.
+                                  informací o pokrytí
 -sourcelink:&lt;file&gt;                Informace o odkazu na zdroj, který se má vložit do souboru PDB.
 
                                   – CHYBY A UPOZORNĚNÍ -
@@ -357,7 +395,7 @@
 -imports:&lt;import_list&gt;            Deklaruje globální importy pro obory názvů
                                   v odkazovaných souborech metadat.
                                   import_list:namespace,...
--langversion:?                    Zobrazí povolené hodnoty pro verzi jazyka.
+-langversion:?                    Zobrazí povolené hodnoty pro verzi jazyka
 -langversion:&lt;string&gt;             Určuje verzi jazyka, například
                                   výchozí (nejnovější hlavní verze) nebo
                                   nejnovější (nejnovější verze včetně podverzí),
@@ -391,7 +429,7 @@
 -codepage:&lt;number&gt;                Určuje znakovou stránku, která se má použít při otevírání
                                   zdrojových souborů.
 -delaysign[+|-]                   Zpožděné podepsání sestavení pouze pomocí veřejné
-                                  části klíče silného názvu.
+                                  část klíče silného názvu.
 -delaysign[+|-]                   Veřejné podepsání sestavení pouze pomocí veřejné
                                   část klíče silného názvu.
 -errorreport:&lt;string&gt;             Určuje, jak zpracovávat interní chyby
@@ -423,13 +461,16 @@
                                   AnyCPU32BitPreferred nebo anycpu (výchozí).
 -preferreduilang                  Určuje preferovaný název výstupního jazyka.
 -nosdkpath                        Zakáže vyhledávání výchozí cesty sady SDK pro standardní sestavení knihovny.
+-reportivts[+|-]                  Výstupní informace o všech IVT udělených tomuto
+                                  sestavení podle všech závislostí a opatřit poznámkami cizí sestavení
+                                  chyby přístupnosti s tím, z jakého sestavení pocházejí.
 -sdkpath:&lt;path&gt;                   Umístění adresáře sady SDK .NET Framework
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Určuje verzi subsystému výstupních dat PE.
                                   verze:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Generuje výstup kompilátoru v kódování znaků
+-utf8output[+|-]                  Generuje výstup kompilátoru ve znaku UTF-8
                                   UTF-8.
-@&lt;file&gt;                           Vloží nastavení příkazového řádku z textového souboru.
+@&lt;file&gt;                           Vloží nastavení příkazového řádku z textového souboru
 -vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime Visual Basic nebo
                                   bez něj.
 -vbruntime:&lt;file&gt;                 Kompiluje s alternativním modulem runtime Visual Basic
@@ -573,16 +614,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Generátor vyvolal následující výjimku:
-{0}.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -590,16 +629,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Generátor vyvolal následující výjimku:
-{0}.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

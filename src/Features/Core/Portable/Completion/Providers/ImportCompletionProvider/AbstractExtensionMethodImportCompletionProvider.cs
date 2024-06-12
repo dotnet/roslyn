@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract string GenericSuffix { get; }
 
+        // Don't provide unimported extension methods if adding import is not supported,
+        // since we are current incapable of making a change using its fully qualify form.
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
-            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document);
+            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document, completionContext.CompletionOptions);
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();

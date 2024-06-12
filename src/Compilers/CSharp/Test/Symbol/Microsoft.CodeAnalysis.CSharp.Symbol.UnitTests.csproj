@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <NoStdLib>true</NoStdLib>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>net8.0;net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">

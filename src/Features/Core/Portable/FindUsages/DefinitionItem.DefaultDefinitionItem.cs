@@ -19,23 +19,18 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <see cref="DocumentSpan"/>.
         /// </summary>
         // internal for testing purposes.
-        internal sealed class DefaultDefinitionItem : DefinitionItem
+        internal sealed class DefaultDefinitionItem(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string>? displayableProperties,
+            bool displayIfNoReferences) : DefinitionItem(tags, displayParts, nameDisplayParts, originationParts,
+                   sourceSpans, properties, displayableProperties, displayIfNoReferences)
         {
             internal sealed override bool IsExternal => false;
-
-            public DefaultDefinitionItem(
-                ImmutableArray<string> tags,
-                ImmutableArray<TaggedText> displayParts,
-                ImmutableArray<TaggedText> nameDisplayParts,
-                ImmutableArray<TaggedText> originationParts,
-                ImmutableArray<DocumentSpan> sourceSpans,
-                ImmutableDictionary<string, string>? properties,
-                ImmutableDictionary<string, string>? displayableProperties,
-                bool displayIfNoReferences)
-                : base(tags, displayParts, nameDisplayParts, originationParts,
-                       sourceSpans, properties, displayableProperties, displayIfNoReferences)
-            {
-            }
 
             public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {

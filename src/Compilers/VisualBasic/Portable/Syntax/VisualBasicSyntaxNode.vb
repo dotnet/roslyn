@@ -7,6 +7,7 @@ Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Reflection
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -125,6 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Deserialize a syntax node from a byte stream.
         ''' </summary>
+        <Obsolete(SerializationDeprecationException.Text, False)>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
             If stream Is Nothing Then
                 Throw New ArgumentNullException(NameOf(stream))
@@ -133,6 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not stream.CanRead Then
                 Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
             End If
+
+            ' Report NFW to see if this Is being used in the wild.
+            FatalError.ReportNonFatalError(New SerializationDeprecationException())
 
             Using reader = ObjectReader.TryGetReader(stream, leaveOpen:=True, cancellationToken:=cancellationToken)
                 If reader Is Nothing Then

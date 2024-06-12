@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return true;
         }
 
-        private void GetNamespaceContainers(NameSyntax name, List<string> namespaceContainers)
+        private static void GetNamespaceContainers(NameSyntax name, List<string> namespaceContainers)
         {
             if (name is QualifiedNameSyntax qualifiedName)
             {
@@ -697,43 +697,28 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             while (node != null)
             {
                 // Types in BaseList, Type Constraint or Member Types cannot be of more restricted accessibility than the declaring type
-                if ((node is BaseListSyntax || node is TypeParameterConstraintClauseSyntax) &&
+                if (node is BaseListSyntax or TypeParameterConstraintClauseSyntax &&
                     node.Parent != null &&
                     node.Parent is TypeDeclarationSyntax)
                 {
                     if (node.Parent is TypeDeclarationSyntax typeDecl)
                     {
-                        if (typeDecl.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword))
-                        {
-                            return IsAllContainingTypeDeclsPublic(typeDecl);
-                        }
-                        else
-                        {
-                            // The Type Decl which contains the BaseList does not contain Public
-                            return false;
-                        }
+                        // The Type Decl which contains the BaseList needs to contain Public
+                        return typeDecl.GetModifiers().Any(SyntaxKind.PublicKeyword) && IsAllContainingTypeDeclsPublic(typeDecl);
                     }
 
                     throw ExceptionUtilities.Unreachable();
                 }
 
-                if ((node is EventDeclarationSyntax || node is EventFieldDeclarationSyntax) &&
+                if (node is EventDeclarationSyntax or EventFieldDeclarationSyntax &&
                     node.Parent != null &&
                     node.Parent is TypeDeclarationSyntax)
                 {
                     // Make sure the GFU is not inside the Accessors
-                    if (previousNode is not null and AccessorListSyntax)
-                    {
-                        return false;
-                    }
-
                     // Make sure that Event Declaration themselves are Public in the first place
-                    if (!node.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword))
-                    {
-                        return false;
-                    }
-
-                    return IsAllContainingTypeDeclsPublic(node);
+                    return previousNode is not AccessorListSyntax &&
+                        node.GetModifiers().Any(SyntaxKind.PublicKeyword) &&
+                        IsAllContainingTypeDeclsPublic(node);
                 }
 
                 previousNode = node;
@@ -747,14 +732,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         {
             // Make sure that all the containing Type Declarations are also Public
             var containingTypeDeclarations = node.GetAncestors<TypeDeclarationSyntax>();
-            if (containingTypeDeclarations.Count() == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return containingTypeDeclarations.All(typedecl => typedecl.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword));
-            }
+            return !containingTypeDeclarations.Any()
+                || containingTypeDeclarations.All(typedecl => typedecl.GetModifiers().Any(SyntaxKind.PublicKeyword));
         }
 
         internal override bool IsGenericName(SimpleNameSyntax simpleName)

@@ -12,24 +12,9 @@
         <target state="translated">누락된 using 추가 중...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Chosen_version_0">
-        <source>Chosen version: '{0}'</source>
-        <target state="translated">선택한 버전: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Complete_statement_on_semicolon">
         <source>Complete statement on ;</source>
         <target state="translated">;에서 문 완성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_by_name_0">
-        <source>Could not find by name: '{0}'</source>
-        <target state="translated">'{0}' 이름으로 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompilation_log">
-        <source>Decompilation log</source>
-        <target state="translated">디컴파일 로그</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
@@ -42,26 +27,6 @@
         <target state="translated">붙여넣기 후 문자열 리터럴 수정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_0_assemblies_for_1">
-        <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="translated">'{1}'의 어셈블리를 '{0}'개 찾았습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_exact_match_0">
-        <source>Found exact match: '{0}'</source>
-        <target state="translated">정확하게 일치하는 항목을 찾았습니다. '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_higher_version_match_0">
-        <source>Found higher version match: '{0}'</source>
-        <target state="translated">일치하는 상위 버전을 찾았습니다. '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_single_assembly_0">
-        <source>Found single assembly: '{0}'</source>
-        <target state="translated">단일 어셈블리를 찾았습니다. '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">이벤트 구독 생성</target>
@@ -72,16 +37,6 @@
         <target state="translated">원시 문자열 증가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Load_from_0">
-        <source>Load from: '{0}'</source>
-        <target state="translated">로드 위치: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Module_not_found">
-        <source>Module not found!</source>
-        <target state="translated">모듈을 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
         <target state="translated">외부 namespace</target>
@@ -90,16 +45,6 @@
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (삽입하려면 &lt;Tab&gt; 키 누름)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_0">
-        <source>Resolve: '{0}'</source>
-        <target state="translated">확인: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_module_0_of_1">
-        <source>Resolve module: '{0}' of '{1}'</source>
-        <target state="translated">모듈 확인: '{0}'/'{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
@@ -115,16 +60,6 @@
       <trans-unit id="Split_string">
         <source>Split string</source>
         <target state="translated">문자열 분할</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
-        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
-        <target state="translated">WARN: 버전이 일치하지 않습니다. 예상: '{0}', 실제: '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_items_in_cache">
-        <source>'{0}' items in cache</source>
-        <target state="translated">캐시의 '{0}'개 항목</target>
         <note />
       </trans-unit>
     </body>

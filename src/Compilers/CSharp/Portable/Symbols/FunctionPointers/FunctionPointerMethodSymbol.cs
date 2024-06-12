@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_TypeMustBePublic, specifier.GetLocation(), specifierType);
                     }
 
-                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier.GetLocation());
+                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier);
 
                     return CSharpCustomModifier.CreateOptional(specifierType);
                 }
@@ -309,6 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static CustomModifier? GetCustomModifierForRefKind(RefKind refKind, CSharpCompilation compilation)
         {
+            Debug.Assert(refKind is RefKind.None or RefKind.In or RefKind.Ref or RefKind.Out);
+
             var attributeType = refKind switch
             {
                 RefKind.In => compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute),
@@ -548,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefCustomModifiers = CSharpCustomModifier.Convert(retInfo.RefCustomModifiers);
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnType;
-            RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly, RefKind.Ref);
+            RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly, RefKind.Ref, requiresLocationAllowed: false);
             Debug.Assert(RefKind != RefKind.Out);
             UseUpdatedEscapeRules = useUpdatedEscapeRules;
             _parameters = makeParametersFromMetadata(retAndParamTypes.AsSpan()[1..], this);
@@ -564,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ParamInfo<TypeSymbol> param = parameterTypes[i];
                         var paramRefCustomMods = CSharpCustomModifier.Convert(param.RefCustomModifiers);
                         var paramType = TypeWithAnnotations.Create(param.Type, customModifiers: CSharpCustomModifier.Convert(param.CustomModifiers));
-                        RefKind paramRefKind = getRefKind(param, paramRefCustomMods, RefKind.In, RefKind.Out);
+                        RefKind paramRefKind = getRefKind(param, paramRefCustomMods, RefKind.In, RefKind.Out, requiresLocationAllowed: true);
                         paramsBuilder.Add(new FunctionPointerParameterSymbol(paramType, paramRefKind, i, parent, paramRefCustomMods));
                     }
 
@@ -576,13 +578,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static RefKind getRefKind(ParamInfo<TypeSymbol> param, ImmutableArray<CustomModifier> paramRefCustomMods, RefKind hasInRefKind, RefKind hasOutRefKind)
+            static RefKind getRefKind(ParamInfo<TypeSymbol> param, ImmutableArray<CustomModifier> paramRefCustomMods, RefKind hasInRefKind, RefKind hasOutRefKind, bool requiresLocationAllowed)
             {
                 return param.IsByRef switch
                 {
                     false => RefKind.None,
                     true when CustomModifierUtils.HasInAttributeModifier(paramRefCustomMods) => hasInRefKind,
                     true when CustomModifierUtils.HasOutAttributeModifier(paramRefCustomMods) => hasOutRefKind,
+                    true when requiresLocationAllowed && CustomModifierUtils.HasRequiresLocationAttributeModifier(paramRefCustomMods) => RefKind.RefReadOnlyParameter,
                     true => RefKind.Ref,
                 };
             }
@@ -731,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0)
             {
                 if (CallingConvention.IsCallingConvention(CallingConvention.Unmanaged)
-                    && !GetCallingConventionModifiers().SetEquals(other.GetCallingConventionModifiers()))
+                    && !GetCallingConventionModifiers().SetEqualsWithoutIntermediateHashSet(other.GetCallingConventionModifiers()))
                 {
                     return false;
                 }
@@ -776,6 +779,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments))
             {
                 MergeUseSiteInfo(ref info, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this)));
+            }
+
+            // Check for `modopt(RequiresLocation)` combined with any required modifier.
+            if (info.DiagnosticInfo?.Severity != DiagnosticSeverity.Error)
+            {
+                foreach (var parameter in this.Parameters)
+                {
+                    if (CustomModifierUtils.HasRequiresLocationAttributeModifier(parameter.RefCustomModifiers) &&
+                        parameter.RefCustomModifiers.Any(static m => !m.IsOptional))
+                    {
+                        MergeUseSiteInfo(ref info, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
+                    }
+                }
             }
 
             return info;

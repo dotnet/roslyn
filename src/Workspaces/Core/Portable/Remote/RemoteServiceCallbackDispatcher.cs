@@ -16,20 +16,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
     internal class RemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
     {
-        internal readonly struct Handle : IDisposable
+        internal readonly struct Handle(ConcurrentDictionary<RemoteServiceCallbackId, object> callbackInstances, RemoteServiceCallbackId callbackId) : IDisposable
         {
-            private readonly ConcurrentDictionary<RemoteServiceCallbackId, object> _callbackInstances;
-            public readonly RemoteServiceCallbackId Id;
-
-            public Handle(ConcurrentDictionary<RemoteServiceCallbackId, object> callbackInstances, RemoteServiceCallbackId callbackId)
-            {
-                _callbackInstances = callbackInstances;
-                Id = callbackId;
-            }
+            public readonly RemoteServiceCallbackId Id = callbackId;
 
             public void Dispose()
             {
-                Contract.ThrowIfTrue(_callbackInstances?.TryRemove(Id, out _) == false);
+                Contract.ThrowIfTrue(callbackInstances?.TryRemove(Id, out _) == false);
             }
         }
 

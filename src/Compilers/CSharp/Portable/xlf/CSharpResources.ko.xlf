@@ -182,6 +182,11 @@
         <target state="translated">단항 연산자의 매개 변수는 포함하는 유형이거나 이에 제한되는 유형 매개 변수여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadArgExtraRefLangVersion">
+        <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
+        <target state="translated">언어 버전 {1} 'ref' 키워드(keyword) 사용하여 인수 {0} 전달할 수 없습니다. 'ref' 인수를 'in' 매개 변수에 전달하려면 언어 버전 {2} 이상으로 업그레이드하세요.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">연산자 '{0}'은(는) UTF-8 바이트 표현이 아닌 '{1}' 및 '{2}' 유형의 피연산자에 적용할 수 없습니다.</target>
@@ -285,6 +290,11 @@
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
         <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
         <target state="translated">'using static' 또는 'using alias'만 'unsafe'일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="translated">'{0}' 유형은 '정적 사용'에 유효하지 않습니다. 클래스, 구조체, 인터페이스, 열거형, 대리자 또는 네임스페이스만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -392,6 +402,46 @@
         <target state="translated">'{0}'은(는) 인터페이스 멤버 '{1}'을(를) 구현하지 않습니다. '{2}'은(는) '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
+        <source>The CollectionBuilderAttribute method name is invalid.</source>
+        <target state="translated">CollectionBuilderAttribute 메서드 이름이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeInvalidType">
+        <source>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</source>
+        <target state="translated">CollectionBuilderAttribute 작성기 형식은 제네릭이 아닌 클래스 또는 구조체여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="translated">시그니처가 필요한 액세스 가능한 '{0}' 메서드(형식이 'ReadOnlySpan&lt;{1}&gt;'인 단일 매개 변수가 있는 정적 메서드, '{2}' 반환 형식)를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderNoElementType">
+        <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
+        <target state="translated">'{0}' CollectionBuilderAttribute가 있지만 요소 형식이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionEscape">
+        <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
+        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionImmutableArray">
+        <source>This version of '{0}' cannot be used with collection expressions.</source>
+        <target state="translated">이 버전의 '{0}'은(는) 컬렉션 식과 함께 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionNoTargetType">
+        <source>There is no target type for the collection expression.</source>
+        <target state="new">There is no target type for the collection expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">형식 매개 변수 '{1}'에 'unmanaged' 제약 조건이 있으므로 '{1}'은(는) '{0}'에 대한 제약 조건으로 사용할 수 없습니다.</target>
@@ -487,6 +537,11 @@
         <target state="translated">'{0}'은(는) 두 번 이상 명시적으로 구현됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="translated">표시된 통화가 여러 번 차단됩니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">'{0}'은(는) '{2}' 형식에 대한 인터페이스 목록에 '{1}'(으)로 이미 나열되어 있습니다.</target>
@@ -525,6 +580,11 @@
       <trans-unit id="ERR_EscapeVariable">
         <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
         <target state="translated">선언 범위 외부에서 참조된 변수를 노출할 수 있으므로 이 컨텍스트에서 변수 '{0}'을(를) 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="translated">보간된 문자열이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -572,9 +632,19 @@
         <target state="translated">식 트리는 정적 가상 또는 추상 인터페이스 구성원에 대한 액세스를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
+        <source>An expression tree may not contain a collection expression.</source>
+        <target state="new">An expression tree may not contain a collection expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">식 트리에는 내림차순 인덱스('^') 식을 포함할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="translated">식 트리는 인라인 배열 액세스 또는 변환을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
@@ -635,6 +705,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion11">
         <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 11.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion12">
+        <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -837,9 +912,164 @@
         <target state="translated">'init' 접근자는 'readonly'로 표시할 수 없습니다. 대신 '{0}' 읽기 전용으로 표시합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="translated">인라인 배열 유형의 요소는 'int', 'System.Index' 또는 'System.Range'로 암시적으로 변환할 수 있는 단일 인수로만 액세스할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="translated">식을 '{0}'(으)로 변환할 수 없습니다. 참조로 전달되거나 반환되지 않을 수 있기 때문입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="translated">식을 '{0}'(으)로 변환할 수 없습니다. 할당 가능한 변수가 아니기 때문입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayForEachNotSupported">
+        <source>foreach statement on an inline array of type '{0}' is not supported</source>
+        <target state="translated">'{0}' 형식의 인라인 배열에 대한 foreach 문은 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="translated">인덱스가 인라인 배열의 범위 밖에 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
+        <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
+        <target state="translated">인라인 배열 요소 필드는 필수, 읽기 전용, volatile 또는 고정 크기 버퍼로 선언할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">인터페이스의 인스턴스 속성은 이니셜라이저를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="translated">'{0}'은(는) 일반 멤버 메서드의 호출이 아니므로 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorArityNotCompatible">
+        <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
+        <target state="translated">메서드 '{0}' 제네릭이 아니거나 '{2}' 일치시킬 진법 {1} 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotBeGeneric">
+        <source>Method '{0}' must be non-generic to match '{1}'.</source>
+        <target state="translated">'{1}' 일치하려면 메서드 '{0}' 제네릭이 아니어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="translated">nameof 연산자는 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="translated">인터셉터는 'UnmanagedCallersOnlyAttribute'로 표시할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCharacterOutOfRange">
+        <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
+        <target state="translated">제공된 줄의 길이는 '{0}'자이며 제공된 문자 번호 '{1}'보다 작습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
+        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="translated">인터셉터는 'null' 파일 경로를 가질 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorGlobalNamespace">
+        <source>An interceptor cannot be declared in the global namespace.</source>
+        <target state="translated">전역 네임스페이스에서 인터셉터를 선언할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="translated">InterceptsLocationAttribute에 제공된 라인 및 문자 번호는 양수여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineOutOfRange">
+        <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
+        <target state="translated">제공된 파일에 '{0}' 줄이 있으며 제공된 줄 번호 '{1}'보다 적습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="translated">인터셉터 메서드는 일반 멤버 메서드여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="translated">인터셉터에는 '{1}'의 '{0}' 매개 변수와 일치하는 'this' 매개 변수가 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="translated">인터셉터에는 '{0}'에 'this' 매개 변수가 없으므로 'this' 매개 변수가 없어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="translated">제공된 라인 및 문자 번호는 토큰 '{0}'의 시작을 참조하지 않습니다. '{1}' 줄과 '{2}' 문자를 사용하려고 했습니까?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="translated">가능한 메서드 이름 '{0}'은(는) 호출되지 않기 때문에 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="translated">컴파일의 여러 파일에 이 경로가 있으므로 경로가 '{0}'인 파일에서 호출을 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="translated">'{1}' 내에서 액세스할 수 없기 때문에 '{0}' 호출을 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilation">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'.</source>
+        <target state="translated">가로챌 수 없음: 컴파일에 경로가 '{0}'인 파일이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithCandidate">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</source>
+        <target state="translated">가로챌 수 없음: 컴파일에 경로가 '{0}'인 파일이 없습니다. 경로 '{1}'을(를) 사용하려고 했습니까?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
+        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
+        <target state="translated">차단할 수 없음: 경로 '{0}'이(가) 매핑되지 않았습니다. 매핑된 경로 '{1}'이(가) 예상됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPositionBadToken">
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="translated">제공된 행 및 문자 번호는 가로챌 수 있는 메서드 이름이 아니라 '{0}' 토큰을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="translated">'범위' 수정자 또는 '[UnscopedRef]' 특성의 차이로 인해 '{1}'을(를) 사용하여 '{0}'에 대한 호출을 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorSignatureMismatch">
+        <source>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</source>
+        <target state="translated">서명이 일치하지 않기 때문에 인터셉터 '{1}'을(를) 사용하여 메서드 '{0}'을(를) 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="translated">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -905,6 +1135,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">잘못된 해시 알고리즘 이름: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="translated">인라인 배열 구조체는 인스턴스 필드를 하나만 선언해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="translated">인라인 배열 구조체에는 명시적 레이아웃이 없어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="translated">인라인 배열 길이는 0보다 커야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -1087,6 +1332,11 @@
         <target state="translated">단일 부분 형식 선언만 매개 변수 목록을 가질 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="translated">인라인 배열 액세스에는 명명된 인수 지정자가 없을 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 제약 조건은 'unmanaged' 제약 조건과 함께 사용할 수 없습니다.</target>
@@ -1215,6 +1465,11 @@
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">사용자 정의 연산자 '{0}'은(는) 선언할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
+        <source>A ref readonly parameter cannot have the Out attribute.</source>
+        <target state="translated">ref 읽기 전용 매개 변수에는 Out 특성을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1347,11 +1602,6 @@
         <target state="translated">'{0}': 속성 또는 인덱서에 get 접근자와 set 접근자가 둘 다 있는 경우에만 접근자에 'readonly'를 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
-        <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
-        <target state="translated">'readonly'는 매개 변수 한정자로 지원되지 않습니다. 'in'을 의미했나요?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">기본 생성자가 합성된 복사 생성자와 충돌합니다.</target>
@@ -1390,6 +1640,11 @@
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref 할당의 왼쪽은 ref 변수여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReadOnlyWrongOrdering">
+        <source>'readonly' modifier must be specified after 'ref'.</source>
+        <target state="translated">'ref' 뒤에 'readonly' 한정자를 지정해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
@@ -1495,6 +1750,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
         <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}': 대상 런타임이 재정의에서 공변(covariant) 반환 형식을 지원하지 않습니다. 재정의된 멤버 '{1}'과(와) 일치하려면 '{2}' 반환 형식이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="translated">대상 런타임은 인라인 배열 유형을 지원하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
@@ -1667,6 +1927,11 @@
         <target state="translated">식을 제어하는 switch 주위에 괄호가 필요합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}'은(는) '{1}' 어셈블리에 정의되어 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">보간된 원시 문자열 리터럴을 시작하는 '$' 문자가 부족해 이렇게 많은 연속 닫는 중괄호를 콘텐츠로 사용할 수 없습니다.</target>
@@ -1777,6 +2042,11 @@
         <target state="translated">인스턴스 멤버 내에서 ref, out 또는 기본 생성자 '{0}' 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="translated">인스턴스 멤버 내에서 '{0}' 형식의 기본 생성자 매개 변수를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">인스턴스 멤버 내에 ref 유사 형식이 있는 기본 생성자 '{0}' 매개 변수를 사용할 수 없습니다.</target>
@@ -1847,6 +2117,11 @@
         <target state="translated">확인된 사용자 정의 연산자</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressions">
+        <source>collection expressions</source>
+        <target state="new">collection expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">공변(covariant) 반환</target>
@@ -1900,6 +2175,16 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">유추된 대리자 형식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="translated">인라인 배열</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="translated">'nameof'의 인스턴스 멤버</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -1960,6 +2245,11 @@
       <trans-unit id="IDS_FeatureRefFields">
         <source>ref fields</source>
         <target state="translated">참조 필드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefReadonlyParameters">
+        <source>ref readonly parameters</source>
+        <target state="translated">ref 읽기 전용 매개 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2027,6 +2317,26 @@
         <target state="translated">포인터 요소 액세스</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="translated">배열</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="translated">동적</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="translated">함수 포인터</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="translated">포인터</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">'&amp;' 연산자는 비동기 메서드의 매개 변수 또는 지역 변수에 사용하면 안 됩니다.</target>
@@ -2057,6 +2367,26 @@
         <target state="translated">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ArgExpectedIn">
+        <source>Argument {0} should be passed with the 'in' keyword</source>
+        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedIn_Title">
+        <source>Argument should be passed with the 'in' keyword</source>
+        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedRefOrIn">
+        <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
+        <target state="translated">인수 {0} 'ref' 또는 'in' 키워드(keyword) 함께 전달해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
+        <source>Argument should be passed with 'ref' or 'in' keyword</source>
+        <target state="translated">인수는 'ref' 또는 'in' 키워드(keyword) 함께 전달해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
         <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">유형 ‘{0}’은(는) 메타데이터로 표현할 수 없기 때문에 이 컨텍스트에서 사용할 수 없습니다.</target>
@@ -2065,6 +2395,26 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">유형은 메타데이터로 표현할 수 없기 때문에 이 컨텍스트에서 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef">
+        <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="translated">'in' 매개 변수에 해당하는 인수 {0} 'ref' 한정자가 'in'에 해당합니다. 대신 'in'을 사용하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef_Title">
+        <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="translated">'in' 매개 변수에 해당하는 인수의 'ref' 한정자는 'in'에 해당합니다. 대신 'in'을 사용하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ByValArraySizeConstRequired">
+        <source>Attribute parameter 'SizeConst' must be specified.</source>
+        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
+        <source>Attribute parameter 'SizeConst' must be specified.</source>
+        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2135,6 +2485,16 @@
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title">
         <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</source>
         <target state="translated">CallerArgumentExpressionAttribute는 효과가 없습니다. CallerMemberNameAttribute에 의해 재정의됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">매개 변수 '{0}'은(는) 둘러싸는 유형의 상태로 캡처되며 해당 값은 필드, 속성 또는 이벤트를 초기화하는 데에도 사용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">매개 변수는 둘러싸는 유형의 상태로 캡처되며 해당 값은 필드, 속성 또는 이벤트를 초기화하는 데에도 사용됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
@@ -2217,6 +2577,66 @@
         <target state="translated">이 컨텍스트에서 변수를 사용하면 선언 범위 외부에서 참조된 변수가 노출될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
+        <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="translated">인라인 배열 변환 연산자는 선언 형식의 식에서 변환하는 데 사용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
+        <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="translated">인라인 배열 변환 연산자는 선언 형식의 식에서 변환하는 데 사용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayIndexerNotUsed">
+        <source>Inline array indexer will not be used for element access expression.</source>
+        <target state="translated">인라인 배열 인덱서는 요소 액세스 식에 사용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
+        <source>Inline array indexer will not be used for element access expression.</source>
+        <target state="translated">인라인 배열 인덱서는 요소 액세스 식에 사용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
+        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
+        <target state="translated">'Inline arrays' 언어 기능은 요소 필드가 'ref' 필드이거나 형식 인수로 유효하지 않은 형식이 있는 인라인 배열 형식에 대해 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
+        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
+        <target state="translated">'Inline arrays' 언어 기능은 요소 필드가 'ref' 필드이거나 형식 인수로 유효하지 않은 형식이 있는 인라인 배열 형식에 대해 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArraySliceNotUsed">
+        <source>Inline array 'Slice' method will not be used for element access expression.</source>
+        <target state="translated">인라인 배열 'Slice' 메서드는 요소 액세스 식에 사용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
+        <source>Inline array 'Slice' method will not be used for element access expression.</source>
+        <target state="translated">인라인 배열 'Slice' 메서드는 요소 액세스 식에 사용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
+        <target state="translated">'{0}' 매개 변수의 참조 종류 한정자가 숨겨진 멤버의 해당 매개 변수 '{1}' 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
+        <target state="translated">매개 변수의 참조 종류 한정자가 숨겨진 멤버의 해당 매개 변수와 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="translated">'{1}' 인터셉터로 '{0}'에 대한 호출을 가로채지만 서명이 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="translated">인터셉터블 및 인터셉터 메서드의 서명이 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">InterpolatedStringHandlerArgument는 람다 매개 변수에 적용할 때 효과가 없으며 호출 사이트에서 무시됩니다.</target>
@@ -2267,6 +2687,26 @@
         <target state="translated">ref 조건부 연산자의 분기는 선언 범위가 호환되지 않는 변수를 참조합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="translated">매개 변수 '{0}' 유형의 참조 유형에 대한 Null 허용 여부가 가로챌 수 있는 메서드 '{1}'와 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="translated">매개 변수 유형에서 참조 유형의 Null 허용 여부가 가로챌 수 있는 메서드와 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="translated">반환 유형에서 참조 유형의 Null 허용 여부가 가로챌 수 있는 메서드 '{0}'과(와) 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="translated">반환 유형에서 참조 유형의 Null 허용 여부가 가로챌 수 있는 메서드와 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">필수 구성원 '{0}'은(는) 포함하는 유형이 더 이상 사용되지 않거나 모든 생성자가 사용되지 않는 경우가 아니면 'ObsoleteAttribute'로 특성을 지정해서는 안 됩니다.</target>
@@ -2285,6 +2725,16 @@
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
         <source>The default parameter value does not match in the target delegate type.</source>
         <target state="translated">기본 매개 변수 값이 대상 대리자 형식과 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
+        <target state="translated">매개 변수 '{0}' 참조 종류 한정자가 재정의 또는 구현된 멤버의 해당 매개 변수 '{1}' 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
+        <target state="translated">매개 변수의 참조 종류 한정자가 재정의되었거나 구현된 멤버의 해당 매개 변수와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2315,6 +2765,16 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">매개 변수에 람다의 매개 변수 한정자가 있지만 대상 대리자 형식에는 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
+        <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
+        <target state="translated">기본 생성자 매개 변수 '{0}' 기본의 멤버에 의해 섀도입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
+        <source>Primary constructor parameter is shadowed by a member from base</source>
+        <target state="translated">기본 생성자 매개 변수가 기본의 멤버에 의해 섀도됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2380,6 +2840,26 @@
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
         <target state="translated">이는 대상보다 더 넓은 값 이스케이프 범위를 가지는 값을 ref-assign하며 더 좁은 이스케이프 범위가 있는 값의 대상을 통한 할당을 허용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable">
+        <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="translated">인수 {0} 'ref readonly' 매개 변수에 전달되므로 변수여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable_Title">
+        <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="translated">인수는 'ref readonly' 매개 변수에 전달되므로 변수여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
+        <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
+        <target state="translated">'ref readonly' 매개 변수 '{0}' 기본값이 지정되었지만 'ref readonly'는 참조에만 사용해야 합니다. 매개 변수를 'in'으로 선언하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
+        <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
+        <target state="translated">'ref readonly' 매개 변수에 기본값이 지정되었지만 'ref readonly'는 참조에만 사용해야 합니다. 매개 변수를 'in'으로 선언하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -2778,161 +3258,168 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
         <target state="translated">
                              Visual C# 컴파일러 옵션
 
                        - 출력 파일 -
--out:&lt;file&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
-                             있는 파일 또는 첫 번째 파일의 기본 이름).
--target:exe                  콘솔 실행 파일을 빌드합니다(기본값). (약식: -t:exe)
--target:winexe               Windows 실행 파일을 빌드합니다. (약식:
-                             -t:winexe)
--target:library              라이브러리를 빌드합니다. (약식: -t:library)
--target:module               다른 어셈블리에 추가할 수 있는 모듈을
-                             빌드합니다. (약식: -t:module)
--target:appcontainerexe      Appcontainer 실행 파일을 빌드합니다. (약식: 
+-out:&lt;file&gt;                   출력 파일 이름 지정(기본값: 
+                              메인 클래스가 있는 파일의 기본 이름 또는 첫 번째 파일)
+-target:exe                   콘솔 실행 파일 빌드(기본값)(Short
+                              형식: -t:exe)
+-target:winexe                Windows 실행 파일 빌드(약식:
+                              -t:winexe)
+-target:library               라이브러리 빌드(약식: -t:library)
+-target:module                다른 모듈에 추가할 수 있는 모듈 빌드
+                              어셈블리(약식: -t:module)
+-target:appcontainerexe       Appcontainer 실행 파일 빌드(약식:
                               -t:appcontainerexe)
--target:winmdobj             WinMDExp에서 사용되는 Windows 런타임 중간
-                             파일을 빌드합니다. (약식: -t:winmdobj)
--doc:&lt;file&gt;                   생성할 XML 문서 파일입니다.
--refout:&lt;file&gt;                생성할 참조 어셈블리 출력입니다.
--platform:&lt;string&gt;             이 코드를 실행할 수 있는 플랫폼을 x86,
-                             Itanium, x64, arm, arm64, anycpu32bitpreferred 또는
-                             anycpu로 제한합니다. 기본값은 anycpu입니다.
+-target:winmdobj              Windows 런타임 중간 파일 빌드
+                              WinMDExp에서 사용합니다(약식: -t:winmdobj)
+-doc:&lt;file&gt;                   생성할 XML 문서 파일
+-refout:&lt;file&gt;                생성할 참조 어셈블리 출력
+-platform:&lt;string&gt;            이 코드가 실행될 수 있는 플랫폼 제한: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred 또는
+                              anycpu. 기본값은 anycpu입니다.
 
                        - 입력 파일 -
--recurse:&lt;wildcard&gt;           와일드카드 지정에 따라 현재 디렉터리와
-                             하위 디렉터리에 있는 모든 파일을
-                             포함합니다.
--reference:&lt;alias&gt;=&lt;file&gt;       지정한 어셈블리 파일의 메타데이터를 지정된 별칭으로
-                             참조합니다. (약식: -r)
--reference:&lt;file list&gt;         지정한 어셈블리 파일의 메타데이터를
-                             참조합니다. (약식: -r)
--addmodule:&lt;file list&gt;         지정한 모듈을 이 어셈블리에 연결합니다.
--link:&lt;file list&gt;              지정된 interop 어셈블리 파일의 메타데이터를
-                             포함합니다. (약식: -l)
--analyzer:&lt;file list&gt;          이 어셈블리에서 분석기를 실행합니다.
-                             (약식: -a)
--additionalfile:&lt;file list&gt;    코드 생성에 직접 영향을 주지 않지만 오류 또는
-                             경고 생성을 위해 분석기에서 사용될 수 있는
-                             추가 파일입니다.
--embed                       PDB에 모든 소스 파일을 포함합니다.
--embed:&lt;file list&gt;             PDB에 특정 파일을 포함합니다.
+-recurse:&lt;wildcard&gt;           현재 디렉터리의 모든 파일을 포함하고
+                              와일드카드에 따른 하위 디렉터리
+                              사양
+-reference:&lt;alias&gt;=&lt;file&gt;      지정된 별칭을 사용하여 지정된 어셈블리 파일의
+                              참조 메타데이터(약식: -r)
+-reference:&lt;file list&gt;       지정된 어셈블리 파일의 참조
+                              메타데이터(약식: -r)
+-addmodule:&lt;file list&gt;        지정된 모듈을 이 어셈블리에 연결
+-link:&lt;file list&gt;             지정된 interop 어셈블리 파일의
+                              메타데이터 포함(약식: -l)
+-analyzer:&lt;file list&gt;         이 어셈블리에서 분석기 실행
+                              (약식: -a)
+-additionalfile:&lt;file list&gt;   코드 생성에 직접적인 영향을 미치지 않지만
+                              오류 또는 경고를 생성하기 위해 분석기에서
+                              사용할 수 있는 추가 파일입니다.
+-embed                        모든 소스 파일을 PDB에 삽입합니다.
+-embed:&lt;file list&gt;            PDB에 특정 파일을 포함합니다.
 
                        - 리소스 -
--win32res:&lt;file&gt;              Win32 리소스 파일(.res)을 지정합니다.
--win32icon:&lt;file&gt;             이 아이콘을 출력에 사용합니다.
--win32manifest:&lt;file&gt;         Win32 매니페스트 파일(.xml)을 지정합니다.
--nowin32manifest             기본 Win32 매니페스트를 포함하지 않습니다.
--resource:&lt;resinfo&gt;          지정한 리소스를 포함합니다. (약식: -res)
--linkresource:&lt;resinfo&gt;      지정한 리소스를 이 어셈블리에 연결합니다.
-                             (약식: -linkres) 여기서, resinfo 형식은
-                             &lt;file&gt;[,&lt;string name&gt;[,public|private]]입니다.
+-win32res:&lt;file&gt;             Win32 리소스 파일(.res) 지정
+-win32icon:&lt;file&gt;            출력에 이 아이콘 사용
+-win32manifest:&lt;file&gt;         Win32 매니페스트 파일(.xml) 지정
+-nowin32manifest              기본 Win32 매니페스트를 포함하지 않음
+-resource:&lt;resinfo&gt;           지정된 리소스 포함(약식: -res)
+-linkresource:&lt;resinfo&gt;       지정된 리소스를 이 어셈블리에 연결
+                              (약식: -linkres) 여기서 resinfo 형식
+                              은 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - 코드 생성 -
--debug[+|-]                   디버깅 정보를 내보냅니다.
+-debug[+|-]                  디버깅 정보 내보내기
 -debug:{full|pdbonly|portable|embedded}
-                              디버깅 형식을 지정합니다. 기본값은 'full'이고,
-                              'portable'은 플랫폼 간 형식이며,
-                              'embedded'는 대상 .dll 또는 .exe에 포함되는
-                              플랫폼 간 형식입니다.
--optimize[+|-]                최적화를 사용하도록 설정합니다. (약식: -o)
--deterministic                결정적 어셈블리를 생성합니다(모듈
-                              버전 GUID 및 타임스탬프 포함).
--refonly                      주 출력 대신 참조 어셈블리를 생성합니다.
--instrument:TestCoverage      검사 정보를 수집하기 위해 계측되는
-                              어셈블리를 생성합니다.
--sourcelink:&lt;file&gt;             PDB에 포함할 소스 링크 정보입니다.
+                              디버깅 유형 지정('full'은 기본값,
+                              'portable'은 플랫폼 간 형식입니다.
+                              'embedded'는 대상 .dll 또는 .exe에 포함된
+                              플랫폼 간간 형식입니다)
+-optimize[+|-]                최적화 활성화(약식: -o)
+-deterministic                결정적 어셈블리 생성
+                              (모듈 버전 GUID 및 타임스탬프 포함)
+-refonly                      기본 출력 대신 참조 어셈블리 생성
+-instrument:TestCoverage        커버리지 정보를 수집하기 위해 계측된
+                              어셈블리 생성
+-sourcelink:&lt;file&gt;            PDB에 삽입할 소스 링크 정보입니다.
 
                        - 오류 및 경고 -
--warnaserror[+|-]             모든 경고를 오류로 보고합니다.
--warnaserror[+|-]:&lt;warn list&gt;   특정 경고를 오류로 보고합니다
-                              (모든 Null 허용 여부 경고에는 "nullable" 사용).
--warn:&lt;n&gt;                     0 이상의 경고 수준을 설정합니다. (약식: -w)
--nowarn:&lt;warn list&gt;             특정 경고 메시지를 사용하지 않도록 설정합니다
-                              (모든 Null 허용 여부 경고에는 "nullable" 사용).
--ruleset:&lt;file&gt;                특정 진단을 사용하지 않도록 설정하는 규칙 집합
-                              파일을 지정합니다.
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              모든 컴파일러 및 분석기 진단을 기록할 파일을
+-warnaserror[+|-]             모든 경고를 오류로 보고
+-warnaserror[+|-]:&lt;warn list&gt; 특정 경고를 오류로 보고합니다.
+                              (모든 null 가능성 경고에 대해 "nullable" 사용)
+-warn:&lt;n&gt;                     경고 수준 설정(0 이상)(약식: -w)
+-nowarn:&lt;warn list&gt;           특정 경고 메시지 비활성화
+                              (모든 null 가능성 경고에 대해 "nullable" 사용)
+-ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 설정하는 규칙 집합 파일을
                               지정합니다.
-                              sarif_version:{1|2|2.1} 기본값 1. 2와 2.1은 모두
-                              SARIF 버전 2.1.0을 의미합니다.
--reportanalyzer               추가 분석기 정보(예: 실행 시간)를
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              모든 컴파일러 및 분석기의 진단을 SARIF 형식으로 기록하기 위해
+                              지정합니다.
+                              sarif_version:{1|2|2.1} 기본값은 1.2 및 2.1
+                              둘 다 SARIF 버전 2.1.0을 의미합니다.
+-reportanalyzer                실행 시간과 같은 추가 분석기 정보를
                               보고합니다.
 -skipanalyzers[+|-]           진단 분석기 실행을 건너뜁니다.
 
                        - 언어 -
--checked[+|-]                 오버플로 검사를 생성합니다.
--unsafe[+|-]                  'unsafe' 코드를 허용합니다.
--define:&lt;기호 목록&gt;             조건부 컴파일 기호를 정의합니다. (약
-                              식: -d)
--langversion:?                언어 버전에 허용되는 값을 표시합니다.
--langversion:&lt;string&gt;           언어 버전을
-                              'latest'(최신 버전, 부 버전 포함),
-                              'default'('latest'와 같음),
-                              'latestmajor'(최신 버전, 부 버전 제외),
-                              'preview'(최신 버전, 지원되지 않는 미리 보기의 기능 포함)
-                              또는 특정 버전(예: '6' 또는 '7.1')으로 지정합니다.
--nullable[+|-]                nullable 컨텍스트 옵션 enable|disable을 지정합니다.
+-checked[+|-]                오버플로 검사 생성
+-unsafe[+|-]                  '안전하지 않은' 코드 허용
+-define:&lt;symbol list&gt;         조건부 컴파일 기호 정의(약식
+                              : -d)
+-langversion:?                언어 버전에 허용되는 값 표시
+-langversion:&lt;string&gt;         다음과 같은 언어 버전 지정
+                              'latest'(부 버전을 포함한 최신 버전),
+                              `default`(`latest`와 동일),
+                              `latestmajor`(부 버전을 제외한 최신 버전),
+                              `preview` (지원되지 않는 미리 보기의 기능을 포함한 최신 버전),
+                              또는 `6` 또는 `7.1`과 같은 특정 버전
+-nullable[+|-]                null 허용 컨텍스트 옵션 enable|disable을 지정합니다.
 -nullable:{enable|disable|warnings|annotations}
-                              nullable 컨텍스트 옵션 enable|disable|warnings|annotations를 지정합니다.
+                              null 허용 컨텍스트 옵션 enable|disable|warnings|annotations를 지정합니다.
 
                        - 보안 -
--delaysign[+|-]               강력한 이름 키의 퍼블릭 부분만 사용하여
-                              어셈블리 서명을 연기합니다.
--publicsign[+|-]              강력한 이름 키의 퍼블릭 부분만 사용하여
-                              어셈블리를 퍼블릭 서명합니다.
--keyfile:&lt;file&gt;                강력한 이름 키 파일을 지정합니다.
--keycontainer:&lt;string&gt;          강력한 이름 키 컨테이너를 지정합니다.
--highentropyva[+|-]           높은 엔트로피 ASLR을 사용하도록 설정합니다.
+-delaysign[+|-]               공개 키만 사용하여 어셈블리 서명 지연
+                              공개적으로 진행합니다.
+-publicsign[+|-]                  강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
+                              공개적으로 진행합니다.
+-keyfile:&lt;file&gt;               강력한 이름의 키 파일 지정
+-keycontainer:&lt;string&gt;        강력한 이름의 키 컨테이너를 지정합니다.
+-highentropyva[+|-]           높은 엔트로피 ASLR 사용
 
                        - 기타 -
-@&lt;file&gt;                        추가 옵션을 위해 지시 파일을 읽습니다.
--help                         이 사용법 메시지를 표시합니다. (약식: -?)
--nologo                       컴파일러 저작권 메시지를 표시하지 않습니다.
--noconfig                     CSC.RSP 파일을 자동으로 포함하지 않습니다.
--parallel[+|-]                동시 빌드입니다.
--version                      컴파일러 버전 번호를 표시하고 종료합니다.
+@&lt;file&gt;                       추가 옵션에 대한 응답 파일 읽기
+-help                         이 사용 메시지 표시(약식: -?)
+-nologo                       컴파일러 저작권 메시지 억제
+-noconfig                      CSC.RSP 파일을 자동으로 포함하지 않음
+-parallel[+|-]                           동시 빌드입니다.
+-version                           컴파일러 버전 번호를 표시하고 종료합니다.
 
                        - 고급 -
--baseaddress:&lt;address&gt;            빌드할 라이브러리의 기준 주소입니다.
--checksumalgorithm:&lt;alg&gt;      PDB에 저장된 소스 파일 체크섬을
-                              계산하기 위한 알고리즘을 지정합니다. 지원되는 값은
+-baseaddress:&lt;address&gt;        빌드할 라이브러리의 기준 주소
+-checksumalgorithm:&lt;alg&gt;          PBD에 저장된 소스 파일 체크섬을 계산하기 위한
+                              알고리즘을 지정합니다. 지원되는 값은 다음과 같습니다.
                               SHA1 또는 SHA256(기본값)입니다.
--codepage:&lt;n&gt;                 소스 파일을 열 때 사용할 코드 페이지를
-                              지정합니다.
--utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
--main:&lt;type&gt;                   진입점이 포함된 형식을 지정합니다(다른
-                              모든 가능한 진입점 무시). 
-                              (약식: -m)
--fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
--filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
-                              지정합니다.
+-codepage:&lt;n&gt;                 소스를 열 때 사용할 코드페이지를 지정합니다.
+                              파일
+-utf8output                   UTF-8 인코딩으로 컴파일러 메시지 출력
+-main:&lt;type&gt;                  진입점을 포함하는 유형 지정
+                              (가능한 다른 모든 진입점 무시)(약식
+                              : -m)
+-fullpaths                    컴파일러는 정규화된 경로를 생성합니다.
+-filealign:&lt;n&gt;                출력 파일에 사용되는 정렬을 지정합니다.
+                              섹션
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              컴파일러에서 출력된 소스 경로 이름에 대한 매핑을
-                              지정합니다.
--pdb:&lt;file&gt;                    디버그 정보 파일 이름을 지정합니다(기본값:
-                              확장명이 .pdb인 출력 파일 이름).
--errorendlocation             각 오류의 끝 위치에 해당하는 줄과
-                              열을 출력합니다.
--preferreduilang              기본 출력 언어 이름을 지정합니다.
--nosdkpath                    기본 SDK 경로에서 표준 라이브러리 어셈블리를 검색하지 않도록 설정합니다.
--nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않습니다.
--subsystemversion:&lt;string&gt;      이 어셈블리의 하위 시스템 버전을 지정합니다.
--lib:&lt;file list&gt;                참조를 검색할 추가 디렉터리를
-                              지정합니다.
--errorreport:&lt;string&gt;           내부 컴파일러 오류를 처리하는 방법을
-                              prompt, send, queue 또는 none으로 지정합니다. 기본값은
-                              queue입니다.
--appconfig:&lt;file&gt;              어셈블리 바인딩 설정이 포함된
-                              애플리케이션 구성 파일을 지정합니다.
--moduleassemblyname:&lt;string&gt;    이 모듈이 속할 어셈블리의
-                              이름입니다.
--modulename:&lt;string&gt;            소스 모듈의 이름을 지정합니다.
--generatedfilesout:&lt;dir&gt;      지정된 디렉터리에서 컴파일하는 동안 생성된
-                              파일을 배치합니다.
+                              컴파일러를 이용하여 원본 경로 이름 출력의 매핑을
+                              구체화합니다.
+-pdb:&lt;file&gt;                  디버그 정보 파일 이름 지정(기본값:
+                              확장자가 .pdb인 출력 파일 이름)
+-errorendlocation             각 오류의 끝 위치 출력
+                              행 및 열
+-preferreduilang                  기본 출력 언어 이름을 지정합니다.
+-nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 사용하지 않도록 설정합니다.
+-nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않음
+-subsystemversion:&lt;string&gt;    이 어셈블리의 하위 시스템 버전 지정
+-lib:&lt;file list&gt;              참조를 검색할 추가 디렉터리
+                              구체화
+-errorreport:&lt;string&gt;        내부 컴파일러 오류 처리 방법 지정:
+                              프롬프트, 전송, 큐 또는 없음. 기본값은
+                              큐입니다.
+-appconfig:&lt;file&gt;             어셈블리 바인딩 설정이 포함된
+                              애플리케이션 구성 파일 지정
+-moduleassemblyname:&lt;string&gt;   이 모듈이 속할 어셈블리의
+                              이름 지정
+-modulename:&lt;문자열&gt; 소스 모듈의 이름을 지정합니다.
+-generatedfilesout:&lt;dir&gt;       컴파일 중에 생성된 파일을
+                              지정된 디렉터리에 둡니다.
+-reportivts[+|-]                   여기에 부여된 모든 IVT에 대한 출력 정보
+                              모든 종속성에 의한 어셈블리 및 외부 어셈블리
+                              접근성 오류가 발생한 어셈블리에 대한 주석을 추가합니다.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -3687,16 +4174,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">생성기에서 다음 예외를 throw했습니다.
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -3704,16 +4189,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">생성기에서 다음 예외를 throw했습니다.
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -4260,6 +4743,16 @@
         <target state="translated">switch 식에서 입력 형식의 가능한 값을 모두 처리하지는 않습니다(전체 아님).</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_TargetDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
+        <target state="translated">'{0}' 매개 변수의 참조 종류 한정자가 대상의 해당 매개 변수 '{1}' 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TargetDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</source>
+        <target state="translated">매개 변수의 참조 종류 한정자가 대상의 해당 매개 변수와 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
         <target state="translated">Throw된 값이 null일 수 있습니다.</target>
@@ -4525,6 +5018,16 @@
         <target state="translated">할당되지 않은 자동 구현 속성을 사용하고 있는 것 같음</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField">
+        <source>Ref field '{0}' should be ref-assigned before use.</source>
+        <target state="translated">사용하기 전에 참조 필드 '{0}' 참조를 할당해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField_Title">
+        <source>Ref field should be ref-assigned before use.</source>
+        <target state="translated">참조 필드는 사용 전에 ref-assigned해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
         <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
         <target state="translated">'this' 개체는 모든 필드가 할당되기 전에 읽혀서 명시적으로 할당되지 않은 필드에 'default'의 암시적 할당이 선행되도록 합니다.</target>
@@ -4548,6 +5051,16 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">할당되지 않은 지역 변수 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="translated">'{0}'은(는) 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="translated">형식은 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -6201,8 +6714,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">특성 생성자 '{0}'은(는) 'in' 매개 변수가 있으므로 사용할 수 없습니다.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="translated">특성 생성자 '{0}'은(는) 'in' 또는 'ref readonly' 매개 변수가 있으므로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -8524,8 +9037,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">반복기에 안전하지 않은 매개 변수 또는 yield 형식을 사용할 수 없습니다.</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="translated">반복기에는 포인터 형식 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9867,8 +10380,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">비동기 메서드에는 안전하지 않은 매개 변수 또는 반환 형식을 사용할 수 없습니다.</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="translated">비동기 메서드에는 포인터 형식 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11671,11 +12184,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">'{0}'은(는) '{1}'이므로 참조로 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">'{0}'의 필드는 '{1}'이므로 참조로 반환할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
         <source>A readonly field cannot be returned by writable reference</source>
         <target state="translated">읽기 전용 필드는 쓰기 가능 참조로 반환될 수 없습니다.</target>
@@ -11787,8 +12295,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'await'는 참조로 반환되므로 '{0}'에 대한 호출이 포함된 식에 사용할 수 없습니다.</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="translated">'{0}'에 대한 호출로 반환된 참조는 'await' 또는 'yield' 경계에서 보존할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
@@ -12117,13 +12625,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0}'은(는) 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다.</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="translated">'{0}'은(는) 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다. 계속하려면 이 진단을 표시하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
-        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">형식은 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다.</target>
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="translated">형식은 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다. 계속하려면 이 진단을 표시하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
@@ -12202,8 +12710,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">'in' 확장 메서드 '{0}'의 첫 번째 매개 변수는 제네릭이 아닌 구체적인 값 형식이어야 합니다.</target>
+        <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="translated">확장 메서드 '{0}'의 첫 번째 'in' 또는 'ref readonly' 매개 변수는 제네릭이 아닌 구체적인 값 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

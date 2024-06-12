@@ -247,6 +247,11 @@
         <target state="translated">解决方案的代码分析在完成之前终止。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
+        <source>Collapse local functions when collapsing to definitions</source>
+        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
         <target state="translated">在文件打开时将元数据签名文件折叠到定义</target>
@@ -285,11 +290,6 @@
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">备注</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">异步计算快速操作(实验性，需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -367,34 +367,9 @@
         <target state="translated">文档大纲</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_Outline_Collapse_All">
-        <source>Collapse All</source>
-        <target state="translated">全部折叠</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Expand_All">
-        <source>Expand All</source>
-        <target state="translated">全部展开</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_Outline_Search">
         <source>Search Document Outline</source>
         <target state="translated">搜索文档大纲</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Name">
-        <source>Sort By Name</source>
-        <target state="translated">按名称排序</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Order">
-        <source>Sort By Order</source>
-        <target state="translated">按顺序排序</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Type">
-        <source>Sort By Type</source>
-        <target state="translated">按类型排序</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -992,6 +967,11 @@
         <target state="translated">无</target>
         <note />
       </trans-unit>
+      <trans-unit id="Not_applicable">
+        <source>Not applicable</source>
+        <target state="translated">不适用</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_if_default">
         <source>Omit if default</source>
         <target state="translated">默认情况下省略</target>
@@ -1122,6 +1102,11 @@
         <target state="translated">首选 UTF-8 字符串文本</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="translated">首选集合表达式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">首选复合赋值</target>
@@ -1140,6 +1125,11 @@
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">首选命名空间和文件夹匹配结构</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">首选主构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
@@ -1310,6 +1300,11 @@
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
         <source>Run code analysis in separate process (requires restart)</source>
         <target state="translated">在单独的进程中运行代码分析(需要重启)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
+        <source>Run code analysis on latest .NET (requires restart)</source>
+        <target state="translated">在最新 .NET 上运行代码分析(需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1501,6 +1496,11 @@
         <source>Sync namespaces changes</source>
         <target state="translated">同步命名空间更改</target>
         <note />
+      </trans-unit>
+      <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
+        <source>'System.Void' is not a valid type for a parameter</source>
+        <target state="translated">'System.Void' 不是参数的有效类型</target>
+        <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

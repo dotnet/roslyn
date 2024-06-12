@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var conversions = new TypeConversions(method.ContainingAssembly.CorLibrary);
+            var conversions = method.ContainingAssembly.CorLibrary.TypeConversions;
             var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
             if (!conversion.Exists)
             {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var containingAssembly = method.ContainingAssembly;
             var errorNamespace = containingAssembly.GlobalNamespace;
-            var conversions = new TypeConversions(containingAssembly.CorLibrary);
+            var conversions = containingAssembly.CorLibrary.TypeConversions;
 
             // There is absolutely no plausible syntax/tree that we could use for these
             // synthesized literals.  We could be speculatively binding a call to a PE method.
@@ -528,7 +528,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
+        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
+
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        {
+            thisParameter = _reducedFrom.Parameters[0];
+            return true;
+        }
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {

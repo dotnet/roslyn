@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // PERF: Set the concurrency level to 1 because, while the dictionary has to be thread-safe,
                 // there is very little contention in formatting. A lower concurrency level reduces object
                 // allocations which are used internally by ConcurrentDictionary for locking.
-                var map = LazyInitialization.EnsureInitialized(ref _map, () => new ConcurrentDictionary<int, TriviaData>(concurrencyLevel: 1, capacity: 8));
+                var map = InterlockedOperations.Initialize(ref _map, () => new ConcurrentDictionary<int, TriviaData>(concurrencyLevel: 1, capacity: 8));
                 map[key] = triviaInfo;
             }
 

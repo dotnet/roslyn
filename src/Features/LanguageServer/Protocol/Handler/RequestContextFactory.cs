@@ -21,7 +21,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
 
     public Task<RequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<RequestContext> queueItem, TRequestParam requestParam, CancellationToken cancellationToken)
     {
-        var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
+        var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
         var logger = _lspServices.GetRequiredService<ILspServiceLogger>();
         var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();

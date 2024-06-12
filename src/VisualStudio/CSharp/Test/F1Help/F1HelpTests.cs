@@ -267,6 +267,14 @@ class Program<T> wh[||]ere T : class
         }
 
         [Fact]
+        public async Task TestPreprocessor2()
+        {
+            await TestAsync(
+@"#region[||]
+#endregion", "#region");
+        }
+
+        [Fact]
         public async Task TestConstructor()
         {
             await TestAsync(
@@ -796,6 +804,34 @@ class Program
         M1(parameter: argument);   // 2
     }
 }", "System.Int32");
+        }
+
+        [Fact]
+        public async Task TestRefReadonlyParameter_Ref()
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    void M(r[||]ef readonly int x)
+                    {
+                    }
+                }
+                """, "ref_CSharpKeyword");
+        }
+
+        [Fact]
+        public async Task TestRefReadonlyParameter_ReadOnly()
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    void M(ref read[||]only int x)
+                    {
+                    }
+                }
+                """, "readonly_CSharpKeyword");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")]
@@ -1914,6 +1950,79 @@ class C
             await Test_KeywordAsync("""
                 1 >>[||]>= 2;
                 """, expectedText: ">>>=");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorIf()
+        {
+            await TestAsync(
+@"
+#i[||]f ANY
+#endif
+", "#if");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorIf2()
+        {
+            await TestAsync(
+@"
+#if ANY[||]
+#endif
+", "#if");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorEndIf()
+        {
+            await TestAsync(
+@"
+#if ANY
+#en[||]dif
+", "#endif");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorEndIf2()
+        {
+            await TestAsync(
+@"
+#if ANY
+#endif[||]
+", "#endif");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElse()
+        {
+            await TestAsync(
+@"
+#if ANY
+#el[||]se
+#endif
+", "#else");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElse2()
+        {
+            await TestAsync(
+@"
+#if ANY
+#else[||]
+#endif
+", "#else");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElIf()
+        {
+            await TestAsync(
+@"
+#if ANY
+#el[||]if SOME
+#endif
+", "#elif");
         }
     }
 }

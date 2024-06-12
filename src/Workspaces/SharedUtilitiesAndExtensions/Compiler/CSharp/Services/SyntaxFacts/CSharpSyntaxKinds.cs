@@ -31,8 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int? MultiLineCommentTrivia => (int)SyntaxKind.MultiLineCommentTrivia;
         public int SingleLineDocCommentTrivia => (int)SyntaxKind.SingleLineDocumentationCommentTrivia;
         public int? MultiLineDocCommentTrivia => (int)SyntaxKind.MultiLineDocumentationCommentTrivia;
-        public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+
         public int IfDirectiveTrivia => (int)SyntaxKind.IfDirectiveTrivia;
+        public int ElifDirectiveTrivia => (int)SyntaxKind.ElifDirectiveTrivia;
+        public int ElseDirectiveTrivia => (int)SyntaxKind.ElseDirectiveTrivia;
+        public int EndIfDirectiveTrivia => (int)SyntaxKind.EndIfDirectiveTrivia;
+        public int RegionDirectiveTrivia => (int)SyntaxKind.RegionDirectiveTrivia;
+        public int EndRegionDirectiveTrivia => (int)SyntaxKind.EndRegionDirectiveTrivia;
+        public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
 
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
         public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
@@ -44,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int GreaterThanToken => (int)SyntaxKind.GreaterThanToken;
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
         public int LessThanToken => (int)SyntaxKind.LessThanToken;
+        public int LessThanSlashToken => (int)SyntaxKind.LessThanSlashToken;
         public int OpenBraceToken => (int)SyntaxKind.OpenBraceToken;
         public int? OpenBracketToken => (int)SyntaxKind.OpenBracketToken;
         public int OpenParenToken => (int)SyntaxKind.OpenParenToken;
@@ -82,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
         public int BaseExpression => (int)SyntaxKind.BaseExpression;
+        public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
         public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;
@@ -110,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int? AndPattern => (int)SyntaxKind.AndPattern;
         public int? ConstantPattern => (int)SyntaxKind.ConstantPattern;
         public int? DeclarationPattern => (int)SyntaxKind.DeclarationPattern;
+        public int? ListPattern => (int)SyntaxKind.ListPattern;
         public int? NotPattern => (int)SyntaxKind.NotPattern;
         public int? OrPattern => (int)SyntaxKind.OrPattern;
         public int? ParenthesizedPattern => (int)SyntaxKind.ParenthesizedPattern;
@@ -128,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
         public int ForEachStatement => (int)SyntaxKind.ForEachStatement;
+        public int ForStatement => (int)SyntaxKind.ForStatement;
         public int IfStatement => (int)SyntaxKind.IfStatement;
         public int LocalDeclarationStatement => (int)SyntaxKind.LocalDeclarationStatement;
         public int? LocalFunctionStatement => (int)SyntaxKind.LocalFunctionStatement;

@@ -10,18 +10,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class LinkedFileMergeResult
+    internal sealed class LinkedFileMergeResult(IEnumerable<DocumentId> documentIds, SourceText mergedSourceText, IEnumerable<TextSpan> mergeConflictResolutionSpans)
     {
-        public IEnumerable<DocumentId> DocumentIds { get; internal set; }
-        public SourceText MergedSourceText { get; internal set; }
-        public IEnumerable<TextSpan> MergeConflictResolutionSpans { get; }
+        public IEnumerable<DocumentId> DocumentIds { get; internal set; } = documentIds;
+        public SourceText MergedSourceText { get; internal set; } = mergedSourceText;
+        public IEnumerable<TextSpan> MergeConflictResolutionSpans { get; } = mergeConflictResolutionSpans;
         public bool HasMergeConflicts { get { return MergeConflictResolutionSpans.Any(); } }
-
-        public LinkedFileMergeResult(IEnumerable<DocumentId> documentIds, SourceText mergedSourceText, IEnumerable<TextSpan> mergeConflictResolutionSpans)
-        {
-            DocumentIds = documentIds;
-            MergedSourceText = mergedSourceText;
-            MergeConflictResolutionSpans = mergeConflictResolutionSpans;
-        }
     }
 }

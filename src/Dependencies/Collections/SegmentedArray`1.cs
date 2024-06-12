@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </remarks>
         private static int SegmentSize
         {
-            [MethodImpl(SegmentedArrayHelper.FastPathMethodImplOptions)]
             get
             {
                 return SegmentedArrayHelper.GetSegmentSize<T>();
@@ -44,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private static int SegmentShift
         {
-            [MethodImpl(SegmentedArrayHelper.FastPathMethodImplOptions)]
             get
             {
                 return SegmentedArrayHelper.GetSegmentShift<T>();
@@ -56,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private static int OffsetMask
         {
-            [MethodImpl(SegmentedArrayHelper.FastPathMethodImplOptions)]
             get
             {
                 return SegmentedArrayHelper.GetOffsetMask<T>();
@@ -115,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ref T this[int index]
         {
-            [MethodImpl(SegmentedArrayHelper.FastPathMethodImplOptions)]
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return ref _items[index >> SegmentShift][index & OffsetMask];

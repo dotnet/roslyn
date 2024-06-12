@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -39,6 +40,15 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
 
             context.RegisterSymbolStartAction(context =>
             {
+                if (!ShouldAnalyze(context, out var option))
+                    return;
+
+                context.RegisterOperationBlockAction(
+                    context => AnalyzeBlock(context, option.Notification.Severity));
+            }, SymbolKind.NamedType);
+
+            static bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+            {
                 // Only run on non-readonly structs.  If the struct is already readonly, no need to make the members readonly.
                 if (context.Symbol is not INamedTypeSymbol
                     {
@@ -47,19 +57,41 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                         DeclaringSyntaxReferences: [var reference, ..],
                     } structType)
                 {
-                    return;
+                    option = null;
+                    return false;
                 }
 
                 var cancellationToken = context.CancellationToken;
                 var declaration = reference.GetSyntax(cancellationToken);
                 var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
-                var option = options.PreferReadOnlyStructMember;
+                option = options.PreferReadOnlyStructMember;
                 if (!option.Value)
-                    return;
+                    return false;
 
-                context.RegisterOperationBlockAction(
-                    context => AnalyzeBlock(context, option.Notification.Severity));
-            }, SymbolKind.NamedType);
+                // Skip analysis if the analysis filter span does not contain the primary location where we would report a diagnostic.
+                if (context.FilterSpan is not null)
+                {
+                    Contract.ThrowIfNull(context.FilterTree);
+                    var shouldAnalyze = false;
+                    foreach (var member in structType.GetMembers())
+                    {
+                        if (member is not IMethodSymbol method)
+                            continue;
+
+                        var (location, _) = GetDiagnosticLocation(method, cancellationToken);
+                        if (location != null && context.ShouldAnalyzeLocation(location))
+                        {
+                            shouldAnalyze = true;
+                            break;
+                        }
+                    }
+
+                    if (!shouldAnalyze)
+                        return false;
+                }
+
+                return true;
+            }
         });
 
     private void AnalyzeBlock(
@@ -68,18 +100,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
     {
         var cancellationToken = context.CancellationToken;
 
-        // if it's not a method, or it's already readonly, nothing to do.
-        if (context.OwningSymbol is not IMethodSymbol
-            {
-                MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet,
-                IsReadOnly: false,
-                IsStatic: false,
-                IsImplicitlyDeclared: false,
-                DeclaringSyntaxReferences: [var methodReference, ..],
-            } owningMethod)
-        {
+        if (context.OwningSymbol is not IMethodSymbol owningMethod)
             return;
-        }
+
+        var (location, additionalLocation) = GetDiagnosticLocation(owningMethod, cancellationToken);
+        if (location == null || !context.ShouldAnalyzeSpan(location.SourceSpan))
+            return;
 
         foreach (var blockOperation in context.OperationBlocks)
         {
@@ -93,6 +119,28 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 return;
         }
 
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            location,
+            severity,
+            additionalLocations: ImmutableArray.Create(additionalLocation),
+            properties: null));
+    }
+
+    private static (Location? location, Location? additionalLocation) GetDiagnosticLocation(
+        IMethodSymbol owningMethod,
+        CancellationToken cancellationToken)
+    {
+        // if it's not a method, or it's already readonly, nothing to do.
+        if (owningMethod.MethodKind is not (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet)
+            || owningMethod.IsReadOnly
+            || owningMethod.IsStatic
+            || owningMethod.IsImplicitlyDeclared)
+        {
+            return (null, null);
+        }
+
+        var methodReference = owningMethod.DeclaringSyntaxReferences[0];
         var declaration = methodReference.GetSyntax(cancellationToken);
 
         var nameToken = declaration switch
@@ -109,14 +157,9 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             declaration = declaration.GetRequiredParent();
 
         if (nameToken is null)
-            return;
+            return (null, null);
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            nameToken.Value.GetLocation(),
-            severity,
-            additionalLocations: ImmutableArray.Create(declaration.GetLocation()),
-            properties: null));
+        return (nameToken.Value.GetLocation(), declaration.GetLocation());
     }
 
     private static bool BlockOperationPotentiallyMutatesThis(
@@ -145,7 +188,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
     private static bool IsPotentiallyValueType(IOperation? instance)
     {
         // 1. A struct is a value type.
-        // 2. A type paramater that does not have the explicit 'class' constraint is potentially a value type.
+        // 2. A type parameter that does not have the explicit 'class' constraint is potentially a value type.
         return instance is { Type.TypeKind: TypeKind.Struct } ||
                instance is { Type: ITypeParameterSymbol { HasReferenceTypeConstraint: false } };
     }
@@ -167,6 +210,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
         for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)
         {
+            // Had a parent we didn't understand.  Assume that 'this' could be mutated.
+            if (operation.Kind == OperationKind.None)
+                return true;
+
             if (operation is IFieldReferenceOperation { Field.IsReadOnly: false } fieldReference &&
                 IsPotentiallyValueType(fieldReference.Instance))
             {

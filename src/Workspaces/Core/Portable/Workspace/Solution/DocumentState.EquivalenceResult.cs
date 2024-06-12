@@ -8,16 +8,10 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class DocumentState
     {
-        internal class EquivalenceResult
+        internal class EquivalenceResult(bool topLevelEquivalent, bool interiorEquivalent)
         {
-            public readonly bool TopLevelEquivalent;
-            public readonly bool InteriorEquivalent;
-
-            public EquivalenceResult(bool topLevelEquivalent, bool interiorEquivalent)
-            {
-                this.TopLevelEquivalent = topLevelEquivalent;
-                this.InteriorEquivalent = interiorEquivalent;
-            }
+            public readonly bool TopLevelEquivalent = topLevelEquivalent;
+            public readonly bool InteriorEquivalent = interiorEquivalent;
         }
     }
 }

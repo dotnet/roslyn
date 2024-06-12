@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached && previousTable is not null)
             {
+                this.LogTables(stepName, previousTable, previousTable, sourceTable);
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
                     return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<TOutput>.Default);
@@ -48,21 +49,16 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
+            var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
             foreach (var entry in sourceTable)
             {
-                var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
                 if (entry.State == EntryState.Removed)
                 {
-                    nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
+                    tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
                 }
-                else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
-                    // we don't currently handle modified any differently than added at the output
-                    // we just run the action and mark the new source as added. In theory we could compare
-                    // the diagnostics and sources produced and compare them, to see if they are any different 
-                    // than before.
-
                     var sourcesBuilder = new AdditionalSourcesCollection(_sourceExtension);
                     var diagnostics = DiagnosticBag.GetInstance();
 
@@ -72,7 +68,11 @@ namespace Microsoft.CodeAnalysis
                         var stopwatch = SharedStopwatch.StartNew();
                         _action(context, entry.Item, cancellationToken);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
-                        nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
+
+                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntry(sourcesAndDiagnostics, EqualityComparer<TOutput>.Default, stopwatch.Elapsed, inputs, entry.State))
+                        {
+                            tableBuilder.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
+                        }
                     }
                     finally
                     {
@@ -82,7 +82,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return nodeTable.ToImmutableAndFree();
+            var newTable = tableBuilder.ToImmutableAndFree();
+            this.LogTables(stepName, previousTable, newTable, sourceTable);
+            return newTable;
         }
 
         IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable();

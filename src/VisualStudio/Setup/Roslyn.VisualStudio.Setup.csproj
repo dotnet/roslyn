@@ -23,6 +23,7 @@
     <!-- Path to our servicehub entry point dll in the vsix directory relative 
          to our servicehub.servicehub.json files in the same vsix directory -->
     <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
+    <ServiceHubHostRuntime>desktop</ServiceHubHostRuntime>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
@@ -74,6 +75,12 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
@@ -171,6 +178,17 @@
       <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+      <Name>Workspaces.MSBuild</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+      <!-- Don't ngen the BuildHost executable. We don't expect it to be used in Visual Studio scenarios, except for third-party extensions that might be using it.
+           At the moment, it's consumed not as a running executable but rather as a library, and it also has some dependencies for the executable portion, like
+           command line parsing and MSBuildLocator that we don't expect to be shipping either. -->
+      <Ngen>false</Ngen>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Name>CSharpWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -221,6 +239,13 @@
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Setup.ServiceHub\x64\Roslyn.VisualStudio.ServiceHub.Setup.x64.csproj">
+      <Name>VisualStudioServiceHubSetupX64</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX></IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Xaml\Impl\Microsoft.VisualStudio.LanguageServices.Xaml.csproj">
       <Name>XamlVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -238,18 +263,6 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
       <NgenPriority>1</NgenPriority>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub.CoreComponents\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.csproj">
-      <Name>ServiceHub.Core</Name>
-      <!-- This project targets netcoreapp -->
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
-      <Private>false</Private>
-      <VSIXSubPath>$(ServiceHubCoreSubPath)</VSIXSubPath>
-      <!-- Disable NGEN. Core assemblies are crossgened. -->
-      <Ngen>false</Ngen>
     </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Name>Scripting</Name>
@@ -336,12 +349,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">
-      <Link>Core\e_sqlite3.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Visible>false</Visible>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -362,5 +369,4 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
-  <Import Project="$(RepositoryEngineeringDir)targets\GenerateServiceHubConfigurationFiles.targets" />
 </Project>

@@ -378,6 +378,12 @@ Friend Class MockNamedTypeSymbol
     Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
         Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
     End Function
+
+    Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+        Get
+            Return False
+        End Get
+    End Property
 End Class
 
 Friend Class MockMethodSymbol
@@ -637,6 +643,12 @@ Friend Class MockMethodSymbol
     Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
         Throw ExceptionUtilities.Unreachable
     End Function
+
+    Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+        Get
+            Return False
+        End Get
+    End Property
 End Class
 
 Friend Class MockModuleSymbol
@@ -735,6 +747,13 @@ Friend Class MockModuleSymbol
     Public Overrides Function GetMetadata() As ModuleMetadata
         Return Nothing
     End Function
+
+    Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class
 
 Friend Class MockAssemblySymbol
@@ -812,6 +831,10 @@ Friend Class MockAssemblySymbol
         Throw New NotImplementedException()
     End Function
 
+    Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
     Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
         Throw New NotImplementedException()
     End Function
@@ -845,4 +868,11 @@ Friend Class MockAssemblySymbol
     Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function
+
+    Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class

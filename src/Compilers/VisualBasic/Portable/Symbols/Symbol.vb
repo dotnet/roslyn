@@ -446,12 +446,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ObsoleteState As ThreeState
             Get
                 Select Case ObsoleteKind
-                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.Experimental
+                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.WindowsExperimental, ObsoleteAttributeKind.Experimental
                         Return ThreeState.False
                     Case ObsoleteAttributeKind.Uninitialized
                         Return ThreeState.Unknown
                     Case Else
                         Return ThreeState.True
+                End Select
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if this symbol has been marked with the Experimental attribute. 
+        ''' This property returns Unknown if the Experimental attribute hasn't been cracked yet.
+        ''' </summary>
+        Friend ReadOnly Property ExperimentalState As ThreeState
+            Get
+                Select Case ObsoleteKind
+                    Case ObsoleteAttributeKind.Experimental
+                        Return ThreeState.True
+                    Case ObsoleteAttributeKind.Uninitialized
+                        Return ThreeState.Unknown
+                    Case Else
+                        Return ThreeState.False
                 End Select
             End Get
         End Property
@@ -464,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        ''' Returns data decoded from Obsolete/Experimental attribute or null if there is no Obsolete/Experimental attribute.
         ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         ''' </summary>
         Friend MustOverride ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
@@ -834,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
-        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolInternal.IsDefinedInSourceTree
             Dim declaringReferences = Me.DeclaringSyntaxReferences
             If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
                 Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)

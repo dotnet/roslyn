@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => kind = trivia.Kind();
 
         public static bool IsSingleOrMultiLineComment(this SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineCommentTrivia;
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
             => trivia.IsSingleOrMultiLineComment() || trivia.IsShebangDirective();

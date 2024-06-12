@@ -7,7 +7,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     return SimplifyNode(
                         node,
-                        parentNode: node.Parent,
                         newNode: newNode,
                         simplifier: s_simplifyTupleName);
                 }
@@ -67,13 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-            {
-                return SimplifyNode(
+                => SimplifyNode(
                     node,
-                    parentNode: node.Parent,
                     newNode: base.VisitAnonymousObjectMemberDeclarator(node),
                     simplifier: s_simplifyAnonymousTypeMemberName);
-            }
         }
     }
 }

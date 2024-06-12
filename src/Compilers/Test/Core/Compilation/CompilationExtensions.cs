@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         internal static bool EnableVerifyIOperation { get; } =
 #if ROSLYN_TEST_IOPERATION
-            true;
+                                    true;
 #else
-            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+                        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
 #endif
 
         internal static bool EnableVerifyUsedAssemblies { get; } =

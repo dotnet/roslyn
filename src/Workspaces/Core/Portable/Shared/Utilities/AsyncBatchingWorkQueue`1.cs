@@ -12,7 +12,12 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Roslyn.Utilities
 {
     /// <inheritdoc cref="AsyncBatchingWorkQueue{TItem, TResult}"/>
-    internal class AsyncBatchingWorkQueue<TItem> : AsyncBatchingWorkQueue<TItem, VoidResult>
+    internal class AsyncBatchingWorkQueue<TItem>(
+        TimeSpan delay,
+        Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
+        IEqualityComparer<TItem>? equalityComparer,
+        IAsynchronousOperationListener asyncListener,
+        CancellationToken cancellationToken) : AsyncBatchingWorkQueue<TItem, VoidResult>(delay, Convert(processBatchAsync), equalityComparer, asyncListener, cancellationToken)
     {
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
@@ -24,16 +29,6 @@ namespace Roslyn.Utilities
                    equalityComparer: null,
                    asyncListener,
                    cancellationToken)
-        {
-        }
-
-        public AsyncBatchingWorkQueue(
-            TimeSpan delay,
-            Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
-            IEqualityComparer<TItem>? equalityComparer,
-            IAsynchronousOperationListener asyncListener,
-            CancellationToken cancellationToken)
-            : base(delay, Convert(processBatchAsync), equalityComparer, asyncListener, cancellationToken)
         {
         }
 

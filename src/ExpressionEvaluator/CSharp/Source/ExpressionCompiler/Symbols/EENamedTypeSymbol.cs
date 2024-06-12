@@ -159,7 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier => null;
+        internal override bool IsFileLocal => false;
+        internal override FileIdentifier AssociatedFileIdentifier => null;
 
         public override IEnumerable<string> MemberNames
         {
@@ -186,12 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             throw ExceptionUtilities.Unreachable();
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -372,5 +373,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+#nullable disable
     }
 }

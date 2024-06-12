@@ -232,5 +232,43 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
+
+        public static bool CanBeEnumerated(this ITypeSymbol type)
+        {
+            // Type itself is IEnumerable/IEnumerable<SomeType>
+            if (type.OriginalDefinition is { SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable })
+            {
+                return true;
+            }
+
+            return type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
+        }
+
+        public static bool CanBeAsynchronouslyEnumerated(this ITypeSymbol type, Compilation compilation)
+        {
+            var asyncEnumerableType = compilation.IAsyncEnumerableOfTType();
+
+            if (asyncEnumerableType is null)
+            {
+                return false;
+            }
+
+            // Type itself is an IAsyncEnumerable<SomeType>
+            if (type.TypeKind == TypeKind.Interface &&
+                type.OriginalDefinition.Equals(asyncEnumerableType, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+
+            foreach (var @interface in type.AllInterfaces)
+            {
+                if (@interface.OriginalDefinition.Equals(asyncEnumerableType, SymbolEqualityComparer.Default))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

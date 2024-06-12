@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(ClassificationTag))]
-    internal sealed partial class DiagnosticsClassificationTaggerProvider : AbstractPushOrPullDiagnosticsTaggerProvider<ClassificationTag>
+    internal sealed partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected sealed override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)

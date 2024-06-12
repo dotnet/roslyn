@@ -15,6 +15,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
+#Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_WellKnownAttributes
         Inherits BasicTestBase

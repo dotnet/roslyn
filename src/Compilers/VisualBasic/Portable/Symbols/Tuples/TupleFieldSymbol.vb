@@ -116,6 +116,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _tupleElementIndex = other._tupleElementIndex AndAlso
                 TypeSymbol.Equals(_containingTuple, other._containingTuple, TypeCompareKind.ConsiderEverything)
         End Function
+
+        Public NotOverridable Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return _underlyingField.IsRequired
+            End Get
+        End Property
     End Class
 
     ''' <summary>

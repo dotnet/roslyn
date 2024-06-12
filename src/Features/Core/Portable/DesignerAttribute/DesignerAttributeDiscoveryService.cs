@@ -25,7 +25,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
     [ExportWorkspaceService(typeof(IDesignerAttributeDiscoveryService)), Shared]
-    internal sealed partial class DesignerAttributeDiscoveryService : IDesignerAttributeDiscoveryService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed partial class DesignerAttributeDiscoveryService(IAsynchronousOperationListenerProvider listenerProvider) : IDesignerAttributeDiscoveryService
     {
         /// <summary>
         /// Cache from the individual references a project has, to a boolean specifying if reference knows about the
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// </summary>
         private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<bool>> s_metadataIdToDesignerAttributeInfo = new();
 
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
         /// <summary>
         /// Protects mutable state in this type.
@@ -45,13 +47,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// don't change.
         /// </summary>
         private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DesignerAttributeDiscoveryService(IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
-        }
 
         private static async ValueTask<bool> HasDesignerCategoryTypeAsync(Project project, CancellationToken cancellationToken)
         {
@@ -89,7 +84,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 var asyncLazy = s_metadataIdToDesignerAttributeInfo.GetValue(
                     metadataId, _ => AsyncLazy.Create(cancellationToken =>
-                        ComputeHasDesignerCategoryTypeAsync(solutionServices, solutionKey, peReference, cancellationToken), cacheResult: true));
+                        ComputeHasDesignerCategoryTypeAsync(solutionServices, solutionKey, peReference, cancellationToken)));
                 return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -159,7 +154,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // The top level project version for this project.  We only care if anything top level changes here.
             // Downstream impact will already happen due to us keying off of the references a project has (which will
             // change if anything it depends on changes).
-            var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
+            var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync);
 
             // Switch to frozen semantics if requested.  We don't need to wait on generators to run here as we want to
             // be lightweight.  We'll also continue running in the future.  So if any changes to happen that are
@@ -222,28 +217,31 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             bool? hasDesignerCategoryType = null;
 
             using var _ = ArrayBuilder<(DesignerAttributeData data, VersionStamp version)>.GetInstance(out var results);
-            foreach (var document in project.Documents)
+
+            // Avoid realizing document instances until needed.
+            foreach (var documentId in project.DocumentIds)
             {
                 // If we're only analyzing a specific document, then skip the rest.
-                if (specificDocument != null && document != specificDocument)
+                if (specificDocument != null && documentId != specificDocument.Id)
                     continue;
 
                 // If we don't have a path for this document, we cant proceed with it.
                 // We need that path to inform the project system which file we're referring to.
-                if (document.FilePath == null)
+                var filePath = project.State.DocumentStates.GetRequiredState(documentId).FilePath;
+                if (filePath is null)
                     continue;
 
                 // If nothing has changed at the top level between the last time we analyzed this document and now, then
                 // no need to analyze again.
                 var projectVersion = await lazyProjectVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (_documentToLastReportedInformation.TryGetValue(document.Id, out var existingInfo) &&
+                if (_documentToLastReportedInformation.TryGetValue(documentId, out var existingInfo) &&
                     existingInfo.projectVersion == projectVersion)
                 {
                     continue;
                 }
 
                 hasDesignerCategoryType ??= await HasDesignerCategoryTypeAsync(project, cancellationToken).ConfigureAwait(false);
-                var data = await ComputeDesignerAttributeDataAsync(document, hasDesignerCategoryType.Value).ConfigureAwait(false);
+                var data = await ComputeDesignerAttributeDataAsync(project, documentId, filePath, hasDesignerCategoryType.Value).ConfigureAwait(false);
                 if (data.Category != existingInfo.category)
                     results.Add((data, projectVersion));
             }
@@ -251,32 +249,33 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             return results.ToImmutable();
 
             async Task<DesignerAttributeData> ComputeDesignerAttributeDataAsync(
-                Document document, bool hasDesignerCategoryType)
+                Project project, DocumentId documentId, string filePath, bool hasDesignerCategoryType)
             {
-                Contract.ThrowIfNull(document.FilePath);
-
                 // We either haven't computed the designer info, or our data was out of date.  We need
                 // So recompute here.  Figure out what the current category is, and if that's different
                 // from what we previously stored.
                 var category = await ComputeDesignerAttributeCategoryAsync(
-                    hasDesignerCategoryType, document, cancellationToken).ConfigureAwait(false);
+                    hasDesignerCategoryType, project, documentId, cancellationToken).ConfigureAwait(false);
 
                 return new DesignerAttributeData
                 {
                     Category = category,
-                    DocumentId = document.Id,
-                    FilePath = document.FilePath,
+                    DocumentId = documentId,
+                    FilePath = filePath,
                 };
             }
         }
 
         public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
-            bool hasDesignerCategoryType, Document document, CancellationToken cancellationToken)
+            bool hasDesignerCategoryType, Project project, DocumentId documentId, CancellationToken cancellationToken)
         {
             // simple case.  If there's no DesignerCategory type in this compilation, then there's definitely no
             // designable types.
             if (!hasDesignerCategoryType)
                 return null;
+
+            // Wait to realize the document to avoid unnecessary allocations when indexing documents.
+            var document = project.GetRequiredDocument(documentId);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

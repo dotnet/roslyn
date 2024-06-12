@@ -8,25 +8,18 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.Editor.TaskList
 {
-    internal sealed class TaskListUpdatedArgs : UpdatedEventArgs
+    internal sealed class TaskListUpdatedArgs(
+        object id, Solution solution, DocumentId documentId, ImmutableArray<TaskListItem> items) : UpdatedEventArgs(id, solution.Workspace, documentId.ProjectId, documentId)
     {
         /// <summary>
         /// Solution this task items are associated with
         /// </summary>
-        public Solution Solution { get; }
+        public Solution Solution { get; } = solution;
 
         /// <summary>
         /// The task items associated with the ID.
         /// </summary>
-        public ImmutableArray<TaskListItem> TaskListItems { get; }
-
-        public TaskListUpdatedArgs(
-            object id, Solution solution, DocumentId documentId, ImmutableArray<TaskListItem> items)
-            : base(id, solution.Workspace, documentId.ProjectId, documentId)
-        {
-            Solution = solution;
-            TaskListItems = items;
-        }
+        public ImmutableArray<TaskListItem> TaskListItems { get; } = items;
 
         /// <summary>
         /// <see cref="DocumentId"/> this update is associated with.

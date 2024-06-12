@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     d.Title,
                     async cancellationToken =>
                     {
-                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                         var newText = sourceText.WithChanges(d.TextChanges);
                         return document.WithText(newText);
                     },

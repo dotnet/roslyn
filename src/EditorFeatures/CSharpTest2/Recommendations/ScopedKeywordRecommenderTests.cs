@@ -36,24 +36,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -74,8 +80,10 @@ $$");
         public async Task TestNotAfterStackAlloc()
         {
             await VerifyAbsenceAsync(
-@"class C {
-     int* goo = stackalloc $$");
+                """
+                class C {
+                     int* goo = stackalloc $$
+                """);
         }
 
         [Fact]
@@ -111,25 +119,31 @@ $$");
         public async Task TestBeforeStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"$$
-return true;"));
+                """
+                $$
+                return true;
+                """));
         }
 
         [Fact]
         public async Task TestAfterStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"return true;
-$$"));
+                """
+                return true;
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
-{
-  $$
-}");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  $$
+                }
+                """);
         }
 
         [Fact]
@@ -290,8 +304,10 @@ $$"));
         public async Task TestNotAfterConstField()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    const $$");
+                """
+                class C {
+                    const $$
+                """);
         }
 
         [Fact]
@@ -305,16 +321,20 @@ $$"));
         public async Task TestNotAfterRefInMemberContext()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    ref $$");
+                """
+                class C {
+                    ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRefReadonlyInMemberContext()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    ref readonly $$");
+                """
+                class C {
+                    ref readonly $$
+                """);
         }
 
         [Fact]

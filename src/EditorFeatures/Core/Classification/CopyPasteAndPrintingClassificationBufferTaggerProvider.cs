@@ -27,26 +27,18 @@ namespace Microsoft.CodeAnalysis.Classification
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider : ITaggerProvider
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider(
+        IThreadingContext threadingContext,
+        ClassificationTypeMap typeMap,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IGlobalOptionService globalOptions) : ITaggerProvider
     {
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IThreadingContext _threadingContext;
-        private readonly ClassificationTypeMap _typeMap;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CopyPasteAndPrintingClassificationBufferTaggerProvider(
-            IThreadingContext threadingContext,
-            ClassificationTypeMap typeMap,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptions)
-        {
-            _threadingContext = threadingContext;
-            _typeMap = typeMap;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
-            _globalOptions = globalOptions;
-        }
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ClassificationTypeMap _typeMap = typeMap;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public IAccurateTagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {

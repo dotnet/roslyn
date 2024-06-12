@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return AddImportAsync(contextNode, document, importsStatement, options, cancellationToken)
         End Function
 
-        Private Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax
+        Private Shared Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax
             Dim namePiece = SyntaxFactory.IdentifierName(nameSpaceParts(index))
             Return If(index = 0,
                 DirectCast(namePiece, NameSyntax),

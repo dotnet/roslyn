@@ -8,27 +8,18 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal sealed class ParameterConfiguration
+    internal sealed class ParameterConfiguration(
+        ExistingParameter? thisParameter,
+        ImmutableArray<Parameter> parametersWithoutDefaultValues,
+        ImmutableArray<Parameter> remainingEditableParameters,
+        ExistingParameter? paramsParameter,
+        int selectedIndex)
     {
-        public readonly ExistingParameter? ThisParameter;
-        public readonly ImmutableArray<Parameter> ParametersWithoutDefaultValues;
-        public readonly ImmutableArray<Parameter> RemainingEditableParameters;
-        public readonly ExistingParameter? ParamsParameter;
-        public readonly int SelectedIndex;
-
-        public ParameterConfiguration(
-            ExistingParameter? thisParameter,
-            ImmutableArray<Parameter> parametersWithoutDefaultValues,
-            ImmutableArray<Parameter> remainingEditableParameters,
-            ExistingParameter? paramsParameter,
-            int selectedIndex)
-        {
-            ThisParameter = thisParameter;
-            ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
-            RemainingEditableParameters = remainingEditableParameters;
-            ParamsParameter = paramsParameter;
-            SelectedIndex = selectedIndex;
-        }
+        public readonly ExistingParameter? ThisParameter = thisParameter;
+        public readonly ImmutableArray<Parameter> ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
+        public readonly ImmutableArray<Parameter> RemainingEditableParameters = remainingEditableParameters;
+        public readonly ExistingParameter? ParamsParameter = paramsParameter;
+        public readonly int SelectedIndex = selectedIndex;
 
         public static ParameterConfiguration Create(ImmutableArray<Parameter> parameters, bool isExtensionMethod, int selectedIndex)
         {

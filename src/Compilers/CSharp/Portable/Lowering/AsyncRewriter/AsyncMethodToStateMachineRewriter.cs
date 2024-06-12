@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
                 var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
-                F.Diagnostics.Add(hoistedLocal.Locations.FirstOrNone(), useSiteInfo);
+                F.Diagnostics.Add(hoistedLocal.GetFirstLocationOrNone(), useSiteInfo);
                 if (!isManagedType)
                 {
                     continue;
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if(!($awaiterTemp.IsCompleted)) { ... }
                     F.If(
                         condition: F.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
-                        thenClause: GenerateAwaitForIncompleteTask(awaiterTemp)));
+                        thenClause: GenerateAwaitForIncompleteTask(awaiterTemp, node.DebugInfo)));
             BoundExpression getResultCall = MakeCallMaybeDynamic(
                 F.Local(awaiterTemp),
                 getResult,
@@ -450,9 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.Call(F.Local(awaiterTemp), getIsCompletedMethod);
         }
 
-        private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp)
+        private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp, BoundAwaitExpressionDebugInfo debugInfo)
         {
-            AddResumableState(awaiterTemp.GetDeclaratorSyntax(), out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
+            var awaitSyntax = awaiterTemp.GetDeclaratorSyntax();
+            AddResumableState(awaitSyntax, debugInfo.AwaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             TypeSymbol awaiterFieldType = awaiterTemp.Type.IsVerifierReference()
                 ? F.SpecialType(SpecialType.System_Object)
@@ -484,6 +485,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 GenerateReturn(false));
+
+            if (F.Compilation.Options.EnableEditAndContinue)
+            {
+                for (int i = 0; i < debugInfo.ReservedStateMachineCount; i++)
+                {
+                    AddResumableState(awaitSyntax, new AwaitDebugId((byte)(debugInfo.AwaitId.RelativeStateOrdinal + 1 + i)), out _, out var dummyResumeLabel);
+                    blockBuilder.Add(F.Label(dummyResumeLabel));
+                }
+            }
 
             blockBuilder.Add(
                 F.Label(resumeLabel));

@@ -192,9 +192,29 @@
         <target state="translated">"{0}" verwenden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">Sammlungsausdruck verwenden</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Interpolierte ausführliche Zeichenfolge verwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">Primären Konstruktor verwenden (und Felder entfernen)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">Primären Konstruktor verwenden (und Member entfernen)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">Primären Konstruktor verwenden (und Eigenschaften entfernen)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

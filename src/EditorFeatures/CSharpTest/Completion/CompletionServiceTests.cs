@@ -150,16 +150,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         [Theory, CombinatorialData]
         public async Task GettingCompletionListShoudNotRunSourceGenerator(bool forkBeforeFreeze)
         {
-            var sourceMarkup = @"
-using System;
+            var sourceMarkup = """
+                using System;
 
-namespace N
-{
-    public class C1
-    {
-        $$
-    }
-}";
+                namespace N
+                {
+                    public class C1
+                    {
+                        $$
+                    }
+                }
+                """;
             MarkupTestFile.GetPosition(sourceMarkup.NormalizeLineEndings(), out var source, out int? position);
 
             var generatorRanCount = 0;

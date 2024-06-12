@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/69364")]
         public async Task NavigateTo()
         {
             await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);

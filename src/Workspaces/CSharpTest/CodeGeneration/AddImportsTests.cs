@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                 var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
 
                 var actualText = (await formatted.GetTextAsync()).ToString();
-                Assert.Equal(simplifiedText, actualText);
+                AssertEx.EqualOrDiff(simplifiedText, actualText);
             }
 
             if (performCheck)
@@ -172,7 +172,7 @@ class C
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestDontAddSystemImportFirst(bool useSymbolAnnotations)
+        public async Task TestDoNotAddSystemImportFirst(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using N;
@@ -304,7 +304,8 @@ class C
     public System.Int32 F;
 }",
 
-@"class C
+@"
+class C
 {
     public int F;
 }", useSymbolAnnotations: false);
@@ -486,7 +487,8 @@ class C
     public N.C F;
 }",
 
-@"namespace N
+@"
+namespace N
 {
     class C
     {

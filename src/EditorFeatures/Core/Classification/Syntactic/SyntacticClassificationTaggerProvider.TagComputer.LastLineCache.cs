@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Classification
             /// <summary>
             /// it is a helper class that encapsulates logic on holding onto last classification result
             /// </summary>
-            private class LastLineCache
+            private class LastLineCache(IThreadingContext threadingContext)
             {
                 // this helper class is primarily to improve active typing perf. don't bother to cache
                 // something very big. 
@@ -25,13 +26,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 // mutating state
                 private SnapshotSpan _span;
-                private readonly ArrayBuilder<ClassifiedSpan> _classifications = new();
-                private readonly IThreadingContext _threadingContext;
-
-                public LastLineCache(IThreadingContext threadingContext)
-                {
-                    _threadingContext = threadingContext;
-                }
+                private readonly SegmentedList<ClassifiedSpan> _classifications = new();
+                private readonly IThreadingContext _threadingContext = threadingContext;
 
                 private void Clear()
                 {
@@ -41,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _classifications.Clear();
                 }
 
-                public bool TryUseCache(SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifications)
+                public bool TryUseCache(SnapshotSpan span, SegmentedList<ClassifiedSpan> classifications)
                 {
                     _threadingContext.ThrowIfNotOnUIThread();
 
@@ -57,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     return false;
                 }
 
-                public void Update(SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifications)
+                public void Update(SnapshotSpan span, SegmentedList<ClassifiedSpan> classifications)
                 {
                     _threadingContext.ThrowIfNotOnUIThread();
                     this.Clear();

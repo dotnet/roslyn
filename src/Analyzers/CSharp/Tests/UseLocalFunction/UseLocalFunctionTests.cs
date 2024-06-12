@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseLocalFunctionDiagnosticAnalyzer(), GetCSharpUseLocalFunctionCodeFixProvider());
+            => (new CSharpUseLocalFunctionDiagnosticAnalyzer(), new CSharpUseLocalFunctionCodeFixProvider());
 
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
 
@@ -4138,6 +4138,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
                     }
                 }
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68439")]
+        public async Task TestImplicitlyTypedLambdaCSharp10()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var [||]test = (int n) => n * 2;
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        static int test(int n) => n * 2;
+                    }
+                }
+                """,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68439")]
+        public async Task TestImplicitlyTypedLambdaCSharp9()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var [||]test = (int n) => n * 2;
+                    }
+                }
+                """,
+                new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
     }
 }

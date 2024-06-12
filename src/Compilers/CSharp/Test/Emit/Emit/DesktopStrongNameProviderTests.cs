@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tempDir = Temp.CreateDirectory();
             var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path);
-            Assert.Equal(tempDir.Path, provider.FileSystem.GetTempPath());
+            Assert.Equal(tempDir.Path, provider.FileSystem.GetSigningTempPath());
         }
 
         [Fact]
-        public void RespectDefaultTempPath()
+        public void RespectNullTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
-            Assert.Equal(Path.GetTempPath(), provider.FileSystem.GetTempPath());
+            Assert.Null(provider.FileSystem.GetSigningTempPath());
         }
 
         [Fact]

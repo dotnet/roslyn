@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             ' If the symbol is a method symbol, we'll figure out the right location which may be in virtual space
             Dim methodBlock = root.FindToken(navigationLocation.position).GetAncestor(Of MethodBlockBaseSyntax)()
             If methodBlock IsNot Nothing Then
-                Dim text = Await destinationDocument.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim text = Await destinationDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
                 Dim navPoint = NavigationPointHelpers.GetNavigationPoint(text, indentSize:=4, methodBlock)
                 Return (navigationLocation.documentId, navPoint.Position, navPoint.VirtualSpaces)
             End If

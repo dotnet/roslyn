@@ -52,7 +52,7 @@ comment */|}";
             AssertJsonEquals(expected, results);
         }
 
-        [Theory(Skip = "GetFoldingRangeAsync does not yet support regions."), CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGetFoldingRangeAsync_Regions(bool mutatingLspWorkspace)
         {
             var markup =
@@ -73,7 +73,7 @@ comment */|}";
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.FoldingRangeParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
+                TextDocument = CreateTextDocumentIdentifier(ProtocolConversions.CreateAbsoluteUri(document.FilePath))
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,

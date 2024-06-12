@@ -24,18 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private partial class CSharpCodeGenerator
         {
-            private sealed class ExpressionCodeGenerator : CSharpCodeGenerator
+            private sealed class ExpressionCodeGenerator(
+                InsertionPoint insertionPoint,
+                SelectionResult selectionResult,
+                AnalyzerResult analyzerResult,
+                CSharpCodeGenerationOptions options,
+                bool localFunction) : CSharpCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction)
             {
-                public ExpressionCodeGenerator(
-                    InsertionPoint insertionPoint,
-                    SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult,
-                    CSharpCodeGenerationOptions options,
-                    bool localFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
-                {
-                }
-
                 public static bool IsExtractMethodOnExpression(SelectionResult code)
                     => code.SelectionInExpression;
 

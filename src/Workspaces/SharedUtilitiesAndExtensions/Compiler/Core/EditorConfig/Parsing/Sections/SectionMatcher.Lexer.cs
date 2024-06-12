@@ -8,29 +8,22 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
 {
     internal readonly partial struct SectionMatcher
     {
-        private struct Lexer
+        private struct Lexer(string headerText)
         {
-            private readonly string _headerText;
-            public int Position { get; set; }
+            public int Position { get; set; } = 0;
 
-            public Lexer(string headerText)
-            {
-                _headerText = headerText;
-                Position = 0;
-            }
-
-            public readonly bool IsDone => Position >= _headerText.Length;
+            public readonly bool IsDone => Position >= headerText.Length;
 
             public TokenKind Lex()
             {
-                var tokenKind = GetTokenKindAtPosition(_headerText, Position);
+                var tokenKind = GetTokenKindAtPosition(headerText, Position);
                 switch (tokenKind)
                 {
                     case TokenKind.StarStar:
                         Position += 2;
                         break;
                     case TokenKind.SimpleCharacter:
-                        if (_headerText[Position] == '\\')
+                        if (headerText[Position] == '\\')
                         {
                             // Backslash escapes the next character
                             Position++;
@@ -58,9 +51,9 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
             {
                 var position = Position;
                 position++;
-                if (position < _headerText.Length)
+                if (position < headerText.Length)
                 {
-                    kind = GetTokenKindAtPosition(_headerText, position);
+                    kind = GetTokenKindAtPosition(headerText, position);
                     return true;
                 }
 
@@ -74,7 +67,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 position--;
                 if (position >= 0)
                 {
-                    kind = GetTokenKindAtPosition(_headerText, position);
+                    kind = GetTokenKindAtPosition(headerText, position);
                     return true;
                 }
 
@@ -128,9 +121,9 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 }
             }
 
-            public readonly char CurrentCharacter => _headerText[Position];
+            public readonly char CurrentCharacter => headerText[Position];
 
-            public char EatCurrentCharacter() => _headerText[Position++];
+            public char EatCurrentCharacter() => headerText[Position++];
 
             public bool TryEatCurrentCharacter(out char nextChar)
             {
@@ -146,7 +139,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 }
             }
 
-            public readonly char this[int position] => _headerText[position];
+            public readonly char this[int position] => headerText[position];
 
             public string? TryLexNumber()
             {

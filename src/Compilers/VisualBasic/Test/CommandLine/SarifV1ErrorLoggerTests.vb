@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Property
 
         Friend Overrides Function GetExpectedOutputForNoDiagnostics(
-            cmd As CommonCompiler) As String
+            cmd As MockVisualBasicCompiler) As String
 
             Dim expectedHeader = GetExpectedErrorLogHeader(cmd)
             Dim expectedIssues = "
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Sub
 
         Friend Overrides Function GetExpectedOutputForSimpleCompilerDiagnostics(
-            cmd As CommonCompiler,
+            cmd As MockVisualBasicCompiler,
             sourceFilePath As String) As String
 
             Dim expectedHeader = GetExpectedErrorLogHeader(cmd)
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Sub
 
         Friend Overrides Function GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(
-            cmd As CommonCompiler,
+            cmd As MockVisualBasicCompiler,
             sourceFilePath As String,
             ParamArray suppressionKinds As String()) As String
 

@@ -13,16 +13,11 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
-    internal class UnitTestingStackTraceServiceAccessor : IUnitTestingStackTraceServiceAccessor
+    [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    internal class UnitTestingStackTraceServiceAccessor(
+        IStackTraceExplorerService stackTraceExplorerService) : IUnitTestingStackTraceServiceAccessor
     {
-        private readonly IStackTraceExplorerService _stackTraceExplorerService;
-
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public UnitTestingStackTraceServiceAccessor(
-            IStackTraceExplorerService stackTraceExplorerService)
-        {
-            _stackTraceExplorerService = stackTraceExplorerService;
-        }
+        private readonly IStackTraceExplorerService _stackTraceExplorerService = stackTraceExplorerService;
 
         public (Document? document, int lineNumber) GetDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame)
             => _stackTraceExplorerService.GetDocumentAndLine(workspace.CurrentSolution, parsedFrame.UnderlyingObject);

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBuilder.EnsureIsReadOnlyAttributeExists();
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
+            ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
 
             if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
@@ -218,7 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool InheritsBaseMethodAttributes => true;
         internal override bool GenerateDebugInfo => !this.IsAsync;
-        internal override bool IsExpressionBodied => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

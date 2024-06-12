@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => BackgroundAnalysisScope.None;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Active_File_Tag
-            => BackgroundAnalysisScope.ActiveFile;
+            => BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Open_Files_Tag
             => BackgroundAnalysisScope.OpenFiles;
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CompilerDiagnosticsScope.None;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
-            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+            => CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
             => CompilerDiagnosticsScope.OpenFiles;
@@ -83,6 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
+
+        public static string Option_run_code_analysis_on_dotnet
+            => ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart;
 
         public static string Option_analyze_source_generated_files
             => ServicesVSResources.Analyze_source_generated_files;
@@ -225,9 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Quick_Actions
             => ServicesVSResources.Quick_Actions;
 
-        public static string Option_Compute_Quick_Actions_asynchronously_experimental
-            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
-
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
 
@@ -254,6 +254,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Collapse_regions_when_collapsing_to_definitions
             => ServicesVSResources.Collapse_regions_when_collapsing_to_definitions;
+
+        public static string Option_Collapse_local_functions_when_collapsing_to_definitions
+            => ServicesVSResources.Collapse_local_functions_when_collapsing_to_definitions;
 
         public static string Option_Block_Structure_Guides
             => ServicesVSResources.Block_Structure_Guides;

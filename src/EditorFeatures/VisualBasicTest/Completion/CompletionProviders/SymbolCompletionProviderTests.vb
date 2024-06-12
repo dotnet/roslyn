@@ -6259,7 +6259,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
-        Public Async Function TestDontThrowForNullPropagatingOperatorInErase() As Task
+        Public Async Function TestDoNotThrowForNullPropagatingOperatorInErase() As Task
             Dim text =
 <code><![CDATA[
 Module Program
@@ -6328,7 +6328,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
-        Public Async Function TestDontThrowForNullPropagatingOperatorOnTypeParameter() As Task
+        Public Async Function TestDoNotThrowForNullPropagatingOperatorOnTypeParameter() As Task
             Dim text =
 <code><![CDATA[
 Module Program

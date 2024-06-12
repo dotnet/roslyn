@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case { ConstantValueOpt: { } }:
                     return VisitExpression(expr);
-                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }:
-                    // This conversion can be performed lazily, but need not be saved.  It is treated as non-side-effecting.
+                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }: // This conversion can be performed lazily, but need not be saved. It is treated as non-side-effecting.
+                case BoundConversion { Conversion.IsTupleConversion: true }: // If we were not able to push this conversion down the tree before getting here, it must be performed early, otherwise it won't be properly lowered by this machinery.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion { Conversion: { Kind: var conversionKind } conversion } when conversionMustBePerformedOnOriginalExpression(conversionKind):
                     // Some conversions cannot be performed on a copy of the argument and must be done early.

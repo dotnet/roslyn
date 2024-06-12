@@ -9,13 +9,8 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal sealed class SimpleNavigationBarItem : NavigationBarItem, IEquatable<SimpleNavigationBarItem>
+    internal sealed class SimpleNavigationBarItem(ITextVersion textVersion, string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed) : NavigationBarItem(textVersion, text, glyph, spans, childItems, indent, bolded, grayed), IEquatable<SimpleNavigationBarItem>
     {
-        public SimpleNavigationBarItem(ITextVersion textVersion, string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-            : base(textVersion, text, glyph, spans, childItems, indent, bolded, grayed)
-        {
-        }
-
         public override bool Equals(object? obj)
             => Equals(obj as SimpleNavigationBarItem);
 

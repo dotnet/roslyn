@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateConversionDeclarationWorker(method, destination, info);
+            var declaration = GenerateConversionDeclarationWorker(method, destination, info, cancellationToken);
             return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken)));
         }
@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
             IMethodSymbol method,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationContextInfo info)
+            CSharpCodeGenerationContextInfo info,
+            CancellationToken cancellationToken)
         {
             var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern;
 
@@ -73,18 +74,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 expressionBody: null,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            declaration = UseExpressionBodyIfDesired(info, declaration);
+            declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
             return declaration;
         }
 
         private static ConversionOperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationContextInfo info, ConversionOperatorDeclarationSyntax declaration)
+            CSharpCodeGenerationContextInfo info, ConversionOperatorDeclarationSyntax declaration, CancellationToken cancellationToken)
         {
             if (declaration.ExpressionBody == null)
             {
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedOperators.Value,
+                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedOperators.Value, cancellationToken,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)

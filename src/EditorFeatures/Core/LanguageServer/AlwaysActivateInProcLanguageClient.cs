@@ -33,26 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [ContentType(ContentTypeNames.FSharpContentType)]
     [Export(typeof(ILanguageClient))]
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
-    internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+    internal class AlwaysActivateInProcLanguageClient(
+        CSharpVisualBasicLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider,
+        [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
     {
-        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
-        private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public AlwaysActivateInProcLanguageClient(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            ExportProvider exportProvider,
-            [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
-        {
-            _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
-            _buildOnlyDiagnostics = buildOnlyDiagnostics;
-        }
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
+        private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics = buildOnlyDiagnostics;
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
@@ -127,8 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     Range = true,
                     Legend = new SemanticTokensLegend
                     {
-                        TokenTypes = SemanticTokensHelpers.AllTokenTypes.ToArray(),
-                        TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                        TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
+                        TokenModifiers = SemanticTokensSchema.TokenModifiers
                     }
                 };
             }

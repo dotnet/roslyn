@@ -44,25 +44,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => project.GetAnalyzerConfigDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
         public static TextDocument GetRequiredTextDocument(this Project project, DocumentId documentId)
-        {
-            var document = project.GetTextDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
-            return document;
-        }
+            => project.GetTextDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
         public static async ValueTask<Document> GetRequiredSourceGeneratedDocumentAsync(this Project project, DocumentId documentId, CancellationToken cancellationToken)
         {
             var document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-            if (document is null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
-            return document;
+            return document ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
         }
     }
 }

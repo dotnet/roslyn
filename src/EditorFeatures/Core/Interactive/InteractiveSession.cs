@@ -360,6 +360,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             => InteractiveHostOptions.CreateFromDirectory(
                 _hostDirectory,
                 initialize ? _languageInfo.InteractiveResponseFileName : null,
+                CultureInfo.CurrentCulture,
                 CultureInfo.CurrentUICulture,
                  platform ?? Host.OptionsOpt?.Platform ?? InteractiveHost.DefaultPlatform);
 

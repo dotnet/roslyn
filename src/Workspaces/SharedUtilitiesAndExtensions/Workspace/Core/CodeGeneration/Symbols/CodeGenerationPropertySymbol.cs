@@ -14,42 +14,29 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
+    internal class CodeGenerationPropertySymbol(
+        INamedTypeSymbol containingType,
+        ImmutableArray<AttributeData> attributes,
+        Accessibility declaredAccessibility,
+        DeclarationModifiers modifiers,
+        ITypeSymbol type,
+        RefKind refKind,
+        ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
+        string name,
+        bool isIndexer,
+        ImmutableArray<IParameterSymbol> parametersOpt,
+        IMethodSymbol getMethod,
+        IMethodSymbol setMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), IPropertySymbol
     {
-        private readonly RefKind _refKind;
-        public ITypeSymbol Type { get; }
+        public ITypeSymbol Type { get; } = type;
         public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
-        public bool IsIndexer { get; }
+        public bool IsIndexer { get; } = isIndexer;
 
-        public ImmutableArray<IParameterSymbol> Parameters { get; }
-        public ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; }
+        public ImmutableArray<IParameterSymbol> Parameters { get; } = parametersOpt.NullToEmpty();
+        public ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; } = explicitInterfaceImplementations.NullToEmpty();
 
-        public IMethodSymbol GetMethod { get; }
-        public IMethodSymbol SetMethod { get; }
-
-        public CodeGenerationPropertySymbol(
-            INamedTypeSymbol containingType,
-            ImmutableArray<AttributeData> attributes,
-            Accessibility declaredAccessibility,
-            DeclarationModifiers modifiers,
-            ITypeSymbol type,
-            RefKind refKind,
-            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
-            string name,
-            bool isIndexer,
-            ImmutableArray<IParameterSymbol> parametersOpt,
-            IMethodSymbol getMethod,
-            IMethodSymbol setMethod)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
-        {
-            this.Type = type;
-            _refKind = refKind;
-            this.IsIndexer = isIndexer;
-            this.Parameters = parametersOpt.NullToEmpty();
-            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
-            this.GetMethod = getMethod;
-            this.SetMethod = setMethod;
-        }
+        public IMethodSymbol GetMethod { get; } = getMethod;
+        public IMethodSymbol SetMethod { get; } = setMethod;
 
         protected override CodeGenerationSymbol Clone()
         {
@@ -85,11 +72,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public new IPropertySymbol OriginalDefinition => this;
 
-        public RefKind RefKind => _refKind;
+        public RefKind RefKind => refKind;
 
-        public bool ReturnsByRef => _refKind == RefKind.Ref;
+        public bool ReturnsByRef => refKind == RefKind.Ref;
 
-        public bool ReturnsByRefReadonly => _refKind == RefKind.RefReadOnly;
+        public bool ReturnsByRefReadonly => refKind == RefKind.RefReadOnly;
 
         public IPropertySymbol OverriddenProperty => null;
 

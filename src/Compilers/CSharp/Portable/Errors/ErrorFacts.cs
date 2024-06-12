@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -80,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterDisallowsNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterNotNullIfNotNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ReturnNotNullIfNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
 
             NullableWarnings = nullableWarnings.ToImmutable();
         }
@@ -207,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
                     return 8;
@@ -410,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
@@ -530,6 +532,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                case ErrorCode.WRN_BadArgRef:
+                case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.WRN_ArgExpectedIn:
+                case ErrorCode.WRN_OverridingDifferentRefness:
+                case ErrorCode.WRN_HidingDifferentRefness:
+                case ErrorCode.WRN_TargetDifferentRefness:
+                case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
                     return 1;
                 default:
                     return 0;
@@ -579,6 +600,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
+                case ErrorCode.ERR_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
+                case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
+                case ErrorCode.ERR_DuplicateInterceptor:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorNotAccessible:
+                case ErrorCode.ERR_InterceptorScopedMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.ERR_InterceptorCannotInterceptNameof:
+                case ErrorCode.ERR_SymbolDefinedInAssembly:
+                case ErrorCode.ERR_InterceptorArityNotCompatible:
+                case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -1765,7 +1800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FeatureNotAvailableInVersion7_1:
                 case ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes:
                 case ErrorCode.ERR_CompilerAndLanguageVersion:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.ERR_TupleInferredNamesNotAvailable:
                 case ErrorCode.ERR_TypelessTupleInAs:
                 case ErrorCode.ERR_NoRefOutWhenRefOnly:
@@ -2256,7 +2291,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedScoped:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
-                case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
                 case ErrorCode.ERR_FileLocalDuplicateNameInNS:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
@@ -2309,7 +2343,68 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
                 case ErrorCode.ERR_BadStaticAfterUnsafe:
                 case ErrorCode.ERR_BadCaseInSwitchArm:
+                case ErrorCode.ERR_InterceptorsFeatureNotEnabled:
+                case ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric:
+                case ErrorCode.ERR_InterceptorPathNotInCompilation:
+                case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
+                case ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate:
+                case ErrorCode.ERR_InterceptorPositionBadToken:
+                case ErrorCode.ERR_InterceptorLineOutOfRange:
+                case ErrorCode.ERR_InterceptorCharacterOutOfRange:
+                case ErrorCode.ERR_InterceptorMethodMustBeOrdinary:
+                case ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition:
+                case ErrorCode.ERR_InterceptorFilePathCannotBeNull:
+                case ErrorCode.ERR_InterceptorNameNotInvoked:
+                case ErrorCode.ERR_InterceptorNonUniquePath:
+                case ErrorCode.ERR_InterceptorLineCharacterMustBePositive:
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
+                case ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly:
+                case ErrorCode.ERR_BadUsingStaticType:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.ERR_InlineArrayConversionToSpanNotSupported:
+                case ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported:
+                case ErrorCode.ERR_InlineArrayIndexOutOfRange:
+                case ErrorCode.ERR_InvalidInlineArrayLength:
+                case ErrorCode.ERR_InvalidInlineArrayLayout:
+                case ErrorCode.ERR_InvalidInlineArrayFields:
+                case ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation:
+                case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
+                case ErrorCode.ERR_InlineArrayBadIndex:
+                case ErrorCode.ERR_NamedArgumentForInlineArray:
+                case ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible:
+                case ErrorCode.ERR_ExpressionTreeContainsCollectionExpression:
+                case ErrorCode.ERR_CollectionExpressionNoTargetType:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                case ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound:
+                case ErrorCode.ERR_CollectionBuilderAttributeInvalidType:
+                case ErrorCode.ERR_CollectionBuilderAttributeInvalidMethodName:
+                case ErrorCode.ERR_CollectionBuilderNoElementType:
+                case ErrorCode.ERR_InlineArrayForEachNotSupported:
+                case ErrorCode.ERR_RefReadOnlyWrongOrdering:
+                case ErrorCode.WRN_BadArgRef:
+                case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.ERR_BadArgExtraRefLangVersion:
+                case ErrorCode.WRN_ArgExpectedIn:
+                case ErrorCode.WRN_OverridingDifferentRefness:
+                case ErrorCode.WRN_HidingDifferentRefness:
+                case ErrorCode.WRN_TargetDifferentRefness:
+                case ErrorCode.ERR_OutAttrOnRefReadonlyParam:
+                case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
+                case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.ERR_FeatureNotAvailableInVersion12:
+                case ErrorCode.ERR_CollectionExpressionEscape:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.ERR_ExpectedInterpolatedString:
+                case ErrorCode.ERR_InterceptorGlobalNamespace:
+                case ErrorCode.ERR_CollectionExpressionImmutableArray:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

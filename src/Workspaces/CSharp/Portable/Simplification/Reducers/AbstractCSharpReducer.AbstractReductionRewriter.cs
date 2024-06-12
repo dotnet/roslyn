@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -67,28 +68,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 Contract.ThrowIfNull(SemanticModel);
             }
 
-            private static SyntaxNode? GetParentNode(SyntaxNode node)
+            private static SyntaxNode GetParentNode(SyntaxNode node)
                 => node switch
                 {
                     ExpressionSyntax expression => GetParentNode(expression),
                     PatternSyntax pattern => GetParentNode(pattern),
                     CrefSyntax cref => GetParentNode(cref),
-                    _ => null
+                    _ => node.GetRequiredParent(),
                 };
 
             private static SyntaxNode GetParentNode(ExpressionSyntax expression)
             {
-                var lastExpression = expression;
-                for (SyntaxNode? current = expression; current != null; current = current.Parent)
+                // Walk all the way up the expression to the non-expression parent.  Effectively, once we change an
+                // expression *within* some larger expression context, we want to stop rewriting any further sibling
+                // expressions as they could be affected by this change.
+
+                SyntaxNode parent = expression;
+                for (var current = (SyntaxNode)expression; current != null; current = current.Parent)
                 {
-                    if (current is ExpressionSyntax currentExpression)
-                    {
-                        lastExpression = currentExpression;
-                    }
+                    // if we're in an argument, walk up into that as well as the change in one argument can affect
+                    // other arguments in a call.
+                    if (current is ExpressionSyntax or ArgumentSyntax)
+                        parent = current;
                 }
 
-                Contract.ThrowIfNull(lastExpression.Parent);
-                return lastExpression.Parent;
+                return parent.GetRequiredParent();
             }
 
             private static SyntaxNode GetParentNode(PatternSyntax pattern)
@@ -117,13 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return topMostCref.Parent;
             }
 
-            protected SyntaxNode SimplifyNode<TNode>(
+            protected SyntaxNode? SimplifyNode<TNode>(
                 TNode node,
-                SyntaxNode newNode,
-                SyntaxNode parentNode,
+                SyntaxNode? newNode,
                 Func<TNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TNode : SyntaxNode
             {
+                var parentNode = GetParentNode(node);
                 RequireInitialized();
 
                 this.CancellationToken.ThrowIfCancellationRequested();
@@ -139,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     return newNode;
                 }
 
-                if (!node.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                if (!node.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation))
                 {
                     var simplifiedNode = simplifier(node, this.SemanticModel, this.Options, this.CancellationToken);
                     if (simplifiedNode != node)
@@ -151,19 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 return node;
-            }
-
-            protected SyntaxNode SimplifyExpression<TExpression>(
-                TExpression expression,
-                SyntaxNode newNode,
-                Func<TExpression, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
-                where TExpression : SyntaxNode
-            {
-                var parentNode = GetParentNode(expression);
-                if (parentNode == null)
-                    return newNode;
-
-                return SimplifyNode(expression, newNode, parentNode, simplifier);
             }
 
             protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxToken> simplifier)

@@ -14,22 +14,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal class ChangeSignatureCodeAction : CodeActionWithOptions
+    internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context) : CodeActionWithOptions
     {
-        private readonly AbstractChangeSignatureService _changeSignatureService;
-        private readonly ChangeSignatureAnalysisSucceededContext _context;
+        private readonly AbstractChangeSignatureService _changeSignatureService = changeSignatureService;
+        private readonly ChangeSignatureAnalysisSucceededContext _context = context;
 
         /// <summary>
         /// This code action currently pops up a confirmation dialog to the user.  As such, it does more than make
         /// document changes (and is thus restricted in which hosts it can run).
         /// </summary>
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
-
-        public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context)
-        {
-            _changeSignatureService = changeSignatureService;
-            _context = context;
-        }
 
         public override string Title => FeaturesResources.Change_signature;
 

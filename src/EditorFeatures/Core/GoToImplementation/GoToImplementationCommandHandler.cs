@@ -25,24 +25,19 @@ namespace Microsoft.CodeAnalysis.GoToImplementation
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
-    internal sealed class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class GoToImplementationCommandHandler(
+        IThreadingContext threadingContext,
+        IStreamingFindUsagesPresenter streamingPresenter,
+        IUIThreadOperationExecutor uiThreadOperationExecutor,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>(threadingContext,
+               streamingPresenter,
+               uiThreadOperationExecutor,
+               listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
+               globalOptions)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToImplementationCommandHandler(
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            IUIThreadOperationExecutor uiThreadOperationExecutor,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext,
-                   streamingPresenter,
-                   uiThreadOperationExecutor,
-                   listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
-                   globalOptions)
-        {
-        }
-
         public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
         protected override string ScopeDescription => EditorFeaturesResources.Locating_implementations;

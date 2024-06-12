@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Check the attribute type (unless the attribute type is already an error).
                     if (boundTypeSymbol.TypeKind != TypeKind.Error)
                     {
-                        var location = attributeToBind.Name.GetLocation();
-                        binder.CheckDisallowedAttributeDependentType(boundType, location, diagnostics);
+                        binder.CheckDisallowedAttributeDependentType(boundType, attributeToBind.Name, diagnostics);
                     }
 
                     boundAttributeTypes[i] = boundTypeSymbol;
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bool found = TryPerformConstructorOverloadResolution(
+                bool found = attributeArgumentBinder.TryPerformConstructorOverloadResolution(
                     attributeTypeForBinding,
                     analyzedArguments.ConstructorArguments,
                     attributeTypeForBinding.Name,
@@ -212,12 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!found)
                 {
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = attributeArgumentBinder.GetNewCompoundUseSiteInfo(diagnostics);
                     resultKind = resultKind.WorseResultKind(
-                        memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
+                        memberResolutionResult.IsValid && !attributeArgumentBinder.IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
                             LookupResultKind.Inaccessible :
                             LookupResultKind.OverloadResolutionFailure);
-                    boundConstructorArguments = BuildArgumentsForErrorRecovery(analyzedArguments.ConstructorArguments, candidateConstructors);
+                    boundConstructorArguments = attributeArgumentBinder.BuildArgumentsForErrorRecovery(analyzedArguments.ConstructorArguments, candidateConstructors);
                     diagnostics.Add(node, useSiteInfo);
                 }
                 else
@@ -234,9 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics,
                         attributedMember: attributedMember);
                     boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.ToImmutable();
-                    ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
+                    attributeArgumentBinder.ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
-                    if (attributeConstructor.Parameters.Any(static p => p.RefKind == RefKind.In))
+                    if (attributeConstructor.Parameters.Any(static p => p.RefKind is RefKind.In or RefKind.RefReadOnlyParameter))
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                     }
@@ -502,10 +501,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundAssignmentOperator BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(namedArgument.NameEquals is not null);
+            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
+
+            if (attributeType.IsErrorType())
+            {
+                var badLHS = BadExpression(nameSyntax, lookupResultKind: LookupResultKind.Empty);
+                var rhs = BindRValueWithoutTargetType(namedArgument.Expression, diagnostics);
+                return new BoundAssignmentOperator(namedArgument, badLHS, rhs, CreateErrorType());
+            }
+
             bool wasError;
             LookupResultKind resultKind;
             Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
-
             ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
 
             if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
@@ -543,8 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;
-            RoslynDebug.Assert(namedArgument.NameEquals is object);
-            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
             BoundExpression lvalue;
             if (fieldSymbol is object)
             {
@@ -560,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var propertySymbol = namedArgumentNameSymbol as PropertySymbol;
                 if (propertySymbol is object)
                 {
-                    lvalue = new BoundPropertyAccess(nameSyntax, null, propertySymbol, resultKind, namedArgumentType);
+                    lvalue = new BoundPropertyAccess(nameSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, resultKind, namedArgumentType);
                 }
                 else
                 {
@@ -967,6 +973,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            private TypedConstant VisitArrayCollectionExpression(TypeSymbol type, BoundCollectionExpression collection, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            {
+                var typedConstantKind = type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
+                var elements = collection.Elements;
+                var builder = ArrayBuilder<TypedConstant>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    builder.Add(VisitCollectionExpressionElement(element, diagnostics, ref attrHasErrors, curArgumentHasErrors || element.HasAnyErrors));
+                }
+                return CreateTypedConstant(collection, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, arrayValue: builder.ToImmutableAndFree());
+            }
+
+            private TypedConstant VisitCollectionExpressionElement(BoundExpression node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            {
+                if (node is BoundCollectionExpressionSpreadElement spread)
+                {
+                    Binder.Error(diagnostics, ErrorCode.ERR_BadAttributeArgument, node.Syntax);
+                    attrHasErrors = true;
+                    return new TypedConstant(spread.Expression.Type, TypedConstantKind.Error, value: null);
+                }
+                return VisitExpression(node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
+            }
+
             private TypedConstant VisitConversion(BoundConversion node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 Debug.Assert(node.ConstantValueOpt == null);
@@ -982,6 +1011,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = node.Type;
                 var operand = node.Operand;
                 var operandType = operand.Type;
+
+                if (node.Conversion.IsCollectionExpression
+                    && node.Conversion.GetCollectionExpressionTypeKind(out _) == CollectionExpressionTypeKind.Array)
+                {
+                    Debug.Assert(type.IsSZArray());
+                    return VisitArrayCollectionExpression(type, (BoundCollectionExpression)operand, diagnostics, ref attrHasErrors, curArgumentHasErrors);
+                }
 
                 if ((object)type != null && operandType is object)
                 {

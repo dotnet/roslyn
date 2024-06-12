@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1391,6 +1392,7 @@ recurse:
         /// Serializes the node to the given <paramref name="stream"/>.
         /// Leaves the <paramref name="stream"/> open for further writes.
         /// </summary>
+        [Obsolete(SerializationDeprecationException.Text, error: false)]
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream == null)
@@ -1403,8 +1405,24 @@ recurse:
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
+            // Report NFW to see if this is being used in the wild.
+            FatalError.ReportNonFatalError(new SerializationDeprecationException());
             using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
             writer.WriteValue(Green);
+        }
+
+        /// <summary>
+        /// Specialized exception subtype to make it easier to search telemetry streams for this specific case.
+        /// </summary>
+        private protected sealed class SerializationDeprecationException : Exception
+        {
+            public const string Text = "Syntax serialization support is deprecated and will be removed in a future version of this API";
+
+            public SerializationDeprecationException()
+                : base(Text)
+            {
+
+            }
         }
 
         #region Core Methods

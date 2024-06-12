@@ -14,28 +14,34 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GoToDefinition;
 
-internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
+internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs>(
+    IThreadingContext threadingContext,
+    IStreamingFindUsagesPresenter streamingPresenter,
+    IUIThreadOperationExecutor uiThreadOperationExecutor,
+    IAsynchronousOperationListener listener,
+    IGlobalOptionService globalOptions) : ICommandHandler<TCommandArgs>
     where TLanguageService : class, ILanguageService
     where TCommandArgs : EditorCommandArgs
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
+    private readonly IAsynchronousOperationListener _listener = listener;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     /// <summary>
     /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that
@@ -63,32 +69,24 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     /// </summary>
     private Func<CancellationToken, Task>? _delayHook;
 
-    public AbstractGoToCommandHandler(
-        IThreadingContext threadingContext,
-        IStreamingFindUsagesPresenter streamingPresenter,
-        IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IAsynchronousOperationListener listener,
-        IGlobalOptionService globalOptions)
-    {
-        _threadingContext = threadingContext;
-        _streamingPresenter = streamingPresenter;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-        _listener = listener;
-        _globalOptions = globalOptions;
-    }
-
     public abstract string DisplayName { get; }
     protected abstract string ScopeDescription { get; }
     protected abstract FunctionId FunctionId { get; }
 
     protected abstract Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken);
 
+    private static (Document?, TLanguageService?) GetDocumentAndService(ITextSnapshot snapshot)
+    {
+        var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+        return (document, document?.GetLanguageService<TLanguageService>());
+    }
+
     public CommandState GetCommandState(TCommandArgs args)
     {
-        var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-        return document?.GetLanguageService<TLanguageService>() is null
-            ? CommandState.Unspecified
-            : CommandState.Available;
+        var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+        return service != null
+            ? CommandState.Available
+            : CommandState.Unspecified;
     }
 
     public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
@@ -100,13 +98,11 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         if (!caret.HasValue)
             return false;
 
-        var document = subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-        if (document == null)
-            return false;
-
-        var service = document.GetLanguageService<TLanguageService>();
+        var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
         if (service == null)
             return false;
+
+        Contract.ThrowIfNull(document);
 
         // cancel any prior find-refs that might be in progress.
         _cancellationTokenSource.Cancel();

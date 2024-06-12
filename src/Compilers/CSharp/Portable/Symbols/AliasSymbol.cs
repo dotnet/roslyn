@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object?)target != null && Locations.Length > 0)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
-                target.CheckAllConstraints(DeclaringCompilation, conversions, Locations[0], diagnostics);
+                var conversions = corLibrary.TypeConversions;
+                target.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
             }
         }
 
@@ -255,17 +255,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AliasSymbol? other = obj as AliasSymbol;
 
             return (object?)other != null &&
-                Equals(this.Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) &&
+                Equals(this.TryGetFirstLocation(), other.TryGetFirstLocation()) &&
                 Equals(this.ContainingSymbol, other.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
-        {
-            if (this.Locations.Length > 0)
-                return this.Locations.First().GetHashCode();
-            else
-                return Name.GetHashCode();
-        }
+            => this.TryGetFirstLocation()?.GetHashCode() ?? Name.GetHashCode();
 
         internal abstract override bool RequiresCompletion
         {
@@ -363,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamespaceSymbol? target;
             if (!ContainingSymbol.DeclaringCompilation.GetExternAliasTarget(Name, out target))
             {
-                diagnostics.Add(ErrorCode.ERR_BadExternAlias, Locations[0], Name);
+                diagnostics.Add(ErrorCode.ERR_BadExternAlias, GetFirstLocation(), Name);
             }
 
             RoslynDebug.Assert(target is object);
@@ -379,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (usingDirective.UnsafeKeyword != default)
             {
-                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.UnsafeKeyword);
             }
             else if (usingDirective.NamespaceOrType is not NameSyntax)
             {

@@ -15,14 +15,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private sealed class UnitTestingAsyncProjectWorkItemQueue : UnitTestingAsyncWorkItemQueue<ProjectId>
+            private sealed class UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter) : UnitTestingAsyncWorkItemQueue<ProjectId>(progressReporter)
             {
                 private readonly Dictionary<ProjectId, UnitTestingWorkItem> _projectWorkQueue = new();
-
-                public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
-                    : base(progressReporter)
-                {
-                }
 
                 protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 [DataContract]
 internal readonly record struct ExtractMethodOptions
 {
-    [DataMember] public bool DontPutOutOrRefOnStruct { get; init; } = true;
+    [DataMember] public bool DoNotPutOutOrRefOnStruct { get; init; } = true;
 
     public ExtractMethodOptions()
     {

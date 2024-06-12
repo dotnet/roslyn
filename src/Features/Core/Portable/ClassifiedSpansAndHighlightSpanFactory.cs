@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Classification
         private static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
             Document document, TextSpan sourceSpan, ClassificationOptions options, CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var narrowSpan = sourceSpan;
             var lineSpan = GetLineSpanForReference(sourceText, narrowSpan);

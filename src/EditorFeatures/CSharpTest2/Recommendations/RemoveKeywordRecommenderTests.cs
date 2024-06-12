@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -67,64 +73,80 @@ $$");
         public async Task TestAfterEvent()
         {
             await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { $$");
+                """
+                class C {
+                   event Goo Bar { $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { [Bar] $$");
+                """
+                class C {
+                   event Goo Bar { [Bar] $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterAdd()
         {
             await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { add { } $$");
+                """
+                class C {
+                   event Goo Bar { add { } $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterAddAndAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { add { } [Bar] $$");
+                """
+                class C {
+                   event Goo Bar { add { } [Bar] $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterAddBlock()
         {
             await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { add { } $$");
+                """
+                class C {
+                   event Goo Bar { add { } $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRemoveKeyword()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   event Goo Bar { remove $$");
+                """
+                class C {
+                   event Goo Bar { remove $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRemoveAccessor()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   event Goo Bar { remove { } $$");
+                """
+                class C {
+                   event Goo Bar { remove { } $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInProperty()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   int Goo { $$");
+                """
+                class C {
+                   int Goo { $$
+                """);
         }
     }
 }

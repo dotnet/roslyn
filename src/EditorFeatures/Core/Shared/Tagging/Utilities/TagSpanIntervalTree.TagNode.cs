@@ -10,18 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TagSpanIntervalTree<TTag>
     {
-        private class TagNode
+        private class TagNode(ITagSpan<TTag> ts, SpanTrackingMode trackingMode)
         {
-            public readonly TTag Tag;
-            public readonly ITrackingSpan Span;
-            private SnapshotSpan _snapshotSpan;
-
-            public TagNode(ITagSpan<TTag> ts, SpanTrackingMode trackingMode)
-            {
-                _snapshotSpan = ts.Span;
-                this.Span = ts.Span.CreateTrackingSpan(trackingMode);
-                this.Tag = ts.Tag;
-            }
+            public readonly TTag Tag = ts.Tag;
+            public readonly ITrackingSpan Span = ts.Span.CreateTrackingSpan(trackingMode);
+            private SnapshotSpan _snapshotSpan = ts.Span;
 
             private SnapshotSpan GetSnapshotSpan(ITextSnapshot textSnapshot)
             {

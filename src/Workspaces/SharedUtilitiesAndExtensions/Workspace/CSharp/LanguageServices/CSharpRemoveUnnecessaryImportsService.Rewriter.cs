@@ -156,6 +156,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 
                 ProcessUsings(compilationUnit.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
 
+                // If all the using directives were removed, and the group was followed by a blank line, remove a single
+                // blank line as well.
+                if (compilationUnit.Usings.Count > 0 && finalUsings.Count == 0)
+                {
+                    var nextToken = compilationUnit.Usings.Last().GetLastToken().GetNextTokenOrEndOfFile();
+                    if (nextToken.HasLeadingTrivia && nextToken.LeadingTrivia[0].IsEndOfLine())
+                    {
+                        compilationUnit = compilationUnit.ReplaceToken(
+                            nextToken,
+                            nextToken.WithLeadingTrivia(nextToken.LeadingTrivia.RemoveAt(0)));
+                    }
+                }
+
                 // If there was any left over trivia, then attach it to the next token that
                 // follows the usings.
                 if (finalTrivia.Count > 0)
@@ -195,6 +208,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 
                 ProcessUsings(namespaceDeclaration.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
 
+                // If all the using directives were removed, and the group was followed by a blank line, remove a single
+                // blank line as well.
+                if (namespaceDeclaration.Usings.Count > 0 && finalUsings.Count == 0)
+                {
+                    var nextToken = namespaceDeclaration.Usings.Last().GetLastToken().GetNextTokenOrEndOfFile();
+                    if (nextToken.HasLeadingTrivia && nextToken.LeadingTrivia[0].IsEndOfLine())
+                    {
+                        namespaceDeclaration = namespaceDeclaration.ReplaceToken(
+                            nextToken,
+                            nextToken.WithLeadingTrivia(nextToken.LeadingTrivia.RemoveAt(0)));
+                    }
+                }
+
                 // If there was any left over trivia, then attach it to the next token that
                 // follows the usings.
                 if (finalTrivia.Count > 0)
@@ -216,6 +242,42 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 }
 
                 return resultNamespace;
+            }
+
+            public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
+            {
+                // Avoid recursing into a class declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitDelegateDeclaration(DelegateDeclarationSyntax node)
+            {
+                // Avoid recursing into a delegate declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
+            {
+                // Avoid recursing into an enum declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+            {
+                // Avoid recursing into an interface declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+            {
+                // Avoid recursing into a record declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
+            {
+                // Avoid recursing into a struct declaration
+                return node;
             }
         }
     }

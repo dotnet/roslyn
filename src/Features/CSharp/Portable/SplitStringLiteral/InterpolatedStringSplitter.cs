@@ -16,20 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
     internal abstract partial class StringSplitter
     {
-        private sealed class InterpolatedStringSplitter : StringSplitter
+        private sealed class InterpolatedStringSplitter(
+            ParsedDocument document,
+            int position,
+            InterpolatedStringExpressionSyntax interpolatedStringExpression,
+            IndentationOptions indentationOptions,
+            CancellationToken cancellationToken) : StringSplitter(document, position, indentationOptions, cancellationToken)
         {
-            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression;
-
-            public InterpolatedStringSplitter(
-                ParsedDocument document,
-                int position,
-                InterpolatedStringExpressionSyntax interpolatedStringExpression,
-                IndentationOptions indentationOptions,
-                CancellationToken cancellationToken)
-                : base(document, position, indentationOptions, cancellationToken)
-            {
-                _interpolatedStringExpression = interpolatedStringExpression;
-            }
+            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression = interpolatedStringExpression;
 
             protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
 

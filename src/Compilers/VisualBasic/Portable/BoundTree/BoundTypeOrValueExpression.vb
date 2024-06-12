@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _valueDiagnostics As BindingDiagnosticBag
-        Public ReadOnly Property ValueDiagnostics As BindingDiagnosticBag
+        Private ReadOnly _valueDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property ValueDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return Me._valueDiagnostics
             End Get
@@ -34,18 +34,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _typeDiagnostics As BindingDiagnosticBag
-        Public ReadOnly Property TypeDiagnostics As BindingDiagnosticBag
+        Private ReadOnly _typeDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property TypeDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return Me._typeDiagnostics
             End Get
         End Property
 
-        Public Sub New(valueExpression As BoundExpression, valueDiagnostics As BindingDiagnosticBag, typeExpression As BoundExpression, typeDiagnostics As BindingDiagnosticBag)
+        Public Sub New(valueExpression As BoundExpression, valueDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), typeExpression As BoundExpression, typeDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol))
             Debug.Assert(valueExpression IsNot Nothing, "Field 'valueExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(valueDiagnostics IsNot Nothing, "Field 'valueDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(typeExpression IsNot Nothing, "Field 'typeExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(typeDiagnostics IsNot Nothing, "Field 'typeDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._valueExpression = valueExpression
             Me._valueDiagnostics = valueDiagnostics
@@ -57,9 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Operator =(a As BoundTypeOrValueData, b As BoundTypeOrValueData) As Boolean
             Return a.ValueExpression Is b.ValueExpression AndAlso
-                a.ValueDiagnostics Is b.ValueDiagnostics AndAlso
+                a.ValueDiagnostics = b.ValueDiagnostics AndAlso
                 a.TypeExpression Is b.TypeExpression AndAlso
-                a.TypeDiagnostics Is b.TypeDiagnostics
+                a.TypeDiagnostics = b.TypeDiagnostics
         End Operator
 
         Public Shared Operator <>(a As BoundTypeOrValueData, b As BoundTypeOrValueData) As Boolean

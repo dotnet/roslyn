@@ -239,16 +239,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        ''' </summary>
-        Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-            Get
-                Return Nothing
-            End Get
-        End Property
-
-        ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
         ''' compared case-sensitively.
         ''' </summary>
@@ -351,6 +341,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me.RuntimeSupportsUnmanagedSignatureCallingConvention
                 Case RuntimeCapability.VirtualStaticsInInterfaces
                     Return Me.RuntimeSupportsVirtualStaticsInInterfaces
+                Case RuntimeCapability.InlineArrayTypes
+                    Return Me.RuntimeSupportsInlineArrayTypes
             End Select
 
             Return False
@@ -406,6 +398,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property RuntimeSupportsInlineArrayTypes As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsInlineArrayTypes
+                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) IsNot Nothing
+            End Get
+        End Property
+
         Private Function RuntimeSupportsFeature(feature As SpecialMember) As Boolean
             Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringTypeId = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
 
@@ -457,6 +456,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns></returns>
         ''' <remarks></remarks>
         Friend MustOverride Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
+
+        Friend MustOverride Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
 
         Friend MustOverride Function AreInternalsVisibleToThisAssembly(other As AssemblySymbol) As Boolean
 
@@ -783,6 +784,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitAssembly(Me)
+        End Function
+
+        Private Function IAssemblySymbolInternal_GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte)) Implements IAssemblySymbolInternal.GetInternalsVisibleToPublicKeys
+            Return GetInternalsVisibleToPublicKeys(simpleName)
+        End Function
+
+        Private Function IAssemblySymbolInternal_GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String) Implements IAssemblySymbolInternal.GetInternalsVisibleToAssemblyNames
+            Return GetInternalsVisibleToAssemblyNames()
+        End Function
+
+        Private Function IAssemblySymbolInternal_AreInternalsVisibleToThisAssembly(other As IAssemblySymbolInternal) As Boolean Implements IAssemblySymbolInternal.AreInternalsVisibleToThisAssembly
+            Return AreInternalsVisibleToThisAssembly(DirectCast(other, AssemblySymbol))
         End Function
 
 #End Region

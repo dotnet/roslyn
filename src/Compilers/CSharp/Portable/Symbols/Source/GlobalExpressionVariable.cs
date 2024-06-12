@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -30,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax typeSyntax,
             string name,
             SyntaxReference syntax,
-            Location location)
-            : base(containingType, modifiers, name, syntax, location)
+            TextSpan locationSpan)
+            : base(containingType, modifiers, name, syntax, locationSpan)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
             _typeSyntaxOpt = typeSyntax?.GetReference();
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSyntax typeSyntax,
                 string name,
                 SyntaxNode syntax,
-                Location location,
+                TextSpan locationSpan,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
@@ -51,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var syntaxReference = syntax.GetReference();
             return (typeSyntax == null || typeSyntax.SkipScoped(out _).SkipRef().IsVar)
-                ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
-                : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
+                ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, locationSpan, containingFieldOpt, nodeToBind)
+                : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, locationSpan);
         }
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
@@ -169,10 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSyntax typeSyntax,
                 string name,
                 SyntaxReference syntax,
-                Location location,
+                TextSpan locationSpan,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
-                : base(containingType, modifiers, typeSyntax, name, syntax, location)
+                : base(containingType, modifiers, typeSyntax, name, syntax, locationSpan)
             {
                 Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 

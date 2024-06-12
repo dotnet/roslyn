@@ -4,11 +4,12 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -145,6 +146,126 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
+
+#nullable enable
+        protected override Conversion GetCollectionExpressionConversion(
+            BoundUnconvertedCollectionExpression node,
+            TypeSymbol targetType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var syntax = node.Syntax;
+            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+            var elementType = elementTypeWithAnnotations.Type;
+            switch (collectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.None:
+                    return Conversion.NoConversion;
+
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    {
+                        _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out elementTypeWithAnnotations);
+                        elementType = elementTypeWithAnnotations.Type;
+                        if (elementType is null)
+                        {
+                            return Conversion.NoConversion;
+                        }
+                    }
+                    break;
+            }
+
+            var elements = node.Elements;
+            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
+            }
+            else if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT)
+            {
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
+                var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+                bool isCompatible = false;
+                foreach (var @interface in allInterfaces)
+                {
+                    if (isCompatibleIEnumerableT(@interface, ienumerableType, elements, ref useSiteInfo))
+                    {
+                        isCompatible = true;
+                        // Don't break so we collect all remaining use-site information
+                    }
+                }
+
+                return isCompatible
+                    ? Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default)
+                    : Conversion.NoConversion;
+            }
+
+            Debug.Assert(elementType is { });
+            var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
+            foreach (var element in elements)
+            {
+                Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
+                if (!elementConversion.Exists)
+                {
+                    builder.Free();
+                    return Conversion.NoConversion;
+                }
+
+                builder.Add(elementConversion);
+            }
+
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
+
+            bool isCompatibleIEnumerableT(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
+                ImmutableArray<BoundExpression> elements, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(ienumerableType.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+                if (!ReferenceEquals(targetInterface.OriginalDefinition, ienumerableType))
+                {
+                    return false;
+                }
+
+                var targetElementType = targetInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                return elementsCanAllConvert(elements, targetElementType.Type, ref useSiteInfo);
+            }
+
+            bool elementsCanAllConvert(ImmutableArray<BoundExpression> elements, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                foreach (var element in elements)
+                {
+                    Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
+                    if (!elementConversion.Exists)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            Conversion convertElement(BoundExpression element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                return element switch
+                {
+                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                    _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
+                };
+            }
+        }
+
+        internal Conversion GetCollectionExpressionSpreadElementConversion(
+            BoundCollectionExpressionSpreadElement element,
+            TypeSymbol targetType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return Conversion.NoConversion;
+            }
+            return ClassifyImplicitConversionFromExpression(
+                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
+                targetType,
+                ref useSiteInfo);
+        }
+#nullable disable
 
         /// <summary>
         /// Resolve method group based on the optional delegate invoke method.
@@ -423,5 +544,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (Conversions)base.WithNullability(includeNullability);
         }
+
+        protected override bool IsAttributeArgumentBinding => _binder.InAttributeArgument;
+
+        protected override bool IsParameterDefaultValueBinding => _binder.InParameterDefaultValue;
     }
 }
