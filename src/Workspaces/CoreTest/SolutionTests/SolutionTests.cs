@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // they will still be treated as unique as the workspace only has the concept of linked docs for normal
             // docs.
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
-                .AddProject(projectId1, "proj1", "proj1.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId1, parseOptions1)
+                .AddProject(projectId1, "proj1 (tfm1)", "proj1.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId1, parseOptions1)
                 .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId1), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId1), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")
-                .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId2, parseOptions2)
+                .AddProject(projectId2, "proj1 (tfm2)", "proj2.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId2, parseOptions2)
                 .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId2), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId2), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")));
@@ -5070,7 +5070,7 @@ class C
             using var workspace = CreateWorkspace();
 
             var project1 = workspace.CurrentSolution
-                .AddProject($"Project1", $"Project1", LanguageNames.CSharp)
+                .AddProject($"Project1 (tfm1)", $"Project1", LanguageNames.CSharp)
                 .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"))
                 .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
             var documentId1 = project1.DocumentIds.Single();
@@ -5080,7 +5080,7 @@ class C
             // our actual tree.  This used to stack overflow since we'd create a long chain of incremental parsing steps
             // for each edit made to the sibling file.
             var project2 = project1.Solution
-                .AddProject($"Project2", $"Project2", LanguageNames.CSharp)
+                .AddProject($"Project1 (tfm2)", $"Project2", LanguageNames.CSharp)
                 .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("RELEASE"))
                 .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
             var documentId2 = project2.DocumentIds.Single();
