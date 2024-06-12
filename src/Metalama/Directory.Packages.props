@@ -1,0 +1,8 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Packages.props, $(MSBuildThisFileDirectory)..))" />
+  <PropertyGroup>
+    <!-- We don't want CPM to set versions of transitive dependencies. E.g. if a project overrides Microsoft.CodeAnalysis.CSharp to 4.0.0,
+         keeping this enabled would still reference System.Collections.Immutable 8.0.0 from CPM and not the transitive 5.0.0. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+</Project>
