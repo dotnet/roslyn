@@ -14,9 +14,11 @@
     
     <ItemGroup Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
         <!-- Add explicit top-level dependencies to override the implicit versions brought in by Microsoft.DevDiv.Optimization.Data.PowerShell -->
-        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)"/>
+        <PackageReference Include="Microsoft.Identity.Client" Version="$(MicrosoftIdentityClientVersion)"/>
         <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="$(MicrosoftIdentityModelJsonWebTokensVersion)"/>
         <PackageReference Include="Microsoft.DevDiv.Optimization.Data.PowerShell" Version="$(MicrosoftDevDivOptimizationDataPowerShellVersion)" ExcludeAssets="all"/>
+        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="$(SystemIdentityModelTokensJwtVersion)"/>
     </ItemGroup>
 
 </Project>
