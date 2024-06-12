@@ -645,20 +645,22 @@ Provide that attribute in a `RegisterPostInitializationOutput` step. Register fo
 **Example:**
 
 ```csharp
-[AutoImplement]
 public interface IUserInterface
 {
     public int InterfaceProperty { get; set; }
-    public float InterfacePropertyOnlyReadonly { get; }
+}
+
+public interface IUserInterface2
+{
+    public float InterfacePropertyOnlyGetter { get; }
 }
 ```
 
 ```csharp
-[AutoImplement]
-public interface IUserInterface
+[AutoImplement(nameof(IUserInterface), nameof(IUserInterface2))]
+public partial class UserClass
 {
-    public int InterfaceProperty { get; }
-    public float AnotherInterfaceProperty { get; set; }
+    public string UserProp { get; set; }
 }
 ```
 
@@ -667,8 +669,12 @@ public interface IUserInterface
 [Generator]
 public class AutoImplementGenerator : IIncrementalGenerator
 {
+    private const string NameOfString = "nameof(";
     private const string AutoImplementAttributeNameSpace = "AttributeGenerator";
-    private const string AutoImplementAttributeClassName = "AutoImplementAttribute";
+    private const string AutoImplementAttributeName = "AutoImplement";
+    private const string AutoImplementAttributeClassName = $"{AutoImplementAttributeName}Attribute";
+    private const string FullyQualifiedMetadataName = $"{AutoImplementAttributeNameSpace}.{AutoImplementAttributeClassName}";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx =>
@@ -678,150 +684,197 @@ public class AutoImplementGenerator : IIncrementalGenerator
 using System;
 namespace {{AutoImplementAttributeNameSpace}};
 
-[AttributeUsage(AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 sealed class {{AutoImplementAttributeClassName}} : Attribute
 {
-    public {{AutoImplementAttributeClassName}}()
+    public string[] InterfacesNames { get; }
+    public {{AutoImplementAttributeClassName}}(params string[] interfacesNames)
     {
+        InterfacesNames = interfacesNames;
     }
 }
 """;
             ctx.AddSource($"{AutoImplementAttributeClassName}.g.cs", autoImplementAttributeDeclarationCode);
         });
 
-        IncrementalValuesProvider<Model> provider = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, cancellationToken_) => node is ClassDeclarationSyntax classDeclarationSyntax && classDeclarationSyntax.BaseList is not null && classDeclarationSyntax.BaseList.Types.Count > 0,
-            static (ctx, cancellationToken) =>
+        IncrementalValuesProvider<Model> provider = context.SyntaxProvider.ForAttributeWithMetadataName(
+            fullyQualifiedMetadataName: FullyQualifiedMetadataName,
+            predicate: static (node, cancellationToken_) => node is ClassDeclarationSyntax,
+            transform: static (ctx, cancellationToken) =>
             {
-                ClassDeclarationSyntax classDeclarationSyntax = (ClassDeclarationSyntax)ctx.Node;
+                ClassDeclarationSyntax classDeclarationSyntax = (ClassDeclarationSyntax)ctx.TargetNode;
+                
+                string className = classDeclarationSyntax.Identifier.ValueText;
+                string classNameSpace = GetClassNameSpace(classDeclarationSyntax.Parent);
+                InterfaceModel[] interfaces = GetInterfaceModels(ctx.SemanticModel.Compilation, classDeclarationSyntax);
+
                 return new Model(
-                    classDeclarationSyntax.BaseList!.Types,
-                    classDeclarationSyntax.Parent,
-                    classDeclarationSyntax.Identifier.ValueText,
-                    classDeclarationSyntax.SyntaxTree.GetRoot()
+                    className,
+                    classNameSpace,
+                    interfaces
                     );
             }).Where(m => m is not null);
 
-        IncrementalValueProvider<ImmutableArray<Model>> collection = provider.Collect();
-        IncrementalValueProvider<(Compilation Left, ImmutableArray<Model> Right)> compilation = context.CompilationProvider.Combine(collection);
-
-        context.RegisterSourceOutput(compilation, Execute);
+        context.RegisterSourceOutput(provider.Collect(), Execute);
+    }
+    private static string GetClassNameSpace(SyntaxNode? parent)
+    {
+        return parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax
+            ? namespaceDeclarationSyntax.Name.ToString()
+            : parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax
+            ? fileScopedNamespaceDeclarationSyntax.Name.ToString()
+            : AutoImplementAttributeNameSpace;
     }
 
-    private record Model(SeparatedSyntaxList<BaseTypeSyntax> Types, SyntaxNode? Parent, string ClassName, SyntaxNode Root);
-    private void Execute(SourceProductionContext context, (Compilation Left, ImmutableArray<Model> Right) tuple)
+    private static InterfaceModel[] GetInterfaceModels(Compilation compilation, ClassDeclarationSyntax classDeclarationSyntax)
     {
-        foreach (Model model in tuple.Right)
+        //Get class usings in order to build full interface name if needed
+        string[] usings = GetUsings(classDeclarationSyntax.SyntaxTree.GetRoot());
+        string[] interfacesNames = GetInterfacesNames(classDeclarationSyntax.AttributeLists);
+
+        List<InterfaceModel> ret = [];
+        foreach (string interfaceName in interfacesNames)
         {
-            List<string> implementedInterfacesNames = GetImplementedInterfacesNames(model);
-            if (implementedInterfacesNames.Count == 0)
+            INamedTypeSymbol? interfaceSymbol = GetInterfaceSymbol(compilation, usings, interfaceName);
+            if (interfaceSymbol is null)
                 continue;
 
-            string classNameSpace = GetClassNameSpace(model);
+            //Get interface usings, in order to be sure to have the needed usings for the properties that will be generated
+            string[] interfaceUsings = interfaceSymbol
+                .DeclaringSyntaxReferences
+                .FirstOrDefault()?
+                .GetSyntax()
+                .SyntaxTree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<UsingDirectiveSyntax>()
+                .Select(x => x.ToString())
+                .ToArray() ?? [];
 
-            foreach (string implementedInterfaceName in implementedInterfacesNames)
+            IPropertySymbol[] interfaceProperties = interfaceSymbol
+                .GetMembers()
+                .OfType<IPropertySymbol>()
+                .ToArray();
+
+            InterfacePropertyModel[] propertyModels = interfaceProperties
+                .Select(interfaceProperty =>
+                {
+                    /*Using "interfaceProperty.Type" instead of "interfaceProperty.Type.Name" in order to not have error in specific cases.
+                    Es. the type "int" has Name "Int32", but writing "Int32" casue compilation error if we are not using "System" namespace*/
+                    string type = interfaceProperty.Type.ToString();
+                    return new InterfacePropertyModel(type, interfaceProperty.Name, interfaceProperty.SetMethod is not null);
+                })
+                .ToArray();
+
+            string containingNamespace = interfaceSymbol.ContainingNamespace.ToString();
+
+            ret.Add(new InterfaceModel(interfaceName, containingNamespace, interfaceUsings, propertyModels));
+        }
+
+        return [.. ret];
+    }
+    private static string[] GetUsings(SyntaxNode root)
+    {
+        return root.DescendantNodes()
+                .OfType<UsingDirectiveSyntax>()
+                .Select(usingDirective =>
+                {
+                    //get string "System" from string "using System;"
+                    string usingName = usingDirective.ToString().Split(' ').Last().TrimEnd(';');
+                    return usingName;
+                })
+                .ToArray();
+    }
+    private static string[] GetInterfacesNames(SyntaxList<AttributeListSyntax> attributeLists)
+    {
+        foreach (AttributeListSyntax attributeList in attributeLists)
+        {
+            foreach (AttributeSyntax attribute in attributeList.Attributes)
             {
-                INamedTypeSymbol? interfaceSymbol = GetInterfaceSymbol(tuple.Left, model, implementedInterfaceName);
-                if (interfaceSymbol is null)
+                if (!attribute.Name.ToString().Equals(AutoImplementAttributeName) || attribute.ArgumentList is null)
                     continue;
 
-                //Skip if interface doesn't have the AutoImplement Attribute
-                if (!interfaceSymbol
-                    .GetAttributes()
-                    .Select(attribute => attribute.AttributeClass?.Name)
-                    .Contains(AutoImplementAttributeClassName))
-                    continue;
-
-                //Get interface usings, in order to be sure to have the needed usings for the properties that will be generated
-                string interfaceUsings = string.Join(string.Empty, interfaceSymbol
-                    .DeclaringSyntaxReferences
-                    .FirstOrDefault()?
-                    .GetSyntax()
-                    .SyntaxTree
-                    .GetRoot()
-                    .DescendantNodes()
-                    .OfType<UsingDirectiveSyntax>()
-                    .Select(x => x.ToString()));
-
-                IPropertySymbol[] interfaceProperties = interfaceSymbol
-                    .GetMembers()
-                    .OfType<IPropertySymbol>()
+                return attribute.ArgumentList.Arguments
+                    .Select(x => GetInterfaceName(x.Expression.ToString()))
                     .ToArray();
+            }
+        }
+
+        return [];
+    }
+    private static string GetInterfaceName(string expression)
+    {
+        // Empty String
+        if (string.IsNullOrWhiteSpace(expression))
+            return expression;
+
+        // Interface Name got by nameof()
+        if (expression.StartsWith(NameOfString))
+            return expression.Substring(NameOfString.Length, expression.Length - NameOfString.Length - 1);
+
+        //Trimming ""
+        string ret = expression.Trim('"');
+        return ret;
+    }
+    private static INamedTypeSymbol? GetInterfaceSymbol(Compilation compilation, string[] nameSpaces, string implementedInterfaceName)
+    {
+        // Try Get without NameSpace if interface was already Fully Qualified
+        INamedTypeSymbol? interfaceSymbol = compilation.GetTypeByMetadataName(implementedInterfaceName);
+        if (interfaceSymbol is not null)
+            return interfaceSymbol;
+
+        foreach (string nameSpace in nameSpaces)
+        {
+            interfaceSymbol = compilation.GetTypeByMetadataName($"{nameSpace}.{implementedInterfaceName}");
+            if (interfaceSymbol is not null)
+                return interfaceSymbol;
+        }
+
+        return null;
+    }
+
+    private record Model(string ClassName, string ClassNameSpace, InterfaceModel[] Interfaces);
+    private record InterfaceModel(string Name, string NameSpace, string[] Usings, InterfacePropertyModel[] Properties);
+    private record InterfacePropertyModel(string Type, string Name, bool HasSetter);
+
+    private void Execute(SourceProductionContext context, ImmutableArray<Model> models)
+    {
+        foreach (Model model in models)
+        {
+            foreach (InterfaceModel interfaceModel in model.Interfaces)
+            {
+                string interfaceUsings = string.Join(string.Empty, interfaceModel.Usings);
 
                 StringBuilder sourceBuilder = new($$"""
                     {{interfaceUsings}}
+                    using {{interfaceModel.NameSpace}};
 
-                    namespace {{classNameSpace}};
+                    namespace {{model.ClassNameSpace}};
 
-                    partial class {{model.ClassName}}
+                    partial class {{model.ClassName}} : {{interfaceModel.Name}}
                     {
 
                     """);
-                foreach (IPropertySymbol interfaceProperty in interfaceProperties)
+                foreach (InterfacePropertyModel property in interfaceModel.Properties)
                 {
-                    // Check if property has a setter
-                    string setter = interfaceProperty.SetMethod is null
-                        ? string.Empty
-                        : "set; ";
+                    //Check if property has a setter
+                    string setter = property.HasSetter
+                        ? "set; "
+                        : string.Empty;
 
-                    /*Using "interfaceProperty.Type" instead of "interfaceProperty.Type.Name" in order to not have error in specific cases
-                    Es. the type "int" has Name "Int32", but writing "Int32" casue compilation error if we are not using "System" namespace*/
                     sourceBuilder.AppendLine($$"""
-                            public {{interfaceProperty.Type}} {{interfaceProperty.Name}} { get; {{setter}}}
+                            public {{property.Type}} {{property.Name}} { get; {{setter}}}
                         """);
                 }
                 sourceBuilder.AppendLine("""
                     }
                     """);
 
-                // Concat class name and interface name to have unique file name if a class implements two interfaces with AutoImplement Attribute
-                string generatedFileName = $"{model.ClassName}_{implementedInterfaceName}.g.cs";
+                //Concat class name and interface name to have unique file name if a class implements two interfaces with AutoImplement Attribute
+                string generatedFileName = $"{model.ClassName}_{interfaceModel.Name}.g.cs";
                 context.AddSource(generatedFileName, sourceBuilder.ToString());
             }
         }
-    }
-    private static List<string> GetImplementedInterfacesNames(Model model)
-    {
-        List<string> implementedInterfacesNames = [];
-        foreach (BaseTypeSyntax typeSintax in model.Types)
-        {
-            TypeSyntax type = typeSintax.Type;
-            if (type is IdentifierNameSyntax identifierNameSyntax)
-                implementedInterfacesNames.Add(identifierNameSyntax.Identifier.ValueText);
-            else if (type is QualifiedNameSyntax qualifiedNameSyntax)
-                implementedInterfacesNames.Add(qualifiedNameSyntax.ToString());
-        }
-
-        return implementedInterfacesNames;
-    }
-    private static string GetClassNameSpace(Model model)
-    {
-        return model.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax
-            ? namespaceDeclarationSyntax.Name.ToString()
-            : model.Parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax
-            ? fileScopedNamespaceDeclarationSyntax.Name.ToString()
-            : AutoImplementAttributeNameSpace;
-    }
-    private static INamedTypeSymbol? GetInterfaceSymbol(Compilation compilation, Model model, string implementedInterfaceName)
-    {
-        INamedTypeSymbol? interfaceSymbol = compilation.GetTypeByMetadataName(implementedInterfaceName);
-        if (interfaceSymbol is null)
-        {
-            // Get class usings in order to build full interface name if needed
-            IEnumerable<UsingDirectiveSyntax> usingDirectives = model.Root
-                .DescendantNodes()
-                .OfType<UsingDirectiveSyntax>();
-            foreach (UsingDirectiveSyntax usingDirective in usingDirectives)
-            {
-                // Get string 'System' from string 'using System;'
-                string usingString = usingDirective.ToString().Split(' ').Last().TrimEnd(';');
-                interfaceSymbol = compilation.GetTypeByMetadataName($"{usingString}.{implementedInterfaceName}");
-                if (interfaceSymbol is not null)
-                    break;
-            }
-        }
-
-        return interfaceSymbol;
     }
 }
 ```
