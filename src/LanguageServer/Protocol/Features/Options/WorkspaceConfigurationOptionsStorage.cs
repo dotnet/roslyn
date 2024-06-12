@@ -15,7 +15,6 @@ internal static class WorkspaceConfigurationOptionsStorage
             EnableOpeningSourceGeneratedFiles:
                 globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                 globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
-            DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
             SourceGeneratorExecution:
                 globalOptions.GetOption(SourceGeneratorExecution) ??
                 (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecutionPreference.Balanced : SourceGeneratorExecutionPreference.Automatic),
@@ -24,9 +23,6 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<StorageDatabase> Database = new(
         "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
-
-    public static readonly Option2<bool> DisableRecoverableText = new(
-        "dotnet_disable_recoverable_text", WorkspaceConfigurationOptions.Default.DisableRecoverableText);
 
     public static readonly Option2<bool> UnifyLinkedDocumentContentsAcrossProjectFlavors = new(
         "dotnet_unify_linked_document_contents_across_project_flavors", WorkspaceConfigurationOptions.Default.UnifyLinkedDocumentContentsAcrossProjectFlavors);
