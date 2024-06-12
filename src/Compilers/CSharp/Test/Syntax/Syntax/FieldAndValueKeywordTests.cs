@@ -1856,7 +1856,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        // PROTOTYPE: Test the same with DIM.
         [Fact]
         public void Field_02()
         {
@@ -1875,13 +1874,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2))");
-            verifier.VerifyIL("C.P", """
-
-                """);
-            verifier.VerifyIL("C.Q", """
-
-                """);
+            // PROTOTYPE: Should succeed. Use CompileAndVerify(), check expectedOutput,
+            // and verify IL for C.P.get and C.Q.get.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     public object P => field = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(3, 24),
+                // (4,30): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     public object Q { get => field = 2; }
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(4, 30));
         }
 
         [Fact]
@@ -1907,13 +1909,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2))");
-            verifier.VerifyIL("C.P", """
-
-                """);
-            verifier.VerifyIL("C.Q", """
-
-                """);
+            // PROTOTYPE: Should succeed. Use CompileAndVerify(), check expectedOutput,
+            // and verify IL for C.P.get and C.Q.get.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,39): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //     public object P => Initialize(out field, 1);
+                Diagnostic(ErrorCode.ERR_RefReadonly, "field").WithLocation(3, 39),
+                // (4,45): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //     public object Q { get => Initialize(out field, 2); }
+                Diagnostic(ErrorCode.ERR_RefReadonly, "field").WithLocation(4, 45));
         }
 
         [Fact]
@@ -2018,6 +2023,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (5,29): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
                 //         set { _ = this is { field: 0 }; }
                 Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(5, 29));
+        }
+
+        [Fact]
+        public void RefProperty()
+        {
+            string source = """
+                class C
+                {
+                    ref int P => ref field;
+                }
+                """;
+            // PROTOTYPE: Should report: error CS8145: Auto-implemented properties cannot return by reference
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

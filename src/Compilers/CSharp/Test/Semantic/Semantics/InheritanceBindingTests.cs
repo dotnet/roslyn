@@ -1907,22 +1907,22 @@ class Base
     int field = 0;
 
     public virtual int Proprty1 { get { return 0; } }
-    public virtual ref int Property2 { get { return ref field; } }
-    public virtual ref int Property3 { get { return ref field; } }
+    public virtual ref int Property2 { get { return ref @field; } }
+    public virtual ref int Property3 { get { return ref @field; } }
 }
 
 class Derived : Base
 {
     int field = 0;
 
-    public override ref int Proprty1 { get { return ref field; } }
+    public override ref int Proprty1 { get { return ref @field; } }
     public override int Property2 { get { return 0; } }
-    public override ref int Property3 { get { return ref field; } }
+    public override ref int Property3 { get { return ref @field; } }
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (15,29): error CS8148: 'Derived.Proprty1' must match by reference return of overridden member 'Base.Proprty1'
-                //     public override ref int Proprty1 { get { return ref field; } }
+                //     public override ref int Proprty1 { get { return ref @field; } }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Proprty1").WithArguments("Derived.Proprty1", "Base.Proprty1").WithLocation(15, 29),
                 // (16,25): error CS8148: 'Derived.Property2' must match by reference return of overridden member 'Base.Property2'
                 //     public override int Property2 { get { return 0; } }

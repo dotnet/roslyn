@@ -802,7 +802,7 @@ class Base2<A, B> : Base<A, B>
 {
     A field = default(A);
     public override A Property { set { } }
-    public override ref A RefProperty { get { return ref field; } }
+    public override ref A RefProperty { get { return ref @field; } }
 }
 
 abstract class Base3<T, U> : Base2<T, U>
