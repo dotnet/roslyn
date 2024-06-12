@@ -19,7 +19,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             SourceGeneratorExecution:
                 globalOptions.GetOption(SourceGeneratorExecution) ??
                 (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecutionPreference.Balanced : SourceGeneratorExecutionPreference.Automatic),
-
+            UnifyLinkedDocumentContentsAcrossProjectFlavors: globalOptions.GetOption(UnifyLinkedDocumentContentsAcrossProjectFlavors),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<StorageDatabase> Database = new(
