@@ -110,7 +110,6 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
 
             var peImageBuffer = File.ReadAllBytes(originalReferencePath);
 
-            var baseline = new List<string>();
             Rewrite(peImageBuffer, patterns.ToImmutableArray());
 
             try
@@ -128,7 +127,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         }
     }
 
-    internal void WriteApis(string baselineFilePath, byte[] peImage)
+    internal void WriteApis(string outputFilePath, byte[] peImage)
     {
         using var readableStream = new MemoryStream(peImage, writable: false);
         var metadataRef = MetadataReference.CreateFromStream(readableStream);
@@ -152,7 +151,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         string currentContent;
         try
         {
-            currentContent = File.ReadAllText(baselineFilePath, Encoding.UTF8);
+            currentContent = File.ReadAllText(outputFilePath, Encoding.UTF8);
         }
         catch (Exception)
         {
@@ -163,17 +162,17 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         {
             try
             {
-                File.WriteAllText(baselineFilePath, newContent);
-                Log.LogMessage($"Baseline updated: '{baselineFilePath}'");
+                File.WriteAllText(outputFilePath, newContent);
+                Log.LogMessage($"Baseline updated: '{outputFilePath}'");
             }
             catch (Exception e)
             {
-                Log.LogError($"Error updating baseline '{baselineFilePath}': {e.Message}");
+                Log.LogError($"Error updating baseline '{outputFilePath}': {e.Message}");
             }
         }
         else
         {
-            Log.LogMessage($"Baseline not updated '{baselineFilePath}'");
+            Log.LogMessage($"Baseline not updated '{outputFilePath}'");
         }
     }
 
