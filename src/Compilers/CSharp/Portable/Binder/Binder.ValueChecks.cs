@@ -5437,8 +5437,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.Parameter:
+                    var parameter = (BoundParameter)expression;
+                    var isEnumTypeParam = parameter.Type is TypeParameterSymbol typeParameter &&
+                                          typeParameter.ConstraintTypesNoUseSiteDiagnostics.Count(x =>
+                                              x.SpecialType == SpecialType.System_Enum) > 0;
                     return IsAnyReadOnly(addressKind) ||
-                        ((BoundParameter)expression).ParameterSymbol.RefKind is not (RefKind.In or RefKind.RefReadOnlyParameter);
+                        parameter.Type.TypeKind == TypeKind.Enum ||
+                        isEnumTypeParam ||
+                        parameter.ParameterSymbol.RefKind is not (RefKind.In or RefKind.RefReadOnlyParameter);
 
                 case BoundKind.Local:
                     // locals have home unless they are byval stack locals or ref-readonly
