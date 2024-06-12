@@ -422,6 +422,7 @@ internal abstract class VisualStudioOptionStorage
         {"visual_basic_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueExpressionStatementPreference")},
         {"visual_studio_navigate_to_object_browser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
         {"dotnet_disable_recoverable_text", new FeatureFlagStorage(@"Roslyn.DisableRecoverableText")},
+        {"dotnet_unify_linked_document_contents_across_project_flavors", new FeatureFlagStorage(@"Roslyn.UnifyLinkedDocumentContentsAcrossProjectFlavors")},
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
         {"dotnet_enable_diagnostics_in_source_generated_files", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
         {"dotnet_enable_diagnostics_in_source_generated_files_feature_flag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},
