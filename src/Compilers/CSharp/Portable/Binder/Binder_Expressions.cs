@@ -1458,6 +1458,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BadExpression(node);
             }
 
+            ReportFieldOrValueContextualKeywordConflict(node, node.Token, diagnostics);
+
             // PROTOTYPE: We're not applying any checks to this field reference. What checks do we
             // use when referencing an explicitly-declared field, and which of those should be used here?
             var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);
@@ -1789,12 +1791,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
                 case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
-                    {
-                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-                        diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
-                    }
+                    ReportFieldOrValueContextualKeywordConflict(syntax, identifier, diagnostics);
                     break;
             }
+        }
+
+        private static void ReportFieldOrValueContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        {
+            string name = identifier.Text;
+            var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
         }
 #nullable disable
 
