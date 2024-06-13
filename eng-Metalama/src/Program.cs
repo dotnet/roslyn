@@ -13,8 +13,8 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
 {
     VersionsFilePath = "eng\\Versions.props",
     GenerateArcadeProperties = true,
-    AdditionalDirectoriesToClean = new[] { "artifacts" },
-    Solutions = new Solution[] { new RoslynSolution() },
+    AdditionalDirectoriesToClean = ["artifacts"],
+    Solutions = [new RoslynSolution()],
     PublicArtifacts = Pattern.Create("Metalama.Compiler.$(PackageVersion).nupkg", "Metalama.Compiler.Sdk.$(PackageVersion).nupkg"),
     PrivateArtifacts = Pattern.Create(
     "Metalama.Roslyn.CodeAnalysis.Common.$(PackageVersion).nupkg",
@@ -31,7 +31,7 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg"),
-    Dependencies = new[] { DevelopmentDependencies.PostSharpEngineering },
+    Dependencies = [DevelopmentDependencies.PostSharpEngineering],
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     ExportedProperties = { { @"eng\Versions.props", new[] { "RoslynVersion" } } },
     KeepEditorConfig = true,
