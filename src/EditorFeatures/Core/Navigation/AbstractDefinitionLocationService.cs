@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -194,14 +195,53 @@ internal abstract partial class AbstractDefinitionLocationService(
             {
                 return null;
             }
-            else if (documentSpans is [var documentSpan])
+            else if (documentSpans.Count == 1)
             {
                 // Just one document span this mapped to.  Navigate directly do that.
-                return await documentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+                return await documentSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
+                var title = string.Format(EditorFeaturesResources._0_intercepted_locations,
+                    FindUsagesHelpers.GetDisplayName(method));
+
+                var definitionItem = method.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+
+                var referenceItems = new List<SourceReferenceItem>();
+                var classificationOptions = ClassificationOptions.Default with { ClassifyObsoleteSymbols = false };
+                foreach (var documentSpan in documentSpans)
+                {
+                    var classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                        documentSpan, classifiedSpans: null, classificationOptions, cancellationToken).ConfigureAwait(false);
+
+                    referenceItems.Add(new SourceReferenceItem(
+                        definitionItem, documentSpan, classifiedSpans, SymbolUsageInfo.None, additionalProperties: []));
+                }
+
                 // Multiple document spans this mapped to.  Show them all.
+                return new NavigableLocation(async (options, cancellationToken) =>
+                {
+                    // Can only navigate or present items on UI thread.
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                    // We have multiple definitions, or we have definitions with multiple locations. Present this to the
+                    // user so they can decide where they want to go to.
+                    //
+                    // We ignore the cancellation token returned by StartSearch as we're in a context where
+                    // we've computed all the results and we're synchronously populating the UI with it.
+                    var (context, _) = _streamingPresenter.StartSearch(title, new StreamingFindUsagesPresenterOptions(SupportsReferences: true));
+                    try
+                    {
+                        await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                        await context.OnReferencesFoundAsync(referenceItems.AsAsyncEnumerable(), cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    return true;
+                });
             }
         }
     }

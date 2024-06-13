@@ -642,6 +642,11 @@
         <target state="translated">Zaimplementowane składowe: „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="new">'{0}' intercepted locations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">Liczba nierozwiązanych konfliktów: {0}</target>
