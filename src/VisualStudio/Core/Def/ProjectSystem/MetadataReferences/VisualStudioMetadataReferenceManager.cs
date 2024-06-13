@@ -14,9 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -50,7 +48,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <summary>
     /// Access locked with <see cref="_metadataCacheLock"/>.
     /// </summary>
-    private readonly Dictionary<FileKey, WeakReference<AssemblyMetadata>> _metadataCache = [];
+    private readonly Dictionary<FileKey, AssemblyMetadata> _metadataCache = [];
 
     private readonly ImmutableArray<string> _runtimeDirectories;
     private readonly TemporaryStorageService _temporaryStorageService;
@@ -92,12 +90,8 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     private bool TryGetMetadata(FileKey key, [NotNullWhen(true)] out AssemblyMetadata? metadata)
     {
-        metadata = null;
         lock (_metadataCacheLock)
-        {
-            return _metadataCache.TryGetValue(key, out var weakMetadata) &&
-                   weakMetadata.TryGetTarget(out metadata);
-        }
+            return _metadataCache.TryGetValue(key, out metadata);
     }
 
     public IReadOnlyList<TemporaryStorageStreamHandle>? GetStorageHandles(string fullPath, DateTime snapshotTimestamp)
@@ -157,16 +151,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 // Now try to create and add the metadata to the cache. If we fail to add it (because some other thread
                 // beat us to this), then Dispose the metadata we just created and will return the existing metadata
                 // instead.
-                if (_metadataCache.TryGetValue(key, out var weakCachedMetadata) &&
-                    weakCachedMetadata.TryGetTarget(out var cachedMetadata))
+                if (_metadataCache.TryGetValue(key, out var cachedMetadata))
                 {
                     metadata.Dispose();
                     return cachedMetadata;
                 }
 
                 // don't use "Add" since key might already exist with already released metadata
-                _metadataCache[key] = new WeakReference<AssemblyMetadata>(metadata);
-                ClearReleasedMetadata_NoLock();
+                _metadataCache[key] = metadata;
                 return metadata;
             }
         }
@@ -183,29 +175,6 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 s_metadataToStorageHandles.Add(metadata, handles);
 
             return metadata;
-        }
-
-        void ClearReleasedMetadata_NoLock()
-        {
-            Contract.ThrowIfFalse(Monitor.IsEntered(_metadataCacheLock));
-
-            var count = _metadataCache.Count;
-
-            // Cleanup when we hit powers of two.  This way we don't have to walk too often.  But only when we've really
-            // grown. the dictionary by a substantial amount since the last time we cleaned up.
-            if (count == (1 << SegmentedArraySortUtils.Log2((uint)count)))
-            {
-                using var keysToRemove = TemporaryArray<FileKey>.Empty;
-
-                foreach (var (fileKey, weakMetadata) in _metadataCache)
-                {
-                    if (!weakMetadata.TryGetTarget(out _))
-                        keysToRemove.Add(fileKey);
-                }
-
-                foreach (var key in keysToRemove)
-                    _metadataCache.Remove(key);
-            }
         }
     }
 
