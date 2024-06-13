@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -472,10 +473,25 @@ namespace Roslyn.Test.Utilities
 
                 AssertEx.SetEqual(
                     metadataReader.CustomAttributes.Select(a => metadataReader.GetCustomAttribute(a).Constructor)
-                        .Select(c => metadataReader.GetMemberReference((MemberReferenceHandle)c).Parent)
-                        .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
+                        .Select(c => getAttributeTypeName(metadataReader, c))
                         .Select(n => metadataReader.GetString(n)),
                     attributes);
+            }
+
+            static StringHandle getAttributeTypeName(MetadataReader metadataReader, EntityHandle constructorHandle)
+            {
+                // See MetadataWriter.GetCustomAttributeTypeCodedIndex
+                if (constructorHandle.Kind == HandleKind.MemberReference)
+                {
+                    var typeRef = metadataReader.GetMemberReference((MemberReferenceHandle)constructorHandle).Parent;
+                    return metadataReader.GetTypeReference((TypeReferenceHandle)typeRef).Name;
+                }
+                else
+                {
+                    Debug.Assert(constructorHandle.Kind == HandleKind.MethodDefinition);
+                    var typeDef = metadataReader.GetMethodDefinition((MethodDefinitionHandle)constructorHandle).GetDeclaringType();
+                    return metadataReader.GetTypeDefinition(typeDef).Name;
+                }
             }
         }
 
