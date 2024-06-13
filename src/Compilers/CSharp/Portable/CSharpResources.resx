@@ -6866,7 +6866,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
   <data name="INF_IdentifierConflictWithContextualKeyword" xml:space="preserve">
-    <value>'{0}' is a contextual keyword, with a specific meaning, in language version {1} or later. Use '@{0}' to avoid a breaking change when compiling with different language versions.</value>
+    <value>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</value>
   </data>
   <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
     <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
