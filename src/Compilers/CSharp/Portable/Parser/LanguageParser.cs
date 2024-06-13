@@ -7215,7 +7215,7 @@ done:;
                             if (nextTokenKind == SyntaxKind.CommaToken)
                                 return true;
 
-                            // `;` end a pattern if it finishes an expression statement: var y = x is bool? b;
+                            // `;` ends a pattern if it finishes an expression statement: var y = x is bool? b;
                             if (nextTokenKind == SyntaxKind.SemicolonToken)
                                 return true;
 
