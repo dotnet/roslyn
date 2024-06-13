@@ -627,6 +627,9 @@ function Deploy-VsixViaTool() {
   # Configure RemoteHostOptions.OOP64Bit for testing
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
+
+  # Disable targeted notifications
+  &$vsRegEdit set "$vsDir" $hive HKCU "RemoteSettings" TurnOffSwitch dword 1
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
