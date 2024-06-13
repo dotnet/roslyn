@@ -86,7 +86,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return genericTagger;
     }
 
-    public DeduplicateAggregateTagger<TTag> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    public SimpleAggregateTagger<TTag> CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
         using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
@@ -96,7 +96,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
                 taggers.Add(innerTagger);
         }
 
-        return new DeduplicateAggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        return new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
     }
 
     protected TagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)

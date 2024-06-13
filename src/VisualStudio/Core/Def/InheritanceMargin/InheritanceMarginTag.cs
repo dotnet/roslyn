@@ -53,11 +53,10 @@ internal class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag
         Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
     }
 
+    // Intentionally throwing, we have never supported this facility, and there is no contract around placing
+    // these tags in sets or maps.
     public override int GetHashCode()
-        => Hash.Combine(Moniker.GetHashCode(),
-            Hash.Combine(
-            Hash.CombineValues(MembersOnLine),
-            LineNumber));
+        => throw new NotImplementedException();
 
     public override bool Equals(object? obj)
         => Equals(obj as InheritanceMarginTag);
