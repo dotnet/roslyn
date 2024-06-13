@@ -96,6 +96,15 @@ internal abstract partial class AbstractInheritanceMarginService
                 if (member == null || !CanHaveInheritanceTarget(member))
                     continue;
 
+                // Make sure the identifier declaration's span is within the spanToSearch.
+                // This is important because for example, for a class with big body, when the tagger is asking for the tag within the body of the class,
+                // we don't want to return the tag of identifier.
+                var declarationToken = GetDeclarationToken(memberDeclarationNode);
+                if (!spanToSearch.Contains(declarationToken.Span))
+                {
+                    continue;
+                }
+
                 // Use mapping service to find correct solution & symbol. (e.g. metadata symbol)
                 var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
                 if (mappingResult == null)
@@ -104,7 +113,8 @@ internal abstract partial class AbstractInheritanceMarginService
                 // All the symbols here are declared in the same document, they should belong to the same project.
                 // So here it is enough to get the project once.
                 project ??= mappingResult.Project;
-                builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                builder.Add((mappingResult.Symbol,
+                    sourceText.Lines.GetLineFromPosition(declarationToken.SpanStart).LineNumber));
             }
 
             if (project != null)
