@@ -361,6 +361,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ExplicitImplementation_03(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            string identifier = escapeIdentifier ? "@field" : "field";
+            string source = $$"""
+                #pragma warning disable 649
+                interface I
+                {
+                    object P { get; set; }
+                    object this[int i] { get; set; }
+                }
+                class C : I
+                {
+                    int field;
+                    object I.P { get => this.{{identifier}}; set { _ = this.{{identifier}}; } }
+                    object I.this[int i] { get => this.{{identifier}}; set { _ = this.{{identifier}}; } }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (escapeIdentifier)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,30): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object I.P { get => this.field; set { _ = this.field; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(10, 30),
+                    // (10,52): error CS9259: 'field' cannot be used as an identifier in this context; use '@field' instead.
+                    //     object I.P { get => this.field; set { _ = this.field; } }
+                    Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "field").WithArguments("field").WithLocation(10, 52));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,30): info CS9258: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //     object I.P { get => this.field; set { _ = this.field; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 30),
+                    // (10,52): info CS9258: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //     object I.P { get => this.field; set { _ = this.field; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 52));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExplicitImplementation_04(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues("field", "value")] string identifier,
             bool escapeIdentifier)
         {

@@ -5610,7 +5610,7 @@ parse_member_name:;
                 {
                     identifierToken = this.AddError(identifierToken, ErrorCode.ERR_BadAwaitAsIdentifier);
                 }
-                else if (isFieldOrValueInKeywordContext) // PROTOTYPE: Are we testing this with "value"?
+                else if (isFieldOrValueInKeywordContext)
                 {
                     if (reportErrorRatherThanConvertingFieldOrValue.GetValueOrDefault())
                     {
