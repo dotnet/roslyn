@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -27,13 +29,14 @@ public class InheritanceMarginTests
 
     #region Helpers
 
-    private static Task VerifyNoItemForDocumentAsync(string markup, string languageName, TestHost testHost)
-        => VerifyInSingleDocumentAsync(markup, languageName, testHost);
+    private static Task VerifyNoItemForDocumentAsync(string markup, string languageName, TestHost testHost, TextSpan? spanToSearch = null)
+        => VerifyInSingleDocumentAsync(markup, languageName, testHost, spanToSearch);
 
     private static async Task VerifyInSingleDocumentAsync(
         string markup,
         string languageName,
         TestHost testHost,
+        TextSpan? spanToSearch = null,
         params TestInheritanceMemberItem[] memberItems)
     {
         markup = @$"<![CDATA[
@@ -55,7 +58,7 @@ public class InheritanceMarginTests
             composition: testHost == TestHost.InProcess ? s_inProcessComposition : s_outOffProcessComposition);
 
         var testHostDocument = testWorkspace.Documents[0];
-        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken).ConfigureAwait(false);
+        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, spanToSearch, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task VerifyInMultipleDocumentsAsync(
@@ -63,6 +66,7 @@ public class InheritanceMarginTests
         string markup2,
         string languageName,
         TestHost testHost,
+        TextSpan? spanToSearch = null,
         params TestInheritanceMemberItem[] memberItems)
     {
         var workspaceFile = $@"
@@ -84,18 +88,19 @@ public class InheritanceMarginTests
             composition: testHost == TestHost.InProcess ? s_inProcessComposition : s_outOffProcessComposition);
 
         var testHostDocument = testWorkspace.Documents[0];
-        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken).ConfigureAwait(false);
+        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, spanToSearch, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task VerifyTestMemberInDocumentAsync(
         TestWorkspace testWorkspace,
         TestHostDocument testHostDocument,
         TestInheritanceMemberItem[] memberItems,
+        TextSpan? spanToSearch,
         CancellationToken cancellationToken)
     {
         var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var searchingSpan = root.Span;
+        var searchingSpan = spanToSearch ?? root.Span;
         // Look for the search span, if not found, then pass the whole document span to the service.
         if (testHostDocument.AnnotatedSpans.TryGetValue(SearchAreaTag, out var spans) && spans.IsSingle())
         {
@@ -182,7 +187,8 @@ public class InheritanceMarginTests
         (string markupInProject2, string languageName) markup2,
         TestInheritanceMemberItem[] memberItemsInMarkup1,
         TestInheritanceMemberItem[] memberItemsInMarkup2,
-        TestHost testHost)
+        TestHost testHost,
+        TextSpan? spanToSearch = null)
     {
         var workspaceFile =
             $@"
@@ -209,8 +215,8 @@ public class InheritanceMarginTests
 
         var testHostDocument1 = testWorkspace.Documents.Single(doc => doc.Project.AssemblyName.Equals("Assembly1"));
         var testHostDocument2 = testWorkspace.Documents.Single(doc => doc.Project.AssemblyName.Equals("Assembly2"));
-        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument1, memberItemsInMarkup1, cancellationToken).ConfigureAwait(false);
-        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument2, memberItemsInMarkup2, cancellationToken).ConfigureAwait(false);
+        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument1, memberItemsInMarkup1, spanToSearch, cancellationToken).ConfigureAwait(false);
+        await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument2, memberItemsInMarkup2, spanToSearch, cancellationToken).ConfigureAwait(false);
     }
 
     private class TestInheritanceMemberItem
@@ -387,7 +393,7 @@ public class Bar : IEnumerable
                     relationship: InheritanceRelationship.ImplementedMember,
                     inMetadata: true)));
 
-        return VerifyInSingleDocumentAsync(markup, LanguageNames.CSharp, testHost, itemForBar, itemForGetEnumerator);
+        return VerifyInSingleDocumentAsync(markup, LanguageNames.CSharp, testHost, memberItems: [itemForBar, itemForGetEnumerator]);
     }
 
     [Theory, CombinatorialData]
@@ -420,8 +426,7 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemOnLine2,
-            itemOnLine3);
+            memberItems: [itemOnLine2, itemOnLine3]);
     }
 
     [Theory, CombinatorialData]
@@ -454,8 +459,7 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemOnLine2,
-            itemOnLine3);
+            memberItems: [itemOnLine2, itemOnLine3]);
     }
 
     [Theory, CombinatorialData]
@@ -487,8 +491,7 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemOnLine2,
-            itemOnLine3);
+            memberItems: [itemOnLine2, itemOnLine3]);
     }
 
     [Theory]
@@ -531,14 +534,14 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            new TestInheritanceMemberItem(
+            memberItems: [new TestInheritanceMemberItem(
                 lineNumber: 4,
                 memberName: "class Bar",
                 targets: ImmutableArray.Create(
                     new TargetInfo(
                         targetSymbolDisplayName: "Bar1",
                         locationTag: "target1",
-                        relationship: InheritanceRelationship.BaseType))));
+                        relationship: InheritanceRelationship.BaseType)))]);
     }
 
     [Theory, CombinatorialData]
@@ -593,10 +596,7 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemForIBar,
-            itemForBar,
-            itemForEventInInterface,
-            itemForEventInClass);
+            memberItems: [itemForIBar, itemForBar, itemForEventInInterface, itemForEventInClass]);
     }
 
     [Theory, CombinatorialData]
@@ -663,12 +663,12 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemForIBar,
-            itemForBar,
-            itemForE1InInterface,
-            itemForE2InInterface,
-            itemForE1InClass,
-            itemForE2InClass);
+            memberItems: [itemForIBar,
+                itemForBar,
+                itemForE1InInterface,
+                itemForE2InInterface,
+                itemForE1InClass,
+                itemForE2InClass]);
     }
 
     [Theory, CombinatorialData]
@@ -783,16 +783,16 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemForEooInClass,
-            itemForEooInInterface,
-            itemForPooInInterface,
-            itemForPooInClass,
-            itemForFooInInterface,
-            itemForFooInClass,
-            itemForIBar,
-            itemForBar,
-            itemForIndexerInInterface,
-            itemForIndexerInClass);
+            memberItems: [itemForEooInClass,
+                itemForEooInInterface,
+                itemForPooInInterface,
+                itemForPooInClass,
+                itemForFooInInterface,
+                itemForFooInClass,
+                itemForIBar,
+                itemForBar,
+                itemForIndexerInInterface,
+                itemForIndexerInClass]);
     }
 
     [Theory]
@@ -885,14 +885,14 @@ public class {|target2:Bar|} : IBar
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemForBar,
-            itemForBar2,
-            itemForFooInAbstractClass,
-            itemForFooInClass,
-            itemForPooInClass,
-            itemForPooInAbstractClass,
-            itemForEooInClass,
-            itemForEooInAbstractClass);
+            memberItems: [itemForBar,
+                itemForBar2,
+                itemForFooInAbstractClass,
+                itemForFooInClass,
+                itemForPooInClass,
+                itemForPooInAbstractClass,
+                itemForEooInClass,
+                itemForEooInAbstractClass]);
     }
 
     [Theory, CombinatorialData]
@@ -1003,12 +1003,12 @@ public class {|target2:Bar|} : IBar
             testDuplicate ? markup2 : markup1,
             LanguageNames.CSharp,
             testHost,
-            itemForIBar,
-            itemForFooInIBar,
-            itemForBar1,
-            itemForFooInBar1,
-            itemForBar2,
-            itemForFooInBar2);
+            memberItems: [itemForIBar,
+                itemForFooInIBar,
+                itemForBar1,
+                itemForFooInBar1,
+                itemForBar2,
+                itemForFooInBar2]);
     }
 
     [Theory, CombinatorialData]
@@ -1063,10 +1063,10 @@ public class {|target1:Bar2|} : IBar<int>, IBar<string>
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemForIBar,
-            itemForFooInIBar,
-            itemForBar2,
-            itemForFooInBar2);
+            memberItems: [itemForIBar,
+                itemForFooInIBar,
+                itemForBar2,
+                itemForFooInBar2]);
     }
 
     [Theory, CombinatorialData]
@@ -1122,10 +1122,10 @@ abstract class {|target1:AbsBar|} : IBar<int>
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemForIBar,
-            itemForFooInIBar,
-            itemForAbsBar,
-            itemForFooInAbsBar);
+            memberItems: [itemForIBar,
+                itemForFooInIBar,
+                itemForAbsBar,
+                itemForFooInAbsBar]);
     }
 
     [Theory, CombinatorialData]
@@ -1249,18 +1249,18 @@ public class {|target1:Class1|} : I1<Class1>
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemForI1,
-            itemForAbsClass1,
-            itemForM1InI1,
-            itemForM1InClass1,
-            itemForP1InI1,
-            itemForP1InClass1,
-            itemForE1InI1,
-            itemForE1InClass1,
-            itemForPlusOperatorInI1,
-            itemForPlusOperatorInClass1,
-            itemForIntOperatorInI1,
-            itemForIntOperatorInClass1);
+            memberItems: [itemForI1,
+                itemForAbsClass1,
+                itemForM1InI1,
+                itemForM1InClass1,
+                itemForP1InI1,
+                itemForP1InClass1,
+                itemForE1InI1,
+                itemForE1InClass1,
+                itemForPlusOperatorInI1,
+                itemForPlusOperatorInClass1,
+                itemForIntOperatorInI1,
+                itemForIntOperatorInClass1]);
     }
 
     [Theory, CombinatorialData]
@@ -1308,9 +1308,9 @@ public partial class {|target3:Bar|}
             markup,
             LanguageNames.CSharp,
             testHost,
-            itemOnLine2,
-            itemOnLine6,
-            itemOnLine10);
+            memberItems: [itemOnLine2,
+                itemOnLine6,
+                itemOnLine10]);
     }
 
     [Theory, CombinatorialData]
@@ -1322,12 +1322,13 @@ public partial class {|target3:Bar|}
         return VerifyInMultipleDocumentsAsync(
             markup1, markup2, LanguageNames.CSharp,
             testHost,
-            new TestInheritanceMemberItem(
-            lineNumber: 0,
-            memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
-            targets: ImmutableArray.Create(new TargetInfo(
-                targetSymbolDisplayName: "System",
-                relationship: InheritanceRelationship.InheritedImport, "target1"))));
+            memberItems: [
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1")))]);
     }
 
     [Theory, CombinatorialData]
@@ -1341,16 +1342,17 @@ public partial class {|target3:Bar|}
         return VerifyInMultipleDocumentsAsync(
             markup1, markup2, LanguageNames.CSharp,
             testHost,
-            new TestInheritanceMemberItem(
-            lineNumber: 0,
-            memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
-            targets: ImmutableArray.Create(
-                new TargetInfo(
-                    targetSymbolDisplayName: "System",
-                    relationship: InheritanceRelationship.InheritedImport, "target1"),
-                new TargetInfo(
-                    targetSymbolDisplayName: "System.Collections",
-                    relationship: InheritanceRelationship.InheritedImport, "target2"))));
+            memberItems: [
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System",
+                        relationship: InheritanceRelationship.InheritedImport, "target1"),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System.Collections",
+                        relationship: InheritanceRelationship.InheritedImport, "target2")))]);
     }
 
     [Theory, CombinatorialData]
@@ -1363,12 +1365,12 @@ using System.Collections;";
         return VerifyInMultipleDocumentsAsync(
             markup1, markup2, LanguageNames.CSharp,
             testHost,
-            new TestInheritanceMemberItem(
-            lineNumber: 1,
-            memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
-            targets: ImmutableArray.Create(new TargetInfo(
-                targetSymbolDisplayName: "System",
-                relationship: InheritanceRelationship.InheritedImport, "target1"))));
+            memberItems: [new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1")))]);
     }
 
     [Theory, CombinatorialData]
@@ -1382,12 +1384,13 @@ using System.Collections;";
         return VerifyInMultipleDocumentsAsync(
             markup1, markup2, LanguageNames.CSharp,
             testHost,
-            new TestInheritanceMemberItem(
-            lineNumber: 1,
-            memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
-            targets: ImmutableArray.Create(new TargetInfo(
-                targetSymbolDisplayName: "System",
-                relationship: InheritanceRelationship.InheritedImport, "target1"))));
+            memberItems: [
+                new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1")))]);
     }
 
     #endregion
@@ -1435,7 +1438,7 @@ using System.Collections;";
                     relationship: InheritanceRelationship.ImplementedMember,
                     inMetadata: true)));
 
-        return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, itemForBar, itemForGetEnumerator);
+        return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, memberItems: [itemForBar, itemForGetEnumerator]);
     }
 
     [Theory, CombinatorialData]
@@ -1467,8 +1470,7 @@ using System.Collections;";
             markup,
             LanguageNames.VisualBasic,
             testHost,
-            itemForIBar,
-            itemForBar);
+            memberItems: [itemForIBar, itemForBar]);
     }
 
     [Theory, CombinatorialData]
@@ -1496,7 +1498,7 @@ using System.Collections;";
                 targetSymbolDisplayName: "IBar2",
                 locationTag: "target2",
                 relationship: InheritanceRelationship.InheritedInterface)));
-        return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, itemForIBar2, itemForIBar);
+        return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, memberItems: [itemForIBar2, itemForIBar]);
     }
 
     [Theory, CombinatorialData]
@@ -1524,7 +1526,7 @@ using System.Collections;";
                 targetSymbolDisplayName: "Bar2",
                 locationTag: "target2",
                 relationship: InheritanceRelationship.BaseType)));
-        return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, itemForBar2, itemForBar);
+        return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, memberItems: [itemForBar2, itemForBar]);
     }
 
     [Theory]
@@ -1557,21 +1559,22 @@ using System.Collections;";
             markup,
             LanguageNames.VisualBasic,
             testHost,
-            new TestInheritanceMemberItem(
-                lineNumber: 2,
-                memberName: VBFeaturesResources.Project_level_Imports,
-                targets: ImmutableArray.Create(
-                    new TargetInfo("System", InheritanceRelationship.InheritedImport),
-                    new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
-                    new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport))),
-            new TestInheritanceMemberItem(
-                lineNumber: 3,
-                memberName: "Class Bar",
-                targets: ImmutableArray.Create(
-                    new TargetInfo(
-                        targetSymbolDisplayName: "IEnumerable",
-                        relationship: InheritanceRelationship.ImplementedInterface,
-                        inMetadata: true))));
+            memberItems: [
+                new TestInheritanceMemberItem(
+                    lineNumber: 2,
+                    memberName: VBFeaturesResources.Project_level_Imports,
+                    targets: ImmutableArray.Create(
+                        new TargetInfo("System", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport))),
+                new TestInheritanceMemberItem(
+                    lineNumber: 3,
+                    memberName: "Class Bar",
+                    targets: ImmutableArray.Create(
+                        new TargetInfo(
+                            targetSymbolDisplayName: "IEnumerable",
+                            relationship: InheritanceRelationship.ImplementedInterface,
+                            inMetadata: true)))]);
     }
 
     [Theory, CombinatorialData]
@@ -1622,10 +1625,7 @@ using System.Collections;";
             markup,
             LanguageNames.VisualBasic,
             testHost,
-            itemForIBar,
-            itemForBar,
-            itemForEventInInterface,
-            itemForEventInClass);
+            memberItems: [itemForIBar, itemForBar, itemForEventInInterface, itemForEventInClass]);
     }
 
     [Theory, CombinatorialData]
@@ -1676,10 +1676,7 @@ using System.Collections;";
             markup,
             LanguageNames.VisualBasic,
             testHost,
-            itemForIBar,
-            itemForBar,
-            itemForEventInInterface,
-            itemForEventInClass);
+            memberItems: [itemForIBar, itemForBar, itemForEventInInterface, itemForEventInClass]);
     }
 
     [Theory, CombinatorialData]
@@ -1756,12 +1753,12 @@ using System.Collections;";
             markup,
             LanguageNames.VisualBasic,
             testHost,
-            itemForIBar,
-            itemForBar,
-            itemForPooInInterface,
-            itemForPooInClass,
-            itemForFooInInterface,
-            itemForFooInClass);
+            memberItems: [itemForIBar,
+                itemForBar,
+                itemForPooInInterface,
+                itemForPooInClass,
+                itemForFooInInterface,
+                itemForFooInClass]);
     }
 
     [Theory, CombinatorialData]
@@ -1813,10 +1810,10 @@ using System.Collections;";
             markup,
             LanguageNames.VisualBasic,
              testHost,
-            itemForBar1,
-            itemForBar,
-            itemForFooInBar1,
-            itemForFooInBar);
+            memberItems: [itemForBar1,
+                itemForBar,
+                itemForFooInBar1,
+                itemForFooInBar]);
     }
 
     [Theory, CombinatorialData]
@@ -1934,12 +1931,12 @@ using System.Collections;";
             testDuplicate ? markup2 : markup1,
             LanguageNames.VisualBasic,
             testHost,
-            itemForIBar,
-            itemForFooInIBar,
-            itemForBar1,
-            itemForFooInBar1,
-            itemForBar2,
-            itemForFooInBar2);
+            memberItems: [itemForIBar,
+                itemForFooInIBar,
+                itemForBar1,
+                itemForFooInBar1,
+                itemForBar2,
+                itemForFooInBar2]);
     }
 
     [Theory, CombinatorialData]
@@ -2011,11 +2008,11 @@ using System.Collections;";
             markup,
             LanguageNames.VisualBasic,
             testHost,
-            itemForIBar,
-            itemForFooInIBar,
-            itemForBar,
-            itemForFooInBar,
-            itemForIBar_FooInBar);
+            memberItems: [itemForIBar,
+                itemForFooInIBar,
+                itemForBar,
+                itemForFooInBar,
+                itemForIBar_FooInBar]);
     }
 
     #endregion
@@ -2291,5 +2288,27 @@ public class {|target1:C|}
 }",
             LanguageNames.CSharp,
             testHost);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestNoResultOutsideSpan(TestHost testHost)
+    {
+        var code = @"
+
+public class B : C
+[|{
+
+}|]
+
+public class C
+{
+}";
+
+        MarkupTestFile.GetSpan(code, out var _, out var spanToSearch);
+
+        await VerifyNoItemForDocumentAsync(code,
+            LanguageNames.CSharp,
+            testHost,
+            spanToSearch);
     }
 }
