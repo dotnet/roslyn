@@ -7344,7 +7344,7 @@ class Program
 class C
 {
     object field;
-    public object Field => field;
+    public object Field => @field;
 
     public C(object f) { field = f; }
 
@@ -7373,7 +7373,7 @@ class Program
 class C
 {
     object field;
-    public object Field => field;
+    public object Field => @field;
 
     public C(object f) { field = f; }
 

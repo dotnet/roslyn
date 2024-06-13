@@ -2922,13 +2922,13 @@ unsafe class Test
     class C
     {
         int field = 0;
-        ref int P { get { return ref @field; } set { } }
+        ref int P { get { return ref @field; } set { } } 
     }
     ";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,48): error CS8147: Properties which return by reference cannot have set accessors
-                //         ref int P { get { return ref @field; } set { } }
+                //         ref int P { get { return ref @field; } set { } } 
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 48));
         }
 

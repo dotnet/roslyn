@@ -86,10 +86,6 @@
 
                     <CheckBox x:Name="Analyze_source_generated_files"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
-
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
-
                 </StackPanel>
             </GroupBox>
 
