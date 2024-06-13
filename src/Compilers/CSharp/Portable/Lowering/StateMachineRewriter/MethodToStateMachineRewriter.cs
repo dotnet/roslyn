@@ -206,22 +206,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 #nullable enable
-        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
-            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out state, out resumeLabel);
+        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
+            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, awaitId, out state, out resumeLabel);
 
-        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax);
-            AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber);
+            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax, awaitId);
+            AddStateDebugInfo(awaitOrYieldReturnSyntax, awaitId, stateNumber);
             AddState(stateNumber, out resumeLabel);
         }
 
-        protected void AddStateDebugInfo(SyntaxNode node, StateMachineState state)
+        protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
-            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, state));
+            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));
         }
 
         protected void AddState(StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
@@ -307,7 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                 if (local.RefKind != RefKind.None)
                 {
-                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
+                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                                 (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
                     continue;
                 }
 
@@ -489,9 +490,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression HoistRefInitialization(SynthesizedLocal local, BoundAssignmentOperator node)
         {
-            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
             Debug.Assert(local.SyntaxOpt != null);
-            Debug.Assert(this.OriginalMethod.IsAsync);
+#pragma warning disable format
+            Debug.Assert(local.SynthesizedKind switch
+                         {
+                             SynthesizedLocalKind.Spill => this.OriginalMethod.IsAsync,
+                             SynthesizedLocalKind.ForEachArray => this.OriginalMethod.IsAsync || this.OriginalMethod.IsIterator,
+                             _ => false
+                         });
+#pragma warning restore format
 
             var right = (BoundExpression)Visit(node.Right);
 
@@ -504,7 +513,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 awaitSyntaxOpt = local.GetDeclaratorSyntax();
-                Debug.Assert(awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression));
+#pragma warning disable format
+                Debug.Assert(local.SynthesizedKind switch
+                             {
+                                 SynthesizedLocalKind.Spill => awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression),
+                                 SynthesizedLocalKind.ForEachArray => awaitSyntaxOpt is CommonForEachStatementSyntax,
+                                 _ => false
+                             });
+#pragma warning restore format
                 syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
             }
             else
@@ -598,13 +614,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
                     // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
                     //
                     //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
                     //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                     if (refKind != RefKind.None && refKind != RefKind.In)
                     {
+                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.Out);
                         Debug.Assert(call.Method.RefKind != RefKind.None);
                         F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
                     }
@@ -615,13 +632,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
                     // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
                     //
                     //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
                     //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                     if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                     {
+                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.In);
                         Debug.Assert(conditional.IsRef);
                         F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
                     }
@@ -814,7 +832,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. Ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
+            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (leftLocal.SynthesizedKind == SynthesizedLocalKind.ForEachArray && leftLocal.Type.HasInlineArrayAttribute(out _) && leftLocal.Type.TryGetInlineArrayElementField() is object));
             Debug.Assert(node.IsRef);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.

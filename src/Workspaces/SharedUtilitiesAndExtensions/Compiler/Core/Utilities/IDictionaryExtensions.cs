@@ -25,6 +25,18 @@ namespace Roslyn.Utilities
             return value;
         }
 
+        public static V GetOrAdd<K, V, TArg>(this IDictionary<K, V> dictionary, K key, Func<K, TArg, V> function, TArg arg)
+            where K : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var value))
+            {
+                value = function(key, arg);
+                dictionary.Add(key, value);
+            }
+
+            return value;
+        }
+
         public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
             where TKey : notnull
         {

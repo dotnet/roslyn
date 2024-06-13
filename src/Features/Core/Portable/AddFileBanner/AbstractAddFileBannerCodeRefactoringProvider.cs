@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             }
 
             // Didn't have a tree.  Don't want to parse the file if we can avoid it.
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (text.Length == 0 || !IsCommentStartCharacter(text[0]))
             {
                 // Didn't start with a comment character, don't bother looking at 

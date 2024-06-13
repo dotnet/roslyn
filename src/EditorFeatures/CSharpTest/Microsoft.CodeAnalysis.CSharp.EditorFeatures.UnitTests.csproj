@@ -43,6 +43,7 @@
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
@@ -68,6 +69,13 @@
     <Compile Remove="Debugging\Resources\*.*" />
     <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
-  <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
+  <ItemGroup>
+    <Compile Include="..\..\Features\CSharpTest\CodeActions\AbstractCSharpCodeActionTest.cs" Link="CodeActions\AbstractCSharpCodeActionTest.cs" />
+    <Compile Include="..\..\Features\CSharpTest\CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" Link="CodeActions\ExceptionInCodeAction.cs" />
+    <Compile Include="..\..\Features\CSharpTest\Utilities\CodeSnippets.cs" Link="Utilities\CodeSnippets.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interactive\CodeActions\" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

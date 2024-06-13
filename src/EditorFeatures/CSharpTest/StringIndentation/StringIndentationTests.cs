@@ -322,372 +322,412 @@ goo
         [Fact]
         public async Task TestCase10()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v =
-             $$""""""""
-            |goo
-             """""""";
-    }
-}");
+            await TestAsync("""""
+                class C
+                {
+                    void M()
+                    {
+                        var v =
+                             $$""""
+                            |goo
+                             """";
+                    }
+                }
+                """"");
         }
 
         [Fact]
         public async Task TestCase11()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v =
-            $$""""""""
-            |goo
-             """""""";
-    }
-}");
+            await TestAsync("""""
+                class C
+                {
+                    void M()
+                    {
+                        var v =
+                            $$""""
+                            |goo
+                             """";
+                    }
+                }
+                """"");
         }
 
         [Fact]
         public async Task TestCase12()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v =
-           $$""""""""
-            |goo
-             """""""";
-    }
-}");
+            await TestAsync("""""
+                class C
+                {
+                    void M()
+                    {
+                        var v =
+                           $$""""
+                            |goo
+                             """";
+                    }
+                }
+                """"");
         }
 
         [Fact]
         public async Task TestWithHoles1()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    goo
-           |    { 1 + 1 }
-           |    baz
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    goo
+                           |    { 1 + 1 }
+                           |    baz
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles2()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    goo{
-           |    1 + 1
-           |    }baz
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    goo{
+                           |    1 + 1
+                           |    }baz
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles3()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    goo{
-           |1 + 1
-           |    }baz
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    goo{
+                           |1 + 1
+                           |    }baz
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles4()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    goo{
-           1 + 1
-                }baz
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    goo{
+                           1 + 1
+                                }baz
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles5()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    goo{
-           |1 + 1
-           |    }baz
-           |    quux
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    goo{
+                           |1 + 1
+                           |    }baz
+                           |    quux
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles6()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    goo{
-         1 + 1
-                }baz
-           |    quux
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    goo{
+                         1 + 1
+                                }baz
+                           |    quux
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles7()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |goo{
-         1 + 1
-         }baz
-           |quux
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |goo{
+                         1 + 1
+                         }baz
+                           |quux
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles8()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    { 1 + 1 }
-           |    baz
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    { 1 + 1 }
+                           |    baz
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles9()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    {
-           |        1 + 1
-           |    }
-           |    baz
-            """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    {
+                           |        1 + 1
+                           |    }
+                           |    baz
+                            """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithHoles10()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var v = $""""""
-           |    {
-        1 + 1
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"""
+                           |    {
+                        1 + 1
+                                }
+                           |    baz
+                            """;
+                    }
                 }
-           |    baz
-            """""";
-    }
-}");
+                """");
         }
 
         [Fact]
         public async Task TestWithNestedHoles1()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var x =
-            $""""""
-            |goo
-            |{
-            |   $""""""
-            |   |bar
-            |    """"""
-            |}
-            |baz
-             """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var x =
+                            $"""
+                            |goo
+                            |{
+                            |   $"""
+                            |   |bar
+                            |    """
+                            |}
+                            |baz
+                             """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithNestedHoles2()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var x =
-            $""""""
-            |goo
-            |{
-            |   $""""""
-            |   |bar
-            |   |{
-            |   |   1 + 1
-            |   |}
-            |    """"""
-            |}
-            |baz
-             """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var x =
+                            $"""
+                            |goo
+                            |{
+                            |   $"""
+                            |   |bar
+                            |   |{
+                            |   |   1 + 1
+                            |   |}
+                            |    """
+                            |}
+                            |baz
+                             """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithNestedHoles3()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var x =
-            $""""""
-            |goo
-            |{
-            |   $""""""
-            |   |bar
-            |   |{
-            |   1 + 1
-            |    }
-            |    """"""
-            |}
-            |baz
-             """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var x =
+                            $"""
+                            |goo
+                            |{
+                            |   $"""
+                            |   |bar
+                            |   |{
+                            |   1 + 1
+                            |    }
+                            |    """
+                            |}
+                            |baz
+                             """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithNestedHoles4()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var x =
-            $""""""
-            |goo
-            |{
-                $""""""
-                |bar
-                |{
-            1 + 1
-                 }
-                 """"""
-             }
-            |baz
-             """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var x =
+                            $"""
+                            |goo
+                            |{
+                                $"""
+                                |bar
+                                |{
+                            1 + 1
+                                 }
+                                 """
+                             }
+                            |baz
+                             """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithNestedHoles5()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var x =
-            $""""""
-            |goo
-            |{
-        $""""""
-        |bar
-         """"""
-             }
-            |baz
-             """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var x =
+                            $"""
+                            |goo
+                            |{
+                        $"""
+                        |bar
+                         """
+                             }
+                            |baz
+                             """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithNestedHoles6()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var x =
-            $""""""
-            |goo
-            |{
-        $""""""
-        |bar
-        |{
-        |   1 + 1
-        |}
-         """"""
-             }
-            |baz
-             """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var x =
+                            $"""
+                            |goo
+                            |{
+                        $"""
+                        |bar
+                        |{
+                        |   1 + 1
+                        |}
+                         """
+                             }
+                            |baz
+                             """;
+                    }
+                }
+                """");
         }
 
         [Fact]
         public async Task TestWithNestedHoles7()
         {
-            await TestAsync(@"class C
-{
-    void M()
-    {
-        var x =
-            $""""""
-            |goo
-            |{
-        $""""""
-        |bar
-        |{
-        1 + 1
-         }
-         """"""
-             }
-            |baz
-             """""";
-    }
-}");
+            await TestAsync(""""
+                class C
+                {
+                    void M()
+                    {
+                        var x =
+                            $"""
+                            |goo
+                            |{
+                        $"""
+                        |bar
+                        |{
+                        1 + 1
+                         }
+                         """
+                             }
+                            |baz
+                             """;
+                    }
+                }
+                """");
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1542623")]

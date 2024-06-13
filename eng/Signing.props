@@ -10,6 +10,8 @@
     Non-default certificates.
   -->
   <ItemGroup>
+    <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.tgz" />
+
     <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
 
     <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
@@ -42,6 +44,7 @@
     <FileSignInfo Include="Nerdbank.Streams.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Newtonsoft.Json.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Validation.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Humanizer.dll" CertificateName="3PartySHA2" />
 
     <!-- Sign VS/Microsoft dlls we crossgen'd and included in the vsix for our .NET remote host with Microsoft cert -->
     <FileSignInfo Include="Microsoft.CodeAnalysis.Elfie.dll" CertificateName="MicrosoftSHA2" />

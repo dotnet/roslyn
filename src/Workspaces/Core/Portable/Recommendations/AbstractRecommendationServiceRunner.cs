@@ -122,8 +122,11 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             // For each type of b., return all suitable members. Also, ensure we consider the actual type of the
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
+            // (Only add the actual type if it's not already in the set, otherwise the type and all of its members will be considered twice.)
+            if (!parameterTypeSymbols.Contains(parameter.Type, SymbolEqualityComparer.Default))
+                parameterTypeSymbols = parameterTypeSymbols.Concat(parameter.Type);
+
             return parameterTypeSymbols
-                .Concat(parameter.Type)
                 .SelectManyAsArray(parameterTypeSymbol =>
                     GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable, isForDereference));
         }

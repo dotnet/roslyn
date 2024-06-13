@@ -385,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIndexerAccess(
                 syntax,
                 transformedReceiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 indexer,
                 rewrittenArguments,
                 argumentNamesOpt: default(ImmutableArray<string>),
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // This is a temporary object that will be rewritten away before the lowering completes.
                             return propertyAccess.Update(TransformPropertyOrEventReceiver(propertyAccess.PropertySymbol, propertyAccess.ReceiverOpt,
                                                                                           isRegularCompoundAssignment, stores, temps),
-                                                         propertyAccess.PropertySymbol, propertyAccess.ResultKind, propertyAccess.Type);
+                                                         propertyAccess.InitialBindingReceiverIsSubjectToCloning, propertyAccess.PropertySymbol, propertyAccess.ResultKind, propertyAccess.Type);
                         }
                     }
                     break;
@@ -664,6 +665,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
                         }
                     }
+                    break;
+
+                case BoundKind.InlineArrayAccess:
+                    Debug.Assert(originalLHS.GetRefKind() == RefKind.Ref);
                     break;
 
                 case BoundKind.DynamicMemberAccess:

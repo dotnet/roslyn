@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<EncHoistedLocalInfo, int>? _hoistedLocalSlots;
         private readonly int _awaiterCount;
         private readonly IReadOnlyDictionary<Cci.ITypeReference, int>? _awaiterMap;
-        private readonly IReadOnlyDictionary<int, StateMachineState>? _stateMachineStateMap; // SyntaxOffset -> State Ordinal
+        private readonly IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId awaitId), StateMachineState>? _stateMachineStateMap;
         private readonly StateMachineState? _firstUnusedDecreasingStateMachineState;
         private readonly StateMachineState? _firstUnusedIncreasingStateMachineState;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<EncHoistedLocalInfo, int>? hoistedLocalSlots,
             int awaiterCount,
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap,
-            IReadOnlyDictionary<int, StateMachineState>? stateMachineStateMap,
+            IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId awaitId), StateMachineState>? stateMachineStateMap,
             StateMachineState? firstUnusedIncreasingStateMachineState,
             StateMachineState? firstUnusedDecreasingStateMachineState,
             LambdaSyntaxFacts lambdaSyntaxFacts)
@@ -332,11 +332,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public override StateMachineState? GetFirstUnusedStateMachineState(bool increasing)
             => increasing ? _firstUnusedIncreasingStateMachineState : _firstUnusedDecreasingStateMachineState;
 
-        public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, out StateMachineState state)
+        public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, AwaitDebugId awaitId, out StateMachineState state)
         {
             if (_stateMachineStateMap != null &&
                 TryGetPreviousSyntaxOffset(syntax, out int syntaxOffset) &&
-                _stateMachineStateMap.TryGetValue(syntaxOffset, out state))
+                _stateMachineStateMap.TryGetValue((syntaxOffset, awaitId), out state))
             {
                 return true;
             }

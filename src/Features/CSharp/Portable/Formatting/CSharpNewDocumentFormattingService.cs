@@ -13,15 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     [ExportLanguageService(typeof(INewDocumentFormattingService), LanguageNames.CSharp)]
     [Shared]
-    internal class CSharpNewDocumentFormattingService : AbstractNewDocumentFormattingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpNewDocumentFormattingService([ImportMany] IEnumerable<Lazy<INewDocumentFormattingProvider, LanguageMetadata>> providers) : AbstractNewDocumentFormattingService(providers)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpNewDocumentFormattingService([ImportMany] IEnumerable<Lazy<INewDocumentFormattingProvider, LanguageMetadata>> providers)
-            : base(providers)
-        {
-        }
-
         protected override string Language => LanguageNames.CSharp;
     }
 }

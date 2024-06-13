@@ -18,19 +18,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task InsertClassSnippetInNamespaceTest()
         {
             var markupBeforeCommit =
-@"namespace Namespace
-{
-    $$
-}";
+                """
+                namespace Namespace
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"namespace Namespace
-{
-    class MyClass
-    {
-        $$
-    }
-}";
+                """
+                namespace Namespace
+                {
+                    class MyClass
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -38,17 +42,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task InsertClassSnippetInFileScopedNamespaceTest()
         {
             var markupBeforeCommit =
-@"namespace Namespace;
+                """
+                namespace Namespace;
 
-$$";
+                $$
+                """;
 
             var expectedCodeAfterCommit =
-@"namespace Namespace;
+                """
+                namespace Namespace;
 
-class MyClass
-{
-    $$
-}";
+                class MyClass
+                {
+                    $$
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -59,10 +67,12 @@ class MyClass
 @"$$";
 
             var expectedCodeAfterCommit =
-@"class MyClass
-{
-    $$
-}";
+                """
+                class MyClass
+                {
+                    $$
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -70,15 +80,19 @@ class MyClass
         public async Task InsertClassTopLevelSnippetTest()
         {
             var markupBeforeCommit =
-@"System.Console.WriteLine();
-$$";
+                """
+                System.Console.WriteLine();
+                $$
+                """;
 
             var expectedCodeAfterCommit =
-@"System.Console.WriteLine();
-class MyClass
-{
-    $$
-}";
+                """
+                System.Console.WriteLine();
+                class MyClass
+                {
+                    $$
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -86,19 +100,23 @@ class MyClass
         public async Task InsertClassSnippetInClassTest()
         {
             var markupBeforeCommit =
-@"class MyClass
-{
-    $$
-}";
+                """
+                class MyClass
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class MyClass
-{
-    class MyClass1
-    {
-        $$
-    }
-}";
+                """
+                class MyClass
+                {
+                    class MyClass1
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -106,19 +124,23 @@ class MyClass
         public async Task InsertClassSnippetInRecordTest()
         {
             var markupBeforeCommit =
-@"record MyRecord
-{
-    $$
-}";
+                """
+                record MyRecord
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"record MyRecord
-{
-    class MyClass
-    {
-        $$
-    }
-}";
+                """
+                record MyRecord
+                {
+                    class MyClass
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -126,19 +148,23 @@ class MyClass
         public async Task InsertClassSnippetInStructTest()
         {
             var markupBeforeCommit =
-@"struct MyStruct
-{
-    $$
-}";
+                """
+                struct MyStruct
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"struct MyStruct
-{
-    class MyClass
-    {
-        $$
-    }
-}";
+                """
+                struct MyStruct
+                {
+                    class MyClass
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -146,19 +172,23 @@ class MyClass
         public async Task InsertClassSnippetInInterfaceTest()
         {
             var markupBeforeCommit =
-@"interface MyInterface
-{
-    $$
-}";
+                """
+                interface MyInterface
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"interface MyInterface
-{
-    class MyClass
-    {
-        $$
-    }
-}";
+                """
+                interface MyInterface
+                {
+                    class MyClass
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -195,10 +225,12 @@ public class MyClass
         public async Task NoClassSnippetInEnumTest()
         {
             var markupBeforeCommit =
-@"enum MyEnum
-{
-    $$
-}";
+                """
+                enum MyEnum
+                {
+                    $$
+                }
+                """;
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
@@ -207,13 +239,15 @@ public class MyClass
         public async Task NoClassSnippetInMethodTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public void Method()
-    {
-        $$
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
@@ -221,13 +255,15 @@ public class MyClass
         public async Task NoClassSnippetInConstructorTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public Program()
-    {
-        $$
-    }
-}";
+                """
+                class Program
+                {
+                    public Program()
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
@@ -276,6 +312,96 @@ public class MyClass
 
             var expectedCodeAfterCommit = $$"""
                 {{modifier}} class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("abstract")]
+        [InlineData("sealed")]
+        [InlineData("static")]
+        [InlineData("unsafe")]
+        public async Task InsertClassSnippetAfterValidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            var expectedCodeAfterCommit = $$"""
+                {{modifier}} class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("ref")]
+        [InlineData("readonly")]
+        public async Task NoClassSnippetAfterInvalidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        [InlineData("public")]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public async Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">{{modifier}} partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                root = true
+
+                [*]
+                # IDE0008: Use explicit type
+                dotnet_style_require_accessibility_modifiers = always
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                {{modifier}} partial class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                root = true
+
+                [*]
+                # IDE0008: Use explicit type
+                dotnet_style_require_accessibility_modifiers = always
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public partial class MyClass
                 {
                     $$
                 }

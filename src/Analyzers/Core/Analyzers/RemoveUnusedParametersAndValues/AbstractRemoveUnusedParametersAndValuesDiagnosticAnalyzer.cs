@@ -6,9 +6,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private const string IsRemovableAssignmentKey = nameof(IsRemovableAssignmentKey);
 
         // Diagnostic reported for expression statements that drop computed value, for example, "Computation();".
-        // This is **not** an unnecessary (fading) diagnostic as the expression being flagged is not unncessary, but the dropped value is.
+        // This is **not** an unnecessary (fading) diagnostic as the expression being flagged is not unnecessary, but the dropped value is.
         private static readonly DiagnosticDescriptor s_expressionValueIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
             EnforceOnBuildValues.ExpressionValueIsUnused,
@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
         }
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract bool IsExpressionOfExpressionBody(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
-        /// Method to compute well-known diagnostic property maps for different comnbinations of diagnostic properties.
+        /// Method to compute well-known diagnostic property maps for different combinations of diagnostic properties.
         /// The property map is added to each instance of the reported diagnostic and is used by the code fixer to
         /// compute the correct code fix.
         /// It currently maps to three different properties of the diagnostic:

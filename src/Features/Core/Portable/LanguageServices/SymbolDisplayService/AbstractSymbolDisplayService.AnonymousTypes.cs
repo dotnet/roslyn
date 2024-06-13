@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 if (firstSymbol.IsAnonymousDelegateType())
                     directStructuralTypes = directStructuralTypes.Except(new[] { (INamedTypeSymbol)firstSymbol });
 
-                var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
+                var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
                     firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
                 if (info.TypesParts.Count > 0)

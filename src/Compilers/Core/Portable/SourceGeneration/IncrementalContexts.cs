@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
         /// </exception>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, isSupportedDiagnostic: static _ => true);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, isSupportedDiagnostic: static (_, _) => true, CancellationToken);
             Diagnostics.Add(diagnostic);
         }
     }

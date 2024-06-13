@@ -25,24 +25,19 @@ namespace Microsoft.CodeAnalysis.GoToBase
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToBase)]
-    internal sealed class GoToBaseCommandHandler : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class GoToBaseCommandHandler(
+        IThreadingContext threadingContext,
+        IStreamingFindUsagesPresenter streamingPresenter,
+        IUIThreadOperationExecutor uiThreadOperationExecutor,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(threadingContext,
+               streamingPresenter,
+               uiThreadOperationExecutor,
+               listenerProvider.GetListener(FeatureAttribute.GoToBase),
+               globalOptions)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToBaseCommandHandler(
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            IUIThreadOperationExecutor uiThreadOperationExecutor,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext,
-                   streamingPresenter,
-                   uiThreadOperationExecutor,
-                   listenerProvider.GetListener(FeatureAttribute.GoToBase),
-                   globalOptions)
-        {
-        }
-
         public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
         protected override string ScopeDescription => EditorFeaturesResources.Locating_bases;

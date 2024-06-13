@@ -9,26 +9,18 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationAttributeData : AttributeData
+    internal class CodeGenerationAttributeData(
+        INamedTypeSymbol attributeClass,
+        ImmutableArray<TypedConstant> constructorArguments,
+        ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments) : AttributeData
     {
-        private readonly INamedTypeSymbol _attributeClass;
-        private readonly ImmutableArray<TypedConstant> _constructorArguments;
-        private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
+        private readonly ImmutableArray<TypedConstant> _constructorArguments = constructorArguments.NullToEmpty();
+        private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments = namedArguments.NullToEmpty();
 
-        protected override INamedTypeSymbol CommonAttributeClass => _attributeClass;
+        protected override INamedTypeSymbol CommonAttributeClass => attributeClass;
         protected override IMethodSymbol CommonAttributeConstructor => null;
         protected override ImmutableArray<TypedConstant> CommonConstructorArguments => _constructorArguments;
         protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _namedArguments;
         protected override SyntaxReference CommonApplicationSyntaxReference => null;
-
-        public CodeGenerationAttributeData(
-            INamedTypeSymbol attributeClass,
-            ImmutableArray<TypedConstant> constructorArguments,
-            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments)
-        {
-            _attributeClass = attributeClass;
-            _constructorArguments = constructorArguments.NullToEmpty();
-            _namedArguments = namedArguments.NullToEmpty();
-        }
     }
 }

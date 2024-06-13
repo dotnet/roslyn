@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
             public override ScopedKind DeclaredScope(int index) => ScopedKind.None;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
-            public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
+            public override Location ParameterLocation(int index) { return _parameters[index].TryGetFirstLocation(); }
             // Query unbound lambdas don't have associated parameter syntax
             public override ParameterSyntax ParameterSyntax(int index) => null;
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable();
             }
 
-            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+            protected override BoundBlock BindLambdaBodyCore(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
             {
                 return _bodyFactory(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }

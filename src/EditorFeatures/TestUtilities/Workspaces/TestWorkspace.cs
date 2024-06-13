@@ -457,8 +457,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Add in mapped spans from each of the base documents
             foreach (var document in baseDocuments)
             {
-                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty)
-                    ? mappedSpans[string.Empty]
+                mappedSpans[string.Empty] = mappedSpans.TryGetValue(string.Empty, out var emptyTextSpans)
+                    ? emptyTextSpans
                     : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
@@ -473,9 +473,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 foreach (var (key, spans) in document.AnnotatedSpans)
                 {
-                    mappedSpans[key] = mappedSpans.ContainsKey(key)
-                        ? mappedSpans[key]
-                        : ImmutableArray<TextSpan>.Empty;
+                    mappedSpans[key] = mappedSpans.TryGetValue(key, out var textSpans) ? textSpans : ImmutableArray<TextSpan>.Empty;
 
                     foreach (var span in spans)
                     {

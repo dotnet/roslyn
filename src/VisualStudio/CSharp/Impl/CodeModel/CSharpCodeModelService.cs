@@ -1057,23 +1057,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             var modifiers = member.GetModifiers();
 
-            if (modifiers.Any(t => t.Kind() == SyntaxKind.PublicKeyword))
+            if (modifiers.Any(SyntaxKind.PublicKeyword))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessPublic;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.ProtectedKeyword) && modifiers.Any(t => t.Kind() == SyntaxKind.InternalKeyword))
+            else if (modifiers.Any(SyntaxKind.ProtectedKeyword) && modifiers.Any(SyntaxKind.InternalKeyword))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.InternalKeyword))
+            else if (modifiers.Any(SyntaxKind.InternalKeyword))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessProject;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.ProtectedKeyword))
+            else if (modifiers.Any(SyntaxKind.ProtectedKeyword))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessProtected;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.PrivateKeyword))
+            else if (modifiers.Any(SyntaxKind.PrivateKeyword))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessPrivate;
             }
@@ -3528,11 +3528,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override bool IsType(SyntaxNode node)
         {
-            return node.IsKind(SyntaxKind.ClassDeclaration)
-                || node.IsKind(SyntaxKind.InterfaceDeclaration)
-                || node.IsKind(SyntaxKind.StructDeclaration)
-                || node.IsKind(SyntaxKind.EnumDeclaration)
-                || node.IsKind(SyntaxKind.DelegateDeclaration);
+            return node?.Kind()
+                is SyntaxKind.ClassDeclaration
+                or SyntaxKind.InterfaceDeclaration
+                or SyntaxKind.StructDeclaration
+                or SyntaxKind.EnumDeclaration
+                or SyntaxKind.DelegateDeclaration;
         }
 
         private static bool IsAutoImplementedProperty(PropertyDeclarationSyntax propertyDeclaration)

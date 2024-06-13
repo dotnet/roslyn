@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
             var priority = options.PreferTopLevelStatements.Notification.Severity == ReportDiagnostic.Hidden
                 ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
+                : CodeActionPriority.Default;
 
             RegisterCodeFix(context, CSharpAnalyzersResources.Convert_to_top_level_statements, nameof(ConvertToTopLevelStatementsCodeFixProvider), priority);
         }

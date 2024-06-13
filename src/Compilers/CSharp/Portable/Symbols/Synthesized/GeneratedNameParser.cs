@@ -189,8 +189,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        public const char FileTypeNameStartChar = '<';
+
         private const int sha256LengthBytes = 32;
         private const int sha256LengthHexChars = sha256LengthBytes * 2;
+        private static readonly string s_regexPatternString = $@"<([a-zA-Z_0-9]*)>F([0-9A-F]{{{sha256LengthHexChars}}})__";
+
+        static GeneratedNameParser()
+        {
+            Debug.Assert(s_regexPatternString[0] == FileTypeNameStartChar);
+        }
 
         // A full metadata name for a generic file-local type looks like:
         // <ContainingFile>FN__ClassName`A
@@ -199,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //
         // The "unmangled" name of a generic file-local type looks like:
         // <ContainingFile>FN__ClassName
-        private static readonly Regex s_fileTypeOrdinalPattern = new Regex($@"<([a-zA-Z_0-9]*)>F([0-9A-F]{{{sha256LengthHexChars}}})__", RegexOptions.Compiled);
+        private static readonly Regex s_fileTypeOrdinalPattern = new Regex(s_regexPatternString, RegexOptions.Compiled);
 
         /// <remarks>
         /// This method will work with either unmangled or mangled type names as input, but it does not remove any arity suffix if present.

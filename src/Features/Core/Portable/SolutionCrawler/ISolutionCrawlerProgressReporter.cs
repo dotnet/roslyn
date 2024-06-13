@@ -25,21 +25,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         event EventHandler<ProgressData> ProgressChanged;
     }
 
-    internal readonly struct ProgressData
+    internal readonly struct ProgressData(ProgressStatus type, int? pendingItemCount)
     {
-        public ProgressStatus Status { get; }
+        public ProgressStatus Status { get; } = type;
 
         /// <summary>
         /// number of pending work item in the queue. 
         /// null means N/A for the associated <see cref="Status"/>
         /// </summary>
-        public int? PendingItemCount { get; }
-
-        public ProgressData(ProgressStatus type, int? pendingItemCount)
-        {
-            Status = type;
-            PendingItemCount = pendingItemCount;
-        }
+        public int? PendingItemCount { get; } = pendingItemCount;
     }
 
     internal enum ProgressStatus

@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getOrCreateCall = BoundCall.Synthesized(
                     syntax,
                     receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: getOrCreateMethod,
                     arg0: fieldAccess);
             }

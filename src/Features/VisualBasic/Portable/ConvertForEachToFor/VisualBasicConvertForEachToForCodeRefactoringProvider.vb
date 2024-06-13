@@ -79,11 +79,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             If nextStatement.ControlVariables.Count > 0 Then
                 Debug.Assert(nextStatement.ControlVariables.Count = 1)
 
-                Dim controlVariable As SyntaxNode = nextStatement.ControlVariables(0)
-                controlVariable = generator.IdentifierName(
+                Dim controlVariable As ExpressionSyntax = nextStatement.ControlVariables(0)
+                controlVariable = CType(generator.IdentifierName(
                     indexVariable _
                         .WithLeadingTrivia(controlVariable.GetFirstToken().LeadingTrivia) _
-                        .WithTrailingTrivia(controlVariable.GetLastToken().TrailingTrivia))
+                        .WithTrailingTrivia(controlVariable.GetLastToken().TrailingTrivia)), ExpressionSyntax)
 
                 nextStatement = nextStatement.WithControlVariables(
                     SyntaxFactory.SingletonSeparatedList(controlVariable))

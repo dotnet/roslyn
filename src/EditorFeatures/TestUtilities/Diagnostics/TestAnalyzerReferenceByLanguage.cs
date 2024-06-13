@@ -34,5 +34,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return ImmutableArray<DiagnosticAnalyzer>.Empty;
         }
+
+        public TestAnalyzerReferenceByLanguage WithAdditionalAnalyzers(string language, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            var newAnalyzersMap = ImmutableDictionary.CreateRange(
+                _analyzersMap.Select(kvp => new KeyValuePair<string, ImmutableArray<DiagnosticAnalyzer>>(
+                    kvp.Key, kvp.Key == language ? kvp.Value.AddRange(analyzers) : kvp.Value)));
+            return new(newAnalyzersMap);
+        }
     }
 }

@@ -9,12 +9,9 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    internal sealed class VSTypeScriptFindUsagesContext : IVSTypeScriptFindUsagesContext
+    internal sealed class VSTypeScriptFindUsagesContext(FindUsagesContext underlyingObject) : IVSTypeScriptFindUsagesContext
     {
-        internal readonly FindUsagesContext UnderlyingObject;
-
-        public VSTypeScriptFindUsagesContext(FindUsagesContext underlyingObject)
-            => UnderlyingObject = underlyingObject;
+        internal readonly FindUsagesContext UnderlyingObject = underlyingObject;
 
         public IVSTypeScriptStreamingProgressTracker ProgressTracker
             => new VSTypeScriptStreamingProgressTracker(UnderlyingObject.ProgressTracker);

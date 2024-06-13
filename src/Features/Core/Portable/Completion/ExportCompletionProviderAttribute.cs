@@ -12,18 +12,11 @@ namespace Microsoft.CodeAnalysis.Completion
     /// be found and used by the per language associated <see cref="CompletionService"/>.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class ExportCompletionProviderAttribute : ExportAttribute
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public sealed class ExportCompletionProviderAttribute(string name, string language) : ExportAttribute(typeof(CompletionProvider))
     {
-        public string Name { get; }
-        public string Language { get; }
+        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
         public string[]? Roles { get; set; }
-
-        public ExportCompletionProviderAttribute(string name, string language)
-            : base(typeof(CompletionProvider))
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Language = language ?? throw new ArgumentNullException(nameof(language));
-        }
     }
 }

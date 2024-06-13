@@ -6,7 +6,8 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(IdentifierNameSyntax))
 
-        Public Overrides Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, options As ClassificationOptions, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddClassifications(syntax As SyntaxNode, textSpan As TextSpan, semanticModel As SemanticModel, options As ClassificationOptions, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim identifierName = DirectCast(syntax, IdentifierNameSyntax)
             Dim identifier = identifierName.Identifier
             If CaseInsensitiveComparison.Equals(identifier.ValueText, s_awaitText) Then

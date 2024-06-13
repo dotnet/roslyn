@@ -26,44 +26,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     [Export(typeof(IInlineRenameService))]
     [Export(typeof(InlineRenameService))]
-    internal sealed class InlineRenameService : IInlineRenameService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class InlineRenameService(
+        IThreadingContext threadingContext,
+        IUIThreadOperationExecutor uiThreadOperationExecutor,
+        ITextBufferAssociatedViewService textBufferAssociatedViewService,
+        ITextBufferFactoryService textBufferFactoryService,
+        ITextBufferCloneService textBufferCloneService,
+        IFeatureServiceFactory featureServiceFactory,
+        IGlobalOptionService globalOptions,
+        [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+        IAsynchronousOperationListenerProvider listenerProvider) : IInlineRenameService
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-        private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
-        private readonly ITextBufferCloneService _textBufferCloneService;
-        private readonly IFeatureServiceFactory _featureServiceFactory;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
+        private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService = textBufferAssociatedViewService;
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
+        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices = refactorNotifyServices;
+        private readonly ITextBufferFactoryService _textBufferFactoryService = textBufferFactoryService;
+        private readonly ITextBufferCloneService _textBufferCloneService = textBufferCloneService;
+        private readonly IFeatureServiceFactory _featureServiceFactory = featureServiceFactory;
 
-        internal readonly IGlobalOptionService GlobalOptions;
+        internal readonly IGlobalOptionService GlobalOptions = globalOptions;
 
         private InlineRenameSession? _activeRenameSession;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineRenameService(
-            IThreadingContext threadingContext,
-            IUIThreadOperationExecutor uiThreadOperationExecutor,
-            ITextBufferAssociatedViewService textBufferAssociatedViewService,
-            ITextBufferFactoryService textBufferFactoryService,
-            ITextBufferCloneService textBufferCloneService,
-            IFeatureServiceFactory featureServiceFactory,
-            IGlobalOptionService globalOptions,
-            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _threadingContext = threadingContext;
-            _uiThreadOperationExecutor = uiThreadOperationExecutor;
-            _textBufferAssociatedViewService = textBufferAssociatedViewService;
-            _textBufferFactoryService = textBufferFactoryService;
-            _textBufferCloneService = textBufferCloneService;
-            _featureServiceFactory = featureServiceFactory;
-            _refactorNotifyServices = refactorNotifyServices;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
-            GlobalOptions = globalOptions;
-        }
 
         public InlineRenameSessionInfo StartInlineSession(
             Document document,
@@ -98,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
 
@@ -143,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     using var _ = PooledObjects.ArrayBuilder<(ITextBuffer, SnapshotSpan)>.GetInstance(out var buffersAndSpans);
                     foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
                     {
-                        var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var sourceText = await documentSpan.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                         var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
 
                         if (textSnapshot != null)
@@ -205,12 +192,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         internal event EventHandler<ActiveSessionChangedEventArgs>? ActiveSessionChanged;
 
-        internal class ActiveSessionChangedEventArgs : EventArgs
+        internal class ActiveSessionChangedEventArgs(InlineRenameSession previousSession) : EventArgs
         {
-            public ActiveSessionChangedEventArgs(InlineRenameSession previousSession)
-                => this.PreviousSession = previousSession;
-
-            public InlineRenameSession PreviousSession { get; }
+            public InlineRenameSession PreviousSession { get; } = previousSession;
         }
     }
 }

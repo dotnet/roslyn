@@ -5231,10 +5231,7 @@ class C {
             UsingExpression(source,
                 // (1,1): error CS1073: Unexpected token 'int'
                 // f = [A] int => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "f = [A]").WithArguments("int").WithLocation(1, 1),
-                // (1,5): error CS1525: Invalid expression term '['
-                // f = [A] int => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "f = [A]").WithArguments("int").WithLocation(1, 1));
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -5243,24 +5240,17 @@ class C {
                     N(SyntaxKind.IdentifierToken, "f");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.ElementAccessExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    N(SyntaxKind.BracketedArgumentList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Argument);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
+                            N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
             }
             EOF();

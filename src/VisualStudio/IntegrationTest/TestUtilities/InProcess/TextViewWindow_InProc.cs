@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        private async Task<IEnumerable<ISuggestedAction>> GetLightBulbActionsAsync(ILightBulbBroker broker, IWpfTextView view)
+        private static async Task<IEnumerable<ISuggestedAction>> GetLightBulbActionsAsync(ILightBulbBroker broker, IWpfTextView view)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return true;
         }
 
-        private Func<IWpfTextView, Task<bool>> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
+        private static Func<IWpfTextView, Task<bool>> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
             {
@@ -471,7 +471,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        private async Task<IEnumerable<ISuggestedAction>> SelectActionsAsync(IEnumerable<SuggestedActionSet> actionSets)
+        private static async Task<IEnumerable<ISuggestedAction>> SelectActionsAsync(IEnumerable<SuggestedActionSet> actionSets)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 

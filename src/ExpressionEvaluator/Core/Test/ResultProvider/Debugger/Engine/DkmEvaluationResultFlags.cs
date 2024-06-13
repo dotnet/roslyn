@@ -46,5 +46,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         HasFavorites = 0x4000000,
         IsObjectReplaceable = 0x8000000,
         ExpansionHasSideEffects = 0x10000000,
+        CanEvaluateWithoutOptimization = 0x20000000,
+        TruncatedString = 0x40000000
     }
 }

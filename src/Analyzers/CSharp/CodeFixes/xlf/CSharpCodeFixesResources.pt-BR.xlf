@@ -192,9 +192,29 @@
         <target state="translated">Usar '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">Usar expressão de coleção</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Usar cadeia de caracteres verbatim interpolada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">Usar construtor primário (e remover campos)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">Usar construtor primário (e remover membros)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">Usar construtor primário (e remover propriedades)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

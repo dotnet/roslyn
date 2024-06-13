@@ -102,7 +102,7 @@
         <target state="translated">구조체를 '읽기 전용'으로 만들기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Member can be made readonly">
+      <trans-unit id="Member_can_be_made_readonly">
         <source>Member can be made 'readonly'</source>
         <target state="translated">멤버를 'readonly'로 만들 수 있음</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
@@ -385,6 +385,11 @@
       <trans-unit id="Use_pattern_matching_may_change_code_meaning">
         <source>Use pattern matching (may change code meaning)</source>
         <target state="translated">패턴 일치 사용(코드 의미를 변경할 수 있음)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="translated">기본 생성자 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

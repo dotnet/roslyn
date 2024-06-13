@@ -68,10 +68,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [InlineData("#loa\"$$", false)]
         [InlineData("#load\"$$", true)]
         [InlineData(" # load \"$$", true)]
-        [InlineData(" # load \"$$\"", true)]
+        [InlineData("""
+            # load "$$"
+            """, true)]
         [InlineData(" # load \"\"$$", true)]
-        [InlineData("$$ # load \"\"", false)]
-        [InlineData(" # load $$\"\"", false)]
+        [InlineData("""
+            $$ # load ""
+            """, false)]
+        [InlineData("""
+            # load $$""
+            """, false)]
         public void ShouldTriggerCompletion(string textWithPositionMarker, bool expectedResult)
         {
             var position = textWithPositionMarker.IndexOf("$$");

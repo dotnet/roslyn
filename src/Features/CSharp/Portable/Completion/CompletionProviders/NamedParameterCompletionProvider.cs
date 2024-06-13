@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     context.IsExclusive = true;
                 }
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var parameter in unspecifiedParameters)
                 {
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ConstructorInitializerSyntax constructorInitializer => GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken),
                 ElementAccessExpressionSyntax elementAccessExpression => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
                 BaseObjectCreationExpressionSyntax objectCreationExpression => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken),
-                PrimaryConstructorBaseTypeSyntax recordBaseType => GetRecordBaseTypeParameterLists(semanticModel, position, recordBaseType, cancellationToken),
+                PrimaryConstructorBaseTypeSyntax baseType => GetPrimaryConstructorParameterLists(semanticModel, baseType, cancellationToken),
                 _ => null,
             };
         }
@@ -228,23 +228,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetRecordBaseTypeParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetPrimaryConstructorParameterLists(
             SemanticModel semanticModel,
-            int position,
-            PrimaryConstructorBaseTypeSyntax recordBaseType,
+            PrimaryConstructorBaseTypeSyntax baseType,
             CancellationToken cancellationToken)
         {
-            var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            if (within != null)
-            {
-                var type = semanticModel.GetTypeInfo(recordBaseType.Type, cancellationToken).Type as INamedTypeSymbol;
+            var baseList = baseType.Parent;
+            if (baseList?.Parent is not BaseTypeDeclarationSyntax typeDeclaration)
+                return null;
 
-                return type?.InstanceConstructors
-                    .Where(m => m.IsAccessibleWithin(within))
-                    .Select(m => m.Parameters);
-            }
+            var within = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
+            if (within is null)
+                return null;
 
-            return null;
+            var type = semanticModel.GetTypeInfo(baseType.Type, cancellationToken).Type as INamedTypeSymbol;
+            return type?.InstanceConstructors
+                .Where(m => m.IsAccessibleWithin(within))
+                .Select(m => m.Parameters);
         }
 
         private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetInvocationExpressionParameterLists(

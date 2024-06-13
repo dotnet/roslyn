@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string?[] s_emittedNames = new string?[]
+        private static readonly string?[] s_emittedNames = new string?[(int)SpecialType.Count + 1]
         {
             // The following things should be in sync:
             // 1) SpecialType enum
@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis
             "System.AsyncCallback",
             "System.Runtime.CompilerServices.RuntimeFeature",
             "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
+            "System.Runtime.CompilerServices.InlineArrayAttribute",
         };
 
         private static readonly Dictionary<string, SpecialType> s_nameToTypeIdMap;

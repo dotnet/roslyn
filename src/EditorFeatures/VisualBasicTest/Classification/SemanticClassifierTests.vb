@@ -263,13 +263,13 @@ q = From"
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
             Await TestInExpressionAsync("Fro ", testHost)
         End Function
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim q = 3
 q = Fro "
@@ -281,7 +281,7 @@ q = Fro "
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = From"
@@ -293,7 +293,7 @@ Dim q = From"
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorFromWhenBoundInAssignment(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorFromWhenBoundInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = 3
@@ -876,6 +876,37 @@ class Program
     [|property prop as string = ""$(\b\G\z)""|]
 end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
                 testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69237")>
+        Public Async Function TestRegexStringSyntaxAttribute_Initializer(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    public property P as string
+
+    sub Goo()
+        dim x = new Program With {
+            [|.P = ""$(\b\G\z)""|]
+        }
+    end sub
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Property]("P"),
 Regex.Anchor("$"),
 Regex.Grouping("("),
 Regex.Anchor("\"),

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Simplification;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
         }
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        public bool IsHighPriority => false;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public sealed override void Initialize(AnalysisContext context)

@@ -42,13 +42,6 @@
         <target state="translated">Hata ayıklama sırasında bütünleştirilmiş kod başvurusunun sürümünü değiştirmeye izin verilmez: '{0}' sürümü, '{1}' olarak değiştirildi.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">'{0}' çözümleyicisi şu özel durumu oluşturdu:
-'{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">Bu çözümleyiciyi devre dışı bırakmak için şu tanılamaları gizleyin: {0}</target>
@@ -62,6 +55,11 @@
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
         <target state="translated">İlgili yield return deyimi silindiğinden Düzenle ve Devam Et, askıya alınmış yineleyiciyi sürdüremiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="translated">'bitiş', 'başlangıç' değerinden küçük olmamalıdır. başla='{0}' bitiş='{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -84,15 +82,36 @@
         <target state="translated">HintName '{0}', {2} konumunda geçersiz bir '{1}' segmenti içeriyor.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
-      <trans-unit id="HintNameNotWithinCurrentDirectory">
-        <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="translated">HintName '{0}' geçerli dizinde değil.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">Eklenen kaynak dosyanın '{0}' hintName'i bir oluşturucu içinde benzersiz olmalıdır.</target>
         <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="translated">Geçerli derleme: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="translated">Geçerli derleme ve tüm başvurulan derlemeler için 'InternalsVisibleToAttribute' bilgileri yazdırılıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="translated">Derleme başvurusu: '{0}'
+  Geçerli derlemeye IVT sağlar: {1}
+  Şunlara IVT sağlar:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="translated">    Derleme adı: '{0}'
+    Ortak Anahtarlar:</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -124,6 +143,11 @@
         <target state="translated">'{0}' parametresi bu derleme veya bazı başvurulan derleme bir sembol olması gerekir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="translated">İstenen satır numarası {0}, {1} satır sayısından az olmalıdır.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">Yöntem sembolü bekleniyor</target>
@@ -142,6 +166,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">Belirtilen işlemin null olmayan bir üst öğesi var.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="translated">Hiçbiri</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -172,6 +201,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Derleme meta verileri oluşturmak için modül kopyası kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SigningTempPathUnavailable">
+        <source>The temporary path for legacy file signing is unavailable.</source>
+        <target state="translated">Eski dosya imzalama için geçici yol kullanılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -504,11 +538,6 @@
         <target state="translated">'start' negatif olmamalıdır</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'end', 'start'tan az olmamalıdır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">Geçersiz içerik türü</target>
@@ -692,17 +721,17 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">Çözümleyici Hatası</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
         <target state="translated">'{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
@@ -710,16 +739,13 @@
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrows">
-        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
-        <target state="translated">Çözümleyici sürücüsü, '{1}' iletisiyle '{0}' türünde bir özel durum oluşturdu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerDriverThrowsDescription">
-        <source>Analyzer driver threw the following exception:
-'{0}'.</source>
-        <target state="translated">Çözümleyici sürücüsü aşağıdaki özel durumu oluşturdu:
-'{0}'.</target>
-        <note />
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</source>
+        <target state="translated">Çözümleyici sürücüsü, '{0}' iletisiyle '{1}' türünde bir özel durum oluşturdu.
+{2}</target>
+        <note>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>

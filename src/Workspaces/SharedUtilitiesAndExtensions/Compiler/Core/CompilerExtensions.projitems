@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterlockedOperations.cs" Link="InternalUtilities\InterlockedOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
@@ -25,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerFeatureRequiredAttribute.cs" Link="InternalUtilities\CompilerFeatureRequiredAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RequiredMemberAttribute.cs" Link="InternalUtilities\RequiredMemberAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SetsRequiredMembersAttribute.cs" Link="InternalUtilities\SetsRequiredMembersAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" Link="InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="InternalUtilities\RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
@@ -185,7 +187,6 @@
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeActionRequestPriority.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptions.cs" />
@@ -240,9 +241,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Chunks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\AnalysisContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
@@ -465,6 +468,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\TaskExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\ValueTaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
@@ -482,6 +486,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\OptionalExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />
@@ -496,7 +501,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReferenceCountedDisposable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\LazyInitialization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.RepeatMatcher.cs" />
@@ -509,7 +513,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PredefinedType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PredefinedTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleIntervalTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SpecialTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
@@ -531,18 +534,20 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceCountedDisposable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceCountedDisposableCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\RestrictedInternalsVisibleToAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticEquivalence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SerializableBytes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SoftCrashException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpecializedTasks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValueTaskExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEvent`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WordSimilarityChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringEscapeEncoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxPath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskFactoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TopologicalSorter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\ValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>

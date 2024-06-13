@@ -233,25 +233,42 @@ namespace System
 }
 ";
 
-        protected const string AsyncStreamsTypes = @"
+        protected const string NonDisposableAsyncEnumeratorDefinition = @"
+#nullable disable
+
 namespace System.Collections.Generic
 {
-    public interface IAsyncEnumerable<out T>
+    public interface IAsyncEnumerator<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
     }
+}
+";
 
+        protected const string DisposableAsyncEnumeratorDefinition = @"
+#nullable disable
+
+namespace System.Collections.Generic
+{
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
     {
         System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
         T Current { get; }
     }
 }
-namespace System
+" + IAsyncDisposableDefinition;
+
+        protected const string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
+
+        protected const string CommonAsyncStreamsTypes = @"
+#nullable disable
+
+namespace System.Collections.Generic
 {
-    public interface IAsyncDisposable
+    public interface IAsyncEnumerable<out T>
     {
-        System.Threading.Tasks.ValueTask DisposeAsync();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
     }
 }
 
@@ -265,8 +282,6 @@ namespace System.Runtime.CompilerServices
         }
     }
 }
-
-#nullable disable
 
 namespace System.Threading.Tasks.Sources
 {
@@ -686,6 +701,17 @@ namespace System.Diagnostics.CodeAnalysis
                     }
                     public string FeatureName { get; }
                     public bool IsOptional { get; set; }
+                }
+            }
+            """;
+
+        internal const string CollectionBuilderAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+                public sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
                 }
             }
             """;
@@ -1756,12 +1782,17 @@ namespace System.Diagnostics.CodeAnalysis
                     }
                 }
 
+                var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+
                 try
                 {
-                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, new BindingDiagnosticBag(diagnostics), default(CancellationToken), filterTree, filterSpanWithinTree);
+                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, bindingDiagnostics, default(CancellationToken), filterTree, filterSpanWithinTree);
                 }
                 finally
                 {
+                    diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+                    bindingDiagnostics.Free();
+
                     if (ensureEnglishUICulture)
                     {
                         CultureInfo.CurrentUICulture = saveUICulture;

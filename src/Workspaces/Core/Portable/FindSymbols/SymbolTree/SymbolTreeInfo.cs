@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -70,15 +69,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
-        private readonly SpellChecker _spellChecker;
+        private SpellChecker? _spellChecker;
 
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            SpellChecker spellChecker,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
-            : this(checksum, sortedNodes, spellChecker,
+            : this(checksum, sortedNodes,
+                   spellChecker: null,
                    CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
                    receiverTypeNameToExtensionMethodMap)
         {
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            SpellChecker spellChecker,
+            SpellChecker? spellChecker,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
@@ -104,7 +103,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var sortedNodes = SortNodes(unsortedNodes);
 
             return new SymbolTreeInfo(checksum, sortedNodes,
-                CreateSpellChecker(checksum, sortedNodes),
                 new OrderPreservingMultiDictionary<string, string>(),
                 new MultiDictionary<string, ExtensionMethodInfo>());
         }
@@ -170,16 +168,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol?> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            var similarNames = _spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var similarNames = TemporaryArray<string>.Empty;
+            using var result = TemporaryArray<ISymbol>.Empty;
+
+            // Ensure the spell checker is initialized.  This is concurrency safe.  Technically multiple threads may end
+            // up overwriting the field, but even if that happens, we are sure to see a fully written spell checker as
+            // the runtime guarantees that the initialize of the SpellChecker instnace completely written when we read
+            // our field.
+            _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
+            _spellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
             {
-                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken).ConfigureAwait(false);
                 result.AddRange(symbols);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -457,10 +462,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             var sortedNodes = SortNodes(unsortedNodes);
-            var spellChecker = CreateSpellChecker(checksum, sortedNodes);
 
             return new SymbolTreeInfo(
-                checksum, sortedNodes, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                checksum, sortedNodes, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

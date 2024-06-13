@@ -13,14 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _node As SyntaxNode
-            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
+            Private ReadOnly _spans As TextSpanIntervalTree
             Private ReadOnly _lastToken As SyntaxToken
             Private ReadOnly _cancellationToken As CancellationToken
 
             Private ReadOnly _trailingTriviaMap As Dictionary(Of SyntaxToken, SyntaxTriviaList)
             Private ReadOnly _leadingTriviaMap As Dictionary(Of SyntaxToken, SyntaxTriviaList)
 
-            Public Sub New(node As SyntaxNode, spanToFormat As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector), map As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken)
+            Public Sub New(node As SyntaxNode, spanToFormat As TextSpanIntervalTree, map As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken)
                 Contract.ThrowIfNull(node)
                 Contract.ThrowIfNull(map)
 
@@ -139,17 +139,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim leadingTrivia = token.LeadingTrivia
                 Dim trailingTrivia = token.TrailingTrivia
 
-                If _trailingTriviaMap.ContainsKey(token) Then
+                Dim triviaList As SyntaxTriviaList = Nothing
+                If _trailingTriviaMap.TryGetValue(token, triviaList) Then
                     ' okay, we have this situation
                     ' token|trivia
-                    trailingTrivia = _trailingTriviaMap(token)
+                    trailingTrivia = triviaList
                     hasChanges = True
                 End If
 
-                If _leadingTriviaMap.ContainsKey(token) Then
+                If _leadingTriviaMap.TryGetValue(token, triviaList) Then
                     ' okay, we have this situation
                     ' trivia|token
-                    leadingTrivia = _leadingTriviaMap(token)
+                    leadingTrivia = triviaList
                     hasChanges = True
                 End If
 

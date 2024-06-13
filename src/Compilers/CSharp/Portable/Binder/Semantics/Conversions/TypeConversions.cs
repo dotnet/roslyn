@@ -6,9 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -59,6 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
+        protected override Conversion GetCollectionExpressionConversion(BoundUnconvertedCollectionExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // Conversions involving collection expressions require a Binder.
+            throw ExceptionUtilities.Unreachable();
+        }
+
         protected override CSharpCompilation Compilation => null;
+
+        protected override bool IsAttributeArgumentBinding => false;
+
+        protected override bool IsParameterDefaultValueBinding => false;
     }
 }

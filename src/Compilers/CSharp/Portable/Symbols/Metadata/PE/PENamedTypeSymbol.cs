@@ -10,15 +10,15 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal abstract class PENamedTypeSymbol : NamedTypeSymbol
     {
-        private static readonly Dictionary<string, ImmutableArray<PENamedTypeSymbol>> s_emptyNestedTypes = new Dictionary<string, ImmutableArray<PENamedTypeSymbol>>(EmptyComparer.Instance);
+        private static readonly Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> s_emptyNestedTypes =
+            new Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>>(EmptyReadOnlyMemoryOfCharComparer.Instance);
 
         private readonly NamespaceOrTypeSymbol _container;
         private readonly TypeDefinitionHandle _handle;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// A map of types immediately contained within this type 
         /// grouped by their name (case-sensitively).
         /// </summary>
-        private Dictionary<string, ImmutableArray<PENamedTypeSymbol>> _lazyNestedTypes;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> _lazyNestedTypes;
 
         /// <summary>
         /// Lazily initialized by TypeKind property.
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private class UncommonProperties
+        private sealed class UncommonProperties
         {
             /// <summary>
             /// Need to import them for an enum from a linked assembly, when we are embedding it. These symbols are not included into lazyMembersInDeclarationOrder.  
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
+            internal CollectionBuilderAttributeData lazyCollectionBuilderAttributeData = CollectionBuilderAttributeData.Uninitialized;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
@@ -163,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasEmbeddedAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+                    (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null;
             }
@@ -394,10 +397,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier =>
-            GetUncommonProperties() is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
-                ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
-                : null;
+        internal sealed override bool IsFileLocal => _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false }, lazyDisplayFileName: { } };
+        internal sealed override FileIdentifier AssociatedFileIdentifier
+        {
+            get
+            {
+                // `lazyFilePathChecksum` and `lazyDisplayFileName` of `_lazyUncommonProperties` are initialized in the constructor, not on demand.
+                // Therefore we can use `_lazyUncommonProperties` directly to avoid additional computations.
+                // Also important, that computing full uncommon properties here may lead to stack overflow if there is a circular dependency between types in the metadata.
+                return _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
+                    ? FileIdentifier.Create(checksum, displayFileName)
+                    : null;
+            }
+        }
 
         internal abstract int MetadataArity
         {
@@ -1501,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // nested types are not common, but we need to check just in case
             ImmutableArray<PENamedTypeSymbol> t;
-            if (_lazyNestedTypes.TryGetValue(name, out t))
+            if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out t))
             {
                 m = m.Concat(StaticCast<Symbol>.From(t));
             }
@@ -1570,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             EnsureNestedTypesAreLoaded();
 
@@ -1584,7 +1596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray((type, arity) => type.Arity == arity, arity);
         }
@@ -2048,25 +2060,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
 
-        private static Dictionary<string, ImmutableArray<PENamedTypeSymbol>> GroupByName(ArrayBuilder<PENamedTypeSymbol> symbols)
+        private static Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> GroupByName(ArrayBuilder<PENamedTypeSymbol> symbols)
         {
             if (symbols.Count == 0)
             {
                 return s_emptyNestedTypes;
             }
 
-            return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
+            return symbols.ToDictionary(s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
         }
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
+            AssemblySymbol primaryDependency = PrimaryDependency;
             if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                AssemblySymbol primaryDependency = PrimaryDependency;
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency).AdjustDiagnosticInfo(GetUseSiteDiagnosticImpl()));
             }
 
-            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()
@@ -2230,7 +2242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsSerializable
         {
+#pragma warning disable SYSLIB0050 // 'TypeAttributes.Serializable' is obsolete
             get { return (_flags & TypeAttributes.Serializable) != 0; }
+#pragma warning restore SYSLIB0050
         }
 
         public override bool IsRefLikeType
@@ -2444,6 +2458,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            if (this.ContainingPEModule.Module.HasInlineArrayAttribute(_handle, out length) && length > 0)
+            {
+                return true;
+            }
+
+            length = 0;
+            return false;
+        }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            var uncommon = GetUncommonProperties();
+            if (uncommon == s_noUncommonProperties)
+            {
+                builderType = null;
+                methodName = null;
+                return false;
+            }
+
+            if ((object)uncommon.lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized)
+            {
+                Interlocked.CompareExchange(
+                    ref uncommon.lazyCollectionBuilderAttributeData,
+                    getCollectionBuilderAttributeData(),
+                    CollectionBuilderAttributeData.Uninitialized);
+            }
+
+            var attributeData = uncommon.lazyCollectionBuilderAttributeData;
+            if (attributeData == null)
+            {
+                builderType = null;
+                methodName = null;
+                return false;
+            }
+
+            builderType = attributeData.BuilderType;
+            methodName = attributeData.MethodName;
+            return true;
+
+            CollectionBuilderAttributeData? getCollectionBuilderAttributeData()
+            {
+                if (ContainingPEModule.Module.HasCollectionBuilderAttribute(_handle, out string builderTypeName, out string methodName))
+                {
+                    var decoder = new MetadataDecoder(ContainingPEModule);
+                    return new CollectionBuilderAttributeData(decoder.GetTypeSymbolForSerializedType(builderTypeName), methodName);
+                }
+                return null;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// Specialized PENamedTypeSymbol for types with no type parameters in

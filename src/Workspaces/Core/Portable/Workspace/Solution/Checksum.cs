@@ -21,20 +21,15 @@ namespace Microsoft.CodeAnalysis
     /// without actually comparing data itself
     /// </summary>
     [DataContract]
-    internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
+    internal sealed partial record class Checksum(
+        [property: DataMember(Order = 0)] Checksum.HashData Hash) : IObjectWritable
     {
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
         /// </summary>
         public const int HashSize = 20;
 
-        public static readonly Checksum Null = new(default);
-
-        [DataMember(Order = 0)]
-        private readonly HashData _checksum;
-
-        public Checksum(HashData hash)
-            => _checksum = hash;
+        public static readonly Checksum Null = new(Hash: default);
 
         /// <summary>
         /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
@@ -62,17 +57,6 @@ namespace Microsoft.CodeAnalysis
             return new Checksum(hash);
         }
 
-        public bool Equals(Checksum other)
-        {
-            return other != null && _checksum == other._checksum;
-        }
-
-        public override bool Equals(object obj)
-            => Equals(obj as Checksum);
-
-        public override int GetHashCode()
-            => _checksum.GetHashCode();
-
         public string ToBase64String()
         {
 #if NETCOREAPP
@@ -85,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 var data = new byte[HashSize];
                 fixed (byte* dataPtr = data)
                 {
-                    *(HashData*)dataPtr = _checksum;
+                    *(HashData*)dataPtr = Hash;
                 }
 
                 return Convert.ToBase64String(data, 0, HashSize);
@@ -99,29 +83,14 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
             => ToBase64String();
 
-        public static bool operator ==(Checksum left, Checksum right)
-            => EqualityComparer<Checksum>.Default.Equals(left, right);
-
-        public static bool operator !=(Checksum left, Checksum right)
-            => !(left == right);
-
-        public static bool operator ==(Checksum left, HashData right)
-            => left._checksum == right;
-
-        public static bool operator !=(Checksum left, HashData right)
-            => !(left == right);
-
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
-            => _checksum.WriteTo(writer);
+            => Hash.WriteTo(writer);
 
         public void WriteTo(Span<byte> span)
         {
-            Contract.ThrowIfFalse(span.Length >= HashSize);
-#pragma warning disable CS9191 // The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum)));
-#pragma warning restore CS9191
+            Hash.WriteTo(span);
         }
 
         public static Checksum ReadFrom(ObjectReader reader)
@@ -137,37 +106,25 @@ namespace Microsoft.CodeAnalysis
         /// This structure stores the 20-byte hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
         /// </summary>
-        [DataContract]
-        [StructLayout(LayoutKind.Explicit, Size = HashSize)]
-        public readonly struct HashData : IEquatable<HashData>
+        [DataContract, StructLayout(LayoutKind.Explicit, Size = HashSize)]
+        public readonly record struct HashData(
+            [field: FieldOffset(0)][property: DataMember(Order = 0)] long Data1,
+            [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2,
+            [field: FieldOffset(16)][property: DataMember(Order = 2)] int Data3)
         {
-            [FieldOffset(0), DataMember(Order = 0)]
-            private readonly long Data1;
-
-            [FieldOffset(8), DataMember(Order = 1)]
-            private readonly long Data2;
-
-            [FieldOffset(16), DataMember(Order = 2)]
-            private readonly int Data3;
-
-            public HashData(long data1, long data2, int data3)
-            {
-                Data1 = data1;
-                Data2 = data2;
-                Data3 = data3;
-            }
-
-            public static bool operator ==(HashData x, HashData y)
-                => x.Equals(y);
-
-            public static bool operator !=(HashData x, HashData y)
-                => !(x == y);
-
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt64(Data1);
                 writer.WriteInt64(Data2);
                 writer.WriteInt32(Data3);
+            }
+
+            public void WriteTo(Span<byte> span)
+            {
+                Contract.ThrowIfFalse(span.Length >= HashSize);
+#pragma warning disable CS9191 // The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in this)));
+#pragma warning restore CS9191
             }
 
             public static unsafe HashData FromPointer(HashData* hash)
@@ -180,16 +137,6 @@ namespace Microsoft.CodeAnalysis
             {
                 // The checksum is already a hash. Just read a 4-byte value to get a well-distributed hash code.
                 return (int)Data1;
-            }
-
-            public override bool Equals(object obj)
-                => obj is HashData other && Equals(other);
-
-            public bool Equals(HashData other)
-            {
-                return Data1 == other.Data1
-                    && Data2 == other.Data2
-                    && Data3 == other.Data3;
             }
         }
     }

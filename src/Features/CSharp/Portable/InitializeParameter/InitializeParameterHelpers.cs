@@ -5,13 +5,17 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
@@ -137,6 +141,87 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 ExpressionSyntax expression => expression.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement),
                 _ => throw ExceptionUtilities.UnexpectedValue(body),
             };
+        }
+
+        public static SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
+        {
+            var node = accessor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            if (node is AccessorDeclarationSyntax accessorDeclaration)
+                return accessorDeclaration.ExpressionBody ?? (SyntaxNode?)accessorDeclaration.Body;
+
+            // `int Age => ...;`
+            if (node is ArrowExpressionClauseSyntax arrowExpression)
+                return arrowExpression;
+
+            return null;
+        }
+
+        public static SyntaxNode RemoveThrowNotImplemented(SyntaxNode node)
+            => node is PropertyDeclarationSyntax propertyDeclaration ? RemoveThrowNotImplemented(propertyDeclaration) : node;
+
+        public static PropertyDeclarationSyntax RemoveThrowNotImplemented(PropertyDeclarationSyntax propertyDeclaration)
+        {
+            if (propertyDeclaration.ExpressionBody != null)
+            {
+                var result = propertyDeclaration
+                    .WithExpressionBody(null)
+                    .WithSemicolonToken(default)
+                    .AddAccessorListAccessors(SyntaxFactory
+                        .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
+                    .WithTrailingTrivia(propertyDeclaration.SemicolonToken.TrailingTrivia)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+                return result;
+            }
+
+            if (propertyDeclaration.AccessorList != null)
+            {
+                var accessors = propertyDeclaration.AccessorList.Accessors.Select(RemoveThrowNotImplemented);
+                return propertyDeclaration.WithAccessorList(
+                    propertyDeclaration.AccessorList.WithAccessors(SyntaxFactory.List(accessors)));
+            }
+
+            return propertyDeclaration;
+        }
+
+        private static AccessorDeclarationSyntax RemoveThrowNotImplemented(AccessorDeclarationSyntax accessorDeclaration)
+        {
+            var result = accessorDeclaration
+                .WithExpressionBody(null)
+                .WithBody(null)
+                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+            return result.WithTrailingTrivia(accessorDeclaration.Body?.GetTrailingTrivia() ?? accessorDeclaration.SemicolonToken.TrailingTrivia);
+        }
+
+        public static bool IsThrowNotImplementedProperty(Compilation compilation, IPropertySymbol property, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
+
+            if (property.GetMethod != null)
+                accessors.AddIfNotNull(GetAccessorBody(property.GetMethod, cancellationToken));
+
+            if (property.SetMethod != null)
+                accessors.AddIfNotNull(GetAccessorBody(property.SetMethod, cancellationToken));
+
+            if (accessors.Count == 0)
+                return false;
+
+            foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
+            {
+                var semanticModel = compilation.GetSemanticModel(group.Key);
+                foreach (var accessorBody in accessors)
+                {
+                    var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
+                    if (operation is null)
+                        return false;
+
+                    if (!operation.IsSingleThrowNotImplementedOperation())
+                        return false;
+                }
+            }
+
+            return true;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="root">The root of the bound tree.</param>
             /// <param name="map">The cache.</param>
             /// <param name="node">The syntax node where to add bound nodes for.</param>
-            public static void AddToMap(BoundNode root, Dictionary<SyntaxNode, ImmutableArray<BoundNode>> map, SyntaxTree tree, SyntaxNode node = null)
+            public static void AddToMap(BoundNode root, Dictionary<SyntaxNode, OneOrMany<BoundNode>> map, SyntaxTree tree, SyntaxNode node = null)
             {
                 Debug.Assert(node == null || root == null || !(root.Syntax is StatementSyntax), "individually added nodes are not supposed to be statements.");
 
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var existing = map[key];
                         var added = additionMap[key];
-                        Debug.Assert(existing.Length == added.Length, "existing.Length == added.Length");
-                        for (int i = 0; i < existing.Length; i++)
+                        Debug.Assert(existing.Count == added.Length, "existing.Count == added.Length");
+                        for (int i = 0; i < existing.Count; i++)
                         {
                             // TODO: it would be great if we could check !ReferenceEquals(existing[i], added[i]) (DevDiv #11584).
                             // Known impediments include:
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        map[key] = additionMap[key];
+                        map[key] = additionMap.GetAsOneOrMany(key);
                     }
                 }
 

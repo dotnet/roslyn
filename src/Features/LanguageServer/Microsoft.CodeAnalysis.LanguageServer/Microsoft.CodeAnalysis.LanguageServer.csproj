@@ -1,0 +1,153 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!--
+        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
+        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
+
+        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
+    -->
+    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <!--
+        Build a nuget package for this project.  This is not consumed as a standard NuGet package; it just contains
+        the server executables that we need to ship inside the extension vsix.  The extension will download this and extract the
+        executables when it builds.  NuGet just happens to be a convenient way to share build artifacts.
+    -->
+    <IsPackable>true</IsPackable>
+    <!-- Our outer Pack task (defined in PackAllRids.targets) invokes Pack passing in a PackRuntimeIdentifier to produce one package per RID; from that we can set everything else. -->
+    <RuntimeIdentifier Condition="'$(PackRuntimeIdentifier)' != '' and '$(PackRuntimeIdentifier)' != 'neutral'">$(PackRuntimeIdentifier)</RuntimeIdentifier>
+    <PackageId>$(AssemblyName).$(PackRuntimeIdentifier)</PackageId>
+    <!--
+        Publish the platform specific executables before any of the pack related targets run.
+        This is important to ensure that the content files exist on the project before nuget looks for them.
+
+        Note that BeforeTargets="Pack" is not enough, as the determination of what to include in the package runs
+        before the actual "Pack" target runs.
+    -->
+    <BeforePack>PackPublishContent;$(BeforePack)</BeforePack>
+
+    <!-- Since this is not a standard nuget package and is only consumed by the extension build, we don't care if the folder structure doesn't match what nuget expects. -->
+    <NoWarn>NU5100</NoWarn>
+
+    <!-- Publishing settings -->
+    <SelfContained>false</SelfContained>
+    <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
+    <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
+    <!--
+        Set the minimum runtime to a .NET 7 prerelease so that prerelease SDKs will be considered during rollForward.
+        RollForward values for roslyn are set in eng/config/runtimeconfig.template.json
+    -->
+    <RuntimeFrameworkVersion>7.0.0-preview.7.22362.8</RuntimeFrameworkVersion>
+
+    <!-- List of runtime identifiers that we want to publish an executable for -->
+    <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;alpine-x64;alpine-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <!-- Publish ready to run executables when we're publishing platform specific executables. -->
+    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+    <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+
+    <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
+    <PackageReference Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformTranslationLayerVersion)" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="$(MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion)" />
+    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+
+    <!--
+      Only allow C# DevKit to use types from Microsoft.CodeAnalysis.Contracts namespace. The contracts should not introduce breaking changes between versions,
+      because the versions of C# DevKit and C# Extension might not be aligned.
+    -->
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit" Namespace="Microsoft.CodeAnalysis.Contracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RoslynVersionFile Include="$(OutDir)\RoslynVersion.txt" />
+    <FileWrites Include="@(RoslynVersionFile)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" />
+  </ItemGroup>
+
+  <Target Name="WriteRoslynVersion" AfterTargets="Build">
+    <WriteLinesToFile File="@(RoslynVersionFile)" Lines="$(MicrosoftCodeAnalysisVersion)" Overwrite="true" />
+  </Target>
+
+  <Target Name="PublishRoslynVersion" AfterTargets="Publish">
+    <Copy SourceFiles="@(RoslynVersionFile)" DestinationFolder="$(PublishDir)" />
+  </Target>
+
+  <Target Name="PackPublishContent" DependsOnTargets="Publish">
+    <!-- We have to add the content files in a target (and not just defined in a normal item group) since they are produced by the prior step and won't exist at evaluation time. -->
+    <ItemGroup>
+      <Content Include="$(PublishDir)/**/*.*">
+        <Pack>true</Pack>
+        <PackagePath>content\LanguageServer\$(PackRuntimeIdentifier)</PackagePath>
+        <CopyToOutput>false</CopyToOutput>
+        <BuildAction>None</BuildAction>
+      </Content>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Deploy a net472 version of the BuildHost process.
+  -->
+  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+        <TargetFramework>net472</TargetFramework>
+      </_NetFrameworkBuildHostProjectReference>
+    </ItemGroup>
+
+    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433; we pass
+         BuildInParallel="false" to avoid multiple builds potentially building the same project at the same time, but since we
+         expect the builds to have completed by this point they should be fast.  -->
+    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
+             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
+             BuildInParallel="false"
+             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
+      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
+    </MSBuild>
+
+    <ItemGroup>
+      <!-- We set Pack="false" because we only care about the RID-specific folders -->
+      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
+               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
+               Pack="false"
+               TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
+               CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!-- If we don't have a PackRuntimeIdentifier set, that means pack has been invoked on the project directly, with say dotnet pack. In this case
+       we'll replace the Pack target with one that instead recursively invokes pack for each runtime identifier. We define those targets
+       in a separate .targets file, since we can't say to MSBuild "only consider our Pack target as a definition based on this condition" any other way. -->
+  <Import Project="PackAllRids.targets" Condition="'$(PackRuntimeIdentifier)' == ''" />
+</Project>

@@ -11,21 +11,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
-    using static ConvertNamespaceAnalysis;
-    using static ConvertNamespaceTransform;
-
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertNamespace), Shared]
     internal class ConvertNamespaceCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -41,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var diagnostic = context.Diagnostics.First();
 
-            var (title, equivalenceKey) = GetInfo(
+            var (title, equivalenceKey) = ConvertNamespaceAnalysis.GetInfo(
                 diagnostic.Id switch
                 {
                     IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.BlockScoped,
@@ -65,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
             var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var converted = await ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), cancellationToken).ConfigureAwait(false);
+            var converted = await ConvertNamespaceTransform.ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(
                 editor.OriginalRoot,

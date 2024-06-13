@@ -96,20 +96,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 s_logs.RemoveFirst();
         }
 
-        private sealed class Updater
+        private sealed class Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
         {
-            private readonly SymbolSearchUpdateEngine _service;
-            private readonly string _source;
-            private readonly DirectoryInfo _cacheDirectoryInfo;
-
-            public Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
-            {
-                _service = service;
-                _source = source;
-
-                _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+            private readonly SymbolSearchUpdateEngine _service = service;
+            private readonly string _source = source;
+            private readonly DirectoryInfo _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                     localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabaseTextFileFormatVersion}"))));
-            }
 
             /// <summary>
             /// Internal for testing purposes.

@@ -318,10 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var locations = this.Locations;
+            var firstLocation = this.TryGetFirstLocation();
+            if (firstLocation is null)
+                return LexicalSortKey.NotInSource;
+
             var declaringCompilation = this.DeclaringCompilation;
             Debug.Assert(declaringCompilation != null); // require that it is a source symbol
-            return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
+            return new LexicalSortKey(firstLocation, declaringCompilation);
         }
 
         /// <summary>
@@ -330,6 +333,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// location.
         /// </summary>
         public abstract ImmutableArray<Location> Locations { get; }
+
+#nullable enable
+
+        public virtual Location? TryGetFirstLocation()
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            var locations = this.Locations;
+            return locations.IsEmpty ? null : locations[0];
+        }
+
+        public Location GetFirstLocation()
+            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
+
+        public Location GetFirstLocationOrNone()
+            => TryGetFirstLocation() ?? Location.None;
+
+        /// <summary>
+        /// Determines if there is a location (see <see cref="Locations"/>) for this symbol whose span is in <paramref
+        /// name="tree"/> and is contained within <paramref name="declarationSpan"/>.  Subclasses can override this to
+        /// be more efficient if desired (especially if avoiding allocations of the <see cref="Locations"/> array is
+        /// desired).
+        /// </summary>
+        public virtual bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            foreach (var loc in this.Locations)
+            {
+                if (IsLocationContainedWithin(loc, tree, declarationSpan, out wasZeroWidthMatch))
+                    return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
+        }
+
+        protected static bool IsLocationContainedWithin(Location loc, SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            if (loc.IsInSource && loc.SourceTree == tree && declarationSpan.Contains(loc.SourceSpan))
+            {
+                wasZeroWidthMatch = loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start;
+                return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
+        }
+
+#nullable disable
 
         /// <summary>
         /// <para>
@@ -797,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.DeclaringCompilation != null; }
         }
 
-        internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             var declaringReferences = this.DeclaringSyntaxReferences;
             if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)
@@ -809,8 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (syntaxRef.SyntaxTree == tree &&
-                    (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value)))
+                if (IsDefinedInSourceTree(syntaxRef, tree, definedWithinSpan))
                 {
                     return true;
                 }
@@ -818,6 +867,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        protected static bool IsDefinedInSourceTree(SyntaxReference syntaxRef, SyntaxTree tree, TextSpan? definedWithinSpan)
+            => syntaxRef.SyntaxTree == tree &&
+                (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value));
 
         internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, Symbol member, CancellationToken cancellationToken)
         {
@@ -1256,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+#nullable enable
         /// <summary>
         /// True if this symbol has been marked with the <see cref="ObsoleteAttribute"/> attribute. 
         /// This property returns <see cref="ThreeState.Unknown"/> if the <see cref="ObsoleteAttribute"/> attribute hasn't been cracked yet.
@@ -1267,12 +1321,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (ObsoleteKind)
                 {
                     case ObsoleteAttributeKind.None:
+                    case ObsoleteAttributeKind.WindowsExperimental:
                     case ObsoleteAttributeKind.Experimental:
                         return ThreeState.False;
                     case ObsoleteAttributeKind.Uninitialized:
                         return ThreeState.Unknown;
                     default:
                         return ThreeState.True;
+                }
+            }
+        }
+
+        /// <summary>
+        /// True if this symbol has been marked with the System.Diagnostics.CodeAnalysis.ExperimentalAttribute attribute. 
+        /// This property returns <see cref="ThreeState.Unknown"/> if the attribute hasn't been cracked yet.
+        /// </summary>
+        internal ThreeState ExperimentalState
+        {
+            get
+            {
+                switch (ObsoleteKind)
+                {
+                    case ObsoleteAttributeKind.Experimental:
+                        return ThreeState.True;
+                    case ObsoleteAttributeKind.Uninitialized:
+                        return ThreeState.Unknown;
+                    default:
+                        return ThreeState.False;
                 }
             }
         }
@@ -1287,10 +1362,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
+        /// Returns data decoded from <see cref="ObsoleteAttribute"/>/Experimental attribute or null if there is no <see cref="ObsoleteAttribute"/>/Experimental attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal abstract ObsoleteAttributeData ObsoleteAttributeData { get; }
+        internal abstract ObsoleteAttributeData? ObsoleteAttributeData { get; }
+#nullable disable
 
         /// <summary>
         /// Returns true and a <see cref="string"/> from the first <see cref="GuidAttribute"/> on the symbol, 
@@ -1379,6 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RequiredMemberAttribute = 1 << 11,
             ScopedRefAttribute = 1 << 12,
             RefSafetyRulesAttribute = 1 << 13,
+            RequiresLocationAttribute = 1 << 14,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1394,6 +1471,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((reserved & ReservedAttributes.IsReadOnlyAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsReadOnlyAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.RequiresLocationAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresLocationAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.IsUnmanagedAttribute) != 0 &&

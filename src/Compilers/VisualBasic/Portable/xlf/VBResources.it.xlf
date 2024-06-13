@@ -17,6 +17,11 @@
         <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">Non è possibile ereditare da '{0}' perché contiene membri obbligatori.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">Usare la versione {0} o versioni successive del linguaggio per usare commenti dopo il carattere di continuazione di riga.</target>
@@ -32,9 +37,19 @@
         <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' è riservato all'utilizzo esclusivo del compilatore.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' è riservato solo all’uso del compilatore.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">La stessa directory ('{0}') non può contenere più file di configurazione dell'analizzatore.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' non può soddisfare il vincolo 'New' nel parametro '{1}' nel tipo generico o nel metodo '{0}' perché '{2}' contiene membri obbligatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene una nuova astrazione di un membro dell'interfaccia di base. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">Il membro obbligatorio '{0}' deve essere impostato nell'inizializzatore di oggetto o negli argomenti dell'attributo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">L'elenco dei membri obbligatori per '{0}' non è valido e non può essere interpretato.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">Il runtime di destinazione non supporta l'implementazione di interfaccia predefinita.</target>
@@ -67,6 +92,11 @@
         <target state="translated">Gli eventi di variabili WithEvents condivise non possono essere gestiti da metodi in un tipo diverso.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' è definito nell'assembly '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}' non può implementare l'interfaccia '{3}' perché contiene '{2}' condiviso astratto o virtuale.</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}' richiede la funzionalità del compilatore '{1}', che non è supportata da questa versione del compilatore Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Una chiamata a un metodo o a una proprietà che restituisce un riferimento non può essere usata come espressione 'With' in un metodo asincrono o iteratore, o se implicitamente di riferimento in un’espressione lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -272,7 +310,7 @@
         <target state="translated">                  Opzioni del compilatore Visual Basic
 
                                   - FILE DI OUTPUT -
--out:&lt;file&gt;                       Consente di specificare il nome del file di output.
+-out:&lt;file&gt;                       Specifica il nome del file di output.
 -target:exe                       Crea un'applicazione console (impostazione predefinita).
                                   Forma breve: -t
 -target:winexe                    Crea un'applicazione Windows.
@@ -303,7 +341,7 @@
 
                                   - RISORSE -
 -linkresource:&lt;resinfo&gt;           Collega il file specificato come
-                                  risorsa di assembly esterna.
+                                  risorsa di assembly incorporata.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   Forma breve: -linkres
 -nowin32manifest                  Il manifesto predefinito non deve essere incorporato nella
@@ -331,7 +369,7 @@
                                   (che include GUID e timestamp della versione del modulo)
 -refonly                          Produce un assembly di riferimento al posto dell'output principale
 -instrument:TestCoverage          Produce un assembly instrumentato per raccogliere
-                                  informazioni sul code coverage
+                                  informazioni sulla copertura
 -sourcelink:&lt;file&gt;                Informazioni sul collegamento all'origine da incorporare nel file PDB.
 
                                   - ERRORI E AVVISI -
@@ -364,8 +402,8 @@
                                   o versioni specifiche come '14' o '15.3'
 -optionexplicit[+|-]              Richiede la dichiarazione esplicita delle variabili.
 -optioninfer[+|-]                 Consente l'inferenza del tipo delle variabili.
--rootnamespace:&lt;string&gt;           Consente di specificare lo spazio dei nomi radice per tutte le dichiarazioni
-                                  di tipo.
+-rootnamespace:&lt;string&gt;           Consente di specificare lo spazio dei nomi radice per tutti i tipi
+                                  di dichiarazioni.
 -optionstrict[+|-]                Attiva la semantica del linguaggio strict.
 -optionstrict:custom              Avvisa quando la semantica del linguaggio strict non
                                   viene rispettata.
@@ -391,7 +429,7 @@
 -codepage:&lt;number&gt;                Consente di specificare la tabella codici da usare all'apertura dei file
                                   di origine.
 -delaysign[+|-]                   Ritarda la firma dell'assembly usando solo la parte pubblica della
-                                  chiave con nome sicuro.
+                                  della chiave con nome sicuro.
 -publicsign[+|-]                  Firma pubblicamente l'assembly usando solo la parte pubblica
                                   della chiave con nome sicuro.
 -errorreport:&lt;string&gt;             Consente di specificare come gestire gli errori interni del compilatore.
@@ -423,6 +461,9 @@
                                   AnyCPU32BitPreferred o anycpu (impostazione predefinita).
 -preferreduilang                  Consente di specificare il nome del linguaggio di output preferito.
 -nosdkpath                        Disabilita la ricerca di assembly di librerie standard nel percorso predefinito dell'SDK.
+-reportivts[+|-]                  Restituisce informazioni su tutti i tipi di I/O concessi a questo
+                                  assembly da tutte le dipendenze e annota gli errori di accessibilità dell'assembly esterno
+                                  da cui provengono.
 -sdkpath:&lt;path&gt;                   Percorso della directory di .NET Framework SDK
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Consente di specificare la versione del sottosistema del file PE di output.
@@ -433,6 +474,7 @@
 -vbruntime[+|-|*]                 Compila con/senza il runtime di Visual Basic
                                   predefinito.
 -vbruntime:&lt;file&gt;                 Compila con il runtime di Visual Basic alternativo
+
                                   in &lt;file&gt;.
 </target>
         <note />
@@ -573,16 +615,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Il generatore '{0}' non è riuscito a generare l'origine. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Il generatore '{0}' non è riuscito a generare l'origine. Non contribuirà quindi all'output ed è possibile che si verifichino errori di compilazione. Eccezione di tipo '{1}' con messaggio '{2}'.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -590,16 +630,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Non è stato possibile inizializzare il generatore '{0}'. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Non è stato possibile inizializzare il generatore '{0}'. Non contribuirà quindi all'output ed è possibile che si verifichino errori di compilazione. Eccezione di tipo '{1}' con messaggio '{2}'.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

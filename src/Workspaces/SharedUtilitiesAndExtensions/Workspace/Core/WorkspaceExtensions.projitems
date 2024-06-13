@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeFixOptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\ForkingSyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeActionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AbstractCodeGenerationService.cs" />
@@ -84,7 +85,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AbstractAddImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AddImportHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\IAddImportsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CustomCodeActions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISolutionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeInferenceServiceExtensions.cs" />

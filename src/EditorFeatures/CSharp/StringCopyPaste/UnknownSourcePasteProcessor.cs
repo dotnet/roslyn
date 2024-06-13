@@ -26,28 +26,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// editor we're in.  In that case, we don't know what any particular piece of text means.  For example, <c>\t</c>
     /// might be a tab or it could be the literal two characters <c>\</c> and <c>t</c>.
     /// </summary>
-    internal sealed class UnknownSourcePasteProcessor : AbstractPasteProcessor
+    internal sealed class UnknownSourcePasteProcessor(
+        string newLine,
+        string indentationWhitespace,
+        ITextSnapshot snapshotBeforePaste,
+        ITextSnapshot snapshotAfterPaste,
+        Document documentBeforePaste,
+        Document documentAfterPaste,
+        ExpressionSyntax stringExpressionBeforePaste,
+        bool pasteWasSuccessful) : AbstractPasteProcessor(newLine, indentationWhitespace, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
     {
         /// <summary>
         /// Whether or not the string expression remained successfully parseable after the paste.  <see
         /// cref="StringCopyPasteCommandHandler.PasteWasSuccessful"/>.  If it can still be successfully parsed subclasses
         /// can adjust their view on which pieces of content need to be escaped or not.
         /// </summary>
-        private readonly bool _pasteWasSuccessful;
-
-        public UnknownSourcePasteProcessor(
-            string newLine,
-            string indentationWhitespace,
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
-            Document documentBeforePaste,
-            Document documentAfterPaste,
-            ExpressionSyntax stringExpressionBeforePaste,
-            bool pasteWasSuccessful)
-            : base(newLine, indentationWhitespace, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
-        {
-            _pasteWasSuccessful = pasteWasSuccessful;
-        }
+        private readonly bool _pasteWasSuccessful = pasteWasSuccessful;
 
         public override ImmutableArray<TextChange> GetEdits()
         {

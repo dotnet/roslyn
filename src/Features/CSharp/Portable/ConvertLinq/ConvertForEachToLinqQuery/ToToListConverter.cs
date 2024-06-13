@@ -15,17 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
     /// <summary>
     /// Provides a conversion to query.ToList().
     /// </summary>
-    internal sealed class ToToListConverter : AbstractToMethodConverter
+    internal sealed class ToToListConverter(
+        ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+        ExpressionSyntax selectExpression,
+        ExpressionSyntax modifyingExpression,
+        SyntaxTrivia[] trivia) : AbstractToMethodConverter(forEachInfo, selectExpression, modifyingExpression, trivia)
     {
-        public ToToListConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
-            ExpressionSyntax selectExpression,
-            ExpressionSyntax modifyingExpression,
-            SyntaxTrivia[] trivia)
-            : base(forEachInfo, selectExpression, modifyingExpression, trivia)
-        {
-        }
-
         protected override string MethodName => nameof(Enumerable.ToList);
 
         /// Checks that the expression is "new List();"

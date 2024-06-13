@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                CodeAction.Create(
                     CSharpAnalyzersResources.Use_pattern_matching,
                     GetDocumentUpdater(context),
-                    nameof(CSharpAnalyzersResources.Use_pattern_matching)),
+                    nameof(CSharpAnalyzersResources.Use_pattern_matching),
+                    CodeActionPriority.Low),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();
 
-            var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.AnalyzeExpression(
+            var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.AnalyzeExpression(
                 semanticModel, isExpression, expressionTypeOpt, cancellationToken);
 
             var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.ReplaceMatches(

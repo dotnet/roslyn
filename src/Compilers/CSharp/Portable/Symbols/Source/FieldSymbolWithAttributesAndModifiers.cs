@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute
                 | ReservedAttributes.IsReadOnlyAttribute
+                | ReservedAttributes.RequiresLocationAttribute
                 | ReservedAttributes.IsUnmanagedAttribute
                 | ReservedAttributes.IsByRefLikeAttribute
                 | ReservedAttributes.TupleElementNamesAttribute

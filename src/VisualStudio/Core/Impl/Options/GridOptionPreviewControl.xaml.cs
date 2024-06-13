@@ -5,17 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -56,12 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _createViewModel = createViewModel;
             _language = language;
             _groupedEditorConfigOptions = groupedEditorConfigOptions;
-        }
-
-        internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
-        {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

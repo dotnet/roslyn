@@ -1096,7 +1096,7 @@ class C
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1106,7 +1106,7 @@ class Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1116,7 +1116,7 @@ struct Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1126,7 +1126,7 @@ class Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1136,7 +1136,7 @@ struct Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 interface Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1146,7 +1146,7 @@ interface Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 enum Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1266,6 +1266,23 @@ enum Program[|;|]",
                 """,
                 expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForRefInMismatch()
+        {
+            await TestLanguageVersionUpgradedAsync("""
+                class C
+                {
+                    void M1(in int x) { }
+                    void M2(ref int y)
+                    {
+                        M1(ref [|y|]);
+                    }
+                }
+                """,
+                expected: LanguageVersion.CSharp12,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
         }
     }
 }

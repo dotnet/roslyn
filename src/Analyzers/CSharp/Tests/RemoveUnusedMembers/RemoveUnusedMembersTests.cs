@@ -7,9 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -3097,12 +3095,13 @@ class MyClass
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32842")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66975")]
         public async Task FieldIsNotRead_NullCoalesceAssignment()
         {
             var code = """
                 public class MyClass
                 {
-                    private MyClass {|IDE0052:_field|};
+                    private MyClass _field;
                     public void M() => _field ??= new MyClass();
                 }
                 """;
@@ -3136,6 +3135,58 @@ class MyClass
                 """,
     // /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
     VerifyCS.Diagnostic("IDE0051").WithSpan(3, 13, 3, 14).WithArguments("C.C"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
+        public async Task DontWarnForAwaiterMethods()
+        {
+            const string code = @"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C : ICriticalNotifyCompletion
+{
+    public async Task M()
+    {
+        await this;
+    }
+
+    private C GetAwaiter() => this;
+    private bool IsCompleted => false;
+    private void GetResult() { }
+    public void OnCompleted(Action continuation) => Task.Run(continuation);
+    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
+        public async Task WarnForAwaiterMethodsNotImplementingInterface()
+        {
+            const string code = @"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C
+{
+    private C [|GetAwaiter|]() => this;
+    private bool [|IsCompleted|] => false;
+    private void [|GetResult|]() { }
+    public void OnCompleted(Action continuation) => Task.Run(continuation);
+    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+}";
+            const string fixedCode = @"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C
+{
+    public void OnCompleted(Action continuation) => Task.Run(continuation);
+    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
     }
 }

@@ -93,15 +93,10 @@ namespace Microsoft.CodeAnalysis.Differencing
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(SequenceEdit sequenceEdit)
         {
-            private readonly SequenceEdit _sequenceEdit;
-
-            public TestAccessor(SequenceEdit sequenceEdit)
-                => _sequenceEdit = sequenceEdit;
-
             internal string GetDebuggerDisplay()
-                => _sequenceEdit.GetDebuggerDisplay();
+                => sequenceEdit.GetDebuggerDisplay();
         }
     }
 }

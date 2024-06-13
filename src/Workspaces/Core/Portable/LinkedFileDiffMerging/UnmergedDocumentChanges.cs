@@ -9,17 +9,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class UnmergedDocumentChanges
+    internal sealed class UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, string projectName, DocumentId documentId)
     {
-        public IEnumerable<TextChange> UnmergedChanges { get; }
-        public string ProjectName { get; }
-        public DocumentId DocumentId { get; }
-
-        public UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, string projectName, DocumentId documentId)
-        {
-            UnmergedChanges = unmergedChanges;
-            ProjectName = projectName;
-            DocumentId = documentId;
-        }
+        public IEnumerable<TextChange> UnmergedChanges { get; } = unmergedChanges;
+        public string ProjectName { get; } = projectName;
+        public DocumentId DocumentId { get; } = documentId;
     }
 }

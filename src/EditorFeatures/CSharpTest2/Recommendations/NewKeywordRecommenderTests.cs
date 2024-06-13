@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass()
         {
             await VerifyKeywordAsync(
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement()
         {
             await VerifyKeywordAsync(
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration()
         {
             await VerifyKeywordAsync(
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -76,28 +82,34 @@ $$");
         public async Task TestAfterTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
-@"class C<T>
-    where T : $$
-    where U : U");
+                """
+                class C<T>
+                    where T : $$
+                    where U : U
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo<T>()
-      where T : $$");
+                """
+                class C {
+                    void Goo<T>()
+                      where T : $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo<T>()
-      where T : $$
-      where U : T");
+                """
+                class C {
+                    void Goo<T>()
+                      where T : $$
+                      where U : T
+                """);
         }
 
         [Fact]
@@ -504,8 +516,10 @@ $$");
         public async Task TestInJoinIn(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          join a in $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          join a in $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -513,8 +527,10 @@ $$");
         public async Task TestInJoinOn(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          join a in b on $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          join a in b on $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -522,8 +538,10 @@ $$");
         public async Task TestInJoinEquals(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          join a in b on equals $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          join a in b on equals $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -531,8 +549,10 @@ $$");
         public async Task TestWhere(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          where $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          where $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -540,8 +560,10 @@ $$");
         public async Task TestOrderby1(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          orderby $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -549,8 +571,10 @@ $$");
         public async Task TestOrderby2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          orderby a, $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -558,8 +582,10 @@ $$");
         public async Task TestOrderby3(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby a ascending, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          orderby a ascending, $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -567,8 +593,10 @@ $$");
         public async Task TestAfterSelect(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          select $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          select $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -576,8 +604,10 @@ $$");
         public async Task TestAfterGroup(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          group $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          group $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -585,8 +615,10 @@ $$");
         public async Task TestAfterGroupBy(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          group expr by $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          group expr by $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -671,159 +703,199 @@ $$");
         [Fact]
         public async Task TestAfterExtern()
         {
-            await VerifyKeywordAsync(@"extern alias Goo;
-$$");
+            await VerifyKeywordAsync("""
+                extern alias Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterUsing()
         {
-            await VerifyKeywordAsync(@"using Goo;
-$$");
+            await VerifyKeywordAsync("""
+                using Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalUsing()
         {
             await VerifyKeywordAsync(
-@"global using Goo;
-$$");
+                """
+                global using Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNamespace()
         {
-            await VerifyKeywordAsync(@"namespace N {}
-$$");
+            await VerifyKeywordAsync("""
+                namespace N {}
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterFileScopedNamespace()
         {
             await VerifyAbsenceAsync(
-@"namespace N;
-$$");
+                """
+                namespace N;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterDelegateDeclaration()
         {
-            await VerifyKeywordAsync(@"delegate void Goo();
-$$");
+            await VerifyKeywordAsync("""
+                delegate void Goo();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodInClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-  void Goo() {}
-  $$");
+                """
+                class C {
+                  void Goo() {}
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterFieldInClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i;
-  $$");
+                """
+                class C {
+                  int i;
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterPropertyInClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i { get; }
-  $$");
+                """
+                class C {
+                  int i { get; }
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestNotBeforeUsing()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
-@"$$
-using Goo;");
+                """
+                $$
+                using Goo;
+                """);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$
-using Goo;");
+                """
+                $$
+                using Goo;
+                """);
         }
 
         [Fact]
         public async Task TestNotBeforeGlobalUsing()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
-@"$$
-global using Goo;");
+                """
+                $$
+                global using Goo;
+                """);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$
-global using Goo;");
+                """
+                $$
+                global using Goo;
+                """);
         }
 
         [Fact]
         public async Task TestAfterAssemblyAttribute()
         {
-            await VerifyKeywordAsync(@"[assembly: goo]
-$$");
+            await VerifyKeywordAsync("""
+                [assembly: goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRootAttribute()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Regular, @"[goo]
-$$");
+            await VerifyKeywordAsync(SourceCodeKind.Regular, """
+                [goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRootAttribute_Interactive()
         {
             // The global function could be hiding a member inherited from System.Object.
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"[goo]
-$$");
+            await VerifyKeywordAsync(SourceCodeKind.Script, """
+                [goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-  [goo]
-  $$");
+                """
+                class C {
+                  [goo]
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideStruct()
         {
             await VerifyKeywordAsync(
-@"struct S {
-   $$");
+                """
+                struct S {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideInterface()
         {
             await VerifyKeywordAsync(
-@"interface I {
-   $$");
+                """
+                interface I {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-   $$");
+                """
+                class C {
+                   $$
+                """);
         }
 
         [Fact]
@@ -904,24 +976,30 @@ $$");
         public async Task TestAfterNestedStatic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    static $$");
+                """
+                class C {
+                    static $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedInternal()
         {
             await VerifyKeywordAsync(
-@"class C {
-    internal $$");
+                """
+                class C {
+                    internal $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedPrivate()
         {
             await VerifyKeywordAsync(
-@"class C {
-    private $$");
+                """
+                class C {
+                    private $$
+                """);
         }
 
         [Fact]
@@ -932,70 +1010,88 @@ $$");
         public async Task TestAfterNestedAbstract()
         {
             await VerifyKeywordAsync(
-@"class C {
-    abstract $$");
+                """
+                class C {
+                    abstract $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedVirtual()
         {
             await VerifyKeywordAsync(
-@"class C {
-    virtual $$");
+                """
+                class C {
+                    virtual $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterNestedNew()
         {
-            await VerifyAbsenceAsync(@"class C {
-    new $$");
+            await VerifyAbsenceAsync("""
+                class C {
+                    new $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterNestedOverride()
         {
-            await VerifyAbsenceAsync(@"class C {
-    override $$");
+            await VerifyAbsenceAsync("""
+                class C {
+                    override $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedSealed()
         {
             await VerifyKeywordAsync(
-@"class C {
-    sealed $$");
+                """
+                class C {
+                    sealed $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInProperty()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo { $$");
+                """
+                class C {
+                    int Goo { $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPropertyAfterAccessor()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo { get; $$");
+                """
+                class C {
+                    int Goo { get; $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPropertyAfterAccessibility()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo { get; protected $$");
+                """
+                class C {
+                    int Goo { get; protected $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPropertyAfterInternal()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo { get; internal $$");
+                """
+                class C {
+                    int Goo { get; internal $$
+                """);
         }
 
         [Fact]
@@ -1024,9 +1120,11 @@ $$");
         {
             // User could say "new int()" here.
             await VerifyKeywordAsync(
-@"class E {
-    const int a = $$
-}");
+                """
+                class E {
+                    const int a = $$
+                }
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
@@ -1034,20 +1132,24 @@ $$");
         {
             // User could say "new int()" here.
             await VerifyKeywordAsync(
-@"class E {
-  void Goo() {
-    const int a = $$
-  }
-}");
+                """
+                class E {
+                  void Goo() {
+                    const int a = $$
+                  }
+                }
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestInMemberInitializer1()
         {
             await VerifyKeywordAsync(
-@"class E {
-    int a = $$
-}");
+                """
+                class E {
+                    int a = $$
+                }
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
@@ -1074,13 +1176,14 @@ $$");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    public int x, y;
-    void M()
-    {
-        var c = new C { x = 2, y = 3, $$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    public int x, y;
+                    void M()
+                    {
+                        var c = new C { x = 2, y = 3, $$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544486")]
@@ -1088,19 +1191,23 @@ class C
         {
             // user could say "new int()" here.
             await VerifyKeywordAsync(
-@"class C
-{
-    const int value = $$");
+                """
+                class C
+                {
+                    const int value = $$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544998")]
         public async Task TestInsideStructParameterInitializer()
         {
             await VerifyKeywordAsync(
-@"struct C
-{
-    void M(C c = $$
-}");
+                """
+                struct C
+                {
+                    void M(C c = $$
+                }
+                """);
         }
 
         [Fact]
@@ -1114,14 +1221,18 @@ class C
         public async Task TestInRawStringInterpolation_SingleLine()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var x = $""""""{$$}"""""""));
+                """"
+                var x = $"""{$$}"""
+                """"));
         }
 
         [Fact]
         public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var x = ${|#0:|}$""""""{{$$}}"""""""));
+                """"
+                var x = ${|#0:|}$"""{{$$}}"""
+                """"));
         }
 
         [Fact]
@@ -1135,26 +1246,32 @@ class C
         public async Task TestInRawStringInterpolation_MultiLine()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var x = $""""""
-{$$}
-"""""""));
+                """"
+                var x = $"""
+                {$$}
+                """
+                """"));
         }
 
         [Fact]
         public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var x = ${|#0:|}$""""""
-{{$$}}
-"""""""));
+                """"
+                var x = ${|#0:|}$"""
+                {{$$}}
+                """
+                """"));
         }
 
         [Fact]
         public async Task TestInRawStringInterpolation_MultiLineIncomplete()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var x = $""""""
-{$$"));
+                """"
+                var x = $"""
+                {$$
+                """"));
         }
     }
 }

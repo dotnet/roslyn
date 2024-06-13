@@ -31,5 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.flags |= NodeFlags.ContainsSkippedText;
             }
         }
+
+        public sealed override bool IsStructuredTrivia => true;
     }
 }

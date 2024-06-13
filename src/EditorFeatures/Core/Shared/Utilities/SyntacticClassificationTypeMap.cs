@@ -7,16 +7,16 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+
+/// <summary>
+/// Note: we very intentionally place ourselves in the editors 'lexical' bucket (and not 'syntactic' bucket).  See
+/// comments on <see cref="AbstractClassificationTypeMap"/> for more details.
+/// </summary>
+[Export]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class SyntacticClassificationTypeMap(IClassificationTypeRegistryService registryService)
+    : AbstractClassificationTypeMap(registryService, ClassificationLayer.Lexical)
 {
-    [Export]
-    internal class SyntacticClassificationTypeMap : AbstractClassificationTypeMap
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SyntacticClassificationTypeMap(IClassificationTypeRegistryService registryService)
-            : base(registryService, ClassificationLayer.Syntactic)
-        {
-        }
-    }
 }

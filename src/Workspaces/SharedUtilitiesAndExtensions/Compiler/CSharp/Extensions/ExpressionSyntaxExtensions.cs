@@ -458,10 +458,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (expression.IsKind(SyntaxKind.BaseExpression) ||
-                expression.IsKind(SyntaxKind.CollectionInitializerExpression) ||
-                expression.IsKind(SyntaxKind.ObjectInitializerExpression) ||
-                expression.IsKind(SyntaxKind.ComplexElementInitializerExpression))
+            if (expression.Kind()
+                    is SyntaxKind.BaseExpression
+                    or SyntaxKind.CollectionInitializerExpression
+                    or SyntaxKind.ObjectInitializerExpression
+                    or SyntaxKind.ComplexElementInitializerExpression)
             {
                 return false;
             }

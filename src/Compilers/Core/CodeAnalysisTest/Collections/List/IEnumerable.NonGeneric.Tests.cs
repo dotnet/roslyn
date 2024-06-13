@@ -216,15 +216,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // Ensures that the elements returned from enumeration are exactly the same collection of
             // elements returned from a previous enumeration
             IEnumerable enumerable = NonGenericIEnumerableFactory(count);
-            Dictionary<object, int> firstValues = new Dictionary<object, int>(count);
-            Dictionary<object, int> secondValues = new Dictionary<object, int>(count);
+            HashSet<object> firstValues = new HashSet<object>(count);
+            HashSet<object> secondValues = new HashSet<object>(count);
             foreach (object item in enumerable)
-                firstValues[item] = firstValues.ContainsKey(item) ? firstValues[item]++ : 1;
+                Assert.True(firstValues.Add(item));
             foreach (object item in enumerable)
-                secondValues[item] = secondValues.ContainsKey(item) ? secondValues[item]++ : 1;
+                Assert.True(secondValues.Add(item));
             Assert.Equal(firstValues.Count, secondValues.Count);
-            foreach (object key in firstValues.Keys)
-                Assert.Equal(firstValues[key], secondValues[key]);
+            foreach (object item in firstValues)
+                Assert.True(secondValues.Contains(item));
         }
 
         [Theory]

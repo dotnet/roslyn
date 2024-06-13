@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             var containerMatcher = patternContainer != null
-                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer)
+                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true)
                 : null;
 
             using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                         .OfType<IMethodSymbol>()
                                         .Where(m => IsPartial(m) && m.PartialImplementationPart == null);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var line = text.Lines.IndexOf(position);
             var lineSpan = text.Lines.GetLineFromPosition(position).Span;
             return symbols.Select(s => CreateItem(s, line, span, semanticModel, modifiers, token));

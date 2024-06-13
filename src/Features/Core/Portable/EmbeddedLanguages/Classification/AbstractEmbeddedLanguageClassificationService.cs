@@ -6,12 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -35,57 +36,50 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            AddEmbeddedLanguageClassifications(document.Project, semanticModel, textSpan, options, result, cancellationToken);
+            var project = document.Project;
+            AddEmbeddedLanguageClassifications(
+                project.Solution.Services, project, semanticModel, textSpan, options, result, cancellationToken);
         }
 
         public void AddEmbeddedLanguageClassifications(
-            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SolutionServices services, Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (project is null)
                 return;
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(this, project, semanticModel, textSpan, options, result, cancellationToken);
+            var worker = new Worker(this, services, project, semanticModel, textSpan, options, result, cancellationToken);
             worker.VisitTokens(root);
         }
 
-        private readonly ref struct Worker
+        private readonly ref struct Worker(
+            AbstractEmbeddedLanguageClassificationService service,
+            SolutionServices solutionServices,
+            Project project,
+            SemanticModel semanticModel,
+            TextSpan textSpan,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
-            private readonly AbstractEmbeddedLanguageClassificationService _owner;
-            private readonly Project _project;
-            private readonly SemanticModel _semanticModel;
-            private readonly TextSpan _textSpan;
-            private readonly ClassificationOptions _options;
-            private readonly ArrayBuilder<ClassifiedSpan> _result;
-            private readonly CancellationToken _cancellationToken;
-
-            public Worker(
-                AbstractEmbeddedLanguageClassificationService service,
-                Project project,
-                SemanticModel semanticModel,
-                TextSpan textSpan,
-                ClassificationOptions options,
-                ArrayBuilder<ClassifiedSpan> result,
-                CancellationToken cancellationToken)
-            {
-                _owner = service;
-                _project = project;
-                _semanticModel = semanticModel;
-                _textSpan = textSpan;
-                _options = options;
-                _result = result;
-                _cancellationToken = cancellationToken;
-            }
+            private readonly AbstractEmbeddedLanguageClassificationService _owner = service;
+            private readonly SolutionServices _solutionServices = solutionServices;
+            private readonly Project _project = project;
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly ClassificationOptions _options = options;
+            private readonly SegmentedList<ClassifiedSpan> _result = result;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
 
             public void VisitTokens(SyntaxNode node)
             {
                 using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
                 var stack = pooledStack.Object;
                 stack.Push(node);
-                while (!stack.IsEmpty())
+                while (stack.Count > 0)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
                     var currentNodeOrToken = stack.Pop();
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (token.Span.IntersectsWith(_textSpan) && _owner.SyntaxTokenKinds.Contains(token.RawKind))
                 {
                     var context = new EmbeddedLanguageClassificationContext(
-                        _project, _semanticModel, token, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
+                        _solutionServices, _project, _semanticModel, token, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
 
                     var classifiers = _owner.GetServices(_semanticModel, token, _cancellationToken);
                     foreach (var classifier in classifiers)

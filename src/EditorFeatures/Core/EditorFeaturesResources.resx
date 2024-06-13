@@ -1055,4 +1055,10 @@ Do you want to proceed?</value>
   <data name="Rename_operation_could_not_complete_due_to_external_change_to_workspace" xml:space="preserve">
     <value>Rename operation could not complete due to external change to workspace</value>
   </data>
+  <data name="Roslyn_Test_Code" xml:space="preserve">
+    <value>Roslyn Test Code</value>
+  </data>
+  <data name="Roslyn_Test_Code_Markup" xml:space="preserve">
+    <value>Roslyn Test Code Markup</value>
+  </data>
 </root>

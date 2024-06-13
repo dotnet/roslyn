@@ -143,29 +143,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        public class Builder : IDisposable
+        public class Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo) : IDisposable
         {
-            private readonly SymbolKey _assemblySymbolKey;
-            private readonly string _language;
-            private readonly string _genericTypeSuffix;
-            private readonly Checksum _checksum;
-            private readonly EditorBrowsableInfo _editorBrowsableInfo;
+            private readonly SymbolKey _assemblySymbolKey = assemblySymbolKey;
+            private readonly string _language = language;
+            private readonly string _genericTypeSuffix = genericTypeSuffix;
+            private readonly Checksum _checksum = checksum;
+            private readonly EditorBrowsableInfo _editorBrowsableInfo = editorBrowsableInfo;
 
             private int _publicItemCount;
             private bool _hasEnumBaseTypes;
 
-            private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
-
-            public Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo)
-            {
-                _assemblySymbolKey = assemblySymbolKey;
-                _checksum = checksum;
-                _language = language;
-                _genericTypeSuffix = genericTypeSuffix;
-                _editorBrowsableInfo = editorBrowsableInfo;
-
-                _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
-            }
+            private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
 
             public TypeImportCompletionCacheEntry ToReferenceCacheEntry()
             {
@@ -224,21 +213,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 => _itemsBuilder.Free();
         }
 
-        private readonly struct TypeImportCompletionItemInfo
+        private readonly struct TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced, bool isEnumBaseType)
         {
-            private readonly ItemPropertyKind _properties;
-
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced, bool isEnumBaseType)
-            {
-                Item = item;
-                _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
+            private readonly ItemPropertyKind _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
                             | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
                             | (isAttribute ? ItemPropertyKind.IsAttribute : 0)
                             | (isEnumBaseType ? ItemPropertyKind.IsEnumBaseType : 0)
                             | (isEditorBrowsableStateAdvanced ? ItemPropertyKind.IsEditorBrowsableStateAdvanced : 0);
-            }
 
-            public CompletionItem Item { get; }
+            public CompletionItem Item { get; } = item;
 
             public bool IsPublic
                 => (_properties & ItemPropertyKind.IsPublic) != 0;

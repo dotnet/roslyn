@@ -59,7 +59,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
 
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
-                        definition.Document, definition.SourceSpan, definition.IsStale, cancellationToken).ConfigureAwait(false);
+                        await definition.Document.GetRequiredDocumentAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false),
+                        definition.SourceSpan,
+                        definition.IsStale,
+                        cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);
                 }
             }
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {
-                            Uri = new Uri(declarationFile.FilePath),
+                            Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
                             Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                         });
                     }

@@ -12,24 +12,9 @@
         <target state="translated">Aggiunta di using mancanti...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Chosen_version_0">
-        <source>Chosen version: '{0}'</source>
-        <target state="translated">Versione selezionata: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Complete_statement_on_semicolon">
         <source>Complete statement on ;</source>
         <target state="translated">Completa l'istruzione in corrispondenza di ;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_by_name_0">
-        <source>Could not find by name: '{0}'</source>
-        <target state="translated">Non è stato possibile eseguire la ricerca per nome: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompilation_log">
-        <source>Decompilation log</source>
-        <target state="translated">Log di decompilazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
@@ -42,26 +27,6 @@
         <target state="translated">Correzione del valore letterale stringa dopo l'operazione Incolla</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_0_assemblies_for_1">
-        <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="translated">Sono stati trovati '{0}' assembly per '{1}':</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_exact_match_0">
-        <source>Found exact match: '{0}'</source>
-        <target state="translated">È stata trovata una corrispondenza esatta: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_higher_version_match_0">
-        <source>Found higher version match: '{0}'</source>
-        <target state="translated">È stata trovata una versione corrispondente successiva: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_single_assembly_0">
-        <source>Found single assembly: '{0}'</source>
-        <target state="translated">È stato trovato un solo assembly: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Genera sottoscrizione di eventi</target>
@@ -72,16 +37,6 @@
         <target state="translated">Aumenta stringa non elaborata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Load_from_0">
-        <source>Load from: '{0}'</source>
-        <target state="translated">Carica da: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Module_not_found">
-        <source>Module not found!</source>
-        <target state="translated">Modulo non trovato.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
         <target state="translated">All'esterno di namespace</target>
@@ -90,16 +45,6 @@
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Premere TAB per inserire)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_0">
-        <source>Resolve: '{0}'</source>
-        <target state="translated">Risolvi: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_module_0_of_1">
-        <source>Resolve module: '{0}' of '{1}'</source>
-        <target state="translated">Risolvi il modulo: '{0}' di '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
@@ -115,16 +60,6 @@
       <trans-unit id="Split_string">
         <source>Split string</source>
         <target state="translated">Dividi stringa</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
-        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
-        <target state="translated">AVVISO: versione non corrispondente. Prevista: '{0}'. Ottenuta: '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_items_in_cache">
-        <source>'{0}' items in cache</source>
-        <target state="translated">'{0}' elementi nella cache</target>
         <note />
       </trans-unit>
     </body>

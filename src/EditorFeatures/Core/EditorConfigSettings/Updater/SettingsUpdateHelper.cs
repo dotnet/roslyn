@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 
         public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
                                                                   string filePath,
-                                                                  IReadOnlyList<(AnalyzerSetting option, DiagnosticSeverity value)> settingsToUpdate)
+                                                                  IReadOnlyList<(AnalyzerSetting option, ReportDiagnostic value)> settingsToUpdate)
         {
             if (originalText is null)
                 return null;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 
             return TryUpdateAnalyzerConfigDocument(originalText, filePath, settingsToUpdate.Select(x => GetOptionValueAndLanguage(x.option, x.value)));
 
-            static (string option, string value, Language language) GetOptionValueAndLanguage(AnalyzerSetting diagnostic, DiagnosticSeverity severity)
+            static (string option, string value, Language language) GetOptionValueAndLanguage(AnalyzerSetting diagnostic, ReportDiagnostic severity)
             {
                 var optionName = $"{DiagnosticOptionPrefix}{diagnostic.Id}{SeveritySuffix}";
                 var optionValue = severity.ToEditorConfigString();

@@ -1447,9 +1447,9 @@ class C
                 // (9,19): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //             L(ref y, x);
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(9, 19),
-                // (10,26): error CS1615: Argument 2 may not be passed with the 'ref' keyword
+                // (10,26): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 //             L(ref x, ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "ref").WithLocation(10, 26),
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("2").WithLocation(10, 26),
                 // (14,26): error CS1510: A ref or out value must be an assignable variable
                 //             L(ref x, ref xr);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "xr").WithLocation(14, 26),
@@ -3156,7 +3156,7 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                // (26,19): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                // (26,19): error CS8178: A reference returned by a call to 'TestClass.Save(int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(await Task.FromResult(0))").WithArguments("TestClass.Save(int)").WithLocation(26, 19)
             );
@@ -4049,10 +4049,10 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyEmitDiagnostics(
-                // (32,17): error CS8178: 'await' cannot be used in an expression containing a call to 'S.Instance.get' because it returns by reference
+                // (32,17): error CS8178: A reference returned by a call to 'S.Instance.get' cannot be preserved across 'await' or 'yield' boundary.
                 //         var a = S.Instance.Echo(await Do(i - 1));
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "S.Instance").WithArguments("S.Instance.get").WithLocation(32, 17),
-                // (33,28): error CS8178: 'await' cannot be used in an expression containing a call to 'C.Assign(ref int, int)' because it returns by reference
+                // (33,28): error CS8178: A reference returned by a call to 'C.Assign(ref int, int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         var b = Assign(ref Assign(ref temp, 0), await Do(i - 1));
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Assign(ref temp, 0)").WithArguments("C.Assign(ref int, int)").WithLocation(33, 28)
                 );
@@ -4100,10 +4100,10 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                // (28,9): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                // (28,9): error CS8178: A reference returned by a call to 'TestClass.Save(int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         Save(1) = await Task.FromResult(0);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(1)").WithArguments("TestClass.Save(int)").WithLocation(28, 9),
-                // (36,9): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.this[int, int].get' because it returns by reference
+                // (36,9): error CS8178: A reference returned by a call to 'TestClass.this[int, int].get' cannot be preserved across 'await' or 'yield' boundary.
                 //         inst[1, 2] = await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "inst[1, 2]").WithArguments("TestClass.this[int, int].get").WithLocation(36, 9)
             );

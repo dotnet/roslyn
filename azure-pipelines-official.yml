@@ -5,6 +5,7 @@ trigger:
     - main-vs-deps
     - release/dev16.*-vs-deps
     - release/dev17.*
+    - features/lsp_tools_host
     exclude:
     - release/dev17.0
 pr: none

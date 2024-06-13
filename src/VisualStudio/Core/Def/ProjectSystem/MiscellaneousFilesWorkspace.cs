@@ -10,20 +10,13 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Features.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -36,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [Export(typeof(MiscellaneousFilesWorkspace))]
     internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenTextBufferEventListener
     {
-        private readonly IThreadingContext _threadingContext;
+        private readonly IVsService<IVsTextManager> _textManagerService;
         private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
 
@@ -64,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousFilesWorkspace(
             IThreadingContext threadingContext,
+            IVsService<SVsTextManager, IVsTextManager> textManagerService,
             OpenTextBufferProvider openTextBufferProvider,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             VisualStudioWorkspace visualStudioWorkspace)
@@ -71,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
-            _threadingContext = threadingContext;
+            _textManagerService = textManagerService;
             _openTextBufferProvider = openTextBufferProvider;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
 
@@ -80,10 +74,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _openTextBufferProvider.AddListener(this);
         }
 
-        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+        public async Task InitializeAsync()
         {
             await TaskScheduler.Default;
-            _textManager = await serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
         }
 
         void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);

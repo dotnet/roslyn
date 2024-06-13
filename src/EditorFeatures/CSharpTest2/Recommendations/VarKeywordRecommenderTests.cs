@@ -34,24 +34,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -72,8 +78,10 @@ $$");
         public async Task TestNotAfterStackAlloc()
         {
             await VerifyAbsenceAsync(
-@"class C {
-     int* goo = stackalloc $$");
+                """
+                class C {
+                     int* goo = stackalloc $$
+                """);
         }
 
         [Fact]
@@ -117,25 +125,31 @@ $$");
         public async Task TestBeforeStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"$$
-return true;"));
+                """
+                $$
+                return true;
+                """));
         }
 
         [Fact]
         public async Task TestAfterStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"return true;
-$$"));
+                """
+                return true;
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (true) {
-}
-$$"));
+                """
+                if (true) {
+                }
+                $$
+                """));
         }
 
         [Fact]
@@ -162,10 +176,12 @@ $$"));
         [Fact]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
-{
-  $$
-}");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  $$
+                }
+                """);
         }
 
         [Fact]
@@ -326,8 +342,10 @@ $$"));
         public async Task TestNotAfterConstField()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    const $$");
+                """
+                class C {
+                    const $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12121")]
@@ -341,19 +359,22 @@ $$"));
         public async Task TestAfterOutKeywordInParameter()
         {
             await VerifyAbsenceAsync(
-@"class C {
-     void M1(out $$");
+                """
+                class C {
+                     void M1(out $$
+                """);
         }
 
         [Fact]
         public async Task TestVarPatternInSwitch()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch(o)
-    {
-        case $$
-    }
-"));
+                """
+                switch(o)
+                    {
+                        case $$
+                    }
+                """));
         }
 
         [Fact]
@@ -364,16 +385,20 @@ $$"));
         public async Task TestNotAfterRefInMemberContext()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    ref $$");
+                """
+                class C {
+                    ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRefReadonlyInMemberContext()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    ref readonly $$");
+                """
+                class C {
+                    ref readonly $$
+                """);
         }
 
         [Fact]
@@ -420,21 +445,22 @@ $$"));
         public async Task TestInPropertyPattern()
         {
             await VerifyKeywordAsync(
-@"
-using System;
+                """
+                using System;
 
-class Person { public string Name; }
+                class Person { public string Name; }
 
-class Program
-{
-    void Goo(object o)
-    {
-        if (o is Person { Name: $$ })
-        {
-            Console.WriteLine(n);
-        }
-    }
-}");
+                class Program
+                {
+                    void Goo(object o)
+                    {
+                        if (o is Person { Name: $$ })
+                        {
+                            Console.WriteLine(n);
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]

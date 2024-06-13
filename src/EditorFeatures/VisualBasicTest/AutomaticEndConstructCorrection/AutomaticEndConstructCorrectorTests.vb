@@ -279,7 +279,7 @@ End Class</code>.Value
         End Sub
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
-        Public Sub TestDontThrowDueToSingleLineDeletion()
+        Public Sub TestDoNotThrowDueToSingleLineDeletion()
             Dim code = <code>Class A
     [|$$Sub M() : End Sub|]
 End Class</code>.Value

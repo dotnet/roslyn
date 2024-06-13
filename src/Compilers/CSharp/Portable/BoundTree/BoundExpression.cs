@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System;
 
@@ -12,6 +13,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        public SimpleNameSyntax? InterceptableNameSyntax
+        {
+            get
+            {
+                // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
+                // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
+                Debug.Assert(this.WasCompilerGenerated || this.Syntax is InvocationExpressionSyntax or ConstructorInitializerSyntax or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } },
+                    $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
+
+                if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
+                {
+                    return null;
+                }
+
+                // If a qualified name is used as a valid receiver of an invocation syntax at some point,
+                // we probably want to treat it similarly to a MemberAccessExpression.
+                // However, we don't expect to encounter it.
+                Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
+
+                return syntax.Expression switch
+                {
+                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name,
+                    SimpleNameSyntax name => name,
+                    _ => null
+                };
+            }
+        }
+
         internal BoundExpression WithSuppression(bool suppress = true)
         {
             if (this.IsSuppressed == suppress)
@@ -60,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.DefaultLiteral:
                 case BoundKind.UnconvertedInterpolatedString:
+                case BoundKind.UnconvertedCollectionExpression:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
@@ -138,6 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     internal partial class BoundInterpolatedStringHandlerPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundCollectionExpressionSpreadExpressionPlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false;
     }
@@ -605,17 +640,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }
-        public BindingDiagnosticBag ValueDiagnostics { get; }
+        public ImmutableBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
         public BoundExpression TypeExpression { get; }
-        public BindingDiagnosticBag TypeDiagnostics { get; }
+        public ImmutableBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, BindingDiagnosticBag typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ImmutableBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ImmutableBindingDiagnostic<AssemblySymbol> typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(valueDiagnostics != null, "Field 'valueDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(typeExpression != null, "Field 'typeExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(typeDiagnostics != null, "Field 'typeDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ValueSymbol = valueSymbol;
             this.ValueExpression = valueExpression;
@@ -630,9 +663,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (object)a.ValueSymbol == (object)b.ValueSymbol &&
                 (object)a.ValueExpression == (object)b.ValueExpression &&
-                (object)a.ValueDiagnostics == (object)b.ValueDiagnostics &&
+                a.ValueDiagnostics == b.ValueDiagnostics &&
                 (object)a.TypeExpression == (object)b.TypeExpression &&
-                (object)a.TypeDiagnostics == (object)b.TypeDiagnostics;
+                a.TypeDiagnostics == b.TypeDiagnostics;
         }
 
         public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)

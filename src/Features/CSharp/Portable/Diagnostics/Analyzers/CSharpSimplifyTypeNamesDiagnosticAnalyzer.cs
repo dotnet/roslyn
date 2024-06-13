@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -47,26 +49,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.EnumDeclaration;
         }
 
-        protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+        protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root)
         {
+            Debug.Assert(context.CodeBlock.DescendantNodesAndSelf().Contains(root));
+
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
             using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
-            simplifier.Visit(context.CodeBlock);
+            simplifier.Visit(root);
             return simplifier.Diagnostics;
         }
 
-        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
+        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree)
         {
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
-
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
-            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: codeBlockIntervalTree, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, context.SemanticModel, options, ignoredSpans: codeBlockIntervalTree, context.CancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;
         }

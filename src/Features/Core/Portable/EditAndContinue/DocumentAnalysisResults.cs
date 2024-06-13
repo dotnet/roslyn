@@ -7,7 +7,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using System;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -85,6 +86,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public EditAndContinueCapabilities RequiredCapabilities { get; }
 
         /// <summary>
+        /// Time span it took to perform the analysis.
+        /// </summary>
+        public TimeSpan ElapsedTime { get; }
+
+        /// <summary>
         /// Document contains errors that block EnC analysis.
         /// </summary>
         public bool HasSyntaxErrors { get; }
@@ -104,6 +110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ImmutableArray<SourceFileSpan>> exceptionRegionsOpt,
             ImmutableArray<SequencePointUpdates> lineEditsOpt,
             EditAndContinueCapabilities requiredCapabilities,
+            TimeSpan elapsedTime,
             bool hasChanges,
             bool hasSyntaxErrors)
         {
@@ -157,6 +164,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ExceptionRegions = exceptionRegionsOpt;
             LineEdits = lineEditsOpt;
             RequiredCapabilities = requiredCapabilities;
+            ElapsedTime = elapsedTime;
             HasSyntaxErrors = hasSyntaxErrors;
             HasChanges = hasChanges;
         }
@@ -173,7 +181,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Report errors blocking the document analysis.
         /// </summary>
-        public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, string filePath, ImmutableArray<RudeEditDiagnostic> rudeEdits, Diagnostic? syntaxError, bool hasChanges)
+        public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, string filePath, ImmutableArray<RudeEditDiagnostic> rudeEdits, Diagnostic? syntaxError, TimeSpan elapsedTime, bool hasChanges)
             => new(
                 documentId,
                 filePath,
@@ -184,13 +192,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 exceptionRegionsOpt: default,
                 lineEditsOpt: default,
                 EditAndContinueCapabilities.None,
+                elapsedTime,
                 hasChanges,
                 hasSyntaxErrors: true);
 
         /// <summary>
         /// Report unchanged document results.
         /// </summary>
-        public static DocumentAnalysisResults Unchanged(DocumentId documentId, string filePath)
+        public static DocumentAnalysisResults Unchanged(DocumentId documentId, string filePath, TimeSpan elapsedTime)
             => new(
                 documentId,
                 filePath,
@@ -201,6 +210,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 exceptionRegionsOpt: default,
                 lineEditsOpt: default,
                 EditAndContinueCapabilities.None,
+                elapsedTime,
                 hasChanges: false,
                 hasSyntaxErrors: false);
     }

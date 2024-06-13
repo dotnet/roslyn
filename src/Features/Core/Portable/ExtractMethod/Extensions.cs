@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return methodSymbol.ReturnType;
         }
 
-        public static Task<SemanticDocument> WithSyntaxRootAsync(this SemanticDocument semanticDocument, SyntaxNode root, CancellationToken cancellationToken)
-            => SemanticDocument.CreateAsync(semanticDocument.Document.WithSyntaxRoot(root), cancellationToken);
-
         /// <summary>
         /// get tokens with given annotation in current document
         /// </summary>

@@ -44,26 +44,23 @@ namespace Microsoft.CodeAnalysis
         internal int CopyCount => _assemblyDirectoryId;
 
 #if NETCOREAPP
-        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
             : this(null, baseDirectory)
         {
         }
 
-        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string? baseDirectory = null)
-            : base(compilerLoadContext)
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory)
+            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk)
 #else
-        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
 #endif
         {
-            if (baseDirectory != null)
+            if (baseDirectory is null)
             {
-                _baseDirectory = baseDirectory;
-            }
-            else
-            {
-                _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
+                throw new ArgumentNullException(nameof(baseDirectory));
             }
 
+            _baseDirectory = baseDirectory;
             _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
                 () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
 

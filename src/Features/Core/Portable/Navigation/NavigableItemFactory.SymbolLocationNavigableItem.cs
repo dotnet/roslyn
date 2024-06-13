@@ -4,42 +4,56 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using InterlockedOperations = Roslyn.Utilities.InterlockedOperations;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
     internal partial class NavigableItemFactory
     {
-        private class SymbolLocationNavigableItem : INavigableItem
+        private class SymbolLocationNavigableItem(
+            Solution solution,
+            ISymbol symbol,
+            Location location,
+            ImmutableArray<TaggedText>? displayTaggedParts) : INavigableItem
         {
-            private readonly Solution _solution;
-            private readonly ISymbol _symbol;
-            private readonly Location _location;
+            private readonly Solution _solution = solution;
+            private readonly ISymbol _symbol = symbol;
+            private readonly Location _location = location;
 
-            public SymbolLocationNavigableItem(
-                Solution solution,
-                ISymbol symbol,
-                Location location,
-                ImmutableArray<TaggedText>? displayTaggedParts)
-            {
-                _solution = solution;
-                _symbol = symbol;
-                _location = location;
-                DisplayTaggedParts = displayTaggedParts.GetValueOrDefault();
-            }
+            /// <summary>
+            /// Lazily-initialized backing field for <see cref="Document"/>.
+            /// </summary>
+            /// <seealso cref="InterlockedOperations.Initialize{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
+            private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
 
             public bool DisplayFileLocation => true;
 
-            public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
+            public ImmutableArray<TaggedText> DisplayTaggedParts { get; } = displayTaggedParts.GetValueOrDefault();
 
             public Glyph Glyph => _symbol.GetGlyph();
 
             public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
 
-            public Document Document
-                => _location.IsInSource ? _solution.GetDocument(_location.SourceTree) : null;
+            public INavigableItem.NavigableDocument Document
+            {
+                get
+                {
+                    return InterlockedOperations.Initialize(
+                        ref _lazyDocument,
+                        static self =>
+                        {
+                            return (self._location.IsInSource && self._solution.GetDocument(self._location.SourceTree) is { } document)
+                                ? INavigableItem.NavigableDocument.FromDocument(document)
+                                : null;
+                        },
+                        this);
+                }
+            }
 
             public TextSpan SourceSpan => _location.SourceSpan;
 

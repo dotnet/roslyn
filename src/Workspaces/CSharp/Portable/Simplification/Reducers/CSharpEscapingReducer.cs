@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var enclosingMethodBlock = parent.GetAncestorsOrThis(n => n is MethodDeclarationSyntax).FirstOrDefault();
 
-                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(n => n.Kind() == SyntaxKind.AsyncKeyword))
+                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(SyntaxKind.AsyncKeyword))
                 {
                     return token;
                 }

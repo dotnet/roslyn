@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -136,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
             async Task ResetTimeSliceAsync()
             {
-                await listener.Delay(TimeSpan.FromMilliseconds(50), ThreadingContext.DisposalToken).ConfigureAwait(true);
+                await listener.Delay(DelayTimeSpan.NearImmediate, ThreadingContext.DisposalToken).ConfigureAwait(true);
                 timeSlice = new TimeSlice(CleanUpTimeSlice);
             }
         }
@@ -169,10 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         {
             this.AssertIsForeground();
 
-            if (_deadKeySet.Contains(key))
-            {
-                _deadKeySet.Remove(key);
-            }
+            _deadKeySet.Remove(key);
 
             if (_table.TryGetValue(key, out var handle))
             {

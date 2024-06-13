@@ -355,6 +355,529 @@ public class b
             Assert.Equal(1, countedTree.AccessCount);
         }
 
+        [Fact]
+        public void TestMemberNamesReused1()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int z, y, x;
+        }
+    }
+}
+");
+            var thirdTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int z, y, x, w;
+        }
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type2.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1.MergedDeclaration.Declarations[0].MemberNames, type2.MergedDeclaration.Declarations[0].MemberNames);
+
+            compilation = compilation.ReplaceSyntaxTree(secondTree, thirdTree);
+
+            var type3 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type3.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "w", "x", "y", "z" }));
+
+            Assert.NotSame(type1.MergedDeclaration.Declarations[0].MemberNames, type3.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_UnaffectedByTypeNameChange()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class D
+        {
+            int z, y, x;
+        }
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.D");
+            Assert.True(type2.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1.MergedDeclaration.Declarations[0].MemberNames, type2.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_UnaffectedByNamespaceChange()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    class C
+    {
+        int z, y, x;
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2 = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.C");
+            Assert.True(type2.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1.MergedDeclaration.Declarations[0].MemberNames, type2.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_SupportsMultipleTypes()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int x, y, z;
+        }
+
+        class D
+        {
+            int a, b, c;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    class C
+    {
+        int z, y, x;
+    }
+
+    class D
+    {
+        int a, b, c;
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            var type1b = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.D");
+            Assert.True(type1b.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "a", "b", "c" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.C");
+            Assert.True(type2a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            var type2b = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.D");
+            Assert.True(type2b.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "a", "b", "c" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1a.MergedDeclaration.Declarations[0].MemberNames, type2a.MergedDeclaration.Declarations[0].MemberNames);
+            Assert.Same(type1b.MergedDeclaration.Declarations[0].MemberNames, type2b.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_SupportsMultipleTypes_TypeRemoved()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        class C
+        {
+            int x, y, z;
+        }
+
+        class D
+        {
+            int a, b, c;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    class C
+    {
+        int z, y, x;
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.C");
+            Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            var type1b = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.D");
+            Assert.True(type1b.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "a", "b", "c" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.C");
+            Assert.True(type2a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            var type2b = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.D");
+            Assert.Null(type2b);
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1a.MergedDeclaration.Declarations[0].MemberNames, type2a.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_SupportsEnums()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        enum E
+        {
+            x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    enum E
+    {
+        z, y, x;
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.E");
+            Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.E");
+            Assert.True(type2a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1a.MergedDeclaration.Declarations[0].MemberNames, type2a.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_SupportsStructs()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        struct S
+        {
+            int x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    struct S
+    {
+        int z, y, x;
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.S");
+            Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.S");
+            Assert.True(type2a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1a.MergedDeclaration.Declarations[0].MemberNames, type2a.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_SupportsInterfaces()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        interface I
+        {
+            int x { get; }
+            int y { get; }
+            int z { get; }
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    interface I
+    {
+        int z { get; }
+        int y { get; }
+        int x { get; }
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.I");
+            Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.I");
+            Assert.True(type2a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1a.MergedDeclaration.Declarations[0].MemberNames, type2a.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_UnaffectedByDelegate1()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        delegate void D();
+
+        enum E
+        {
+            x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    enum E
+    {
+        z, y, x;
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.E");
+            Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.E");
+            Assert.True(type2a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1a.MergedDeclaration.Declarations[0].MemberNames, type2a.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_UnaffectedByDelegate2()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        enum E
+        {
+            x, y, z;
+        }
+    }
+}
+");
+            var secondTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    delegate void D();
+
+    enum E
+    {
+        z, y, x;
+    }
+}
+");
+
+            var compilation = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.N2.N3.E");
+            Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, secondTree);
+
+            var type2a = (SourceNamedTypeSymbol)compilation.GetTypeByMetadataName("N1.E");
+            Assert.True(type2a.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1a.MergedDeclaration.Declarations[0].MemberNames, type2a.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
+        [Fact]
+        public void TestMemberNamesReused_SameTreeDifferentCompilations()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        enum E
+        {
+            x, y, z;
+        }
+    }
+}
+");
+
+            var compilation1 = CreateCompilation(new SyntaxTree[] { firstTree });
+            var compilation2 = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1 = (SourceNamedTypeSymbol)compilation1.GetTypeByMetadataName("N1.N2.N3.E");
+            var type2 = (SourceNamedTypeSymbol)compilation2.GetTypeByMetadataName("N1.N2.N3.E");
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+            Assert.True(type2.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.Same(type1.MergedDeclaration.Declarations[0].MemberNames, type2.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
         /// <remarks>
         /// When using this type, make sure to pass an explicit CompilationOptions to CreateCompilation, as the check
         /// to see whether the syntax tree has top-level statements will increment the counter.

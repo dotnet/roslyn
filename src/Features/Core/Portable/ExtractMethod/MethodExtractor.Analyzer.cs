@@ -333,14 +333,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            private static Task<SemanticDocument> CreateDocumentWithAnnotationsAsync(SemanticDocument document, IList<VariableInfo> variables, CancellationToken cancellationToken)
+            private static ValueTask<SemanticDocument> CreateDocumentWithAnnotationsAsync(SemanticDocument document, IList<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(variables.Count);
                 variables.Do(v => v.AddIdentifierTokenAnnotationPair(annotations, cancellationToken));
 
                 if (annotations.Count == 0)
                 {
-                    return Task.FromResult(document);
+                    return ValueTaskFactory.FromResult(document);
                 }
 
                 return document.WithSyntaxRootAsync(document.Root.AddAnnotations(annotations), cancellationToken);
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return true;
                 }
 
-                if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.Options.DontPutOutOrRefOnStruct)
+                if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.Options.DoNotPutOutOrRefOnStruct)
                 {
                     variableStyle = AlwaysReturn(variableStyle);
                     return true;
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return sortedMap.Values.ToList();
             }
 
-            private void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 var visited = new HashSet<ITypeSymbol>();
                 var candidates = SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private IEnumerable<ITypeParameterSymbol> AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
+            private static IEnumerable<ITypeParameterSymbol> AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
                 ITypeSymbol type, HashSet<ITypeSymbol> visited)
             {
                 if (visited.Contains(type))

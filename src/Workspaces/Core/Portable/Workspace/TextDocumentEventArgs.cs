@@ -7,13 +7,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public sealed class TextDocumentEventArgs : EventArgs
+    public sealed class TextDocumentEventArgs(TextDocument document) : EventArgs
     {
-        public TextDocument Document { get; }
-
-        public TextDocumentEventArgs(TextDocument document)
-        {
-            this.Document = document ?? throw new ArgumentNullException(nameof(document));
-        }
+        public TextDocument Document { get; } = document ?? throw new ArgumentNullException(nameof(document));
     }
 }

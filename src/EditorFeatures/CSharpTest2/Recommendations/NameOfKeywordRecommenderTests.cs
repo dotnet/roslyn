@@ -26,42 +26,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestConstMemberInitializer()
         {
             await VerifyKeywordAsync(
-@"class E {
-    const string a = $$
-}");
+                """
+                class E {
+                    const string a = $$
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInMemberInitializer1()
         {
             await VerifyKeywordAsync(
-@"class E {
-    int a = $$
-}");
+                """
+                class E {
+                    int a = $$
+                }
+                """);
         }
 
         [Fact]
@@ -88,13 +98,14 @@ $$");
         [Fact]
         public async Task TestNotInObjectInitializerMemberContext()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    public int x, y;
-    void M()
-    {
-        var c = new C { x = 2, y = 3, $$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    public int x, y;
+                    void M()
+                    {
+                        var c = new C { x = 2, y = 3, $$
+                """);
         }
 
         [Fact]

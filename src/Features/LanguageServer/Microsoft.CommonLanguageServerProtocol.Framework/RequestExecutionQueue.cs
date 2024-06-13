@@ -82,8 +82,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     protected IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
     {
-        var requestType = typeof(TRequest) == typeof(VoidReturn) ? null : typeof(TRequest);
-        var responseType = typeof(TResponse) == typeof(VoidReturn) ? null : typeof(TResponse);
+        var requestType = typeof(TRequest) == typeof(NoValue) ? null : typeof(TRequest);
+        var responseType = typeof(TResponse) == typeof(NoValue) ? null : typeof(TResponse);
 
         var handler = _handlerProvider.GetMethodHandler(methodName, requestType, responseType);
 
@@ -230,7 +230,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                             }
 
                             // wait for all pending tasks to complete their cancellation, ignoring any exceptions
-                            await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitableInternal(captureContext: false);
+                            await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitable(captureContext: false);
                         }
 
                         Debug.Assert(!concurrentlyExecutingTasks.Any(), "The tasks should have all been drained before continuing");

@@ -24,17 +24,12 @@ namespace Microsoft.CodeAnalysis.SpellCheck
     [Export(typeof(ISpellCheckFixerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(RoslynSpellCheckFixerProvider))]
-    internal sealed class RoslynSpellCheckFixerProvider : ISpellCheckFixerProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class RoslynSpellCheckFixerProvider(
+        IThreadingContext threadingContext) : ISpellCheckFixerProvider
     {
-        private readonly IThreadingContext _threadingContext;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoslynSpellCheckFixerProvider(
-            IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
 
         public Task RenameWordAsync(
             SnapshotSpan span,
@@ -121,12 +116,9 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         public TestAccessor GetTestAccessor()
             => new(this);
 
-        public readonly struct TestAccessor
+        public readonly struct TestAccessor(RoslynSpellCheckFixerProvider provider)
         {
-            private readonly RoslynSpellCheckFixerProvider _provider;
-
-            public TestAccessor(RoslynSpellCheckFixerProvider provider)
-                => _provider = provider;
+            private readonly RoslynSpellCheckFixerProvider _provider = provider;
 
             public Task<(FunctionId functionId, string? message)?> TryRenameAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
                 => _provider.RenameWordAsync(span, replacement, cancellationToken);

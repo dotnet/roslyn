@@ -297,14 +297,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        public readonly struct TestAccessor
+        public readonly struct TestAccessor(NavigationBarController navigationBarController)
         {
-            private readonly NavigationBarController _navigationBarController;
-
-            public TestAccessor(NavigationBarController navigationBarController)
-            {
-                _navigationBarController = navigationBarController;
-            }
+            private readonly NavigationBarController _navigationBarController = navigationBarController;
 
             public Task<NavigationBarModel?> GetModelAsync()
                 => _navigationBarController._computeModelQueue.WaitUntilCurrentBatchCompletesAsync();

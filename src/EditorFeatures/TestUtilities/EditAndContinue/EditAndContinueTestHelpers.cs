@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.UpdateParameters;
 
         public const EditAndContinueCapabilities AllRuntimeCapabilities =
-            Net6RuntimeCapabilities;
+            Net6RuntimeCapabilities |
+            EditAndContinueCapabilities.GenericAddMethodToExistingType |
+            EditAndContinueCapabilities.GenericUpdateMethod |
+            EditAndContinueCapabilities.GenericAddFieldToExistingType;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
 
@@ -47,6 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public abstract string LanguageName { get; }
         public abstract string ProjectFileExtension { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
+        public abstract string? TryGetResource(string keyword);
 
         private void VerifyDocumentActiveStatementsAndExceptionRegions(
             ActiveStatementsDescription description,
@@ -99,7 +103,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 capabilities);
         }
 
-        internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults, EditAndContinueCapabilities? capabilities = null)
+        internal void VerifySemantics(
+            EditScript<SyntaxNode>[] editScripts,
+            TargetFramework targetFramework,
+            DocumentAnalysisResultsDescription[] expectedResults,
+            EditAndContinueCapabilities? capabilities = null)
         {
             Assert.True(editScripts.Length == expectedResults.Length);
             var documentCount = expectedResults.Length;
@@ -251,13 +259,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnostic> actual, SourceText newSource)
-            => VerifyDiagnostics(expected, actual.ToDescription(newSource, expected.Any(d => d.FirstLine != null)));
-
-        public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual, string? message = null)
+        public void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual, string? message = null)
         {
             // Assert that the diagnostics are actually what the test expects
-            AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n");
+            AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n", itemInspector: d => d.ToString(TryGetResource));
 
             // Also make sure to realise each diagnostic to ensure its message is able to be formatted
             foreach (var diagnostic in actual)
@@ -275,10 +280,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             SyntaxNode newRoot,
             string? message = null)
         {
+            // sort expected and actual edits to ignore differences in order, which are insignificant:
+            expectedSemanticEdits = expectedSemanticEdits.Sort((x, y) => CompareEdits(CreateSymbolKey(x), x.Kind, CreateSymbolKey(y), y.Kind));
+            actualSemanticEdits = actualSemanticEdits.Sort((x, y) => CompareEdits(x.Symbol, x.Kind, y.Symbol, y.Kind));
+
+            static int CompareEdits(SymbolKey leftKey, SemanticEditKind leftKind, SymbolKey rightKey, SemanticEditKind rightKind)
+                => leftKey.ToString().CompareTo(rightKey.ToString()) is not 0 and var result ? result : leftKind.CompareTo(rightKind);
+
+            SymbolKey CreateSymbolKey(SemanticEditDescription edit)
+                => SymbolKey.Create(edit.SymbolProvider((edit.Kind == SemanticEditKind.Delete) ? oldCompilation : newCompilation));
+
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
-                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider(newCompilation)}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(newCompilation).Symbol}"),
+                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider((e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation))}"),
+                actualSemanticEdits.Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
                 message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
@@ -289,58 +304,72 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 Assert.Equal(editKind, actualSemanticEdit.Kind);
 
-                var expectedOldSymbol = (editKind is SemanticEditKind.Update or SemanticEditKind.Delete) ? expectedSemanticEdit.SymbolProvider(oldCompilation) : null;
-                var expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
                 var symbolKey = actualSemanticEdit.Symbol;
+                ISymbol? expectedOldSymbol = null, expectedNewSymbol = null;
 
-                if (editKind == SemanticEditKind.Update)
+                switch (editKind)
                 {
-                    Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
-                }
-                else if (editKind == SemanticEditKind.Delete)
-                {
-                    // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
-                    // differently
-                    if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
-                       symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
-                    {
-                        Assert.Equal(expectedOldSymbol, resolvedMethod.PartialDefinitionPart);
-                        Assert.Equal(null, resolvedMethod.PartialImplementationPart);
-                    }
-                    else
-                    {
+                    case SemanticEditKind.Update:
+                        expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
+                        expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
+
                         Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
+                        Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                        break;
 
-                        // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
-                        // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
-                        // represented in the symbol key, so the check below would fail, so we skip it.
-                        if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
+                    case SemanticEditKind.Delete:
+                        expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
+
+                        // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
+                        // differently
+                        if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
+                            symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
                         {
-                            Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                            Assert.Equal(expectedOldSymbol, resolvedMethod.PartialDefinitionPart);
+                            Assert.Equal(null, resolvedMethod.PartialImplementationPart);
                         }
-                    }
+                        else
+                        {
+                            Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
 
-                    var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
-                    Assert.Equal(deletedSymbolContainer, expectedSemanticEdit.DeletedSymbolContainerProvider?.Invoke(newCompilation));
-                }
-                else if (editKind is SemanticEditKind.Insert or SemanticEditKind.Replace)
-                {
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
-                }
-                else
-                {
-                    Assert.False(true, "Only Update, Delete, Insert or Replace allowed");
+                            // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
+                            // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
+                            // represented in the symbol key, so the check below would fail, so we skip it.
+                            if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
+                            {
+                                Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                            }
+                        }
+
+                        var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
+                        AssertEx.AreEqual(
+                            deletedSymbolContainer,
+                            expectedSemanticEdit.DeletedSymbolContainerProvider?.Invoke(newCompilation),
+                            message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Incorrect deleted container");
+
+                        break;
+
+                    case SemanticEditKind.Insert or SemanticEditKind.Replace:
+                        expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
+                        Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(editKind);
                 }
 
                 // Partial types must match:
-                Assert.Equal(
+                AssertEx.AreEqual(
                     expectedSemanticEdit.PartialType?.Invoke(newCompilation),
-                    actualSemanticEdit.PartialType?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    actualSemanticEdit.PartialType?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol,
+                    message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Partial types do not match");
 
                 // Edit is expected to have a syntax map:
                 var actualSyntaxMap = actualSemanticEdit.SyntaxMap;
-                Assert.Equal(expectedSemanticEdit.HasSyntaxMap, actualSyntaxMap != null);
+                AssertEx.AreEqual(
+                    expectedSemanticEdit.HasSyntaxMap,
+                    actualSyntaxMap != null,
+                    message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Incorrect syntax map");
 
                 // If expected map is specified validate its mappings with the actual one:
                 var expectedSyntaxMap = expectedSemanticEdit.SyntaxMap;
@@ -436,8 +465,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
-            Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new ArrayBuilder<RudeEditDiagnostic>());
+            Dictionary<LambdaBody, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
+            var map = analyzer.GetTestAccessor().IncludeLambdaBodyMaps(BidirectionalMap<SyntaxNode>.FromMatch(bodyMatch), new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)

@@ -277,15 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, "lambda expression"));
                 return;
             }
-            else if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedGlobalMethodSymbol) // It would be nice to handle VB symbols too, but it's not worth the effort.
-            {
-                // Represents a compiler generated synthesized method symbol with a null containing
-                // type.
-
-                // TODO(cyrusn); Why is this a literal?
-                builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, symbol.Name));
-                return;
-            }
             else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
             {
                 visitFunctionPointerSignature(symbol);
@@ -798,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
             var includeName = symbol.Name.Length != 0 && (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) ||
-                (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone) && builder.Count == 0));
+                (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.ExcludeParameterNameIfStandalone) && builder.Count == 0));
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
             var includeDefaultValue = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
                 format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
@@ -1141,6 +1132,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case RefKind.In:
                     AddKeyword(SyntaxKind.InKeyword);
+                    AddSpace();
+                    break;
+                case RefKind.RefReadOnlyParameter:
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
                     AddSpace();
                     break;
             }

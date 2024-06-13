@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 #nullable disable
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
@@ -247,6 +249,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return Assembly.GetInternalsVisibleToPublicKeys(simpleName);
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return Assembly.GetInternalsVisibleToAssemblyNames();
+        }
+
         internal DocumentationProvider DocumentationProvider
         {
             get
@@ -306,5 +313,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool HasUnsupportedMetadata
             => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, computeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
+
+                ObsoleteAttributeData? computeObsoleteAttributeData()
+                {
+                    foreach (var attrData in GetAttributes())
+                    {
+                        if (attrData.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+                        {
+                            return attrData.DecodeExperimentalAttribute();
+                        }
+                    }
+
+                    return null;
+                }
+            }
+        }
     }
 }

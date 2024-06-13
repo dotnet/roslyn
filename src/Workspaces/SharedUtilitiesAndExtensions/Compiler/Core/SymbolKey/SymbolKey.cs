@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
     /// </para>
     /// </summary>
     [DataContract]
-    internal partial struct SymbolKey : IEquatable<SymbolKey>
+    internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
     {
         /// <summary>
         /// Current format version.  Any time we change anything about our format, we should
@@ -115,18 +115,10 @@ namespace Microsoft.CodeAnalysis
         /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
         /// newer version where the encoding has changed.
         /// </summary>
-        internal const int FormatVersion = 5;
+        internal const int FormatVersion = 6;
 
         [DataMember(Order = 0)]
-        private readonly string _symbolKeyData;
-
-        /// <summary>
-        /// Constructs a new <see cref="SymbolKey"/> using the result of a previous call to
-        /// <see cref="ToString()"/> from this same session.  Instantiating with a string 
-        /// from any other source is not supported.
-        /// </summary>
-        public SymbolKey(string data)
-            => _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
+        private readonly string _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
 
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.

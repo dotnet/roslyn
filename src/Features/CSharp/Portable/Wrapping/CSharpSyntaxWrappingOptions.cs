@@ -11,19 +11,13 @@ using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
 {
-    internal sealed class CSharpSyntaxWrappingOptions : SyntaxWrappingOptions
+    internal sealed class CSharpSyntaxWrappingOptions(
+        CSharpSyntaxFormattingOptions formattingOptions,
+        int wrappingColumn,
+        OperatorPlacementWhenWrappingPreference operatorPlacement,
+        bool newLinesForBracesInObjectCollectionArrayInitializers) : SyntaxWrappingOptions(formattingOptions, wrappingColumn, operatorPlacement)
     {
-        public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
-
-        public CSharpSyntaxWrappingOptions(
-            CSharpSyntaxFormattingOptions formattingOptions,
-            int wrappingColumn,
-            OperatorPlacementWhenWrappingPreference operatorPlacement,
-            bool newLinesForBracesInObjectCollectionArrayInitializers)
-            : base(formattingOptions, wrappingColumn, operatorPlacement)
-        {
-            NewLinesForBracesInObjectCollectionArrayInitializers = newLinesForBracesInObjectCollectionArrayInitializers;
-        }
+        public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers = newLinesForBracesInObjectCollectionArrayInitializers;
     }
 
     internal static class CSharpSyntaxWrappingOptionsProviders

@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, cancellationToken);
 
-            var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+            var isBlockComment = trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia;
             if (isBlockComment)
             {
                 newLine = buffer.GetLineFormattingOptions(editorOptionsService, explicitFormat: false).NewLine;

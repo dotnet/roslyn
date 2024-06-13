@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
 
             Dim diagBag = BindingDiagnosticBag.GetInstance()
 
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeKind As TYPEKIND
+        Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
                 Return TypeKind.Delegate
             End Get
@@ -444,6 +444,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
+
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
 

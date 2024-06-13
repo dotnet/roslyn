@@ -363,7 +363,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
-        public async Task DontCommitObjectWithOpenBrace1()
+        public async Task DoNotCommitObjectWithOpenBrace1()
         {
             var markup = @"
 class C
@@ -387,7 +387,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
-        public async Task DontCommitObjectWithOpenBrace2()
+        public async Task DoNotCommitObjectWithOpenBrace2()
         {
             var markup = @"
 class C

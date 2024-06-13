@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
 
                         // TODO: should we use the tree of the document (if available) to get the correct mapped span for this location?
-                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                         var linePosition = new LinePosition(line, 0);
                         var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
                         var location = new DiagnosticDataLocation(

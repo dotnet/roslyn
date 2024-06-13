@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name) => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity) => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity) => ImmutableArray<NamedTypeSymbol>.Empty;
 
         public override Accessibility DeclaredAccessibility => Accessibility.Private;
 
@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => Arity > 0;
 
 #nullable enable
+        internal sealed override bool IsFileLocal => false;
         internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 #nullable disable
 
@@ -206,5 +207,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+#nullable disable
     }
 }

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,12 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbolBase
     {
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
-            : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
+            : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.TryGetFirstLocation(),
                    syntaxRef: null,
                    isParams: false,
                    isExtensionMethodThis: false,
                    scope: ScopedKind.None)
         {
+            Debug.Assert(accessor.Locations.Length <= 1);
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations

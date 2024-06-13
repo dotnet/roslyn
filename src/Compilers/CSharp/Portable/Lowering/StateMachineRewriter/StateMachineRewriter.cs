@@ -169,7 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (local.RefKind != RefKind.None)
                     {
                         // we'll create proxies for these variables later:
-                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.Spill);
+                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.Spill ||
+                                     (synthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
                         continue;
                     }
 

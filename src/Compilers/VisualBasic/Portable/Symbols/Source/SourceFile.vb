@@ -138,9 +138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetBoundInformation(cancellationToken As CancellationToken) As BoundFileInformation
             If _lazyBoundInformation Is Nothing Then
-                Dim diagBag As New BindingDiagnosticBag(New DiagnosticBag())
+                Dim diagBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim lazyBoundInformation = BindFileInformation(diagBag.DiagnosticBag, cancellationToken)
                 _sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyBoundInformation, lazyBoundInformation, diagBag)
+                diagBag.Free()
             End If
 
             Return _lazyBoundInformation
@@ -149,9 +150,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub EnsureImportsValidated()
             If _importsValidated = 0 Then
                 Dim boundFileInformation = BoundInformation
-                Dim diagBag As New BindingDiagnosticBag()
+                Dim diagBag = BindingDiagnosticBag.GetInstance()
                 ValidateImports(_sourceModule.DeclaringCompilation, boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImportsOpt, diagBag)
                 _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag)
+                diagBag.Free()
             End If
             Debug.Assert(_importsValidated = 1)
         End Sub

@@ -969,7 +969,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     item1.Severity != item2.Severity ||
                     item1.Message != item2.Message ||
                     item1.DataLocation.MappedFileSpan.Span != item2.DataLocation.MappedFileSpan.Span ||
-                    item2.DataLocation.UnmappedFileSpan.Span != item2.DataLocation.UnmappedFileSpan.Span)
+                    item1.DataLocation.UnmappedFileSpan.Span != item2.DataLocation.UnmappedFileSpan.Span)
                 {
                     return false;
                 }

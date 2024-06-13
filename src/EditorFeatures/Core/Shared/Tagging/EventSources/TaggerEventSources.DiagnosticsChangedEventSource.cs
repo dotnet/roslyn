@@ -10,16 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class DiagnosticsChangedEventSource : AbstractTaggerEventSource
+        private class DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service) : AbstractTaggerEventSource
         {
-            private readonly ITextBuffer _subjectBuffer;
-            private readonly IDiagnosticService _service;
-
-            public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service)
-            {
-                _subjectBuffer = subjectBuffer;
-                _service = service;
-            }
+            private readonly ITextBuffer _subjectBuffer = subjectBuffer;
+            private readonly IDiagnosticService _service = service;
 
             private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
             {

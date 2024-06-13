@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 m[Id] = correlationId;
                 m[AnalyzerCount] = reordered.Length;
-            }));
+            }, LogLevel.Debug));
 
             foreach (var analyzer in reordered)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     m[Id] = correlationId;
                     m[Analyzer] = analyzer.ToString();
-                }));
+                }, LogLevel.Debug));
             }
         }
 

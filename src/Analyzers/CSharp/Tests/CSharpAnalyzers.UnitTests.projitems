@@ -98,6 +98,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForIfNullStatementCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForFluentTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForCreateTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForStackAllocTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForArrayTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForEmptyTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForBuilderTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests_CollectionExpression.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundAssignmentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundCoalesceAssignmentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForAssignmentTests.cs" />
@@ -148,6 +155,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\UsePrimaryConstructorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />
@@ -167,5 +175,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForEmptyTests.cs" />
   </ItemGroup>
 </Project>

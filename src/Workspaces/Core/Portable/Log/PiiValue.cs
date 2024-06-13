@@ -10,12 +10,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// Represents telemetry data that's classified as personally identifiable information.
     /// </summary>
-    internal sealed class PiiValue
+    internal sealed class PiiValue(object value)
     {
-        public readonly object Value;
-
-        public PiiValue(object value)
-            => Value = value;
+        public readonly object Value = value;
 
         public override string? ToString()
             => Value.ToString();

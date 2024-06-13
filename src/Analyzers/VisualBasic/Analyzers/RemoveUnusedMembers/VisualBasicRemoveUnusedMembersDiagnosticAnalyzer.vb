@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -9,7 +10,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnusedMembersDiagnosticAnalyzer
-        Inherits AbstractRemoveUnusedMembersDiagnosticAnalyzer(Of DocumentationCommentTriviaSyntax, IdentifierNameSyntax)
+        Inherits AbstractRemoveUnusedMembersDiagnosticAnalyzer(Of
+            DocumentationCommentTriviaSyntax,
+            IdentifierNameSyntax,
+            TypeBlockSyntax,
+            StatementSyntax)
 
         Protected Overrides Sub HandleNamedTypeSymbolStart(context As SymbolStartAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
             ' Mark all methods with handles clause as having a read reference
@@ -43,5 +48,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
                 Next
             Next
         End Sub
+
+        Protected Overrides Function GetTypeDeclarations(namedType As INamedTypeSymbol, cancellationToken As CancellationToken) As IEnumerable(Of TypeBlockSyntax)
+            Return namedType.DeclaringSyntaxReferences.
+                Select(Function(r) r.GetSyntax(cancellationToken)).
+                Select(Function(n) If(TryCast(n, TypeStatementSyntax)?.Parent, n)).
+                OfType(Of TypeBlockSyntax)
+        End Function
+
+        Protected Overrides Function GetMembers(typeDeclaration As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return typeDeclaration.Members
+        End Function
     End Class
 End Namespace

@@ -32,18 +32,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return new ItemCompletedDisposer(tracker);
         }
 
-        public readonly struct ItemCompletedDisposer : IDisposable
+        public readonly struct ItemCompletedDisposer(IProgressTracker tracker) : IDisposable
         {
-            private readonly IProgressTracker _tracker;
-
-            public ItemCompletedDisposer(IProgressTracker tracker)
-            {
-                _tracker = tracker;
-            }
-
             public void Dispose()
             {
-                _tracker.ItemCompleted();
+                tracker.ItemCompleted();
             }
         }
     }

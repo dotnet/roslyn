@@ -39,7 +39,7 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
     /// Watching the file is currently the only way to detect the feedback session.
     /// </summary>
     private readonly string _vsFeedbackSemaphoreFullPath;
-    private readonly FileSystemWatcher _vsFeedbackSemaphoreFileWatcher;
+    private readonly FileSystemWatcher? _vsFeedbackSemaphoreFileWatcher;
 
     private readonly int _vsProcessId;
     private readonly DateTime _vsProcessStartTime;
@@ -47,11 +47,12 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
 
     private volatile int _isLogCollectionInProgress;
 
-    private readonly EditAndContinueLanguageService _encService;
+    private readonly Lazy<EditAndContinueLanguageService>? _encService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueFeedbackDiagnosticFileProvider(EditAndContinueLanguageService encService)
+    public EditAndContinueFeedbackDiagnosticFileProvider(
+        [Import(AllowDefault = true)] Lazy<EditAndContinueLanguageService>? encService = null)
     {
         _encService = encService;
 
@@ -63,6 +64,12 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
         _tempDir = Path.GetTempPath();
         var vsFeedbackTempDir = Path.Combine(_tempDir, VSFeedbackSemaphoreDir);
         _vsFeedbackSemaphoreFullPath = Path.Combine(vsFeedbackTempDir, VSFeedbackSemaphoreFileName);
+
+        // Directory may not exist in scenarios such as Razor integration tests
+        if (!Directory.Exists(vsFeedbackTempDir))
+        {
+            return;
+        }
 
         _vsFeedbackSemaphoreFileWatcher = new FileSystemWatcher(vsFeedbackTempDir, VSFeedbackSemaphoreFileName);
         _vsFeedbackSemaphoreFileWatcher.Created += (_, _) => OnFeedbackSemaphoreCreatedOrChanged();
@@ -92,7 +99,9 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
         => Path.Combine(Path.Combine(_tempDir, $"EnC_{_vsProcessId}", ZipFileName));
 
     public IReadOnlyCollection<string> GetFiles()
-        => new[] { GetZipFilePath() };
+        => _vsFeedbackSemaphoreFileWatcher is null
+           ? Array.Empty<string>()
+           : (IReadOnlyCollection<string>)(new[] { GetZipFilePath() });
 
     private void OnFeedbackSemaphoreCreatedOrChanged()
     {
@@ -104,7 +113,7 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
 
         if (Interlocked.CompareExchange(ref _isLogCollectionInProgress, 1, 0) == 0)
         {
-            _encService.SetFileLoggingDirectory(GetLogDirectory());
+            _encService?.Value.SetFileLoggingDirectory(GetLogDirectory());
         }
     }
 
@@ -112,7 +121,7 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
     {
         if (Interlocked.Exchange(ref _isLogCollectionInProgress, 0) == 1)
         {
-            _encService.SetFileLoggingDirectory(logDirectory: null);
+            _encService?.Value.SetFileLoggingDirectory(logDirectory: null);
 
             // Including the zip files in VS Feedback is currently on best effort basis.
             // See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1714439

@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SerializationTests
@@ -305,3 +307,5 @@ public class C
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

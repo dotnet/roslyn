@@ -168,8 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 //
                 case SyntaxKind.OpenParenToken:
                     var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.IsKind(SyntaxKind.ForKeyword)
-                        || previous.IsKind(SyntaxKind.ForEachKeyword);
+                    return previous.Kind() is SyntaxKind.ForKeyword or SyntaxKind.ForEachKeyword;
 
                 // {
                 //     ref var x = ref

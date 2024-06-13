@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
         public Task<ImmutableArray<string>> ProvideRecommendationsAsync(PythiaDeclarationNameContext context, CancellationToken cancellationToken);
     }
 
-    internal readonly struct PythiaDeclarationNameContext
+    internal readonly struct PythiaDeclarationNameContext(CSharpSyntaxContext context)
     {
-        private readonly CSharpSyntaxContext _context;
+        private readonly CSharpSyntaxContext _context = context;
 
         public Document Document => _context.Document;
 
@@ -33,10 +33,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
         /// The token to the left of <see cref="Position"/>. This token may be touching the position.
         /// </summary>
         public SyntaxToken LeftToken => _context.LeftToken;
-
-        public PythiaDeclarationNameContext(CSharpSyntaxContext context)
-        {
-            _context = context;
-        }
     }
 }

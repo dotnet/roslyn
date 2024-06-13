@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
             }
 
             var enclosingType = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            if ((enclosingType.IsKind(SyntaxKind.ClassDeclaration) || enclosingType.IsKind(SyntaxKind.RecordDeclaration)) &&
+            if (enclosingType?.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration &&
                 !enclosingType.Modifiers.Any(SyntaxKind.AbstractKeyword) && !enclosingType.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 typeDeclaration = enclosingType;

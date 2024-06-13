@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -18,6 +19,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumentFormattingServiceTests
     {
+        public static IEnumerable<object[]> EndOfDocumentSequences
+        {
+            get
+            {
+                yield return new object[] { "" };
+                yield return new object[] { """
+
+                    """ };
+            }
+        }
+
         protected override string Language => LanguageNames.CSharp;
         protected override TestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions)
             => TestWorkspace.CreateCSharp(testCode, parseOptions);
@@ -25,19 +37,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         [Fact]
         public async Task TestFileScopedNamespaces()
         {
-            await TestAsync(testCode: @"
-namespace Goo
-{
-    internal class C
-    {
-    }
-}",
-            expected: @"
-namespace Goo;
+            await TestAsync(testCode: """
+                namespace Goo
+                {
+                    internal class C
+                    {
+                    }
+                }
+                """,
+            expected: """
+            namespace Goo;
 
-internal class C
-{
-}",
+            internal class C
+            {
+            }
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error) }
@@ -48,14 +62,15 @@ internal class C
         [Fact]
         public async Task TestFileScopedNamespaces_Invalid_MultipleNamespaces()
         {
-            var testCode = @"
-namespace Goo
-{
-}
+            var testCode = """
+                namespace Goo
+                {
+                }
 
-namespace Bar
-{
-}";
+                namespace Bar
+                {
+                }
+                """;
 
             await TestAsync(
                 testCode: testCode,
@@ -70,13 +85,14 @@ namespace Bar
         [Fact]
         public async Task TestFileScopedNamespaces_Invalid_WrongLanguageVersion()
         {
-            var testCode = @"
-namespace Goo
-{
-    internal class C
-    {
-    }
-}";
+            var testCode = """
+                namespace Goo
+                {
+                    internal class C
+                    {
+                    }
+                }
+                """;
 
             await TestAsync(
                 testCode: testCode,
@@ -88,23 +104,23 @@ namespace Goo
                 parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        public async Task TestBlockScopedNamespaces()
+        [Theory]
+        [MemberData(nameof(EndOfDocumentSequences))]
+        public async Task TestBlockScopedNamespaces(string endOfDocumentSequence)
         {
-            await TestAsync(testCode: @"
+            await TestAsync(testCode: $@"
 namespace Goo;
 
 internal class C
-{
-}
-",
-            expected: @"
+{{
+}}{endOfDocumentSequence}",
+            expected: $@"
 namespace Goo
-{
+{{
     internal class C
-    {
-    }
-}",
+    {{
+    }}
+}}{endOfDocumentSequence}",
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Error) }
@@ -114,9 +130,11 @@ namespace Goo
         [Fact]
         public async Task TestOrganizeUsingsWithNoUsings()
         {
-            var testCode = @"namespace Goo
-{
-}";
+            var testCode = """
+                namespace Goo
+                {
+                }
+                """;
             await TestAsync(
                 testCode: testCode,
                 expected: testCode,
@@ -129,18 +147,22 @@ namespace Goo
         [Fact]
         public async Task TestFileBanners()
         {
-            await TestAsync(testCode: @"using System;
+            await TestAsync(testCode: """
+                using System;
 
-namespace Goo
-{
-}",
-            expected: @"// This is a banner.
+                namespace Goo
+                {
+                }
+                """,
+            expected: """
+            // This is a banner.
 
-using System;
+            using System;
 
-namespace Goo
-{
-}",
+            namespace Goo
+            {
+            }
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.FileHeaderTemplate, "This is a banner." }
@@ -150,22 +172,26 @@ namespace Goo
         [Fact]
         public async Task TestAccessibilityModifiers()
         {
-            await TestAsync(testCode: @"using System;
+            await TestAsync(testCode: """
+                using System;
 
-namespace Goo
-{
-    class C
-    {
-    }
-}",
-            expected: @"using System;
+                namespace Goo
+                {
+                    class C
+                    {
+                    }
+                }
+                """,
+            expected: """
+            using System;
 
-namespace Goo
-{
-    internal class C
-    {
-    }
-}",
+            namespace Goo
+            {
+                internal class C
+                {
+                }
+            }
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.AccessibilityModifiersRequired, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error) }
@@ -175,20 +201,24 @@ namespace Goo
         [Fact]
         public async Task TestAccessibilityModifiers_FileScopedNamespace()
         {
-            await TestAsync(testCode: @"using System;
+            await TestAsync(testCode: """
+                using System;
 
-namespace Goo
-{
-    class C
-    {
-    }
-}",
-            expected: @"using System;
+                namespace Goo
+                {
+                    class C
+                    {
+                    }
+                }
+                """,
+            expected: """
+            using System;
 
-namespace Goo;
-internal class C
-{
-}",
+            namespace Goo;
+            internal class C
+            {
+            }
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error) },
@@ -200,38 +230,42 @@ internal class C
         public async Task TestAccessibilityModifiers_IgnoresPartial()
         {
             await TestAsync(
-                testCode: @"using System;
+                testCode: """
+                using System;
 
-namespace Goo
-{
-    class E
-    {
-    }
+                namespace Goo
+                {
+                    class E
+                    {
+                    }
 
-    partial class C
-    {
-    }
+                    partial class C
+                    {
+                    }
 
-    class D
-    {
-    }
-}",
-                expected: @"using System;
+                    class D
+                    {
+                    }
+                }
+                """,
+                expected: """
+                using System;
 
-namespace Goo
-{
-    internal class E
-    {
-    }
+                namespace Goo
+                {
+                    internal class E
+                    {
+                    }
 
-    partial class C
-    {
-    }
+                    partial class C
+                    {
+                    }
 
-    internal class D
-    {
-    }
-}",
+                    internal class D
+                    {
+                    }
+                }
+                """,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
                     { CodeStyleOptions2.AccessibilityModifiersRequired, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error) }
@@ -241,15 +275,19 @@ namespace Goo
         [Fact]
         public async Task TestUsingDirectivePlacement()
         {
-            await TestAsync(testCode: @"using System;
+            await TestAsync(testCode: """
+                using System;
 
-namespace Goo
-{
-}",
-            expected: @"namespace Goo
-{
-    using System;
-}",
+                namespace Goo
+                {
+                }
+                """,
+            expected: """
+            namespace Goo
+            {
+                using System;
+            }
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error) }
@@ -259,14 +297,18 @@ namespace Goo
         [Fact]
         public async Task TestPreferTopLevelStatements()
         {
-            await TestAsync(testCode: @"using System;
+            await TestAsync(testCode: """
+                using System;
 
-// See https://aka.ms/new-console-template for more information
-Console.WriteLine(""Hello, World!"");",
-            expected: @"using System;
+                // See https://aka.ms/new-console-template for more information
+                Console.WriteLine("Hello, World!");
+                """,
+            expected: """
+            using System;
 
-// See https://aka.ms/new-console-template for more information
-Console.WriteLine(""Hello, World!"");",
+            // See https://aka.ms/new-console-template for more information
+            Console.WriteLine("Hello, World!");
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion) }
@@ -276,19 +318,23 @@ Console.WriteLine(""Hello, World!"");",
         [Fact]
         public async Task TestPreferProgramMain()
         {
-            await TestAsync(testCode: @"using System;
+            await TestAsync(testCode: """
+                using System;
 
-// See https://aka.ms/new-console-template for more information
-Console.WriteLine(""Hello, World!"");",
-            expected: @"using System;
+                // See https://aka.ms/new-console-template for more information
+                Console.WriteLine("Hello, World!");
+                """,
+            expected: """
+            using System;
 
-internal class Program
-{
-    private static void Main(string[] args)
-    {
-        Console.WriteLine(""Hello, World!"");
-    }
-}",
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine("Hello, World!");
+                }
+            }
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: false, notification: NotificationOption2.Suggestion) }

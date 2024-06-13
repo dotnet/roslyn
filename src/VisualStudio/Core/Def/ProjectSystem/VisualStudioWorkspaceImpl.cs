@@ -213,11 +213,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _memoryListener = memoryListener;
             }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
             // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
             // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
-            openFileTracker.CheckForOpenFilesThatWeMissed();
+            await openFileTracker.CheckForOpenFilesThatWeMissedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
 
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
@@ -823,7 +821,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static bool IsWebsite(EnvDTE.Project project)
             => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
-        private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
+        private static IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
         {
             foreach (var folder in folders)
             {
@@ -836,7 +834,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
+        private static IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
         {
             if (projectItems == null)
             {

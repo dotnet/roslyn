@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 int position,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);
@@ -111,7 +110,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 out ImmutableArray<ISymbol> overridableMembers)
             {
                 var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, _cancellationToken);
-                Contract.ThrowIfNull(containingType);
+                if (containingType is null)
+                {
+                    overridableMembers = default;
+                    return false;
+                }
 
                 var result = containingType.GetOverridableMembers(_cancellationToken);
 

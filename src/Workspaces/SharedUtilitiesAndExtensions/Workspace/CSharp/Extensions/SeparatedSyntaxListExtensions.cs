@@ -4,23 +4,27 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class SeparatedSyntaxListExtensions
 {
-    internal static class SeparatedSyntaxListExtensions
+    public static SeparatedSyntaxList<T> AddRangeWithTrailingSeparator<T>(
+        this SeparatedSyntaxList<T> separatedList, IEnumerable<T> nodes, SyntaxKind separator = SyntaxKind.CommaToken)
+        where T : SyntaxNode
     {
-        public static SeparatedSyntaxList<T> InsertRangeWithTrailingSeparator<T>(
-            this SeparatedSyntaxList<T> separatedList, int index, IEnumerable<T> nodes, SyntaxKind separator)
-            where T : SyntaxNode
-        {
-            var newList = separatedList.InsertRange(index, nodes);
-            if (index < separatedList.Count)
-                return newList;
+        return separatedList.InsertRangeWithTrailingSeparator(separatedList.Count, nodes, separator);
+    }
 
-            var nodesAndTokens = newList.GetWithSeparators();
-            if (!nodesAndTokens.Last().IsNode)
-                return newList;
+    public static SeparatedSyntaxList<T> InsertRangeWithTrailingSeparator<T>(
+        this SeparatedSyntaxList<T> separatedList, int index, IEnumerable<T> nodes, SyntaxKind separator = SyntaxKind.CommaToken)
+        where T : SyntaxNode
+    {
+        var newList = separatedList.InsertRange(index, nodes);
+        if (index < separatedList.Count)
+            return newList;
 
-            return SyntaxFactory.SeparatedList<T>(nodesAndTokens.Add(SyntaxFactory.Token(separator)));
-        }
+        return newList.Count == newList.SeparatorCount
+            ? newList
+            : SyntaxFactory.SeparatedList<T>(newList.GetWithSeparators().Add(SyntaxFactory.Token(separator)));
     }
 }

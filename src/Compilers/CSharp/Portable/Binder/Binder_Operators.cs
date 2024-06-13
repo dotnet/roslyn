@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
-                ReportAssignmentOperatorError(node, diagnostics, left, right, resultKind);
+                ReportAssignmentOperatorError(node, kind, diagnostics, left, right, resultKind);
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
@@ -779,9 +779,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, errorCode, node, operatorName, operand.Display);
         }
 
-        private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
+        private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, BinaryOperatorKind kind, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            if (((SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.PlusEqualsToken || (SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.MinusEqualsToken) &&
+            if (IsTypelessExpressionAllowedInBinaryOperator(kind, left, right) &&
+                node.OperatorToken.RawKind is (int)SyntaxKind.PlusEqualsToken or (int)SyntaxKind.MinusEqualsToken &&
                 (object)left.Type != null && left.Type.TypeKind == TypeKind.Delegate)
             {
                 // Special diagnostic for delegate += and -= about wrong right-hand-side
@@ -2407,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             var expr = BindExpression(node.Operand, diagnostics);
             switch (expr.Kind)
@@ -2502,7 +2503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             ManagedKind managedKind = operandType.GetManagedKind(ref useSiteInfo);
-            diagnostics.Add(node.Location, useSiteInfo);
+            diagnostics.Add(node, useSiteInfo);
 
             if (!hasErrors)
             {
@@ -2583,6 +2584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             expr = receiver;
                             continue;
+                        }
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)expr;
+
+                            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                            {
+                                expr = elementAccess.Expression;
+                                continue;
+                            }
+
+                            goto default;
                         }
                     case BoundKind.RangeVariable:
                         {
@@ -4089,7 +4102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);

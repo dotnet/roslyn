@@ -224,5 +224,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68784")]
+        public async Task NotInExpressionTree()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.Linq;
+
+                    class C
+                    {
+                        IQueryable<object> M(IQueryable<object> query)
+                        {
+                            return query.Where(x => !(x is string));
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }

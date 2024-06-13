@@ -42,7 +42,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\VisualBasicSimplification.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CastAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveSyntaxEqualityComparer.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveWalker.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxKinds.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsClauseComparer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsOrganizer.vb" />

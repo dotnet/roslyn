@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private class RenameFileEditor : Editor
+        private class RenameFileEditor(TService service, State state, string fileName, CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
         {
-            public RenameFileEditor(TService service, State state, string fileName, CancellationToken cancellationToken)
-                : base(service, state, fileName, cancellationToken)
-            {
-            }
-
             public override Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
                 => Task.FromResult(RenameFileToMatchTypeName());
 

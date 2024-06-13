@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     });
 
                     cachedTaggedSpan = spanToTag;
-                    cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, context.tagSpans);
+                    cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, context.TagSpans);
 
                     lock (_gate)
                     {

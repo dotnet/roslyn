@@ -2215,7 +2215,7 @@ enum E$$ : {underlyingTypeName}
         [InlineData("")]
         [InlineData(": int")]
         [InlineData(": System.Int32")]
-        public async Task EnumNonDefaultUnderlyingType_DontShowForDefaultType(string defaultType)
+        public async Task EnumNonDefaultUnderlyingType_DoNotShowForDefaultType(string defaultType)
         {
             await TestInClassAsync(@$"
 enum E$$ {defaultType}
@@ -2572,6 +2572,19 @@ void Method(int i = 0)
     Go$$o(DateTime.Now, null, 32);
 }",
                 MainDescription("void C.Goo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)"));
+        }
+
+        [Fact]
+        public async Task Method_RefReadonly()
+        {
+            await TestInClassAsync(
+                """
+                void Goo(ref readonly DateTime dt, ref readonly System.IO.FileInfo fi, params int[] numbers)
+                {
+                    Go$$o(in DateTime.Now, in fi, 32);
+                }
+                """,
+                MainDescription("void C.Goo(ref readonly DateTime dt, ref readonly System.IO.FileInfo fi, params int[] numbers)"));
         }
 
         [Fact]
@@ -4216,7 +4229,7 @@ class myClass
         }
 
         [Fact]
-        public async Task DontRemoveAttributeSuffixAndProduceInvalidIdentifier1()
+        public async Task DoNotRemoveAttributeSuffixAndProduceInvalidIdentifier1()
         {
             await TestAsync(
 @"using System;
@@ -4229,7 +4242,7 @@ class classAttribute : Attribute
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544026")]
-        public async Task DontRemoveAttributeSuffix2()
+        public async Task DoNotRemoveAttributeSuffix2()
         {
             await TestAsync(
 @"using System;

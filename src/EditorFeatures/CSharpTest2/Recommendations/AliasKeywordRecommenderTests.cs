@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -78,23 +84,29 @@ $$");
         public async Task TestAfterExtern_InNamespace()
         {
             await VerifyKeywordAsync(
-@"namespace Goo {
-    extern $$");
+                """
+                namespace Goo {
+                    extern $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterAlias_InNamespace()
         {
-            await VerifyAbsenceAsync(@"namespace Goo {
-    extern alias $$");
+            await VerifyAbsenceAsync("""
+                namespace Goo {
+                    extern alias $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterExtern_InClass()
         {
             await VerifyAbsenceAsync(
-@"class Goo {
-    extern $$");
+                """
+                class Goo {
+                    extern $$
+                """);
         }
     }
 }

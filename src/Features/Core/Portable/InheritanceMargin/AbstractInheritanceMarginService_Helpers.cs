@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
             if (!allDeclarationNodes.IsEmpty)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var mappingService = document.Project.Solution.Services.GetRequiredService<ISymbolMappingService>();
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (nonLocalImports.Length == 0)
                 return ImmutableArray<InheritanceMarginItem>.Empty;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
 
             var projectState = document.Project.State;
@@ -394,20 +394,20 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                     solution,
                     symbol,
                     InheritanceRelationship.InheritedInterface,
-                    cancellationToken), cancellationToken)
+                    cancellationToken), solution, cancellationToken)
                 .ConfigureAwait(false);
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
                     symbol,
                     InheritanceRelationship.ImplementingType,
-                    cancellationToken), cancellationToken)
+                    cancellationToken), solution, cancellationToken)
                 .ConfigureAwait(false);
 
             var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
@@ -431,11 +431,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var implementedMemberItems = await implementingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                     solution,
                     symbol,
                     InheritanceRelationship.ImplementingMember,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
+                    cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
             var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
             return InheritanceMarginItem.CreateOrdered(
@@ -459,19 +459,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                     solution,
                     symbol,
                     symbol.IsInterfaceType() ? InheritanceRelationship.ImplementedInterface : InheritanceRelationship.BaseType,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
+                    cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
                     symbol,
                     InheritanceRelationship.DerivedType,
-                    cancellationToken), cancellationToken)
+                    cancellationToken), solution, cancellationToken)
                 .ConfigureAwait(false);
 
             var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
@@ -497,29 +497,29 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var implementedMemberItems = await implementedMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                     solution,
                     symbol,
                     InheritanceRelationship.ImplementedMember,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
+                    cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
             var overriddenMemberItems = await overriddenMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                     solution,
                     symbol,
                     InheritanceRelationship.OverriddenMember,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
+                    cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
             var overridingMemberItems = await overridingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                     solution,
                     symbol,
                     InheritanceRelationship.OverridingMember,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
+                    cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
             var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
             var nonNullOverriddenMemberItems = GetNonNullTargetItems(overriddenMemberItems);

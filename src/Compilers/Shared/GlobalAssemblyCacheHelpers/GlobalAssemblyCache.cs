@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +25,9 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return new ClrGlobalAssemblyCache();
+                return System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription.Contains(".NET Framework")
+                    ? new ClrGlobalAssemblyCache()
+                    : new DotNetCoreGlobalAssemblyCache();
             }
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="partialName">Optional partial name.</param>
         /// <param name="architectureFilter">Optional architecture filter.</param>
-        public abstract IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>));
+        public abstract IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, ImmutableArray<ProcessorArchitecture> architectureFilter = default);
 
         /// <summary>
         /// Enumerates assemblies in the GAC returning those that match given partial name and
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="partialName">The optional partial name.</param>
         /// <param name="architectureFilter">The optional architecture filter.</param>
-        public abstract IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName = null, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>));
+        public abstract IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string? partialName = null, ImmutableArray<ProcessorArchitecture> architectureFilter = default);
 
         /// <summary>
         /// Enumerates assemblies in the GAC returning their simple names.
         /// </summary>
         /// <param name="architectureFilter">Optional architecture filter.</param>
         /// <returns>Unique simple names of GAC assemblies.</returns>
-        public abstract IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>));
+        public abstract IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default);
 
         /// <summary>
         /// Looks up specified partial assembly name in the GAC and returns the best matching <see cref="AssemblyIdentity"/>.
@@ -69,13 +69,12 @@ namespace Microsoft.CodeAnalysis
         /// <param name="preferredCulture">The optional preferred culture information</param>
         /// <returns>An assembly identity or null, if <paramref name="displayName"/> can't be resolved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="displayName"/> is null.</exception>
-        public AssemblyIdentity ResolvePartialName(
+        public AssemblyIdentity? ResolvePartialName(
             string displayName,
-            ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>),
-            CultureInfo preferredCulture = null)
+            ImmutableArray<ProcessorArchitecture> architectureFilter = default,
+            CultureInfo? preferredCulture = null)
         {
-            string location;
-            return ResolvePartialName(displayName, out location, architectureFilter, preferredCulture);
+            return ResolvePartialName(displayName, out _, architectureFilter, preferredCulture);
         }
 
         /// <summary>
@@ -87,10 +86,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="preferredCulture">The optional preferred culture information</param>
         /// <returns>An assembly identity or null, if <paramref name="displayName"/> can't be resolved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="displayName"/> is null.</exception>
-        public abstract AssemblyIdentity ResolvePartialName(
+        public abstract AssemblyIdentity? ResolvePartialName(
             string displayName,
-            out string location,
-            ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>),
-            CultureInfo preferredCulture = null);
+            out string? location,
+            ImmutableArray<ProcessorArchitecture> architectureFilter = default,
+            CultureInfo? preferredCulture = null);
     }
 }

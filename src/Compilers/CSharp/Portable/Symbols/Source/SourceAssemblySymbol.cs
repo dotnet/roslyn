@@ -11,10 +11,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1085,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Skip synthetic <Module> type which every .NET module has.
                             if (x.Arity != 0 || !x.ContainingNamespace.IsGlobalNamespace || x.Name != "<Module>")
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, y.Locations.FirstOrNone(),
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, y.GetFirstLocationOrNone(),
                                                 y.ToDisplayString(SymbolDisplayFormat.ShortFormat),
                                                 y.ContainingNamespace);
                             }
@@ -1382,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This affects only diagnostics.
                 for (int i = _modules.Length - 1; i > 0; i--)
                 {
-                    var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
+                    var peModuleSymbol = (PEModuleSymbol)_modules[i];
 
                     foreach (NamedTypeSymbol forwarded in peModuleSymbol.GetForwardedTypes())
                     {
@@ -2119,6 +2117,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (result != null) ? result.Keys : SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            EnsureAttributesAreBound();
+
+            if (_lazyInternalsVisibleToMap == null)
+                return SpecializedCollections.EmptyEnumerable<string>();
+
+            return _lazyInternalsVisibleToMap.Keys;
+        }
+
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
             // Ensure that optimistic IVT access is only granted to requests that originated on the thread
@@ -2543,6 +2551,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyAlgorithmIdAttributeSetting = algorithmId;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            {
+                var obsoleteData = attribute.DecodeExperimentalAttribute();
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().ExperimentalAttributeData = obsoleteData;
+            }
         }
 
         // Checks that the integral arguments for the given well-known attribute are non-negative.
@@ -2680,7 +2693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         handledUnreadFields.Add(field);
                     }
 
-                    if (containingType.HasStructLayoutAttribute)
+                    if (containingType.HasStructLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
                     {
                         continue;
                     }
@@ -2690,16 +2703,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (unread)
                         {
-                            diagnostics.Add(ErrorCode.WRN_UnreferencedEvent, associatedPropertyOrEvent.Locations.FirstOrNone(), associatedPropertyOrEvent);
+                            diagnostics.Add(ErrorCode.WRN_UnreferencedEvent, associatedPropertyOrEvent.GetFirstLocationOrNone(), associatedPropertyOrEvent);
                         }
                     }
                     else if (unread)
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.Locations.FirstOrNone(), field);
+                        diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.GetFirstLocationOrNone(), field);
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.Locations.FirstOrNone(), field, DefaultValue(field.Type));
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.GetFirstLocationOrNone(), field, DefaultValue(field.Type));
                     }
                 }
 
@@ -2717,9 +2730,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     var containingType = field.ContainingType as SourceNamedTypeSymbol;
-                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute)
+                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute && !containingType.HasInlineArrayAttribute(out _))
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.Locations.FirstOrNone(), field);
+                        diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.GetFirstLocationOrNone(), field);
                     }
                 }
 
@@ -2848,6 +2861,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                // [assembly: Experimental] may have been specified in the assembly or one of the modules
+                var lazySourceAttributesBag = _lazySourceAttributesBag;
+                if (lazySourceAttributesBag != null && lazySourceAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonAssemblyWellKnownAttributeData)lazySourceAttributesBag.DecodedWellKnownAttributeData;
+                    if (data?.ExperimentalAttributeData is { } experimentalAttributeData)
+                    {
+                        return experimentalAttributeData;
+                    }
+                }
+
+                var lazyNetModuleAttributesBag = _lazyNetModuleAttributesBag;
+                if (lazyNetModuleAttributesBag != null && lazyNetModuleAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonAssemblyWellKnownAttributeData)lazyNetModuleAttributesBag.DecodedWellKnownAttributeData;
+                    return data?.ExperimentalAttributeData;
+                }
+
+                if (GetAttributeDeclarations().IsEmpty)
+                {
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
+            }
         }
 
 #nullable disable

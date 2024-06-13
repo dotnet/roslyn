@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -470,7 +472,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .ConfigureAwait(false);
             var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
-            var refLocationGroups = refLocationsInOtherDocuments.GroupBy(loc => loc.Document.Id);
+            var refLocationsInSolution = refLocationsInOtherDocuments
+                .Where(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id))
+                .ToImmutableArray();
+
+            if (refLocationsInSolution.Length != refLocationsInOtherDocuments.Count)
+            {
+                // We have received feedback indicate some documents are not in the solution.
+                // Report this as non-fatal error if this happens.
+                FatalError.ReportNonFatalError(
+                    new SyncNamespaceDocumentsNotInSolutionException(refLocationsInOtherDocuments
+                    .Where(loc => !solutionWithChangedNamespace.ContainsDocument(loc.Document.Id)).Distinct().SelectAsArray(loc => loc.Document.Id)));
+            }
+
+            var refLocationGroups = refLocationsInSolution.GroupBy(loc => loc.Document.Id);
 
             var fixedDocuments = await Task.WhenAll(
                 refLocationGroups.Select(refInOneDocument =>
@@ -498,17 +513,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-        private readonly struct LocationForAffectedSymbol
+        private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
         {
-            public LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
-            {
-                ReferenceLocation = location;
-                IsReferenceToExtensionMethod = isReferenceToExtensionMethod;
-            }
+            public ReferenceLocation ReferenceLocation { get; } = location;
 
-            public ReferenceLocation ReferenceLocation { get; }
-
-            public bool IsReferenceToExtensionMethod { get; }
+            public bool IsReferenceToExtensionMethod { get; } = isReferenceToExtensionMethod;
 
             public Document Document => ReferenceLocation.Document;
         }

@@ -31,7 +31,7 @@
       <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)dotnet</DotNetExecutable>
     </PropertyGroup>
 
-    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\net6.0\CodeStyleConfigFileGenerator.dll" "VisualBasic" "$(VisualBasicCodeStyleFixesArtifactsBinDir)" "$(VisualBasicCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"' />
+    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\net8.0\CodeStyleConfigFileGenerator.dll" "VisualBasic" "$(VisualBasicCodeStyleFixesArtifactsBinDir)" "$(VisualBasicCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"' />
 
     <ItemGroup>
       <_File Include="$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />

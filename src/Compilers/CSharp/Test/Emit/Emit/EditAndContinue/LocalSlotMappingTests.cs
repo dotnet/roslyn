@@ -767,9 +767,6 @@ class C
 
             v0.VerifyPdb("C.M", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -783,14 +780,15 @@ class C
           <slot kind=""23"" offset=""66"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""0"" offset=""66"" />
           <state number=""1"" offset=""46"" />
+          <state number=""0"" offset=""66"" />
         </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
 </symbols>
-");
+", options: PdbValidationOptions.ExcludeDocuments);
+
             v0.VerifyLocalSignature("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 .locals init (int V_0,
               object V_1,
@@ -860,9 +858,6 @@ class C
 
             v0.VerifyPdb("C.M", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -876,14 +871,15 @@ class C
           <slot kind=""23"" offset=""65"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""0"" offset=""65"" />
           <state number=""1"" offset=""45"" />
+          <state number=""0"" offset=""65"" />
         </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
 </symbols>
-");
+", options: PdbValidationOptions.ExcludeDocuments);
+
             v0.VerifyLocalSignature("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 .locals init (int V_0,
               object V_1,
