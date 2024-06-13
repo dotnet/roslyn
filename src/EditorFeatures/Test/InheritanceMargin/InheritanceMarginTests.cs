@@ -2291,6 +2291,7 @@ public class {|target1:C|}
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1988154/")]
     public async Task TestNoResultOutsideSpan(TestHost testHost)
     {
         var code = @"
