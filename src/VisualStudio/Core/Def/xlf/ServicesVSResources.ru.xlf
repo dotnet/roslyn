@@ -1364,7 +1364,7 @@
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
         <source>Show guides for comments and preprocessor regions</source>
-        <target state="new">Show guides for comments and preprocessor regions</target>
+        <target state="translated">Показывать направляющие для комментариев и областей препроцессора</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
