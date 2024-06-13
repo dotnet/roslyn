@@ -305,9 +305,11 @@
       If you bump their versions, you must push your changes to a dev branch in dotnet/roslyn and
       create a test insertion in Visual Studio to validate.
     -->
-    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
+    <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
     <MicrosoftIdentityModelJsonWebTokensVersion>6.34.0</MicrosoftIdentityModelJsonWebTokensVersion>
+    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <StreamJsonRpcVersion>2.15.26</StreamJsonRpcVersion>
+    <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
     <!--
       When updating the S.C.I or S.R.M version please let the MSBuild team know in advance so they
       can update to the same version. Version changes require a VS test insertion for validation.
