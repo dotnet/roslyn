@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.ServiceModel.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -2294,22 +2295,60 @@ public class {|target1:C|}
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1988154/")]
     public async Task TestNoResultOutsideSpan(TestHost testHost)
     {
-        var code = @"
-
+        // 1. If the searching span is the empty body, nothing should be returned.
+        var noResultCode = @"
 public class B : C
-[|{
+{
 
-}|]
+
+[|
+
+
+
+
+|]
+
+
+}
 
 public class C
 {
 }";
 
-        MarkupTestFile.GetSpan(code, out var _, out var spanToSearch);
-
-        await VerifyNoItemForDocumentAsync(code,
+        MarkupTestFile.GetSpan(noResultCode, out var _, out var noResultSpan);
+        await VerifyNoItemForDocumentAsync(noResultCode,
             LanguageNames.CSharp,
             testHost,
-            spanToSearch);
+            noResultSpan);
+        // 2. If the searching span contains the identifier, correct result should be returned.
+        var correctSearchCode = @"
+[|public class B: C|]
+{
+
+
+
+
+
+
+
+
+}
+
+public class {|target:C|}
+{
+}";
+        MarkupTestFile.GetSpan(correctSearchCode, out var _, out var correctResultSpan);
+
+        await VerifyInSingleDocumentAsync(correctSearchCode,
+            LanguageNames.CSharp,
+            testHost,
+            correctResultSpan,
+            memberItems: [new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "class B",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "C",
+                        locationTag: "target",
+                        relationship: InheritanceRelationship.BaseType)))]);
     }
 }
