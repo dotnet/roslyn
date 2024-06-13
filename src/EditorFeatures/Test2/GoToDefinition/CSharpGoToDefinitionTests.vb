@@ -5,7 +5,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-    Public Class CSharpGoToDefinitionTests
+    Public NotInheritable Class CSharpGoToDefinitionTests
         Inherits GoToDefinitionTestsBase
 #Region "P2P Tests"
 
@@ -3717,6 +3717,26 @@ class Program
             default:
                 break;
         }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_AttributeMissingVersion() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+partial class Program
+{
+    public void Method(int argument)
+    {
+        Goo(0);
     }
 }
         </Document>
