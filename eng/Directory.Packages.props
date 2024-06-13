@@ -22,7 +22,7 @@
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.0</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <xunitVersion>2.4.1</xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
-    <MicrosoftVisualStudioExtensibilityVersion>17.10.2083</MicrosoftVisualStudioExtensibilityVersion>
+    <MicrosoftVisualStudioExtensibilityVersion>17.10.2079</MicrosoftVisualStudioExtensibilityVersion>
   </PropertyGroup>
 
   <!--
