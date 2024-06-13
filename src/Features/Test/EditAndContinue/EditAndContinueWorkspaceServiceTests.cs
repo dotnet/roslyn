@@ -2517,8 +2517,9 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
         EndDebuggingSession(debuggingSession);
     }
 
-    [Fact]
-    public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate()
+    [Theory]
+    [CombinatorialData]
+    internal async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate(SourceGeneratorExecutionPreference executionPreference)
     {
         var sourceV1 = @"
 /* GENERATE: class G { int X => 1; } */
@@ -2535,12 +2536,18 @@ class C { int Y => 2; }
 
         using var workspace = CreateWorkspace(out var solution, out var service);
         var workspaceConfig = Assert.IsType<TestWorkspaceConfigurationService>(workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
-        workspaceConfig.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecutionPreference.Balanced);
+        workspaceConfig.Options = new WorkspaceConfigurationOptions(executionPreference);
 
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
         var moduleId = EmitLibrary(sourceV1, generator: generator);
         LoadLibraryToDebuggee(moduleId);
+
+        // Trigger initial source generation before debugging session starts.
+        // Causes source generator to run on the solution for the first time.
+        // Futher compilation access won't automatically trigger source generators,
+        // the EnC service has to do so.
+        _ = await solution.Projects.Single().GetCompilationAsync(CancellationToken.None);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 

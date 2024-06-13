@@ -83,7 +83,7 @@ internal static partial class ISolutionExtensions
         => new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
 #if !CODE_STYLE
-    public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, ImmutableArray<ProjectId> projectIds)
+    public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, IEnumerable<ProjectId> projectIds)
     {
         // If the solution is already in automatic mode, then SG documents are already always up to date.
         var configuration = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
@@ -94,8 +94,11 @@ internal static partial class ISolutionExtensions
 
         foreach (var projectId in projectIds)
         {
-            var currentVersion = solution.GetSourceGeneratorExecutionVersion(projectId);
-            projectIdToSourceGenerationVersion.Add(projectId, currentVersion.IncrementMinorVersion());
+            if (!projectIdToSourceGenerationVersion.ContainsKey(projectId))
+            {
+                var currentVersion = solution.GetSourceGeneratorExecutionVersion(projectId);
+                projectIdToSourceGenerationVersion.Add(projectId, currentVersion.IncrementMinorVersion());
+            }
         }
 
         return solution.UpdateSpecificSourceGeneratorExecutionVersions(
