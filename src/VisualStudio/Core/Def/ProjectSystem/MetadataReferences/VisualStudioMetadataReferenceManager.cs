@@ -167,7 +167,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                     return cachedMetadata;
                 }
 
-                // don't use "Add" since key might already exist with already released metadata
+                // don't use "Add" since key might already exist with stale metadata
                 _metadataCache[fullPath] = (snapshotTimestamp, metadata);
                 return metadata;
             }
