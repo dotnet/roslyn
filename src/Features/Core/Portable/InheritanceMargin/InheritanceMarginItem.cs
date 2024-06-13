@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin;
@@ -50,7 +51,10 @@ internal readonly struct InheritanceMarginItem(
     public readonly ImmutableArray<InheritanceTargetItem> TargetItems = targetItems;
 
     public override int GetHashCode()
-        => throw ExceptionUtilities.Unreachable();
+        => Hash.Combine(this.LineNumber,
+            Hash.Combine(this.TopLevelDisplayText is null ? 0 : this.TopLevelDisplayText.GetHashCode(),
+                Hash.Combine(Hash.CombineValues(this.DisplayTexts),
+                    Hash.Combine((int)this.Glyph, Hash.CombineValues(this.TargetItems)))));
 
     public override bool Equals(object? obj)
         => obj is InheritanceMarginItem item && Equals(item);

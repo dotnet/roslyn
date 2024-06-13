@@ -136,7 +136,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
                 taggers.Add(innerTagger);
         }
 
-        return new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        return new DeduplicateAggregateTagger<TTag>(taggers.ToImmutableAndClear());
     }
 
     public bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)
