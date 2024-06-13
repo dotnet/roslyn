@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal static class InterceptsLocationUtilities
 {
-
     public record struct InterceptsLocationData(ImmutableArray<byte> ContentHash, int Position);
 
     public static ImmutableArray<InterceptsLocationData> GetInterceptsLocationData(ImmutableArray<AttributeData> attributes)
