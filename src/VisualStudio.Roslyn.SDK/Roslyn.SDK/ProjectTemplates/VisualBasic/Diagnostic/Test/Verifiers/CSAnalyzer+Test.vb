@@ -1,10 +1,10 @@
 ﻿Imports Microsoft.CodeAnalysis.CSharp.Testing
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Testing.Verifiers
+Imports Microsoft.CodeAnalysis.Testing
 
 Partial Public NotInheritable Class CSharpAnalyzerVerifier(Of TAnalyzer As {DiagnosticAnalyzer, New})
     Public Class Test
-        Inherits CSharpAnalyzerTest(Of TAnalyzer, MSTestVerifier)
+        Inherits CSharpAnalyzerTest(Of TAnalyzer, DefaultVerifier)
 
         Public Sub New()
             SolutionTransforms.Add(

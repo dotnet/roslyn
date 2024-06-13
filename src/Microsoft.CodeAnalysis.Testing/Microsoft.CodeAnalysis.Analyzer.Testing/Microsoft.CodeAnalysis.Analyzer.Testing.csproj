@@ -46,6 +46,35 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit" />
 
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests" />
+
+    <!-- Obsolete packages need access to ObsoleteMessages -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.MSTest.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.NUnit.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit" />
   </ItemGroup>
 
   <ItemGroup>

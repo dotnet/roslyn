@@ -2,8 +2,10 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Testing
 Imports Microsoft.CodeAnalysis.Testing.Verifiers
 
+<Obsolete(ObsoleteMessages.FrameworkPackages)>
 Public Class CodeFixVerifier(Of TAnalyzer As {DiagnosticAnalyzer, New}, TCodeFix As {CodeFixProvider, New})
     Inherits VisualBasicCodeFixVerifier(Of TAnalyzer, TCodeFix, NUnitVerifier)
 End Class

@@ -8,6 +8,7 @@ using NUnit.Framework;
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
     [TestFixture]
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class NUnitVerifierTests
     {
         [Test]
