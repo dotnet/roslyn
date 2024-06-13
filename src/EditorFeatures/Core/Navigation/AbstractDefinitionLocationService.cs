@@ -185,7 +185,11 @@ internal abstract partial class AbstractDefinitionLocationService(
                 {
                     var document = solution.GetDocument(documentId);
                     if (document != null)
-                        documentSpans.Add(new DocumentSpan(document, new TextSpan(interceptsLocationData.Position, 0)));
+                    {
+                        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        var token = root.FindToken(interceptsLocationData.Position);
+                        documentSpans.Add(new DocumentSpan(document, token.Span));
+                    }
                 }
             }
 

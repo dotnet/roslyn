@@ -2,6 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CSharp
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -3731,12 +3735,25 @@ class Program
             Dim workspace =
 <Workspace>
     <Project Language="C#">
-        <Document>
-partial class Program
+        <Document FilePath="C.cs">
+partial partial class Program
 {
     public void Method(int argument)
     {
         Goo(0);
+    }
+}
+
+        <%= s_interceptsLocationCode %>
+        </Document>
+        <Document FilePath="Generated.cs">
+using System.Runtime.CompilerServices;
+
+partial partial class Program
+{
+    [InterceptsLocationAttribute("")]
+    public void $$[|Method|](int argument)
+    {
     }
 }
         </Document>
@@ -3745,5 +3762,221 @@ partial class Program
 
             Await TestAsync(workspace)
         End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_UnsupportedVersion() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document FilePath="C.cs">
+partial partial class Program
+{
+    public void Method(int argument)
+    {
+        Goo(0);
+    }
+}
+        <%= s_interceptsLocationCode %>
+        </Document>
+        <Document FilePath="Generated.cs">
+using System.Runtime.CompilerServices;
+
+partial partial class Program
+{
+    [InterceptsLocationAttribute(-1, "")]
+    public void $$[|Method|](int argument)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_EmptyData() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document FilePath="C.cs">
+partial partial class Program
+{
+    public void Method(int argument)
+    {
+        Goo(0);
+    }
+}
+        <%= s_interceptsLocationCode %>
+        </Document>
+        <Document FilePath="Generated.cs">
+using System.Runtime.CompilerServices;
+
+partial partial class Program
+{
+    [InterceptsLocationAttribute(1, "")]
+    public void $$[|Method|](int argument)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_BogusData() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document FilePath="C.cs">
+partial partial class Program
+{
+    public void Method(int argument)
+    {
+        Goo(0);
+    }
+}
+        <%= s_interceptsLocationCode %>
+        </Document>
+        <Document FilePath="Generated.cs">
+using System.Runtime.CompilerServices;
+
+partial partial class Program
+{
+    [InterceptsLocationAttribute(1, "*")]
+    public void $$[|Method|](int argument)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_JustPadding() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document FilePath="C.cs">
+partial partial class Program
+{
+    public void Method(int argument)
+    {
+        Goo(0);
+    }
+}
+        <%= s_interceptsLocationCode %>
+        </Document>
+        <Document FilePath="Generated.cs">
+using System.Runtime.CompilerServices;
+
+partial partial class Program
+{
+    [InterceptsLocationAttribute(1, "=")]
+    public void $$[|Method|](int argument)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+#Disable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
+
+        Private Const s_interceptsLocationCode = "
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+    public sealed class InterceptsLocationAttribute : System.Attribute
+    {
+        public InterceptsLocationAttribute(int version, string data) { }
+    }
+}"
+
+        Private Async Function TestInterceptor(code As String, getInvocations As Func(Of SyntaxNode, IEnumerable(Of InvocationExpressionSyntax))) As Task
+            Dim firstFileContents = code & s_interceptsLocationCode
+
+            Dim primordialWorkspace =
+<Workspace>
+    <Project Language="C#">
+        <Document FilePath="C.cs"><%= firstFileContents %></Document>
+    </Project>
+</Workspace>
+
+            Using testWorkspace = EditorTestWorkspace.Create(primordialWorkspace, composition:=GoToTestHelpers.Composition)
+                Dim solution = testWorkspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim document = project.Documents.Single()
+
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim invocations = getInvocations(root)
+
+                Dim semanticModel = Await document.GetSemanticModelAsync()
+                Dim attributeText = ""
+
+                For Each invocation In invocations
+                    Dim location = semanticModel.GetInterceptableLocation(invocation)
+                    attributeText += location.GetInterceptsLocationAttributeSyntax() & vbCrLf
+                Next
+
+                Dim finalWorkspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document FilePath="C.cs"><%= firstFileContents %></Document>
+        <Document FilePath="Generated.cs">
+public partial class Program
+{
+    <%= attributeText %>public void $$Method()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+                Await TestAsync(finalWorkspace)
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_SingleCaller() As Task
+            Await TestInterceptor("
+public partial class Program
+{
+    public void Method(int argument)
+    {
+        [|Goo|](0);
+    }
+}", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_SingleInterceptorForMultipleLocations() As Task
+            Await TestInterceptor("
+public partial class Program
+{
+    public void Method1()
+    {
+        {|PresenterLocation:Goo|}(0);
+    }
+
+    public void Method2()
+    {
+        this.{|PresenterLocation:Goo|}(1);
+    }
+}", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
+        End Function
+
+#Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
     End Class
 End Namespace
