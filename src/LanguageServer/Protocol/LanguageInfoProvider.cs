@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".cjs", s_typeScriptLanguageInformation },
             { ".mjs", s_typeScriptLanguageInformation },
             { ".cts", s_typeScriptLanguageInformation },
+            { ".mts", s_typeScriptLanguageInformation },
         };
 
         public LanguageInformation GetLanguageInformation(string documentPath, string? lspLanguageId)
