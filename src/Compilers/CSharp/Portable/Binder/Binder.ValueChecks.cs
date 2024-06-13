@@ -406,6 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // occur in error scenarios.
                 (false, BindValueKind.RefOrOut) => AccessorKind.Get,
                 (false, BindValueKind.RefAssignable) => AccessorKind.Get,
+                (false, BindValueKind.ReadonlyRef) => AccessorKind.Get,
                 _ => AccessorKind.Unknown,
             };
             Debug.Assert(kind != AccessorKind.Unknown);
