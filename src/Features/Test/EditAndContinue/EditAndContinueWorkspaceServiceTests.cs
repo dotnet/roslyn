@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -2532,7 +2533,10 @@ class C { int Y => 2; }
 
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
-        using var _ = CreateWorkspace(out var solution, out var service);
+        using var workspace = CreateWorkspace(out var solution, out var service);
+        var workspaceConfig = Assert.IsType<TestWorkspaceConfigurationService>(workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        workspaceConfig.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecutionPreference.Balanced);
+
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
         var moduleId = EmitLibrary(sourceV1, generator: generator);
