@@ -2570,7 +2570,6 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // (1,13): error CS1525: Invalid expression term '?'
                 // 1 switch { a?b:c => d }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13));
-
             N(SyntaxKind.SwitchExpression);
             {
                 N(SyntaxKind.NumericLiteralExpression);
@@ -12589,7 +12588,6 @@ switch (e)
             UsingStatement(@"switch(a) { case a?x:y: break; }",
                 TestOptions.RegularWithPatternCombinators
             );
-
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -12641,7 +12639,6 @@ switch (e)
             UsingStatement(@"switch(a) { case (a?x:y): break; }",
                 TestOptions.RegularWithPatternCombinators
             );
-
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
