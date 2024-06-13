@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
-        <target state="translated">索引超出範圍。必須為非負數且小於集合的大小。</target>
+        <target state="new">Index was out of range. Must be non-negative and less than the size of the collection.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
-        <target state="translated">目標陣列類型與集合中項目的類型不相容。</target>
+        <target state="new">Target array type is not compatible with the type of items in the collection.</target>
         <note />
       </trans-unit>
       <trans-unit id="Argument_InvalidOffLen">

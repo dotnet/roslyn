@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
-        <target state="translated">インデックスが範囲を超えています。負でない値で、コレクションのサイズよりも小さくなければなりません。</target>
+        <target state="new">Index was out of range. Must be non-negative and less than the size of the collection.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
-        <target state="translated">ターゲット配列の型と、コレクション内の項目の型とに互換性がありません。</target>
+        <target state="new">Target array type is not compatible with the type of items in the collection.</target>
         <note />
       </trans-unit>
       <trans-unit id="Argument_InvalidOffLen">
