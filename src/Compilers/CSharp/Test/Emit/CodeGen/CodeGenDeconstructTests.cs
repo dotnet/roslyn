@@ -1906,7 +1906,7 @@ class C
     static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
-    static ref int z { get { return ref field; } }
+    static ref int z { get { return ref @field; } }
 
     static void Main()
     {
@@ -1941,7 +1941,7 @@ class C
     static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
-    static ref int z { get { return ref field; } }
+    static ref int z { get { return ref @field; } }
 
     static void Main()
     {
