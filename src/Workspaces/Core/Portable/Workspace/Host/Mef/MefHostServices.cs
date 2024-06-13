@@ -12,7 +12,6 @@ using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.Mef;
 
