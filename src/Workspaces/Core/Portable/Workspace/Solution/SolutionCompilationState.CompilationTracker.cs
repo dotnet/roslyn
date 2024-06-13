@@ -679,13 +679,6 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
-            {
-                return create
-                    ? WithCreateCreationPolicy(forceRegeneration)
-                    : WithDoNotCreateCreationPolicy(forceRegeneration, cancellationToken);
-            }
-
             public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
             {
                 var state = this.ReadState();
@@ -742,13 +735,8 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy(
-                bool forceRegeneration, CancellationToken cancellationToken)
+            public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
             {
-                // We do not expect this to ever be passed true.  This is for freezing generators, and no callers
-                // (currently) will ask to drop drivers when they do that.
-                Contract.ThrowIfTrue(forceRegeneration);
-
                 var state = this.ReadState();
 
                 // We're freezing the solution for features where latency performance is paramount.  Do not run SGs or

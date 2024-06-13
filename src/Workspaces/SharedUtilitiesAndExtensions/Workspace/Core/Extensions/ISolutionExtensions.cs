@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -79,4 +81,25 @@ internal static partial class ISolutionExtensions
 
     private static Exception CreateDocumentNotFoundException()
         => new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+#if !CODE_STYLE
+    public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, ImmutableArray<ProjectId> projectIds)
+    {
+        // If the solution is already in automatic mode, then SG documents are already always up to date.
+        var configuration = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+        if (configuration.SourceGeneratorExecution is SourceGeneratorExecutionPreference.Automatic)
+            return solution;
+
+        var projectIdToSourceGenerationVersion = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
+
+        foreach (var projectId in projectIds)
+        {
+            var currentVersion = solution.GetSourceGeneratorExecutionVersion(projectId);
+            projectIdToSourceGenerationVersion.Add(projectId, currentVersion.IncrementMinorVersion());
+        }
+
+        return solution.UpdateSpecificSourceGeneratorExecutionVersions(
+            new SourceGeneratorExecutionVersionMap(projectIdToSourceGenerationVersion.ToImmutable()));
+    }
+#endif
 }
