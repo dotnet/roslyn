@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol receiverParameter = method.Parameters.First();
 
                 // we will have a different receiver if ReplaceTypeOrValueReceiver has unwrapped TypeOrValue
-                if ((object)receiver != receiverArgument)
+                if ((object)receiver != methodGroup.Receiver)
                 {
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);

@@ -2328,6 +2328,8 @@ namespace System
             }
 
             public static implicit operator Span<T>(T[] array) => new Span<T>(array);
+
+            public static implicit operator ReadOnlySpan<T>(Span<T> span) => new ReadOnlySpan<T>(span.arr);
         }
 
         public readonly ref struct ReadOnlySpan<T>

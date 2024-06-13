@@ -602,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
                 case ConversionKind.InlineArray:
+                case ConversionKind.ImplicitSpan:
                     return true;
                 default:
                     return false;
@@ -1012,6 +1013,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (HasImplicitDynamicConversionFromExpression(source, destination))
             {
                 return Conversion.ImplicitDynamic;
+            }
+
+            if (HasImplicitSpanConversion(source, destination, ref useSiteInfo))
+            {
+                return Conversion.ImplicitSpan;
             }
 
             // The following conversions only exist for certain form of expressions, 
@@ -1916,6 +1922,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return Conversion.ImplicitReference;
                 }
+
+                if (HasImplicitSpanConversion(sourceType, destination, ref useSiteInfo))
+                {
+                    return Conversion.ImplicitSpan;
+                }
             }
 
             if (sourceExpressionOpt?.Kind == BoundKind.TupleLiteral)
@@ -1977,6 +1988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Identity:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitReference:
+                case ConversionKind.ImplicitSpan:
                     return true;
 
                 case ConversionKind.ImplicitTuple:
@@ -3025,7 +3037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The rules for variant interface and delegate conversions are the same:
         //
         // An interface/delegate type S is convertible to an interface/delegate type T 
-        // if and only if T is U<S1, ... Sn> and T is U<T1, ... Tn> such that for all
+        // if and only if S is U<S1, ... Sn> and T is U<T1, ... Tn> such that for all
         // parameters of U:
         //
         // * if the ith parameter of U is invariant then Si is exactly equal to Ti.
@@ -3907,6 +3919,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private bool HasImplicitSpanConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // PROTOTYPE: Is it fine that this conversion does not exists when Compilation is null?
+            if (Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != true)
+            {
+                return false;
+            }
+
+            // SPEC: From any single-dimensional `array_type` with element type `Ei`...
+            if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType })
+            {
+                // SPEC: ...to `System.Span<Ei>`.
+                if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions))
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasIdentityConversion(elementType, spanElementType);
+                }
+
+                // SPEC: ...to `System.ReadOnlySpan<Ui>`, provided that `Ei` is covariance-convertible to `Ui`.
+                if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasCovariantConversion(elementType, spanElementType, ref useSiteInfo);
+                }
+            }
+
+            return false;
+
+            bool hasCovariantConversion(TypeWithAnnotations source, TypeWithAnnotations destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                return hasIdentityConversion(source, destination) ||
+                    HasImplicitReferenceConversion(source, destination, ref useSiteInfo);
+            }
+
+            bool hasIdentityConversion(TypeWithAnnotations source, TypeWithAnnotations destination)
+            {
+                return HasIdentityConversionInternal(source.Type, destination.Type) &&
+                    HasTopLevelNullabilityIdentityConversion(source, destination);
+            }
         }
     }
 }

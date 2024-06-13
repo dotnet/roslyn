@@ -81,7 +81,7 @@ foreach (var ruleById in allRulesById)
     {
         // We consider having "extra" entries as valid. This is to prevent CI failures due to rules being documented.
         // However, we consider "missing" entries as invalid. This is to force updating the file when new rules are added.
-        if (!actualContent.Contains(line))
+        if (Array.IndexOf(actualContent, line) < 0)
         {
             await Console.Error.WriteLineAsync($"Missing entry in '{fileWithPath}'. Please add the below entry to this file to fix the build:").ConfigureAwait(false);
             await Console.Error.WriteLineAsync(line).ConfigureAwait(false);

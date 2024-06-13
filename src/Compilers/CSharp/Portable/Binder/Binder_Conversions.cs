@@ -484,6 +484,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckInlineArrayTypeIsSupported(syntax, source.Type, elementField.Type, diagnostics);
                 }
+                else if (conversion.IsSpan)
+                {
+                    // PROTOTYPE: Check runtime APIs used for other span conversions once they are implemented.
+                    if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                    {
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, diagnostics, syntax: syntax);
+                    }
+                    else
+                    {
+                        Debug.Assert(destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_Span_T__op_Implicit_Array, diagnostics, syntax: syntax);
+                    }
+                }
             }
         }
 

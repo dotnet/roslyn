@@ -614,6 +614,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _factory.Call(null, createSpan, rewrittenOperand, _factory.Literal(length), useStrictArgumentRefKinds: true);
                     }
 
+                case ConversionKind.ImplicitSpan:
+                    {
+                        var spanType = (NamedTypeSymbol)rewrittenType;
+
+                        WellKnownMember member;
+                        if (spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                        {
+                            member = WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array;
+                        }
+                        else
+                        {
+                            Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
+                            member = WellKnownMember.System_Span_T__op_Implicit_Array;
+                        }
+
+                        if (!TryGetWellKnownTypeMember(rewrittenOperand.Syntax, member, out MethodSymbol? symbol))
+                        {
+                            throw ExceptionUtilities.Unreachable();
+                        }
+                        else
+                        {
+                            MethodSymbol method = symbol.AsMember(spanType);
+
+                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+
+                            if (member == WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array)
+                            {
+                                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, spanType) { WasCompilerGenerated = true };
+                            }
+
+                            return _factory.Call(null, method, rewrittenOperand);
+                        }
+                    }
+
                 default:
                     break;
             }

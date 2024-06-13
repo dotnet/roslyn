@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.InterpolatedString:
                 case ConversionKind.InterpolatedStringHandler:
                 case ConversionKind.InlineArray:
+                case ConversionKind.ImplicitSpan:
                     isTrivial = true;
                     break;
 
@@ -294,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitPointer => new Conversion(ConversionKind.ImplicitPointer);
         internal static Conversion FunctionType => new Conversion(ConversionKind.FunctionType);
         internal static Conversion InlineArray => new Conversion(ConversionKind.InlineArray);
+        internal static Conversion ImplicitSpan => new Conversion(ConversionKind.ImplicitSpan);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -816,6 +818,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.ImplicitReference || Kind == ConversionKind.ExplicitReference;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is a span conversion.
+        /// </summary>
+        /// <remarks>
+        /// Span conversion is available since C# 13 as part of the "first-class Span types" feature.
+        /// </remarks>
+        internal bool IsSpan // PROTOTYPE: Make part of public API
+        {
+            get
+            {
+                return Kind == ConversionKind.ImplicitSpan;
             }
         }
 

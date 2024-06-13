@@ -3369,6 +3369,17 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
+                 // System_Span_T__op_Implicit_Array
+                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                    1,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
+                    (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Span_T - WellKnownType.ExtSentinel),
+                    1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                  // System_ReadOnlySpan_T__ctor_Pointer
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
@@ -3430,6 +3441,17 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                 // System_ReadOnlySpan_T__op_Implicit_Array
+                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                    1,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
+                    (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),
+                    1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
                  // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
@@ -4742,6 +4764,7 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_Span_T__get_Item
                 "get_Length",                               // System_Span_T__get_Length
                 "Slice",                                    // System_Span_T__Slice_Int_Int
+                "op_Implicit",                              // System_Span_T__op_Implicit_Array
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Pointer
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array_Start_Length
@@ -4749,6 +4772,7 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_ReadOnlySpan_T__get_Item
                 "get_Length",                               // System_ReadOnlySpan_T__get_Length
                 "Slice",                                    // System_ReadOnlySpan_T__Slice_Int_Int
+                "op_Implicit",                              // System_ReadOnlySpan_T__op_Implicit_Array
                 ".ctor",                                    // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
 
                 "Fix",                                      // Microsoft_VisualBasic_Conversion__FixSingle
