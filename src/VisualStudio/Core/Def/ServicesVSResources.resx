@@ -1489,9 +1489,6 @@ Additional information: {1}</value>
   <data name="Reference" xml:space="preserve">
     <value>Reference</value>
   </data>
-  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
-    <value>Enable all features in opened files from source generators (experimental)</value>
-  </data>
   <data name="Remove_Unused_References" xml:space="preserve">
     <value>Remove Unused References</value>
   </data>

@@ -7,7 +7,10 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options;
 
-internal interface IEditorConfigOptionsCollection
+internal interface IEditorConfigOptionsEnumerator
 {
+    /// <summary>
+    /// Returns all editorconfig options defined by the implementing language, grouped by feature.
+    /// </summary>
     public abstract IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions();
 }

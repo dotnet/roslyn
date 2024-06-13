@@ -23,11 +23,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <!-- We specifically reference Microsoft.Build 17.3.2, since it's the oldest version still compatible net6.0. The version targeted is only used for build time, since
+    <!-- We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible net6.0. The version targeted is only used for build time, since
          we use MSBuildLocator to discover the proper version at runtime. -->
-    <PackageReference Include="Microsoft.Build" VersionOverride="17.3.2" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.2" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.2" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.4" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Collections.Immutable" />
