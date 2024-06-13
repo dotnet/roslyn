@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         var newVersions = await assetProvider.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
                             AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
-                        solution = solution.UpdateSpecificSourceGeneratorExecutionVersions(newVersions, cancellationToken);
+                        solution = solution.UpdateSpecificSourceGeneratorExecutionVersions(newVersions);
                     }
 
                     return solution;
