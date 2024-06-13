@@ -1907,17 +1907,17 @@ class Base
     int field = 0;
 
     public virtual int Proprty1 { get { return 0; } }
-    public virtual ref int Property2 { get { return ref field; } }
-    public virtual ref int Property3 { get { return ref field; } }
+    public virtual ref int Property2 { get { return ref @field; } }
+    public virtual ref int Property3 { get { return ref @field; } }
 }
 
 class Derived : Base
 {
     int field = 0;
 
-    public override ref int Proprty1 { get { return ref field; } }
+    public override ref int Proprty1 { get { return ref @field; } }
     public override int Property2 { get { return 0; } }
-    public override ref int Property3 { get { return ref field; } }
+    public override ref int Property3 { get { return ref @field; } }
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
