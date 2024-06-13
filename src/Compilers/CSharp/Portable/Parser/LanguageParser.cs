@@ -7228,7 +7228,7 @@ done:;
                         }
 
                         // If nothing from above worked permit the nullable qualifier if it is followed by a token that
-                        // could not start an expression If we have `T?[]` we do want to treat that as an array of
+                        // could not start an expression. If we have `T?[]` we do want to treat that as an array of
                         // nullables (following existing parsing), not a conditional that returns a list.
                         return !CanStartExpression() || this.CurrentToken.Kind is SyntaxKind.OpenBracketToken;
                     case ParseTypeMode.NewExpression:
