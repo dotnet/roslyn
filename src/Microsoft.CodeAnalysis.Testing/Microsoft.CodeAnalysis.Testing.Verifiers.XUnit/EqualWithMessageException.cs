@@ -7,6 +7,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class EqualWithMessageException : EqualException
     {
         public EqualWithMessageException(object? expected, object? actual, string userMessage)
