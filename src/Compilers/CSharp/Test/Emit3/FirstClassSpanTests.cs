@@ -541,6 +541,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("int[]", "System.Span<string>").WithLocation(3, 41));
     }
 
+    // PROTOTYPE: Revisit all nullable analysis tests.
     [Fact]
     public void Conversion_Array_Span_Implicit_NullableAnalysis()
     {
@@ -999,6 +1000,30 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000b:  ret
             }
             """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_RefReturn(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ref Span<string> M1(ref string[] arg) => ref arg;
+                ref ReadOnlySpan<string> M2(ref string[] arg) => ref arg;
+                ref ReadOnlySpan<object> M3(ref string[] arg) => ref arg;
+            }
+            """;
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,50): error CS8151: The return expression must be of type 'Span<string>' because this method returns by reference
+            //     ref Span<string> M1(ref string[] arg) => ref arg;
+            Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "arg").WithArguments("System.Span<string>").WithLocation(4, 50),
+            // (5,58): error CS8151: The return expression must be of type 'ReadOnlySpan<string>' because this method returns by reference
+            //     ref ReadOnlySpan<string> M2(ref string[] arg) => ref arg;
+            Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "arg").WithArguments("System.ReadOnlySpan<string>").WithLocation(5, 58),
+            // (6,58): error CS8151: The return expression must be of type 'ReadOnlySpan<object>' because this method returns by reference
+            //     ref ReadOnlySpan<object> M3(ref string[] arg) => ref arg;
+            Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "arg").WithArguments("System.ReadOnlySpan<object>").WithLocation(6, 58));
     }
 
     [Fact]
@@ -1641,7 +1666,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<U>)x").WithArguments("T[]", "System.Span<U>").WithLocation(7, 26));
     }
 
-    // PROTOTYPE: User-defined conversions should not be considered? Note: this is not the only test affected.
+    // PROTOTYPE: User-defined conversions should not be considered? Note: this is not the only test affected. In particular, nullable analysis tests should be revisited.
     [Fact]
     public void Conversion_Array_Span_Variance_02()
     {
