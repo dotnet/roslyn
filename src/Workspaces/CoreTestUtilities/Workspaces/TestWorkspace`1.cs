@@ -50,7 +50,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public IList<TDocument> AdditionalDocuments { get; }
         public IList<TDocument> AnalyzerConfigDocuments { get; }
         public IList<TDocument> ProjectionDocuments { get; }
-        internal IGlobalOptionService GlobalOptions { get; }
+
+        /// <summary>
+        /// Should only be used in LSP layer and above.
+        /// </summary>
+        [Experimental("LAYERING_IGlobalOptionService")]
+        internal IGlobalOptionService GlobalOptions => GetService<IGlobalOptionService>();
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
@@ -92,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
             _supportsLspMutation = supportsLspMutation;
-            this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
             {

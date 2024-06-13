@@ -22,6 +22,11 @@
   <ItemGroup>
     <!--
       DO NOT ADD ANY IVTs TO AN ASSEMBLY OUTSIDE THE CODE STYLE LAYER.
+      
+      The Code Style layer is loaded via Reflection as a compiler plugin (/analyzer switch).
+      The .NET SDK includes the Code Style layer assemblies in the build.
+      The version of the Code Style layer assemblies loaded from the SDK can be different from
+      the version of the rest of the Roslyn assemblies.
     -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.Fixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities" />

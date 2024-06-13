@@ -39,7 +39,7 @@ internal sealed partial class SolutionState
     public int WorkspaceVersion { get; }
     public string? WorkspaceKind { get; }
     public SolutionServices Services { get; }
-    public SolutionOptionSet Options { get; }
+    public LegacySolutionOptionSet Options { get; }
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
     private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
@@ -57,7 +57,7 @@ internal sealed partial class SolutionState
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         IReadOnlyList<ProjectId> projectIds,
-        SolutionOptionSet options,
+        LegacySolutionOptionSet options,
         IReadOnlyList<AnalyzerReference> analyzerReferences,
         ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
         ProjectDependencyGraph dependencyGraph,
@@ -90,7 +90,7 @@ internal sealed partial class SolutionState
         string? workspaceKind,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
-        SolutionOptionSet options,
+        LegacySolutionOptionSet options,
         IReadOnlyList<AnalyzerReference> analyzerReferences)
         : this(
             workspaceKind,
@@ -149,7 +149,7 @@ internal sealed partial class SolutionState
     internal SolutionState Branch(
         SolutionInfo.SolutionAttributes? solutionAttributes = null,
         IReadOnlyList<ProjectId>? projectIds = null,
-        SolutionOptionSet? options = null,
+        LegacySolutionOptionSet? options = null,
         IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
         ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
         ProjectDependencyGraph? dependencyGraph = null)
@@ -1132,7 +1132,7 @@ internal sealed partial class SolutionState
         return new ProjectDependencyGraph([.. projectIds], map);
     }
 
-    public SolutionState WithOptions(SolutionOptionSet options)
+    public SolutionState WithOptions(LegacySolutionOptionSet options)
         => Branch(options: options);
 
     public SolutionState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)

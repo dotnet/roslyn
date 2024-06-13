@@ -84,7 +84,7 @@ public abstract partial class Workspace : IDisposable
         // initialize with empty solution
         var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
 
-        var emptyOptions = new SolutionOptionSet(_legacyOptions);
+        var emptyOptions = new LegacySolutionOptionSet(_legacyOptions);
 
         _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: []);
 
@@ -120,14 +120,14 @@ public abstract partial class Workspace : IDisposable
     /// </summary>
     protected internal Solution CreateSolution(SolutionInfo solutionInfo)
     {
-        var options = new SolutionOptionSet(_legacyOptions);
+        var options = new LegacySolutionOptionSet(_legacyOptions);
         return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
     }
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace, and with the given options.
     /// </summary>
-    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+    private Solution CreateSolution(SolutionInfo solutionInfo, LegacySolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
         => new(this, solutionInfo.Attributes, options, analyzerReferences);
 
     /// <summary>
@@ -514,7 +514,7 @@ public abstract partial class Workspace : IDisposable
             var changedOptions = value switch
             {
                 null => throw new ArgumentNullException(nameof(value)),
-                SolutionOptionSet solutionOptionSet => solutionOptionSet.GetChangedOptions(),
+                LegacySolutionOptionSet solutionOptionSet => solutionOptionSet.GetChangedOptions(),
                 _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(value))
             };
 
@@ -525,7 +525,7 @@ public abstract partial class Workspace : IDisposable
     internal void UpdateCurrentSolutionOnOptionsChanged()
     {
         SetCurrentSolution(
-            oldSolution => oldSolution.WithOptions(new SolutionOptionSet(_legacyOptions)),
+            oldSolution => oldSolution.WithOptions(new LegacySolutionOptionSet(_legacyOptions)),
             WorkspaceChangeKind.SolutionChanged);
     }
 

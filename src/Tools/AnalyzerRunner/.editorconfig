@@ -1,0 +1,3 @@
+[*.{cs,vb}]
+# IGlobalOptionService is allowed in this layer
+dotnet_diagnostic.LAYERING_IGlobalOptionService.severity = none

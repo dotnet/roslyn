@@ -49,8 +49,6 @@ public class RemoteEditAndContinueServiceTests
 
         using var localWorkspace = new TestWorkspace(composition: localComposition);
 
-        var globalOptions = localWorkspace.GetService<IGlobalOptionService>();
-
         MockEditAndContinueService mockEncService;
         var clientProvider = (InProcRemoteHostClientProvider?)localWorkspace.Services.GetService<IRemoteHostClientProvider>();
         if (testHost == TestHost.InProcess)

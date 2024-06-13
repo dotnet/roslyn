@@ -52,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext).Value
 
-                Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Async Function TestExternalDiagnostics_SupportedDiagnosticId_Concurrent() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
                 Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
-                Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext).Value
 
-                Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
@@ -119,7 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
-                Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
@@ -154,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-                Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
@@ -189,13 +189,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <WpfFact>
         Public Async Function TestExternalDiagnostics_AddDuplicatedErrors() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
-                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
-                Dim service = New TestDiagnosticAnalyzerService(globalOptions)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
@@ -298,14 +297,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class TestDiagnosticAnalyzerService
             Implements IDiagnosticAnalyzerService
 
-            Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
-
-            Public ReadOnly Property GlobalOptions As IGlobalOptionService Implements IDiagnosticAnalyzerService.GlobalOptions
-
-            Public Sub New(globalOptions As IGlobalOptionService, Optional data As ImmutableArray(Of DiagnosticData) = Nothing)
-                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
-                Me.GlobalOptions = globalOptions
-            End Sub
+            Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache = New DiagnosticAnalyzerInfoCache()
 
             Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
                 Get

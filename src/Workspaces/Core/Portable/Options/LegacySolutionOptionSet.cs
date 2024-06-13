@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options;
 /// Supports tracking changed options.
 /// Options that are not set in the option set are read from global options and cached.
 /// </summary>
-internal sealed class SolutionOptionSet : OptionSet
+internal sealed class LegacySolutionOptionSet : OptionSet
 {
     private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
 
@@ -28,7 +28,7 @@ internal sealed class SolutionOptionSet : OptionSet
     /// </summary>
     private readonly ImmutableHashSet<OptionKey> _changedOptionKeys;
 
-    private SolutionOptionSet(
+    private LegacySolutionOptionSet(
         ILegacyGlobalOptionService globalOptions,
         ImmutableDictionary<OptionKey, object?> values,
         ImmutableHashSet<OptionKey> changedOptionKeys)
@@ -38,7 +38,7 @@ internal sealed class SolutionOptionSet : OptionSet
         _changedOptionKeys = changedOptionKeys;
     }
 
-    internal SolutionOptionSet(ILegacyGlobalOptionService globalOptions)
+    internal LegacySolutionOptionSet(ILegacyGlobalOptionService globalOptions)
         : this(globalOptions, values: ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeys: [])
     {
     }
@@ -67,10 +67,10 @@ internal sealed class SolutionOptionSet : OptionSet
         if (Equals(internalValue, currentInternalValue))
         {
             // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-            return new SolutionOptionSet(_legacyGlobalOptions, _values, _changedOptionKeys);
+            return new LegacySolutionOptionSet(_legacyGlobalOptions, _values, _changedOptionKeys);
         }
 
-        return new SolutionOptionSet(
+        return new LegacySolutionOptionSet(
             _legacyGlobalOptions,
             _values.SetItem(optionKey, internalValue),
             _changedOptionKeys.Add(optionKey));

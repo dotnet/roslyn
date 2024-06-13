@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
+#pragma warning disable LAYERING_IGlobalOptionService
+
 namespace Microsoft.CodeAnalysis.Options;
 
 /// <summary>
-/// Only used by <see cref="Workspace"/> and <see cref="SolutionOptionSet"/> to implement legacy public APIs:
+/// Only used by <see cref="Workspace"/> and <see cref="LegacySolutionOptionSet"/> to implement legacy public APIs:
 /// <see cref="Workspace.Options"/> and <see cref="Solution.Options"/>.
 /// </summary>
 internal interface ILegacyWorkspaceOptionService : IWorkspaceService

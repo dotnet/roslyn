@@ -106,9 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using var _ = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance(out var actions);
 
+#pragma warning disable LAYERING_IGlobalOptionService // TODO: remove https://github.com/dotnet/roslyn/issues/73898
             var codeActionOptionsProvider = parameters.globalOptions?.IsEmpty() == false
                 ? CodeActionOptionsStorage.GetCodeActionOptionsProvider(workspace.GlobalOptions)
                 : CodeActionOptions.DefaultProvider;
+#pragma warning restore LAYERING_IGlobalOptionService
 
             var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);

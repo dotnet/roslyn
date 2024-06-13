@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable LAYERING_IGlobalOptionService
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,7 +46,7 @@ internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptio
 
     /// <summary>
     /// Sets values of options that may be stored in <see cref="Solution.Options"/> (public options).
-    /// Clears <see cref="SolutionOptionSet"/> of registered workspaces so that next time
+    /// Clears <see cref="LegacySolutionOptionSet"/> of registered workspaces so that next time
     /// <see cref="Solution.Options"/> are queried for the options new values are fetched from 
     /// <see cref="GlobalOptionService"/>.
     /// </summary>
