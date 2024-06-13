@@ -10,11 +10,17 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal static class InterceptsLocationUtilities
 {
+    /// <param name="ContentHash">Content hash of the original document the containing the invocation to be intercepted.
+    /// (See <see cref="SourceText.GetContentHash()"/>)</param>
+    /// <param name="Position">The position in the file of the invocation that was intercepted.  This is the absolute
+    /// start of the name token being invoked (e.g. <c>this.$$Goo(x, y, z)</c>) (see <see
+    /// cref="SyntaxToken.FullSpan"/>).</param>
     public record struct InterceptsLocationData(ImmutableArray<byte> ContentHash, int Position);
 
     public static ImmutableArray<InterceptsLocationData> GetInterceptsLocationData(ImmutableArray<AttributeData> attributes)
