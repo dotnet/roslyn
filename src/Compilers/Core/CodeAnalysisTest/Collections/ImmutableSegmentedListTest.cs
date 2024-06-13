@@ -386,7 +386,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(7, list2.Count);
             Assert.False(list2.Contains(10));
 
-            list2 = list2.RemoveAll(removeList.Contains);
+            // PROTOTYPE: Can we make the commented line work in bootstrap builds?
+            // list2 = list2.RemoveAll(removeList.Contains);
+            list2 = list2.RemoveAll(x => Array.IndexOf(removeList, x) >= 0);
             Assert.Equal(5, list2.Count);
             Assert.False(list2.Contains(20));
             Assert.False(list2.Contains(70));
