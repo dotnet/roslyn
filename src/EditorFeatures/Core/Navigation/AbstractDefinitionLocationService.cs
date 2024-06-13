@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
@@ -119,24 +121,71 @@ internal abstract class AbstractDefinitionLocationService : IDefinitionLocationS
         // instead navigate to the actual interface member.
         //
         // In the future we can expand this with other mappings if appropriate.
-        var interfaceImpls = symbol.ExplicitOrImplicitInterfaceImplementations();
-        if (interfaceImpls.Length == 0)
-            return null;
+        return await TryGetExplicitInterfaceLocationAsync().ConfigureAwait(false) ??
+               await TryGetInterceptedLocationAsync().ConfigureAwait(false);
 
-        var title = string.Format(EditorFeaturesResources._0_implemented_members,
-            FindUsagesHelpers.GetDisplayName(symbol));
-
-        using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var builder);
-        foreach (var impl in interfaceImpls)
+        async ValueTask<INavigableLocation?> TryGetExplicitInterfaceLocationAsync()
         {
-            builder.AddRange(await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
-                impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false));
+            var interfaceImpls = symbol.ExplicitOrImplicitInterfaceImplementations();
+            if (interfaceImpls.Length == 0)
+                return null;
+
+            var title = string.Format(EditorFeaturesResources._0_implemented_members,
+                FindUsagesHelpers.GetDisplayName(symbol));
+
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var builder);
+            foreach (var impl in interfaceImpls)
+            {
+                builder.AddRange(await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                    impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false));
+            }
+
+            var definitions = builder.ToImmutable();
+
+            return await _streamingPresenter.GetStreamingLocationAsync(
+                _threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 
-        var definitions = builder.ToImmutable();
+        async ValueTask<INavigableLocation?> TryGetInterceptedLocationAsync()
+        {
+            if (symbol is not IMethodSymbol method)
+                return null;
 
-        return await _streamingPresenter.GetStreamingLocationAsync(
-            _threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
+            // Find attributes of the form: [InterceptsLocationAttribute(version: 1, data: "...")];
+
+            var attributes = method.GetAttributes();
+            var interceptsLocationAttributes = attributes.WhereAsArray(IsInterceptsLocationAttribute);
+            if (interceptsLocationAttributes.Length == 0)
+                return null;
+
+            // Single location, just navigate directly to that.
+            if (interceptsLocationAttributes is [var interceptsLocationAttribute])
+            {
+                if (!TryDecodeInterceptsLocationData(interceptsLocationAttribute, out var location))
+                    return null;
+            }
+        }
+    }
+
+    private static bool IsInterceptsLocationAttribute(AttributeData attribute)
+    {
+        return attribute.AttributeClass?.Name == "InterceptsLocationAttribute" &&
+               attribute.ConstructorArguments is [{ Value: 1 }, { Value: string }];
+    }
+
+    private static bool TryDecodeInterceptsLocationData(AttributeData attribute)
+    {
+        Contract.ThrowIfFalse(IsInterceptsLocationAttribute(attribute));
+        var data = (string)attribute.ConstructorArguments[1].Value!;
+
+        try
+        {
+
+        }
+        finally
+        {
+
+        }
     }
 
     private static async Task<bool> IsThirdPartyNavigationAllowedAsync(
