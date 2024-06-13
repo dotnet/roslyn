@@ -2184,7 +2184,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute 只能套用至結構執行個體方法和屬性，且無法套用至建構函式或僅 init 成員。</target>
+        <target state="new">UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -5195,12 +5195,12 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">退出建構函式時，不可為 Null 的 {0} '{1}' 必須包含非 Null 值。請考慮將 {0} 宣告為可為 Null。</target>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="needs-review-translation">退出建構函式時，不可為 Null 的欄位必須包含非 Null 值。請考慮宣告為可為 Null。</target>
+        <target state="new">Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6685,7 +6685,7 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
         <source>The new() constraint must be the last restrictive constraint specified</source>
-        <target state="needs-review-translation">new() 條件約束必須是最後指定的條件約束</target>
+        <target state="new">The new() constraint must be the last restrictive constraint specified</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -10636,7 +10636,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
         <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'await' 不得用於包含類型 '{0}' 的運算式中</target>
+        <target state="new">Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11223,7 +11223,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <target state="translated">類型 '{0}' 的執行個體不可用於巢狀函式、查詢運算式、迭代區塊或非同步方法中</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">

@@ -2184,7 +2184,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute só pode ser aplicado a métodos e propriedades de instância struct e não pode ser aplicado a construtores ou membros somente init.</target>
+        <target state="new">UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -5195,12 +5195,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">O {0} não anulável '{1}' precisa conter um valor não nulo ao sair do construtor. Considere declarar o {0} como anulável.</target>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="needs-review-translation">O campo não anulável precisa conter um valor não nulo ao sair do construtor. Considere declará-lo como anulável.</target>
+        <target state="new">Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6685,7 +6685,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
         <source>The new() constraint must be the last restrictive constraint specified</source>
-        <target state="needs-review-translation">A restrição new() deve ser a última especificada</target>
+        <target state="new">The new() constraint must be the last restrictive constraint specified</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -10636,7 +10636,7 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
         <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'aguardar' não pode ser usado em uma expressão que contém o tipo '{0}'</target>
+        <target state="new">Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11223,7 +11223,7 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <target state="translated">A instância do tipo '{0}' não pode ser usada dentro de uma função aninhada, expressão de consulta, bloco de iteradores ou método assíncrono</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
