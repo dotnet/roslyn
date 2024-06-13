@@ -405,12 +405,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
                     // If the file isn't already open, open it now. We may transition between opening and closing
                     // if the file is repeatedly appearing and disappearing.
-                    var connectToWorkspace = _workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles != false;
-
-                    if (connectToWorkspace && !this.Workspace.IsDocumentOpen(_documentIdentity.DocumentId))
-                    {
+                    if (!this.Workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         this.Workspace.OnSourceGeneratedDocumentOpened(_textBuffer.AsTextContainer(), generatedDocument);
-                    }
                 }
                 finally
                 {

@@ -28,6 +28,15 @@ jobs:
   steps:
     - checkout: none
 
+    # A .NET 9 runtime is needed since our unit tests target net9.0
+    - task: UseDotNet@2
+      displayName: 'Install .NET 9 Runtime'
+      inputs:
+        packageType: runtime
+        version: 9.0.0-preview.3.24172.9
+        includePreviewVersions: true
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:

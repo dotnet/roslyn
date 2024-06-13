@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal abstract partial class AbstractTriviaDataFactory
 {
-    protected class FormattedWhitespace : TriviaData
+    protected sealed class FormattedWhitespace : TriviaData
     {
         private readonly string _newString;
 
-        public FormattedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, string language)
-            : base(options, language)
+        public FormattedWhitespace(LineFormattingOptions options, int lineBreaks, int indentation)
+            : base(options)
         {
             this.LineBreaks = Math.Max(0, lineBreaks);
             this.Spaces = Math.Max(0, indentation);

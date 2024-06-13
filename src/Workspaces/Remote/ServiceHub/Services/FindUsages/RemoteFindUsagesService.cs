@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -127,11 +129,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+            public async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
             {
-                var definitionItem = GetOrAddDefinitionItemId(reference.Definition);
-                var dehydratedReference = SerializableSourceReferenceItem.Dehydrate(definitionItem, reference);
-                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferenceFoundAsync(_callbackId, dehydratedReference, cancellationToken), cancellationToken);
+                using var _ = ArrayBuilder<SerializableSourceReferenceItem>.GetInstance(out var dehydrated);
+                await foreach (var reference in references)
+                {
+                    var dehydratedReference = SerializableSourceReferenceItem.Dehydrate(
+                        GetOrAddDefinitionItemId(reference.Definition), reference);
+                    dehydrated.Add(dehydratedReference);
+                }
+
+                var dehydratedReferences = dehydrated.ToImmutableAndClear();
+                await _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferencesFoundAsync(
+                    _callbackId, dehydratedReferences, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
 
             #endregion

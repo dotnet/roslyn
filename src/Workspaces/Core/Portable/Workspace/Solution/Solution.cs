@@ -1181,20 +1181,22 @@ public partial class Solution
     /// specified.
     /// </summary>
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentTexts([(documentId, text)], mode);
+
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        CheckContainsDocument(documentId);
-
-        if (text == null)
+        foreach (var (documentId, text) in texts)
         {
-            throw new ArgumentNullException(nameof(text));
+            CheckContainsDocument(documentId);
+
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            if (!mode.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        if (!mode.IsValid())
-        {
-            throw new ArgumentOutOfRangeException(nameof(mode));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentText(documentId, text, mode));
+        return WithCompilationState(_compilationState.WithDocumentTexts(texts, mode));
     }
 
     /// <summary>
@@ -1307,24 +1309,30 @@ public partial class Solution
     /// rooted by the specified syntax node.
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentSyntaxRoots([(documentId, root)], mode);
+
+    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        CheckContainsDocument(documentId);
-
-        if (root == null)
-        {
-            throw new ArgumentNullException(nameof(root));
-        }
-
         if (!mode.IsValid())
-        {
             throw new ArgumentOutOfRangeException(nameof(mode));
+
+        foreach (var (documentId, root) in syntaxRoots)
+        {
+            CheckContainsDocument(documentId);
+
+            if (root == null)
+                throw new ArgumentNullException(nameof(root));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentSyntaxRoot(documentId, root, mode));
+        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
     internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer));
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source
@@ -1567,8 +1575,9 @@ public partial class Solution
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
         => WithCompilationState(_compilationState.WithFrozenSourceGeneratedDocuments(documents));
 
-    internal Solution WithSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap, CancellationToken cancellationToken)
-        => WithCompilationState(_compilationState.WithSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap, cancellationToken));
+    /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
+    internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap, CancellationToken cancellationToken)
+        => WithCompilationState(_compilationState.UpdateSpecificSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap, cancellationToken));
 
     /// <summary>
     /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed

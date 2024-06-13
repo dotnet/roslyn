@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,18 +26,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class DocumentBasedFixAllProvider : FixAllProvider
+internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes) : FixAllProvider
 {
-    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
+    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes = supportedFixAllScopes;
 
     protected DocumentBasedFixAllProvider()
         : this(DefaultSupportedFixAllScopes)
     {
-    }
-
-    protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
-    {
-        _supportedFixAllScopes = supportedFixAllScopes;
     }
 
     /// <summary>
@@ -73,56 +66,37 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
             fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
     private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
-        => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                originalFixAllContext.Progress,
-                this.GetFixAllTitle(originalFixAllContext),
-                GetFixedDocumentsAsync);
+        => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(
+            originalFixAllContext,
+            fixAllContexts,
+            originalFixAllContext.Progress,
+            this.GetFixAllTitle(originalFixAllContext),
+            GetFixedDocumentsAsync);
 
     /// <summary>
-    /// Attempts to apply fix all operations returning, for each updated document, either
-    /// the new syntax root for that document or its new text.  Syntax roots are returned for documents that support
-    /// them, and are used to perform a final cleanup pass for formatting/simplication/etc.  Text is returned for
-    /// documents that don't support syntax.
+    /// Attempts to apply fix all operations returning, for each updated document, either the new syntax root for that
+    /// document or its new text.  Syntax roots are returned for documents that support them, and are used to perform a
+    /// final cleanup pass for formatting/simplification/etc.  Text is returned for documents that don't support syntax.
     /// </summary>
-    private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-        FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+    private async Task GetFixedDocumentsAsync(
+        FixAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
     {
         Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
             or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
         var cancellationToken = fixAllContext.CancellationToken;
 
-        using var _1 = progressTracker.ItemCompletedScope();
-
         // Process all documents in parallel to get the change for each doc.
         var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
-        return await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
+        await RoslynParallel.ForEachAsync(
             source: documentsAndSpansToFix,
-            produceItems: static async (tuple, callback, args, cancellationToken) =>
+            cancellationToken,
+            async (tuple, cancellationToken) =>
             {
                 var (document, spans) = tuple;
-                var newDocument = await args.@this.FixAllAsync(args.fixAllContext, document, spans).ConfigureAwait(false);
-                if (newDocument == null || newDocument == document)
-                    return;
-
-                // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-                // language that doesn't support that, then just grab the text.
-                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-                callback((document.Id, (node, text)));
-            },
-            consumeItems: static async (results, args, cancellationToken) =>
-            {
-                var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
-
-                await foreach (var (docId, nodeOrText) in results)
-                    docIdToNewRootOrText[docId] = nodeOrText;
-
-                return docIdToNewRootOrText;
-            },
-            args: (@this: this, fixAllContext),
-            cancellationToken).ConfigureAwait(false);
+                var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
+                await onDocumentFixed(document, newDocument).ConfigureAwait(false);
+            }).ConfigureAwait(false);
     }
 }

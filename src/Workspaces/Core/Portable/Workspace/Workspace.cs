@@ -93,7 +93,7 @@ public abstract partial class Workspace : IDisposable
             TimeSpan.FromMilliseconds(1500),
             ProcessUpdateSourceGeneratorRequestAsync,
             EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
-            listenerProvider.GetListener(),
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _updateSourceGeneratorsQueueTokenSource.Token);
     }
 
@@ -285,6 +285,9 @@ public abstract partial class Workspace : IDisposable
 
             var changes = newSolution.GetChanges(oldSolution);
 
+            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var changedDocumentIds);
+            using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var addedDocumentIds);
+
             // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
             foreach (var addedProject in changes.GetAddedProjects())
             {
@@ -292,15 +295,8 @@ public abstract partial class Workspace : IDisposable
                 if (!addedProject.SupportsCompilation)
                     continue;
 
-                // It's likely when adding files that if we link them to files in another project, that we will do the
-                // same for other sibling files being added.  Keep that information around so help speed up the linked
-                // file search as we process siblings.
-                ProjectId? relatedProjectIdHint = null;
-                foreach (var addedDocument in addedProject.Documents)
-                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id, relatedProjectIdHint);
+                addedDocumentIds.AddRange(addedProject.DocumentIds);
             }
-
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
 
             foreach (var projectChanges in changes.GetProjectChanges())
             {
@@ -308,67 +304,90 @@ public abstract partial class Workspace : IDisposable
                 if (!projectChanges.NewProject.SupportsCompilation)
                     continue;
 
-                // Now do the same for all added documents in a project.
-                ProjectId? relatedProjectIdHint = null;
-                foreach (var addedDocument in projectChanges.GetAddedDocuments())
-                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument, relatedProjectIdHint);
-
-                // now, for any changed document, ensure we go and make all links to it have the same text/tree.
-                foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
-                    newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentId, seenChangedDocuments);
+                // Now do the same for all added and changed documents in a project.
+                addedDocumentIds.AddRange(projectChanges.GetAddedDocuments());
+                changedDocumentIds.AddRange(projectChanges.GetChangedDocuments());
             }
+
+            newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocumentIds);
+
+            // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+            newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentIds);
 
             return newSolution;
         }
 
-        static (Solution newSolution, ProjectId? relatedProjectId) UpdateAddedDocumentToExistingContentsInSolution(
-            Solution solution, DocumentId addedDocumentId, ProjectId? relatedProjectIdHint)
+        static Solution UpdateAddedDocumentToExistingContentsInSolution(
+            Solution solution, ArrayBuilder<DocumentId> addedDocumentIds)
         {
-            Contract.ThrowIfTrue(addedDocumentId.ProjectId == relatedProjectIdHint);
+            ProjectId? relatedProjectIdHint = null;
+            using var _ = ArrayBuilder<(DocumentId, DocumentState)>.GetInstance(out var relatedDocumentIdsAndStates);
 
-            // Look for a related document we can create our contents from.  We only have to look for a single related
-            // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
-            // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
-            // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
-            // to be recreated for each document.
-            var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
+            foreach (var addedDocumentId in addedDocumentIds)
+            {
+                // Ensure we don't search in addedDocumentId's project for the related document
+                if (addedDocumentId.ProjectId == relatedProjectIdHint)
+                    relatedProjectIdHint = null;
 
-            // Couldn't find a related document.  Keep the same solution, and keep track of the best related project we
-            // found while processing this project.
-            if (relatedDocumentId is null)
-                return (solution, relatedProjectIdHint);
+                // Look for a related document we can create our contents from.  We only have to look for a single related
+                // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
+                // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
+                // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
+                // to be recreated for each document.
+                var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
 
-            var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                // Couldn't find a related document.
+                if (relatedDocumentId is null)
+                    continue;
 
-            // Should never return a file as its own related document
-            Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
+                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
 
-            // Related document must come from a distinct project.
-            Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
+                // Should never return a file as its own related document
+                Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
 
-            var newSolution = solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
-            return (newSolution, relatedProjectId: relatedDocumentId.ProjectId);
+                // Related document must come from a distinct project.
+                Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
+
+                relatedProjectIdHint = relatedDocumentId.ProjectId;
+                relatedDocumentIdsAndStates.Add((addedDocumentId, relatedDocument.DocumentState));
+            }
+
+            if (relatedDocumentIdsAndStates.IsEmpty)
+                return solution;
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear(), forceEvenIfTreesWouldDiffer: false);
         }
 
-        static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, DocumentId changedDocumentId, HashSet<DocumentId> processedDocuments)
+        static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, HashSet<DocumentId> changedDocumentIds)
         {
             // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
             // process that chain once.
-            if (processedDocuments.Add(changedDocumentId))
+            using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
+
+            foreach (var changedDocumentId in changedDocumentIds)
             {
-                var changedDocument = solution.GetRequiredDocument(changedDocumentId);
+                Document? changedDocument = null;
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
+
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
                     if (relatedDocumentId == changedDocumentId)
                         continue;
 
-                    if (processedDocuments.Add(relatedDocumentId))
-                        solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
+                    if (!changedDocumentIds.Contains(relatedDocumentId))
+                    {
+                        changedDocument ??= solution.GetRequiredDocument(changedDocumentId);
+                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocument.DocumentState;
+                    }
                 }
             }
 
-            return solution;
+            if (relatedDocumentIdsAndStates.Count == 0)
+                return solution;
+
+            var relatedDocumentIdsAndStatesArray = relatedDocumentIdsAndStates.SelectAsArray(static kvp => (kvp.Key, kvp.Value));
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
         }
     }
 
@@ -1195,8 +1214,6 @@ public abstract partial class Workspace : IDisposable
                         // Have the linked documents point *into* the same instance data that the initial document
                         // points at.  This way things like tree data can be shared across docs.
 
-                        var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-
                         var newDocument = newSolution.GetRequiredDocument(documentId);
                         foreach (var linkedDocumentId in linkedDocumentIds)
                         {
@@ -1466,6 +1483,7 @@ public abstract partial class Workspace : IDisposable
 
             foreach (var projectChanges in projectChangesList)
             {
+                progressTracker.Report(CodeAnalysisProgress.Description(string.Format(WorkspacesResources.Applying_changes_to_0, projectChanges.NewProject.Name)));
                 this.ApplyProjectChanges(projectChanges);
                 progressTracker.ItemCompleted();
             }

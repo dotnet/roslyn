@@ -377,7 +377,7 @@ internal static class LightupHelpers
 
     private static Action<T> CreateFallbackAction<T>()
     {
-        void FallbackAction(T instance)
+        static void FallbackAction(T instance)
         {
             if (instance == null)
             {
@@ -392,7 +392,7 @@ internal static class LightupHelpers
 
     private static Action<T, TArg> CreateFallbackAction<T, TArg>()
     {
-        void FallbackAction(T instance, TArg arg)
+        static void FallbackAction(T instance, TArg arg)
         {
             if (instance == null)
             {

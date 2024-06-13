@@ -3333,6 +3333,14 @@ namespace Microsoft.CodeAnalysis
                      1,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                      (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                     
+                 // System_Span_T__ctor_ref_T
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     1,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
                  // System_Span_T__get_Item
                  (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
@@ -3387,6 +3395,14 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                 // System_ReadOnlySpan_T__ctor_ref_readonly_T
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     1,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
                  // System_ReadOnlySpan_T__get_Item
                  (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
@@ -4722,12 +4738,14 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_ObsoleteAttribute__ctor
                 ".ctor",                                    // System_Span_T__ctor_Pointer
                 ".ctor",                                    // System_Span_T__ctor_Array
+                ".ctor",                                    // System_Span_T__ctor_ref_T
                 "get_Item",                                 // System_Span_T__get_Item
                 "get_Length",                               // System_Span_T__get_Length
                 "Slice",                                    // System_Span_T__Slice_Int_Int
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Pointer
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array_Start_Length
+                ".ctor",                                    // System_ReadOnlySpan_T__ctor_ref_readonly_T
                 "get_Item",                                 // System_ReadOnlySpan_T__get_Item
                 "get_Length",                               // System_ReadOnlySpan_T__get_Length
                 "Slice",                                    // System_ReadOnlySpan_T__Slice_Int_Int

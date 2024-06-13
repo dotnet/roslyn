@@ -176,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (this.IsIndirectlyInIterator) // called *after* we know the binder map has been created.
             {
-                // Spec 8.2: "An iterator block always defines a safe context, even when its declaration
-                // is nested in an unsafe context."
-                Error(diagnostics, ErrorCode.ERR_IllegalInnerUnsafe, node.UnsafeKeyword);
+                CheckFeatureAvailability(node.UnsafeKeyword, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
 
             return BindEmbeddedBlock(node.Block, diagnostics);
@@ -267,6 +265,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (BindingTopLevelScriptCode)
             {
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
+            else if (InUnsafeRegion && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
+            }
+            // NOTE: Error conditions should be checked above this point; only warning conditions below.
+            else if (this.Flags.Includes(BinderFlags.InLockBody))
+            {
+                Error(diagnostics, ErrorCode.WRN_BadYieldInLock, node.YieldKeyword);
             }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
@@ -472,6 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement
             // In this case we create new label symbol on the fly, and an error is reported by parser
             var symbol = result.Symbols.Count > 0 && result.IsMultiViable ?
@@ -551,6 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node.Identifier);
+
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
@@ -772,13 +783,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                if (this.IsAccessible(disposeMethod, ref useSiteInfo))
-                {
-                    diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
-                }
-
-                diagnostics.Add(syntaxNode, useSiteInfo);
                 disposeMethod = null;
             }
 
@@ -961,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarator != null);
 
-            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind),
+            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind, diagnostics),
                                            kind,
                                            isVar,
                                            declarator,
@@ -1100,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
-            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }
@@ -1165,15 +1169,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected bool CheckRefLocalInAsyncOrIteratorMethod(SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
         {
-            if (IsInAsyncMethod())
+            if (IsDirectlyInIterator || IsInAsyncMethod())
             {
-                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, identifierToken);
-                return true;
-            }
-            else if (IsDirectlyInIterator)
-            {
-                Error(diagnostics, ErrorCode.ERR_BadIteratorLocalType, identifierToken);
-                return true;
+                return !CheckFeatureAvailability(identifierToken, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
 
             return false;
@@ -1201,8 +1199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind)
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind, BindingDiagnosticBag diagnostics)
         {
+            ReportFieldOrValueContextualKeywordConflictIfAny(declarator, declarator.Identifier, diagnostics);
+
             LocalDeclarationKind kind = outerKind == LocalDeclarationKind.UsingVariable ? LocalDeclarationKind.UsingVariable : LocalDeclarationKind.RegularVariable;
             return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer, kind);
         }
@@ -1429,10 +1429,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isRef)
                 MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right.GetFirstToken());
 
-            var op1 = BindValue(node.Left, diagnostics, lhsKind, dynamificationOfAssignmentResultIsHandled: true);
+            var op1 = BindValue(node.Left, diagnostics, lhsKind);
             ReportSuppressionIfNeeded(op1, diagnostics);
-
-            op1 = AdjustAssignmentTargetForDynamic(op1, out bool forceDynamicResult);
 
             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(op1) : BindValueKind.RValue;
             var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
@@ -1444,10 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            BoundAssignmentOperator result = BindAssignment(node, op1, op2, isRef, diagnostics);
-            result = result.Update(result.Left, result.Right, result.IsRef, AdjustAssignmentTypeToDynamicIfNecessary(result.Type, forceDynamicResult));
-
-            return result;
+            return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
 
         private static BindValueKind GetRequiredRHSValueKindForRefAssignment(BoundExpression boundLeft)
@@ -1585,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftEscape = GetValEscape(op1, _localScopeDepth);
                         rightEscape = GetValEscape(op2, _localScopeDepth);
 
-                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
                         // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
                         // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
@@ -1604,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!hasErrors && op1.Type.IsRefLikeType)
+                if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
                     var leftEscape = GetValEscape(op1, _localScopeDepth);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
@@ -3162,6 +3157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaration = node.Declaration;
             if (declaration != null)
             {
+                ReportFieldOrValueContextualKeywordConflictIfAny(declaration, declaration.Identifier, diagnostics);
+
                 // Note: The type is being bound twice: here and in LocalSymbol.Type. Currently,
                 // LocalSymbol.Type ignores diagnostics so it seems cleaner to bind the type here
                 // as well. However, if LocalSymbol.Type is changed to report diagnostics, we'll

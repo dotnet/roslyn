@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRoundTripGuid()
         {
-            void test(Guid guid)
+            static void test(Guid guid)
             {
                 TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
             }

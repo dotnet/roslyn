@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
@@ -34,37 +33,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
-            using (var workspace = GetWorkspace(markup, composition: EditorTestCompositions.EditorFeatures))
+            using var workspace = GetWorkspace(markup, composition: EditorTestCompositions.EditorFeatures);
+            var doc = workspace.Documents.First();
+            SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
+
+            var commandHandler = GetToggleCommentCommandHandler(workspace);
+            var textView = doc.GetTextView();
+            var textBuffer = doc.GetTextBuffer();
+
+            for (var i = 0; i < expectedText.Length; i++)
             {
-                var doc = workspace.Documents.First();
-                SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
-
-                var commandHandler = GetToggleCommentCommandHandler(workspace);
-                var textView = doc.GetTextView();
-                var textBuffer = doc.GetTextBuffer();
-
-                for (var i = 0; i < expectedText.Length; i++)
-                {
-                    commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
-                    AssertCommentResult(doc.GetTextBuffer(), textView, expectedText[i]);
-                }
+                commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
+                AssertCommentResult(doc.GetTextBuffer(), textView, expectedText[i]);
             }
         }
 
         protected void ToggleCommentWithProjectionBuffer(string surfaceBufferMarkup, string subjectBufferMarkup, string entireExpectedMarkup)
         {
-            using (var workspace = GetWorkspace(subjectBufferMarkup, composition: EditorTestCompositions.EditorFeatures))
-            {
-                var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
-                SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
+            using var workspace = GetWorkspace(subjectBufferMarkup, composition: EditorTestCompositions.EditorFeatures);
+            var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
+            SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
-                var commandHandler = GetToggleCommentCommandHandler(workspace);
-                var textView = document.GetTextView();
-                var originalSubjectBuffer = GetBufferForContentType(ContentTypeNames.CSharpContentType, textView);
+            var commandHandler = GetToggleCommentCommandHandler(workspace);
+            var textView = document.GetTextView();
+            var originalSubjectBuffer = GetBufferForContentType(ContentTypeNames.CSharpContentType, textView);
 
-                commandHandler.ExecuteCommand(textView, originalSubjectBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
-                AssertCommentResult(textView.TextBuffer, textView, entireExpectedMarkup);
-            }
+            commandHandler.ExecuteCommand(textView, originalSubjectBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
+            AssertCommentResult(textView.TextBuffer, textView, entireExpectedMarkup);
         }
 
         private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)

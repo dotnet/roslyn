@@ -3809,9 +3809,21 @@ class BAttribute : Attribute
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,2): error CS0181: Attribute constructor parameter 'a' has type 'Action', which is not a valid attribute parameter type
+                // (6,11): error CS1003: Syntax error, ',' expected
                 // [A([B] () => { })]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "System.Action").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 11),
+                // (6,16): error CS1026: ) expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(6, 16),
+                // (6,16): error CS1003: Syntax error, ']' expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(6, 16),
+                // (6,16): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 16),
+                // (6,17): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(6, 17));
         }
 
         [Fact]
@@ -5981,15 +5993,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,39): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
+                // (10,39): error CS4012: Parameters of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
                 //         D1 d1 = async (TypedReference r) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
-                // (11,46): error CS4012: Parameters or locals of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
+                // (11,46): error CS4012: Parameters of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
                 //         D2 d2 = async (RuntimeArgumentHandle h) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
-                // (12,36): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
+                // (12,36): error CS4012: Parameters of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
                 //         D3 d3 = async (ArgIterator i) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
         }
 
         [Fact]

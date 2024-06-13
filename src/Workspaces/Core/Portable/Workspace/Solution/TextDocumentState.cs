@@ -69,18 +69,11 @@ internal partial class TextDocumentState
     public IReadOnlyList<string> Folders => Attributes.Folders;
     public string Name => Attributes.Name;
 
-    private static ITextAndVersionSource CreateStrongText(TextAndVersion text)
-        => new ConstantTextAndVersionSource(text);
+    private static ConstantTextAndVersionSource CreateStrongText(TextAndVersion text)
+        => new(text);
 
-    private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, SolutionServices services)
-    {
-        var service = services.GetRequiredService<IWorkspaceConfigurationService>();
-        var options = service.Options;
-
-        return options.DisableRecoverableText
-            ? CreateStrongText(text)
-            : new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
-    }
+    private static RecoverableTextAndVersion CreateRecoverableText(TextAndVersion text, SolutionServices services)
+        => new(new ConstantTextAndVersionSource(text), services);
 
     public ITemporaryStorageTextHandle? StorageHandle
         => (TextAndVersionSource as RecoverableTextAndVersion)?.StorageHandle;
@@ -144,13 +137,11 @@ internal partial class TextDocumentState
     }
 
     public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
-    {
-        var newTextSource = mode == PreservationMode.PreserveIdentity
-            ? CreateStrongText(newTextAndVersion)
-            : CreateRecoverableText(newTextAndVersion, solutionServices);
-
-        return UpdateText(newTextSource, mode, incremental: true);
-    }
+        => UpdateText(mode == PreservationMode.PreserveIdentity
+                ? CreateStrongText(newTextAndVersion)
+                : CreateRecoverableText(newTextAndVersion, solutionServices),
+            mode,
+            incremental: true);
 
     public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
     {
@@ -170,12 +161,9 @@ internal partial class TextDocumentState
 
     private static ITextAndVersionSource CreateTextFromLoader(TextLoader loader, PreservationMode mode, SolutionServices solutionServices)
     {
-        var service = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
-        var options = service.Options;
-
         // If the caller is explicitly stating that identity must be preserved, then we created a source that will load
         // from the loader the first time, but then cache that result so that hte same result is *always* returned.
-        if (mode == PreservationMode.PreserveIdentity || options.DisableRecoverableText)
+        if (mode == PreservationMode.PreserveIdentity)
             return new LoadableTextAndVersionSource(loader, cacheResult: true);
 
         // If the loader asks us to always hold onto it strongly, then we do not want to create a recoverable text

@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
-using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 
 /// <summary>
 /// The root unit for a stackframe. Includes the method declaration for the stack frame and optional file information. 

@@ -65,6 +65,7 @@ internal partial class StreamingFindUsagesPresenter
         protected readonly IWpfTableControl2 TableControl;
 
         private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
+        private readonly AsyncBatchingWorkQueue _notifyQueue;
 
         protected readonly object Gate = new();
 
@@ -108,8 +109,8 @@ internal partial class StreamingFindUsagesPresenter
         /// </summary>
         private bool _currentlyGroupingByDefinition;
 
-        protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
-        protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
+        protected readonly List<Entry> EntriesWhenNotGroupingByDefinition = [];
+        protected readonly List<Entry> EntriesWhenGroupingByDefinition = [];
 
         private TableEntriesSnapshot? _lastSnapshot;
         public int CurrentVersionNumber { get; protected set; }
@@ -163,11 +164,30 @@ internal partial class StreamingFindUsagesPresenter
                 this.UpdateTableProgressAsync,
                 presenter._asyncListener,
                 CancellationTokenSource.Token);
+
+            // Similarly, updating the actual FAR window can be quite expensive (especially when there are thousands of
+            // results).  To limit the amount of work we do, we'll only update the window every 250ms.
+            _notifyQueue = new AsyncBatchingWorkQueue(
+                DelayTimeSpan.Short,
+                cancellationToken =>
+                {
+                    _tableDataSink.FactorySnapshotChanged(this);
+                    return ValueTaskFactory.CompletedTask;
+                },
+                presenter._asyncListener,
+                CancellationTokenSource.Token);
         }
 
         protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
         protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
         protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
+
+        protected static void AddRange<T>(List<T> list, ArrayBuilder<T> builder)
+        {
+            list.Capacity = list.Count + builder.Count;
+            foreach (var item in builder)
+                list.Add(item);
+        }
 
         private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
@@ -203,7 +223,7 @@ internal partial class StreamingFindUsagesPresenter
         }
 
         protected void NotifyChange()
-            => _tableDataSink.FactorySnapshotChanged(this);
+            => _notifyQueue.AddWork();
 
         private void OnFindReferencesWindowClosed(object sender, EventArgs e)
         {
@@ -385,13 +405,13 @@ internal partial class StreamingFindUsagesPresenter
                 return null;
             }
 
-            var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
+            var (guid, projectName) = GetGuidAndProjectName(documentSpan.Document);
 
             return new DefinitionItemEntry(
                 this,
                 definitionBucket,
-                projectName,
                 guid,
+                projectName,
                 lineText,
                 mappedDocumentSpan.Value,
                 documentSpan,
@@ -404,13 +424,12 @@ internal partial class StreamingFindUsagesPresenter
             ClassifiedSpansAndHighlightSpan? classifiedSpans,
             HighlightSpanKind spanKind,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> additionalProperties,
+            ImmutableArray<(string key, string value)> additionalProperties,
             CancellationToken cancellationToken)
         {
             var document = documentSpan.Document;
-            var options = _globalOptions.GetClassificationOptions(document.Project.Language);
             var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
+            var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
             if (mappedDocumentSpan == null)
@@ -419,14 +438,13 @@ internal partial class StreamingFindUsagesPresenter
                 return null;
             }
 
-            var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
+            var (guid, projectName) = GetGuidAndProjectName(document);
 
             return DocumentSpanEntry.TryCreate(
                 this,
                 definitionBucket,
                 guid,
                 projectName,
-                projectFlavor,
                 document.FilePath,
                 documentSpan.SourceSpan,
                 spanKind,
@@ -438,38 +456,50 @@ internal partial class StreamingFindUsagesPresenter
                 ThreadingContext);
         }
 
-        private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
-            SourceText sourceText, DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
+        private async Task<(ExcerptResult, SourceText)> ExcerptAsync(
+            SourceText sourceText, DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, CancellationToken cancellationToken)
         {
-            var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
+            var document = documentSpan.Document;
+            var sourceSpan = documentSpan.SourceSpan;
+
+            var excerptService = document.Services.GetService<IDocumentExcerptService>();
+
+            // Fetching options is expensive enough to try to avoid it if we can.  So only fetch this if absolutely necessary.
+            ClassificationOptions? options = null;
             if (excerptService != null)
             {
-                var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, options, cancellationToken).ConfigureAwait(false);
+                options ??= _globalOptions.GetClassificationOptions(document.Project.Language);
+
+                var result = await excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options.Value, cancellationToken).ConfigureAwait(false);
                 if (result != null)
-                {
                     return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
-                }
             }
 
-            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
+            if (classifiedSpans is null)
+            {
+                options ??= _globalOptions.GetClassificationOptions(document.Project.Language);
+
+                classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    documentSpan, classifiedSpans, options.Value, cancellationToken).ConfigureAwait(false);
+            }
 
             // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
             var excerptResult = new ExcerptResult(
                 sourceText,
-                classificationResult.HighlightSpan,
-                classificationResult.ClassifiedSpans,
-                documentSpan.Document,
-                documentSpan.SourceSpan);
+                classifiedSpans.Value.HighlightSpan,
+                classifiedSpans.Value.ClassifiedSpans,
+                document,
+                sourceSpan);
 
-            return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
+            return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, sourceSpan.Start));
         }
 
-        public sealed override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public sealed override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
             try
             {
-                await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
+                await foreach (var reference in references)
+                    await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
@@ -557,10 +587,10 @@ internal partial class StreamingFindUsagesPresenter
                     // Otherwise return the appropriate list based on how we're currently
                     // grouping.
                     var entries = _cleared
-                        ? ImmutableList<Entry>.Empty
+                        ? []
                         : _currentlyGroupingByDefinition
-                            ? EntriesWhenGroupingByDefinition
-                            : EntriesWhenNotGroupingByDefinition;
+                            ? EntriesWhenGroupingByDefinition.ToImmutableArray()
+                            : EntriesWhenNotGroupingByDefinition.ToImmutableArray();
 
                     _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                 }

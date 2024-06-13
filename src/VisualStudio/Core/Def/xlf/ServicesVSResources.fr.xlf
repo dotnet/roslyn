@@ -397,11 +397,6 @@
         <target state="translated">L'élément n'est pas valide.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">Activer toutes les fonctionnalités dans les fichiers ouverts à partir des générateurs de code source (expérimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">Activer le plan du document (expérimental, nécessite un redémarrage)</target>

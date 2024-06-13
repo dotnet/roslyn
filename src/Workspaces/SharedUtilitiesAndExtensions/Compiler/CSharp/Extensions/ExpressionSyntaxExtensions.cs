@@ -166,9 +166,6 @@ internal static partial class ExpressionSyntaxExtensions
         return true;
     }
 
-    public static bool IsAnyLiteralExpression(this ExpressionSyntax expression)
-        => expression is LiteralExpressionSyntax;
-
     public static bool IsInConstantContext([NotNullWhen(true)] this ExpressionSyntax? expression)
     {
         if (expression == null)

@@ -5,11 +5,8 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -154,7 +151,7 @@ internal abstract class AbstractCommentSelectionBase<TCommand>
 
                 var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
                 var formattingSpans = trackingSnapshotSpans.Select(change => CommonFormattingHelpers.GetFormattingSpan(newRoot, change.Span.ToTextSpan()));
-                var formattedChanges = Formatter.GetFormattedTextChanges(newRoot, formattingSpans, document.Project.Solution.Services, formattingOptions, rules: null, cancellationToken);
+                var formattedChanges = Formatter.GetFormattedTextChanges(newRoot, formattingSpans, document.Project.Solution.Services, formattingOptions, rules: default, cancellationToken);
 
                 subjectBuffer.ApplyChanges(formattedChanges);
 

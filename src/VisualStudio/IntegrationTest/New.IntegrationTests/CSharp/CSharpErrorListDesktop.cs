@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.ErrorList)]
+public class CSharpErrorListDesktop : CSharpErrorListCommon
 {
-    [Trait(Traits.Feature, Traits.Features.ErrorList)]
-    public class CSharpErrorListDesktop : CSharpErrorListCommon
+    public CSharpErrorListDesktop()
+        : base(WellKnownProjectTemplates.ClassLibrary)
     {
-        public CSharpErrorListDesktop()
-            : base(WellKnownProjectTemplates.ClassLibrary)
-        {
-        }
     }
 }

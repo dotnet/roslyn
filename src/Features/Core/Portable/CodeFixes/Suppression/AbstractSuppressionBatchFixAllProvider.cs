@@ -96,16 +96,12 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
                 source,
                 produceItems: static async (tuple, callback, args, cancellationToken) =>
                 {
+                    var (@this, fixAllState, progressTracker) = args;
+                    using var _ = progressTracker.ItemCompletedScope();
+
                     var (document, diagnosticsToFix) = tuple;
-                    try
-                    {
-                        await args.@this.AddDocumentFixesAsync(
-                            document, diagnosticsToFix, callback, args.fixAllState, cancellationToken).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        args.progressTracker.ItemCompleted();
-                    }
+                    await @this.AddDocumentFixesAsync(
+                        document, diagnosticsToFix, callback, fixAllState, cancellationToken).ConfigureAwait(false);
                 },
                 args: (@this: this, fixAllState, progressTracker),
                 cancellationToken).ConfigureAwait(false);
@@ -245,11 +241,8 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
 
         // Finally, apply the changes to each document to the solution, producing the
         // new solution.
-        var currentSolution = oldSolution;
-        foreach (var (documentId, finalText) in documentIdToFinalText)
-            currentSolution = currentSolution.WithDocumentText(documentId, finalText);
-
-        return currentSolution;
+        var finalSolution = oldSolution.WithDocumentTexts(documentIdToFinalText);
+        return finalSolution;
     }
 
     private static async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
@@ -274,7 +267,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         return documentIdToChangedDocuments;
     }
 
-    private static async Task<IReadOnlyDictionary<DocumentId, SourceText>> GetDocumentIdToFinalTextAsync(
+    private static async Task<ImmutableArray<(DocumentId documentId, SourceText newText)>> GetDocumentIdToFinalTextAsync(
         Solution oldSolution,
         IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
         ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
@@ -296,7 +289,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         }
 
         await Task.WhenAll(getFinalDocumentTasks).ConfigureAwait(false);
-        return documentIdToFinalText;
+        return documentIdToFinalText.SelectAsArray(kvp => (kvp.Key, kvp.Value));
     }
 
     private static async Task GetFinalDocumentTextAsync(

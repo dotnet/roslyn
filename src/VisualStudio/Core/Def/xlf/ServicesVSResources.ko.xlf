@@ -397,11 +397,6 @@
         <target state="translated">요소가 잘못되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">소스 생성기에서 열린 파일의 모든 기능 사용 (실험적)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">문서 개요 사용(실험적, 다시 시작해야 함)</target>

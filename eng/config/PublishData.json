@@ -204,7 +204,6 @@
       ],
       "vsBranch": "rel/d17.10",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.10]"
     },
     "release/dev17.11": {
@@ -212,10 +211,9 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.11",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.11 P1]"
+      "insertionTitlePrefix": "[d17.11 P2]"
     },
     "main": {
       "nugetKind": [
@@ -224,8 +222,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.11 P2]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.11 P3]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [
@@ -236,6 +234,16 @@
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Telemetry Validation]"
+    },
+    "dev/jorobich/pr-val-v3-publishing": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[PR Validation]"
     },
     "demo/razor-lexer": {
       "nugetKind": [

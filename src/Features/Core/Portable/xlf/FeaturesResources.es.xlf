@@ -405,6 +405,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para cambiar {0} de asíncrona a sincrónica, es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="new">Changing '{0}' might not have any effect until the application is restarted.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
         <target state="translated">Para cambiar "{0}" a "{1}" se requiere reiniciar la aplicación porque cambia la forma de la máquina de estados.</target>

@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -44,7 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// Gate to make sure we only update the paths and trigger RDT one at a time.
         /// Guards <see cref="_remoteWorkspaceRootPaths"/> and <see cref="_registeredExternalPaths"/>
         /// </summary>
+        // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
         private static readonly SemaphoreSlim s_RemotePathsGate = new SemaphoreSlim(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
@@ -492,30 +493,26 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     // The edits would get sent by the co-authoring service to the owner.
                     // The invisible editor saves the file on being disposed, which should get reflected  on the owner's side.
-                    using (var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath!, hierarchy: null,
-                                                 needsSave: true, needsUndoDisabled: false))
-                    {
-                        UpdateText(invisibleEditor.TextBuffer, text);
-                    }
+                    using var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath!, hierarchy: null,
+                                                 needsSave: true, needsUndoDisabled: false);
+                    UpdateText(invisibleEditor.TextBuffer, text);
                 }
             }
         }
 
         private static void UpdateText(ITextBuffer textBuffer, SourceText text)
         {
-            using (var edit = textBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
+            using var edit = textBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+            var oldSnapshot = textBuffer.CurrentSnapshot;
+            var oldText = oldSnapshot.AsText();
+            var changes = text.GetTextChanges(oldText);
+
+            foreach (var change in changes)
             {
-                var oldSnapshot = textBuffer.CurrentSnapshot;
-                var oldText = oldSnapshot.AsText();
-                var changes = text.GetTextChanges(oldText);
-
-                foreach (var change in changes)
-                {
-                    edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-                }
-
-                edit.Apply();
+                edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
             }
+
+            edit.Apply();
         }
     }
 }

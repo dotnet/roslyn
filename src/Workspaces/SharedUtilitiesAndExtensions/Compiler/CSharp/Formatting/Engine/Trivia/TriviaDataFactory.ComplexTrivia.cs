@@ -19,9 +19,9 @@ internal partial class TriviaDataFactory
     /// represents a general trivia between two tokens. slightly more expensive than others since it
     /// needs to calculate stuff unlike other cases
     /// </summary>
-    private class ComplexTrivia : AbstractComplexTrivia
+    private sealed class ComplexTrivia : AbstractComplexTrivia
     {
-        public ComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+        public ComplexTrivia(LineFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
             : base(options, treeInfo, token1, token2)
         {
         }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable;
 
 internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    internal abstract class AbstractIntroduceVariableCodeAction : CodeAction
+    private abstract class AbstractIntroduceVariableCodeAction : CodeAction
     {
         private readonly bool _allOccurrences;
         private readonly bool _isConstant;

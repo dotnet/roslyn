@@ -26,9 +26,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature;
 /// <remarks>
 /// TODO: Rewrite this to track backward through references instead of binding everything
 /// </remarks>
-internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+internal sealed class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
-    public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
+    public static readonly DelegateInvokeMethodReferenceFinder Instance = new();
+
+    private DelegateInvokeMethodReferenceFinder()
+    {
+    }
 
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind == MethodKind.DelegateInvoke;
@@ -76,7 +80,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         return Task.CompletedTask;
     }
 
-    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -105,8 +109,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
             var convertedType = (ISymbol?)state.SemanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
             if (convertedType != null)
             {
-                convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, state.Solution, cancellationToken).ConfigureAwait(false)
-                    ?? convertedType;
+                convertedType = SymbolFinder.FindSourceDefinition(convertedType, state.Solution, cancellationToken) ?? convertedType;
             }
 
             if (convertedType == methodSymbol.ContainingType)

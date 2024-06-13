@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// did not meet the requirements, the return value will be a <see cref="BoundBadExpression"/> that
         /// (typically) wraps the subexpression.
         /// </summary>
-        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind, bool dynamificationOfAssignmentResultIsHandled = false)
+        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
         {
             var result = this.BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
-            return CheckValue(result, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled);
+            return CheckValue(result, valueKind, diagnostics);
         }
 
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
@@ -1549,6 +1549,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError, qualifierOpt: null);  // reports diagnostics in result.
 
+                if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
+                {
+                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+                }
+
                 if ((object)symbol == null)
                 {
                     Debug.Assert(members.Count > 0);
@@ -1730,6 +1735,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+#nullable enable
+        /// <summary>
+        /// Report a diagnostic for a 'field' or 'value' identifier that the meaning will
+        /// change when the identifier is considered a contextual keyword.
+        /// </summary>
+        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        {
+            string name = identifier.Text;
+            switch (name)
+            {
+                case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
+                case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
+                    {
+                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+                        if (Compilation.LanguageVersion < requiredVersion)
+                        {
+                            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
+                        }
+                    }
+                    break;
+            }
+        }
+#nullable disable
 
         private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -2046,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    Debug.Assert(parameter.Type.IsRefLikeType);
+                                    Debug.Assert(parameter.Type.IsRefLikeOrAllowsRefLikeType());
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseRefLike, node, parameter.Name);
                                 }
                             }
@@ -2069,7 +2098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                     else
                                     {
-                                        Debug.Assert(parameter.Type.IsRefLikeType);
+                                        Debug.Assert(parameter.Type.IsRefLikeOrAllowsRefLikeType());
                                         Error(diagnostics, ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, node, parameter.Name);
                                     }
                                 }
@@ -3090,6 +3119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
+
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
@@ -3126,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
-                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrRefLikeType())
+                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                 }
@@ -3182,21 +3213,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Reports an error when a bad special by-ref local was found.
         /// </summary>
-        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, ErrorCode errorCode = ErrorCode.ERR_BadSpecialByRefLocal)
+        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            Debug.Assert(errorCode is ErrorCode.ERR_BadSpecialByRefLocal or ErrorCode.ERR_BadSpecialByRefUsing or ErrorCode.ERR_BadSpecialByRefLock);
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                if (errorCode == ErrorCode.ERR_BadSpecialByRefLock)
-                {
-                    Error(diagnostics, errorCode, syntax);
-                }
-                else
-                {
-                    Error(diagnostics, errorCode, syntax, type);
-                }
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
         }
 
@@ -5703,7 +5726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
                     boundMember = new BoundDynamicObjectInitializerMember(leftSyntax, memberName.Identifier.Text, implicitReceiver.Type, initializerType, hasErrors: false);
-                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                    return CheckValue(boundMember, valueKind, diagnostics);
                 }
                 else
                 {
@@ -5806,15 +5829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
-
-                        Debug.Assert(valueKind is BindValueKind.RValue or BindValueKind.RefAssignable or BindValueKind.Assignable);
-
-                        if (valueKind == BindValueKind.Assignable)
-                        {
-                            indexer = (BoundIndexerAccess)AdjustAssignmentTargetForDynamic(indexer, forceDynamicResult: out _);
-                        }
-
+                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics);
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
@@ -5854,10 +5869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
                     }
 
-                    Debug.Assert(boundMember is not BoundIndexerAccess);
-                    return hasErrors ?
-                               boundMember :
-                               CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                    return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
 
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
@@ -5874,8 +5886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerElementAccess:
-                    Debug.Assert(boundMember is not BoundIndexerAccess);
-                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                    return CheckValue(boundMember, valueKind, diagnostics);
 
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
@@ -5960,8 +5971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case LookupResultKind.Inaccessible:
-                        Debug.Assert(boundMember is not BoundIndexerAccess);
-                        boundMember = CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                        boundMember = CheckValue(boundMember, valueKind, diagnostics);
                         Debug.Assert(boundMember.HasAnyErrors);
                         break;
 
@@ -6172,15 +6182,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!initializerType.IsErrorType())
             {
-                TypeSymbol collectionsIEnumerableType = this.GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, node);
+                NamedTypeSymbol collectionsIEnumerableType = this.GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, node);
 
                 // NOTE:    Ideally, to check if the initializer type implements System.Collections.IEnumerable we can walk through
                 // NOTE:    its implemented interfaces. However the native compiler checks to see if there is conversion from initializer
                 // NOTE:    type to the predefined System.Collections.IEnumerable type, so we do the same.
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var result = Conversions.ClassifyImplicitConversionFromType(initializerType, collectionsIEnumerableType, ref useSiteInfo).IsValid;
+                var result = Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(initializerType, collectionsIEnumerableType, ref useSiteInfo, out bool needSupportForRefStructInterfaces);
                 diagnostics.Add(node, useSiteInfo);
+
+                if (needSupportForRefStructInterfaces &&
+                    initializerType.ContainingModule != Compilation.SourceModule)
+                {
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+                }
+
                 return result;
             }
             else
@@ -6573,70 +6590,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (finalApplicableCandidates.Length == 1)
                     {
                         Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                        if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                        {
-                            MethodSymbol singleCandidate = finalApplicableCandidates[0].Member;
-
-                            // We're only in trouble if a dynamic argument is passed to the
-                            // params parameter and is ambiguous at compile time between normal
-                            // and expanded form i.e., there is exactly one dynamic argument to
-                            // a params parameter, and we know that runtime binder might not be
-                            // able to handle the disambiguation
-                            if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                            {
-                                Error(diagnostics,
-                                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                                    argumentSyntax, singleCandidate);
-                            }
-                        }
-                        else
-                        {
-                            if (!type.IsAbstract)
-                            {
-                                result = BindClassCreationExpressionContinued(node, typeNode, type, analyzedArguments, initializerSyntaxOpt,
-                                    initializerTypeOpt, wasTargetTyped, finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                            else
-                            {
-                                result = CreateBadClassCreationExpression(node, typeNode, type, analyzedArguments,
-                                    initializerSyntaxOpt, initializerTypeOpt, finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                        }
+                        ReportMemberNotSupportedByDynamicDispatch(node, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
                     }
 
-                    if (result == null)
-                    {
-                        if (finalApplicableCandidates.Length != 1 &&
-                            Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                            HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                        {
-                            Error(diagnostics,
-                                ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor,
-                                node);
-                        }
+                    var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
+                    var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-                        var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
-                        var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
+                    hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
 
-                        hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
+                    BoundObjectInitializerExpressionBase boundInitializerOpt;
+                    boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
+                    result = new BoundDynamicObjectCreationExpression(
+                        node,
+                        typeName,
+                        argArray,
+                        analyzedArguments.GetNames(),
+                        refKindsArray,
+                        boundInitializerOpt,
+                        overloadResolutionResult.GetAllApplicableMembers(),
+                        wasTargetTyped,
+                        type,
+                        hasErrors);
 
-                        BoundObjectInitializerExpressionBase boundInitializerOpt;
-                        boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
-                        result = new BoundDynamicObjectCreationExpression(
-                            node,
-                            typeName,
-                            argArray,
-                            analyzedArguments.GetNames(),
-                            refKindsArray,
-                            boundInitializerOpt,
-                            overloadResolutionResult.GetAllApplicableMembers(),
-                            wasTargetTyped,
-                            type,
-                            hasErrors);
-
-                        diagnostics.Add(node, useSiteInfo);
-                    }
+                    diagnostics.Add(node, useSiteInfo);
                 }
 
                 overloadResolutionResult.Free();
@@ -7569,6 +7545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundLeft != null);
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
+
+            ReportFieldOrValueContextualKeywordConflictIfAny(right, right.Identifier, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
 
@@ -8674,10 +8652,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+                if (receiverOpt is { Type: TypeParameterSymbol { AllowsRefLikeType: true } } &&
+                    isNotImplementableInstanceMember(symbol))
                 {
-                    if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
-                        !symbol.IsImplementableInterfaceMember())
+                    Error(diagnostics, ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, node);
+                }
+                else if (!Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+                {
+                    if (isNotImplementableInstanceMember(symbol))
                     {
                         Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
                     }
@@ -8694,6 +8676,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+            }
+
+            static bool isNotImplementableInstanceMember(Symbol symbol)
+            {
+                return !symbol.IsStatic && !(symbol is TypeSymbol) &&
+                       !symbol.IsImplementableInterfaceMember();
             }
         }
 
@@ -9122,15 +9110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
 
-                if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
-                {
-                    method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(expr.Type), elementField.TypeWithAnnotations)).
-                        CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
-                }
+                CheckInlineArrayTypeIsSupported(node, expr.Type, elementField.Type, diagnostics);
 
                 if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
                 {
@@ -9716,48 +9700,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (finalApplicableCandidates.Length == 1)
                 {
                     Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                    if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                    {
-                        PropertySymbol singleCandidate = finalApplicableCandidates[0].LeastOverriddenMember;
-
-                        // We're only in trouble if a dynamic argument is passed to the
-                        // params parameter and is ambiguous at compile time between normal
-                        // and expanded form i.e., there is exactly one dynamic argument to
-                        // a params parameter, and we know that runtime binder might not be
-                        // able to handle the disambiguation
-                        if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                        {
-                            Error(diagnostics,
-                                ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                                argumentSyntax, singleCandidate);
-                        }
-                    }
-                    // For C# 12 and earlier always bind at runtime.
-                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12)
-                    {
-                        var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
-                        resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
-                        overloadResolutionResult.Free();
-
-                        return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, resultWithSingleCandidate, hasDynamicArgument: true, diagnostics);
-                    }
-                }
-
-                if (finalApplicableCandidates.Length != 1 &&
-                    Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                    HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                {
-                    Error(diagnostics,
-                        ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer,
-                        syntax);
+                    ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
                 }
 
                 overloadResolutionResult.Free();
                 return BindDynamicIndexer(syntax, receiver, analyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics);
             }
 
-            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, hasDynamicArgument: false, diagnostics);
+            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, diagnostics);
         }
 
         private BoundExpression BindIndexerOrIndexedPropertyAccessContinued(
@@ -9766,7 +9716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult,
-            bool hasDynamicArgument,
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression propertyAccess;
@@ -9828,25 +9777,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
 
-                bool forceDynamicResultType = false;
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-
-                // Due to backward compatibility, invocations statically bound in presence of dynamic arguments
-                // should have dynamic result if their dynamic binding succeeded in C# 12 and there are no
-                // obvious reasons for the runtime binder to fail (ref return, for example).
-                if (hasDynamicArgument &&
-                    !(property.Type.IsDynamic() || property.ReturnsByRef ||
-                     !Conversions.ClassifyConversionFromExpressionType(property.Type, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit ||
-                     IsMemberWithExpandedNonArrayParamsCollection(resolutionResult)))
-                {
-                    var tryDynamicAccessDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-                    BindDynamicIndexer(syntax, receiver, analyzedArguments, ImmutableArray.Create(property), tryDynamicAccessDiagnostics);
-                    forceDynamicResultType = !tryDynamicAccessDiagnostics.HasAnyResolvedErrors();
-                    tryDynamicAccessDiagnostics.Free();
-                }
-
-                diagnostics.Add(syntax, useSiteInfo);
-
                 ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
 
                 // Make sure that the result of overload resolution is valid.
@@ -9877,7 +9807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                     argsToParams,
                     defaultArguments: default,
-                    forceDynamicResultType ? Compilation.DynamicType : property.Type,
+                    property.Type,
                     gotError);
             }
 
@@ -10717,7 +10647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
 
-            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol);
+            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol, out _);
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);

@@ -58,6 +58,7 @@ variables:
   - name: ArtifactServices.Drop.PAT
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - group: DotNet-Roslyn-Insertion-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
     value: release

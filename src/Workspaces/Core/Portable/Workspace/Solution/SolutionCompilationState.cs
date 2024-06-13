@@ -55,6 +55,10 @@ internal sealed partial class SolutionCompilationState
     /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
     /// to move its own generators forward when a host changes these versions.
     /// </summary>
+    /// <remarks>
+    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
+    /// types.
+    /// </remarks>
     private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
 
     /// <summary>
@@ -117,9 +121,8 @@ internal sealed partial class SolutionCompilationState
         // An id shouldn't point at a tracker for a different project.
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
-        // Solution and SG version maps must correspond to the same set of projets.
+        // Solution and SG version maps must correspond to the same set of projects.
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
-            .Where(kvp => RemoteSupportedLanguages.IsSupported(kvp.Value.Language))
             .Select(kvp => kvp.Key)
             .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
     }
@@ -340,12 +343,13 @@ internal sealed partial class SolutionCompilationState
             modifyNewTrackerInfo: static (_, _) => { }, argModifyNewTrackerInfo: default(VoidResult),
             skipEmptyCallback: true);
 
+        // Add the new projects to the source generator execution version map.  Note: it's ok for us to have entries for
+        // non-C#/VB projects.  These will have no effect in-proc as we won't have compilation-trackers for these
+        // projects.  And, when communicating with the OOP process, we'll filter out these projects before sending them
+        // across in SolutionCompilationState.GetFilteredSourceGenerationExecutionMap.
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectInfo in projectInfos)
-        {
-            if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
-                versionMapBuilder.Add(projectInfo.Id, new());
-        }
+            versionMapBuilder.Add(projectInfo.Id, new());
 
         var sourceGeneratorExecutionVersionMap = new SourceGeneratorExecutionVersionMap(versionMapBuilder.ToImmutable());
         return Branch(
@@ -708,12 +712,46 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithDocumentFilePath(documentId, filePath), documentId);
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
-    public SolutionCompilationState WithDocumentText(
-        DocumentId documentId, SourceText text, PreservationMode mode)
+    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
+        => WithDocumentContents(
+            texts, SourceTextIsUnchanged,
+            static (documentState, text, mode) => documentState.UpdateText(text, mode),
+            data: mode);
+
+    private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text, PreservationMode mode)
+        => oldDocument.TryGetText(out var oldText) && text == oldText;
+
+    private SolutionCompilationState WithDocumentContents<TContent, TData>(
+        ImmutableArray<(DocumentId documentId, TContent content)> texts,
+        Func<DocumentState, TContent, TData, bool> isUnchanged,
+        Func<DocumentState, TContent, TData, DocumentState> updateContent,
+        TData data)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentText(documentId, text, mode), documentId);
+        return UpdateDocumentsInMultipleProjects(
+             texts.GroupBy(d => d.documentId.ProjectId).Select(g =>
+             {
+                 var projectId = g.Key;
+                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+
+                 using var _ = ArrayBuilder<DocumentState>.GetInstance(out var newDocumentStates);
+                 foreach (var (documentId, content) in g)
+                 {
+                     var documentState = projectState.DocumentStates.GetRequiredState(documentId);
+                     if (isUnchanged(documentState, content, data))
+                         continue;
+
+                     newDocumentStates.Add(updateContent(documentState, content, data));
+                 }
+
+                 return (projectId, newDocumentStates.ToImmutableAndClear());
+             }),
+             static (projectState, newDocumentStates) =>
+             {
+                 return new TranslationAction.TouchDocumentsAction(
+                     projectState,
+                     projectState.UpdateDocuments(newDocumentStates, contentChanged: true),
+                     newDocumentStates);
+             });
     }
 
     public SolutionCompilationState WithDocumentState(
@@ -762,19 +800,35 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoot"/>
-    public SolutionCompilationState WithDocumentSyntaxRoot(
-        DocumentId documentId, SyntaxNode root, PreservationMode mode)
+    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode}}, PreservationMode)"/>
+    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentSyntaxRoot(documentId, root, mode), documentId);
+        return WithDocumentContents(
+            syntaxRoots, IsUnchanged,
+            static (documentState, root, mode) => documentState.UpdateTree(root, mode),
+            data: mode);
+
+        static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root, PreservationMode _)
+        {
+            return oldDocument.TryGetSyntaxTree(out var oldTree) &&
+                oldTree.TryGetRoot(out var oldRoot) &&
+                oldRoot == root;
+        }
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
-        DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
+        ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer), documentId);
+        return WithDocumentContents(
+            documentIdsAndStates,
+            isUnchanged: static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
+            {
+                return oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource
+                    && oldDocumentState.TreeSource == documentState.TreeSource;
+            },
+            static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
+                oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
+            data: forceEvenIfTreesWouldDiffer);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -839,10 +893,10 @@ internal sealed partial class SolutionCompilationState
                 // This function shouldn't have been called if the document has not changed
                 Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
-                var oldDocument = stateChange.OldProjectState.DocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.DocumentStates.GetRequiredState(documentId);
 
-                return new TranslationAction.TouchDocumentAction(stateChange.OldProjectState, stateChange.NewProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchDocumentsAction(
+                    stateChange.OldProjectState, stateChange.NewProjectState, [newDocument]);
             },
             forkTracker: true,
             arg: documentId);
@@ -1201,7 +1255,13 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorExecutionVersions(
+    /// <summary>
+    /// Updates entries in our <see cref="_sourceGeneratorExecutionVersionMap"/> to the corresponding values in the
+    /// given <paramref name="sourceGeneratorExecutionVersions"/>.  Importantly, <paramref
+    /// name="sourceGeneratorExecutionVersions"/> must refer to projects in this solution.  Projects not mentioned in
+    /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
+    /// </summary>
+    public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
@@ -1346,8 +1406,8 @@ internal sealed partial class SolutionCompilationState
         // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
         // there is no additional cost processing the initiating document in this loop.
         var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-        foreach (var siblingId in allDocumentIds)
-            currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+        var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(static (docId, currentDocumentState) => (docId, currentDocumentState), currentDocumentState);
+        currentCompilationState = currentCompilationState.WithDocumentContentsFrom(allDocumentIdsWithCurrentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
         return WithFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
 
@@ -1408,7 +1468,7 @@ internal sealed partial class SolutionCompilationState
             }
 
             // Now, add all missing documents per project.
-            currentState = currentState.AddDocumentsToMultipleProjects(
+            currentState = currentState.UpdateDocumentsInMultipleProjects(
                 // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
                 // ToImmutableAndFree once per ArrayBuilder.
                 missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
@@ -1482,7 +1542,7 @@ internal sealed partial class SolutionCompilationState
 
         // The documents might be contributing to multiple different projects; split them by project and then we'll
         // process one project at a time.
-        return AddDocumentsToMultipleProjects(
+        return UpdateDocumentsInMultipleProjects(
             documentInfos.GroupBy(d => d.Id.ProjectId).Select(g =>
             {
                 var projectId = g.Key;
@@ -1493,17 +1553,17 @@ internal sealed partial class SolutionCompilationState
             addDocumentsToProjectState);
     }
 
-    private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
-        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
+    private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState>(
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> updatedDocumentState)> projectIdAndUpdatedDocuments,
+        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> getTranslationAction)
         where TDocumentState : TextDocumentState
     {
         var newCompilationState = this;
 
-        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
+        foreach (var (projectId, newDocumentStates) in projectIdAndUpdatedDocuments)
         {
             var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
-            var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
+            var compilationTranslationAction = getTranslationAction(oldProjectState, newDocumentStates);
             var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
@@ -1606,7 +1666,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     public SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
     {
-        var result = this;
+        using var _ = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(out var changedDocuments);
 
         foreach (var documentId in documentIds)
         {
@@ -1618,10 +1678,22 @@ internal sealed partial class SolutionCompilationState
 
             var documentState = this.SolutionState.GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
             if (documentState != null)
-                result = result.WithDocumentText(documentId, text, mode);
+            {
+                // before allocating an array below (and calling into a function that does a fair amount of linq work),
+                // do a fast check if the text has actually changed. this shows up in allocation traces and is
+                // worthwhile to avoid for the common case where we're continually being asked to update the same doc to
+                // the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is called.
+                //
+                // The use of GetRequiredState mirrors what happens in WithDocumentTexts
+                if (!SourceTextIsUnchanged(documentState, text, mode))
+                    changedDocuments.Add((documentId, text));
+            }
         }
 
-        return result;
+        if (changedDocuments.Count == 0)
+            return this;
+
+        return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear(), mode);
     }
 
     internal TestAccessor GetTestAccessor()

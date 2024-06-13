@@ -7,9 +7,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 
@@ -63,8 +63,8 @@ internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer : AbstractBui
             if (!context.ShouldAnalyzeSpan(child.Span))
                 continue;
 
-            if (child.IsNode)
-                Recurse(context, notificationOption, child.AsNode()!);
+            if (child.AsNode(out var childNode))
+                Recurse(context, notificationOption, childNode);
         }
     }
 

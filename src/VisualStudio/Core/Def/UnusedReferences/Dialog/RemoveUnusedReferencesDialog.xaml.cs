@@ -7,7 +7,6 @@ using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;

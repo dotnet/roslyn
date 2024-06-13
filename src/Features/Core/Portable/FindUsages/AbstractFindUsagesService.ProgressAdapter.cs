@@ -10,9 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -42,8 +41,8 @@ internal abstract partial class AbstractFindUsagesService
             var classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
                 documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
 
-            await _context.OnReferenceFoundAsync(
-                new SourceReferenceItem(_definition, documentSpan, classifiedSpans, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
+            await _context.OnReferencesFoundAsync(
+                IAsyncEnumerableExtensions.SingletonAsync(new SourceReferenceItem(_definition, documentSpan, classifiedSpans, SymbolUsageInfo.None)), cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -51,7 +50,8 @@ internal abstract partial class AbstractFindUsagesService
     /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
     /// </summary>
     private sealed class FindReferencesProgressAdapter(
-        Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, OptionsProvider<ClassificationOptions> classificationOptions) : IStreamingFindReferencesProgress
+        Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, OptionsProvider<ClassificationOptions> classificationOptions)
+        : IStreamingFindReferencesProgress
     {
         /// <summary>
         /// We will hear about definition symbols many times while performing FAR.  We'll
@@ -109,18 +109,26 @@ internal abstract partial class AbstractFindUsagesService
         public async ValueTask OnReferencesFoundAsync(
             ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
-            foreach (var (group, _, location) in references)
-            {
-                var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
-                var referenceItem = await location.TryCreateSourceReferenceItemAsync(
-                    classificationOptions,
-                    definitionItem,
-                    includeHiddenLocations: false,
-                    cancellationToken).ConfigureAwait(false);
+            await ProducerConsumer<SourceReferenceItem>.RunParallelAsync(
+                source: references,
+                produceItems: static async (tuple, callback, args, cancellationToken) =>
+                {
+                    var (group, _, location) = tuple;
+                    var (@this, context, classificationOptions) = args;
 
-                if (referenceItem != null)
-                    await context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
-            }
+                    var definitionItem = await @this.GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
+                    var sourceReferenceItem = await location.TryCreateSourceReferenceItemAsync(
+                        classificationOptions,
+                        definitionItem,
+                        includeHiddenLocations: false,
+                        cancellationToken).ConfigureAwait(false);
+                    if (sourceReferenceItem != null)
+                        callback(sourceReferenceItem);
+                },
+                consumeItems: static async (items, args, cancellationToken) =>
+                    await args.context.OnReferencesFoundAsync(items, cancellationToken).ConfigureAwait(false),
+                args: (@this: this, context, classificationOptions),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }
