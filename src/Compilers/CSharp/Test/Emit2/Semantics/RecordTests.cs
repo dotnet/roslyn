@@ -5282,7 +5282,7 @@ record C1(int I1)
     public int this[int i] => 0;
     public int PropertyWithoutGetter { set { } }
     public int P2 { get => 43; }
-    public ref int P3 { get => ref field; }
+    public ref int P3 { get => ref @field; }
     public event System.Action a;
 
     private int field1 = 100;
