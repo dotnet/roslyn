@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
 
             // multiple settings may share the same option (e.g. settings representing flags of an enum):
             var optionsForSettings = dataSnapshot.GroupBy(s => s.Key.Option).Select(g => g.Key).ToArray();
-            AssertEx.SetEqual(CSharpFormattingOptions2.AllOptions, optionsForSettings);
+            AssertEx.SetEqual(CSharpFormattingOptions2.EditorConfigOptions, optionsForSettings);
         }
 
         [Fact]
