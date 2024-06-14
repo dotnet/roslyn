@@ -242,6 +242,9 @@ internal sealed partial class SyntaxTreeIndex
         foreach (var attribute in attributes)
         {
             syntaxFacts.GetPartsOfAttribute(attribute, out var attributeName, out var argumentList);
+            if (argumentList is null)
+                continue;
+
             var arguments = syntaxFacts.GetArgumentsOfAttributeArgumentList(argumentList);
             if (arguments.Count != 2)
                 continue;

@@ -179,9 +179,6 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is DeclarationExpressionSyntax;
 
-    public bool IsAttributeName(SyntaxNode node)
-        => SyntaxFacts.IsAttributeName(node);
-
     public bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node)
         => node is ArgumentSyntax arg && arg.NameColon != null;
 
@@ -619,9 +616,6 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool IsUnsafeContext(SyntaxNode node)
         => node.IsUnsafeContext();
-
-    public SyntaxNode GetNameOfAttribute(SyntaxNode node)
-        => ((AttributeSyntax)node).Name;
 
     public bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node)
         => (node as IdentifierNameSyntax).IsAttributeNamedArgumentIdentifier();
@@ -1586,6 +1580,13 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         closeParenToken = argumentListNode.CloseParenToken;
     }
 
+    public void GetPartsOfAttribute(SyntaxNode node, out SyntaxNode name, out SyntaxNode? argumentList)
+    {
+        var attribute = (AttributeSyntax)node;
+        name = attribute.Name;
+        argumentList = attribute.ArgumentList;
+    }
+
     public void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer)
     {
         var objectCreationExpression = (BaseObjectCreationExpressionSyntax)node;
@@ -1747,6 +1748,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node)
         => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression) initExpr ? initExpr.Expressions : default;
+
+    public SyntaxToken GetTokenOfLiteralExpression(SyntaxNode node)
+        => ((LiteralExpressionSyntax)node).Token;
 
     #endregion
 }

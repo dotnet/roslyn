@@ -163,11 +163,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
-        Public Function IsAttributeName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeName
-            Return node.IsParentKind(SyntaxKind.Attribute) AndAlso
-                DirectCast(node.Parent, AttributeSyntax).Name Is node
-        End Function
-
         Public Function IsNameOfSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfSimpleMemberAccessExpression
             Dim vbNode = TryCast(node, ExpressionSyntax)
             Return vbNode IsNot Nothing AndAlso vbNode.IsSimpleMemberAccessExpressionName()
@@ -540,6 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             If castGenericName IsNot Nothing Then
                 Return castGenericName.TypeArgumentList.Arguments
             End If
+
             Return Nothing
         End Function
 
@@ -625,10 +621,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function IsUnsafeContext(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnsafeContext
             Return False
-        End Function
-
-        Public Function GetNameOfAttribute(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfAttribute
-            Return DirectCast(node, AttributeSyntax).Name
         End Function
 
         Public Function IsAttributeNamedArgumentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeNamedArgumentIdentifier
@@ -1818,6 +1810,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             closeParenToken = argumentList.CloseParenToken
         End Sub
 
+        Public Sub GetPartsOfAttribute(node As SyntaxNode, ByRef name As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAttribute
+            Dim attribute = DirectCast(node, AttributeSyntax)
+            name = attribute.Name
+            argumentList = attribute.ArgumentList
+        End Sub
+
         Public Sub GetPartsOfBaseObjectCreationExpression(node As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBaseObjectCreationExpression
             Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)
             argumentList = objectCreationExpression.ArgumentList
@@ -1969,6 +1967,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End If
 
             Return initializer.Initializer.Initializers
+        End Function
+
+        Public Function GetTokenOfLiteralExpression(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetTokenOfLiteralExpression
+            Return DirectCast(node, LiteralExpressionSyntax).Token
         End Function
 
 #End Region
