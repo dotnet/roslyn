@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// editorconfig options.
             /// </summary>
             internal readonly OptionsCollectionAlias options;
+            internal readonly OptionsCollectionAlias globalOptions;
             internal readonly TestHost testHost;
             internal readonly string workspaceKind;
             internal readonly object fixProviderData;
