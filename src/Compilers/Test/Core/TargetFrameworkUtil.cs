@@ -18,7 +18,6 @@ using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using System.Reflection;
 using System.Collections.Concurrent;
-using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {

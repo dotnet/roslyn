@@ -193,15 +193,13 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
-        var expectedDiagnostics = new[]
-        {
-            // (5,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.M<T>(Span<T>, T)' and 'E.M<T>(IEnumerable<T>, T)'
-            // arr.M('/');
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.M<T>(System.Span<T>, T)", "E.M<T>(System.Collections.Generic.IEnumerable<T>, T)").WithLocation(5, 5)
-        };
+        var expectedOutput = "1";
 
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -261,11 +259,13 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
+        // PROTOTYPE: Can we avoid this break?
+
         var expectedDiagnostics = new[]
         {
-            // (5,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.M<T>(Span<T>, T)' and 'E.M<T>(IEnumerable<T>, T)'
+            // (5,5): error CS1113: Extension method 'E.M<int>(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
             // E.R(arr.M);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "arr.M").WithArguments("E.M<T>(System.Span<T>, T)", "E.M<T>(System.Collections.Generic.IEnumerable<T>, T)").WithLocation(5, 5)
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "arr.M").WithArguments("E.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(5, 5)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -2345,6 +2345,87 @@ public class FirstClassSpanTests : CSharpTestBase
         verifier.VerifyIL("C.M", expectedIl);
     }
 
+    [Fact]
+    public void OverloadResolution_SpanVsIEnumerable()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            var a = new int[0];
+            C.M(a);
+
+            static class C
+            {
+                public static void M(Span<int> x) => Console.Write(1);
+                public static void M(IEnumerable<int> x) => Console.Write(2);
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Span<int>)' and 'C.M(IEnumerable<int>)'
+            // C.M(a);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Span<int>)", "C.M(System.Collections.Generic.IEnumerable<int>)").WithLocation(5, 3));
+
+        var expectedOutput = "1";
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsIEnumerable_CollectionExpression(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            C.M([]);
+
+            static class C
+            {
+                public static void M(Span<int> x) => Console.Write(1);
+                public static void M(IEnumerable<int> x) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsIEnumerable_Ctor()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            var a = new int[0];
+            var c = new C(a);
+
+            class C
+            {
+                public C(Span<int> x) => Console.Write(1);
+                public C(IEnumerable<int> x) => Console.Write(2);
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(Span<int>)' and 'C.C(IEnumerable<int>)'
+            // var c = new C(a);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C").WithArguments("C.C(System.Span<int>)", "C.C(System.Collections.Generic.IEnumerable<int>)").WithLocation(5, 13));
+
+        var expectedOutput = "1";
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
     [Theory, MemberData(nameof(LangVersions))]
     public void OverloadResolution_ReadOnlySpanVsArray_01(LanguageVersion langVersion)
     {
@@ -2391,8 +2472,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(5, 3));
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_ReadOnlySpanVsArray_03(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_03()
     {
         var source = """
             using System;
@@ -2410,8 +2491,16 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
             }
             """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
+
+        var expectedOutput = "ra rSystem.String[] ra ra ra";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2504,7 +2593,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilationWithSpan(source);
-        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ra rSystem.String[] ra ra ra").VerifyDiagnostics();
     }
 
     [Fact]
@@ -2566,21 +2655,17 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "oa").VerifyDiagnostics();
 
-        // PROTOTYPE: This break should go away with betterness rule.
+        var expectedOutput = "sa";
 
-        var expectedDiagnostics = new[]
-        {
-            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(object[])' and 'C.M(ReadOnlySpan<string>)'
-            // a.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(object[])", "C.M(System.ReadOnlySpan<string>)").WithLocation(4, 3)
-        };
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_03(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_03()
     {
         var source = """
             using System;
@@ -2594,8 +2679,16 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(this ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
             }
             """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+
+        var expectedOutput = "ra";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2637,8 +2730,8 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "112").VerifyDiagnostics();
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_SpanVsReadOnlySpan_02(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_02()
     {
         var source = """
             using System;
@@ -2655,8 +2748,16 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(ReadOnlySpan<object> arg) => Console.Write(2);
             }
             """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "1121").VerifyDiagnostics();
+
+        var expectedOutput = "1122";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2788,8 +2889,8 @@ public class FirstClassSpanTests : CSharpTestBase
         // PROTOTYPE: Should work in C# 13 when ROS->ROS conversion is implemented.
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan()
     {
         var source = """
             using System;
@@ -2817,8 +2918,16 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(IEnumerable<object> x) => Console.Write(" e" + x.First());
             }
             """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra ab rSystem.Object[] rb rb").VerifyDiagnostics();
+
+        var expectedOutput = "ra rSystem.String[] ra ra ra ab rSystem.Object[] rb rb";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2851,11 +2960,11 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilationWithSpan(source);
-        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra ab rSystem.Object[] rb rb").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ra rSystem.String[] ra ra ra ab rSystem.Object[] rb rb").VerifyDiagnostics();
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan_ExtensionMethodReceiver(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan_ExtensionMethodReceiver()
     {
         var source = """
             using System;
@@ -2876,7 +2985,15 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(this IEnumerable<object> x) => Console.Write(" e" + x.First());
             }
             """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "aa ab").VerifyDiagnostics();
+
+        var expectedOutput = "ra ab";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 }

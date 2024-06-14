@@ -1576,6 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(
                 new[] { sourceA, sourceB2 },
+                parseOptions: TestOptions.Regular12,
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 1.cs(5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.SpanDerived(Span<string>)' and 'Program.SpanDerived(object[])'
@@ -1584,6 +1585,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 1.cs(6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.ArrayDerived(Span<object>)' and 'Program.ArrayDerived(string[])'
                 //         ArrayDerived([string.Empty]); // ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigCall, "ArrayDerived").WithArguments("Program.ArrayDerived(System.Span<object>)", "Program.ArrayDerived(string[])").WithLocation(6, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // 1.cs(6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.ArrayDerived(Span<object>)' and 'Program.ArrayDerived(string[])'
+                //         ArrayDerived([string.Empty]); // ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "ArrayDerived").WithArguments("Program.ArrayDerived(System.Span<object>)", "Program.ArrayDerived(string[])").WithLocation(6, 9)
+            };
+
+            comp = CreateCompilation(
+                new[] { sourceA, sourceB2 },
+                parseOptions: TestOptions.RegularNext,
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(
+                new[] { sourceA, sourceB2 },
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69634")]

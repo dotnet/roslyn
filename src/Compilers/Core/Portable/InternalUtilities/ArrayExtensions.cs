@@ -26,12 +26,6 @@ namespace Roslyn.Utilities
             return newArray;
         }
 
-        public static int IndexOf<T>(this T[] array, T value)
-            => Array.IndexOf(array, value);
-
-        public static bool Contains<T>(this T[] array, T value)
-            => Array.IndexOf(array, value) >= 0;
-
         internal static T[] InsertAt<T>(this T[] array, int position, T item)
         {
             T[] newArray = new T[array.Length + 1];

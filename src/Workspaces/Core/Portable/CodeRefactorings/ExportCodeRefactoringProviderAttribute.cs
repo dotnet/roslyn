@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             missingSyntaxKinds.Add(SyntaxKind.SpreadElement);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            var options = new AnalyzerOptions([new TestAdditionalText()]);
+            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
@@ -99,7 +99,7 @@ public class C
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
-            var options = new AnalyzerOptions([new TestAdditionalText()]);
+            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
 
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
                 compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options));
@@ -111,7 +111,7 @@ public class C
             var text = new StringText(string.Empty, encodingOpt: null);
             AnalyzerOptions options = new AnalyzerOptions
             (
-                [new TestAdditionalText("myfilepath", text)]
+                new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
             );
 
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);

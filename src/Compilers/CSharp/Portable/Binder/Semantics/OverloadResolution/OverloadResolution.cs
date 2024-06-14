@@ -2767,6 +2767,16 @@ outerDefault:
                 return BetterResult.Neither;
             }
 
+            switch ((conv1.Kind, conv2.Kind))
+            {
+                case (ConversionKind.ImplicitSpan, ConversionKind.ImplicitSpan):
+                    break;
+                case (_, ConversionKind.ImplicitSpan):
+                    return BetterResult.Right;
+                case (ConversionKind.ImplicitSpan, _):
+                    return BetterResult.Left;
+            }
+
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
             //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
