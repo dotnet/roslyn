@@ -94,7 +94,7 @@ internal abstract partial class AbstractDefinitionLocationService(
                 ? string.Format(EditorFeaturesResources._0_declarations, symbolDisplayName)
                 : string.Format(EditorFeaturesResources._0_declarations_and_interceptors, symbolDisplayName);
 
-            var allDefinitions = regularDefinitions;
+            var allDefinitions = regularDefinitions.Concat(interceptorDefinitions);
             var location = await _streamingPresenter.GetStreamingLocationAsync(
                 _threadingContext, solution.Workspace, title, allDefinitions, cancellationToken).ConfigureAwait(false);
 
