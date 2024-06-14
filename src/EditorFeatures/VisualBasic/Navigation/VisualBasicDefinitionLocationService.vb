@@ -24,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Navigation
         End Sub
 
         Protected Overrides Function GetInterceptorSymbolAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of ISymbol)
+            ' Visual Basic does not have interceptors
             Return SpecializedTasks.Null(Of ISymbol)
         End Function
     End Class
