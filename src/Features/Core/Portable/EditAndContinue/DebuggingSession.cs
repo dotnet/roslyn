@@ -518,6 +518,9 @@ internal sealed class DebuggingSession : IDisposable
 
         var updateId = new UpdateId(Id, Interlocked.Increment(ref _updateOrdinal));
 
+        // Make sure the solution snapshot has all source-generated documents up-to-date.
+        solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
+
         var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, updateId, cancellationToken).ConfigureAwait(false);
 
         solutionUpdate.Log(EditAndContinueService.Log, updateId);
