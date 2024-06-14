@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Navigation
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Navigation
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Text
@@ -61,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Next
 
                 expectedLocations.Sort()
-
 
                 Dim expectedPresenterLocations = workspace.Documents.
                     Where(Function(d) d.AnnotatedSpans.ContainsKey("PresenterLocation")).
@@ -133,7 +131,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                     Assert.Null(mockDocumentNavigationService._documentId)
                     Assert.False(presenterCalled)
                 End If
-
             End Using
         End Function
     End Class
