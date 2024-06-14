@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -56,5 +58,16 @@ internal sealed partial class SyntaxTreeIndex
         }
 
         return result.ToImmutableAndClear();
+    }
+
+    public bool TryGetInterceptsLocation(InterceptsLocationData data, out TextSpan span)
+    {
+        if (_interceptsLocationInfo == null)
+        {
+            span = default;
+            return false;
+        }
+
+        return _interceptsLocationInfo.TryGetValue(data, out span);
     }
 }
