@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.InterpolatedStringHandler:
                 case ConversionKind.InlineArray:
                 case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
                     isTrivial = true;
                     break;
 
@@ -296,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion FunctionType => new Conversion(ConversionKind.FunctionType);
         internal static Conversion InlineArray => new Conversion(ConversionKind.InlineArray);
         internal static Conversion ImplicitSpan => new Conversion(ConversionKind.ImplicitSpan);
+        internal static Conversion ExplicitSpan => new Conversion(ConversionKind.ExplicitSpan);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -831,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return Kind == ConversionKind.ImplicitSpan;
+                return Kind is ConversionKind.ImplicitSpan or ConversionKind.ExplicitSpan;
             }
         }
 
