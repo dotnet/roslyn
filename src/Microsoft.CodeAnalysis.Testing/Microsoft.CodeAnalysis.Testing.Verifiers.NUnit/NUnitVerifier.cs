@@ -11,6 +11,7 @@ using NUnit.Framework;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class NUnitVerifier : IVerifier
     {
         public NUnitVerifier()

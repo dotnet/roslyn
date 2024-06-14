@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class XUnitVerifier : IVerifier
     {
         public XUnitVerifier()

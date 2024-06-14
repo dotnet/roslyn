@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
     [TestClass]
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class MSTestVerifierTests
     {
         [TestMethod]

@@ -8,6 +8,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class XUnitVerifierTests
     {
         [Fact]

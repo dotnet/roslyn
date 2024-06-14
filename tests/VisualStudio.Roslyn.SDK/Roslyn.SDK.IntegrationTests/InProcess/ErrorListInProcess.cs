@@ -26,10 +26,16 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
+            ((IVsErrorList)errorList).BringToFront();
+
             errorList.AreBuildErrorSourceEntriesShown = true;
+
+            // Set AreOtherErrorSourceEntriesShown to true before setting it to false, otherwise build diagnostics
+            // never appear in the error list.
+            errorList.AreOtherErrorSourceEntriesShown = true;
             errorList.AreOtherErrorSourceEntriesShown = false;
             errorList.AreErrorsShown = true;
-            errorList.AreMessagesShown = true;
+            errorList.AreMessagesShown = false;
             errorList.AreWarningsShown = false;
         }
 

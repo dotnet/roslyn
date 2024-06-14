@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CSharp.Testing
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Testing
-Imports Microsoft.CodeAnalysis.Testing.Verifiers
 
 Partial Public NotInheritable Class CSharpCodeFixVerifier(Of TAnalyzer As {DiagnosticAnalyzer, New}, TCodeFix As {CodeFixProvider, New})
 
@@ -14,17 +13,17 @@ Partial Public NotInheritable Class CSharpCodeFixVerifier(Of TAnalyzer As {Diagn
 
     ''' <inheritdoc cref="CodeFixVerifier(Of TAnalyzer, TCodeFix, TTest, TVerifier).Diagnostic()"/>
     Public Shared Function Diagnostic() As DiagnosticResult
-        Return CSharpCodeFixVerifier(Of TAnalyzer, TCodeFix, MSTestVerifier).Diagnostic()
+        Return CSharpCodeFixVerifier(Of TAnalyzer, TCodeFix, DefaultVerifier).Diagnostic()
     End Function
 
     ''' <inheritdoc cref="CodeFixVerifier(Of TAnalyzer, TCodeFix, TTest, TVerifier).Diagnostic(String)"/>
     Public Shared Function Diagnostic(diagnosticId As String) As DiagnosticResult
-        Return CSharpCodeFixVerifier(Of TAnalyzer, TCodeFix, MSTestVerifier).Diagnostic(diagnosticId)
+        Return CSharpCodeFixVerifier(Of TAnalyzer, TCodeFix, DefaultVerifier).Diagnostic(diagnosticId)
     End Function
 
     ''' <inheritdoc cref="CodeFixVerifier(Of TAnalyzer, TCodeFix, TTest, TVerifier).Diagnostic(DiagnosticDescriptor)"/>
     Public Shared Function Diagnostic(descriptor As DiagnosticDescriptor) As DiagnosticResult
-        Return CSharpCodeFixVerifier(Of TAnalyzer, TCodeFix, MSTestVerifier).Diagnostic(descriptor)
+        Return CSharpCodeFixVerifier(Of TAnalyzer, TCodeFix, DefaultVerifier).Diagnostic(descriptor)
     End Function
 
     ''' <inheritdoc cref="CodeFixVerifier(Of TAnalyzer, TCodeFix, TTest, TVerifier).VerifyAnalyzerAsync(String, DiagnosticResult())"/>

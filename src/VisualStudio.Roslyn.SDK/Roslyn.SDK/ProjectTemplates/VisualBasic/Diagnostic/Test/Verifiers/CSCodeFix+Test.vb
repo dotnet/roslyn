@@ -1,11 +1,11 @@
 ﻿Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CSharp.Testing
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Testing.Verifiers
+Imports Microsoft.CodeAnalysis.Testing
 
 Partial Public NotInheritable Class CSharpCodeFixVerifier(Of TAnalyzer As {DiagnosticAnalyzer, New}, TCodeFix As {CodeFixProvider, New})
     Public Class Test
-        Inherits CSharpCodeFixTest(Of TAnalyzer, TCodeFix, MSTestVerifier)
+        Inherits CSharpCodeFixTest(Of TAnalyzer, TCodeFix, DefaultVerifier)
 
         Public Sub New()
             SolutionTransforms.Add(

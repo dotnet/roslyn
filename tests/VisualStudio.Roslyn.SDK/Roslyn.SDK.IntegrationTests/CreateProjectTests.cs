@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class CreateProjectTests : AbstractIntegrationTest
     {
-        private static readonly XUnitVerifier s_verifier = new XUnitVerifier();
+        private static readonly DefaultVerifier s_verifier = new DefaultVerifier();
 
         [IdeFact]
         public async Task CreateFromTemplateAsync()
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Verify that intentional errors get validated by the test
             var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
-            var expected = "(Compiler) Class1.cs(1, 13): error CS1002: ; expected";
+            var expected = "(Csc) Class1.cs(1, 13): error CS1002: ; expected";
             s_verifier.EqualOrDiff(expected, string.Join(Environment.NewLine, errors));
             Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
         }
