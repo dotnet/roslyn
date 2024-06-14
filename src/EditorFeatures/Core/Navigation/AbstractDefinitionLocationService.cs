@@ -206,7 +206,7 @@ internal abstract partial class AbstractDefinitionLocationService(
 
                 var definitionItem = method.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
-                var referenceItems = new List<SourceReferenceItem>();
+                var referenceItems = new List<SourceReferenceItem>(capacity: documentSpans.Count);
                 var classificationOptions = ClassificationOptions.Default with { ClassifyObsoleteSymbols = false };
                 foreach (var documentSpan in documentSpans)
                 {
