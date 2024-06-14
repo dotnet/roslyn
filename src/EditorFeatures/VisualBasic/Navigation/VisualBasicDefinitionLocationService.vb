@@ -4,10 +4,12 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Navigation
     <ExportLanguageService(GetType(IDefinitionLocationService), LanguageNames.VisualBasic), [Shared]>
@@ -20,5 +22,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Navigation
                        streamingPresenter As IStreamingFindUsagesPresenter)
             MyBase.New(threadingContext, streamingPresenter)
         End Sub
+
+        Protected Overrides Function GetInterceptorSymbolAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of ISymbol)
+            Return SpecializedTasks.Null(Of ISymbol)
+        End Function
     End Class
 End Namespace

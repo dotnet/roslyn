@@ -2,17 +2,77 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Navigation;
 
 [ExportLanguageService(typeof(IDefinitionLocationService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class CSharpDefinitionLocationService(IThreadingContext threadingContext, IStreamingFindUsagesPresenter streamingPresenter)
-    : AbstractDefinitionLocationService(threadingContext, streamingPresenter);
+internal class CSharpDefinitionLocationService(
+    IThreadingContext threadingContext,
+    IStreamingFindUsagesPresenter streamingPresenter)
+    : AbstractDefinitionLocationService(threadingContext, streamingPresenter)
+{
+    protected override async Task<ISymbol?> GetInterceptorSymbolAsync(
+        Document document,
+        TextSpan span,
+        CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (span.Start < root.FullWidth())
+        {
+            var token = root.FindToken(span.Start);
+            if (token.IsKind(SyntaxKind.IdentifierToken) &&
+                token.Parent is SimpleNameSyntax simpleName)
+            {
+                var expression = simpleName.Parent switch
+                {
+                    MemberAccessExpressionSyntax memberAccess when memberAccess.Name == simpleName => memberAccess,
+                    MemberBindingExpressionSyntax memberBinding when memberBinding.Name == simpleName => memberBinding,
+                    _ => (ExpressionSyntax)simpleName,
+                };
+
+                if (expression.Parent is InvocationExpressionSyntax invocationExpression)
+                    return GetInterceptorSymbolAsync(document, invocationExpression, cancellationToken);
+            }
+        }
+
+        return null;
+    }
+
+    private async Task<ISymbol?> GetInterceptorSymbolAsync(
+        Document document,
+        InvocationExpressionSyntax invocationExpression,
+        CancellationToken cancellationToken)
+    {
+        var contentHash = await document.GetContentHashAsync(cancellationToken).ConfigureAwait(false);
+        var position = invocationExpression.FullSpan.Start;
+
+        await foreach (var siblingDoc in document.Project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
+        {
+            var syntaxIndex = await siblingDoc.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxIndex.ContainsAttribute &&
+                syntaxIndex.ProbablyContainsIdentifier("InterceptsLocationAttribute"))
+            {
+                var topLevelIndex = await TopLevelSyntaxTreeIndex.GetIndexAsync(siblingDoc, cancellationToken).ConfigureAwait(false);
+                if (topLevelIndex.ContainsInterceptor(contentHash, position))
+                    return await siblingDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
+                        .GetDeclaredSymbolAsync(invocationExpression.Expression, cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+}

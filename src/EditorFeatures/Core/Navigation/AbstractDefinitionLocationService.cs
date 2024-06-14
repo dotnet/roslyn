@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
@@ -25,6 +25,9 @@ internal abstract partial class AbstractDefinitionLocationService(
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
+
+    protected abstract Task<ISymbol?> GetInterceptorSymbolAsync(
+        Document document, TextSpan span, CancellationToken cancellationToken);
 
     private static Task<INavigableLocation?> GetNavigableLocationAsync(
         Document document, int position, CancellationToken cancellationToken)
@@ -87,7 +90,7 @@ internal abstract partial class AbstractDefinitionLocationService(
             var solution = project.Solution;
             var regularDefinitions = await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
                 symbol, solution, isThirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
-            var interceptorDefinitions = ImmutableArray<DefinitionItem>.Empty;
+            var interceptorDefinitions = await GetInterceptorDefinitionsAsync().ConfigureAwait(false);
 
             var symbolDisplayName = FindUsagesHelpers.GetDisplayName(symbol);
             var title = interceptorDefinitions.Length == 0
@@ -102,6 +105,14 @@ internal abstract partial class AbstractDefinitionLocationService(
                 return null;
 
             return new DefinitionLocation(location, new DocumentSpan(document, span));
+        }
+
+        async ValueTask<ImmutableArray<DefinitionItem>> GetInterceptorDefinitionsAsync(
+            Solution solution, Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var interceptorSymbol = await GetInterceptorSymbolAsync(document, span, cancellationToken).ConfigureAwait(false);
+            return await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                interceptorSymbol, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false);
         }
     }
 

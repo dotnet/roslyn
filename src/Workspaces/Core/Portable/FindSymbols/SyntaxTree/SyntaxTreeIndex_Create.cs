@@ -67,6 +67,7 @@ internal sealed partial class SyntaxTreeIndex
             var containsConversion = false;
             var containsGlobalKeyword = false;
             var containsCollectionInitializer = false;
+            var containsAttribute = false;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -97,6 +98,7 @@ internal sealed partial class SyntaxTreeIndex
                         containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                         containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
+                        containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
 
                         TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                     }
@@ -185,7 +187,8 @@ internal sealed partial class SyntaxTreeIndex
                     containsGlobalSuppressMessageAttribute,
                     containsConversion,
                     containsGlobalKeyword,
-                    containsCollectionInitializer),
+                    containsCollectionInitializer,
+                    containsAttribute),
                 globalAliasInfo);
         }
         finally
