@@ -52,6 +52,8 @@ internal sealed partial class SyntaxTreeIndex
         HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
         Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationInfo = null;
 
+        var isCSharp = project.Language == LanguageNames.CSharp;
+
         try
         {
             var containsForEachStatement = false;
@@ -103,8 +105,11 @@ internal sealed partial class SyntaxTreeIndex
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
 
-                        TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
-                        TryAddInterceptsLocationInfo(syntaxFacts, ref interceptsLocationInfo, node);
+                        if (isCSharp)
+                        {
+                            TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
+                            TryAddInterceptsLocationInfo(syntaxFacts, ref interceptsLocationInfo, node);
+                        }
                     }
                     else
                     {
@@ -235,53 +240,56 @@ internal sealed partial class SyntaxTreeIndex
         if (!syntaxFacts.IsMethodDeclaration(node))
             return;
 
-        var attributes = syntaxFacts.GetAttributeLists(node);
-        if (attributes.Count == 0)
+        var attributeLists = syntaxFacts.GetAttributeLists(node);
+        if (attributeLists.Count == 0)
             return;
 
-        foreach (var attribute in attributes)
+        foreach (var attributeList in attributeLists)
         {
-            syntaxFacts.GetPartsOfAttribute(attribute, out var attributeName, out var argumentList);
-            if (argumentList is null)
-                continue;
-
-            var arguments = syntaxFacts.GetArgumentsOfAttributeArgumentList(argumentList);
-            if (arguments.Count != 2)
-                continue;
-
-            var versionArg = arguments[0];
-            var dataArg = arguments[1];
-
-            if (!syntaxFacts.IsNumericLiteralExpression(versionArg) || !syntaxFacts.IsStringLiteralExpression(dataArg))
-                continue;
-
-            var numericToken = syntaxFacts.GetTokenOfLiteralExpression(versionArg);
-            if (numericToken.Value is not int version)
-                continue;
-
-            var dataToken = syntaxFacts.GetTokenOfLiteralExpression(dataArg);
-            if (dataToken.Value is not string data)
-                continue;
-
-            if (syntaxFacts.IsQualifiedName(attributeName))
+            foreach (var attribute in syntaxFacts.GetAttributesOfAttributeList(attributeList))
             {
-                syntaxFacts.GetPartsOfQualifiedName(attributeName, out _, out _, out var right);
-                attributeName = right;
+                syntaxFacts.GetPartsOfAttribute(attribute, out var attributeName, out var argumentList);
+                if (argumentList is null)
+                    continue;
+
+                var arguments = syntaxFacts.GetArgumentsOfAttributeArgumentList(argumentList);
+                if (arguments.Count != 2)
+                    continue;
+
+                var versionArg = syntaxFacts.GetExpressionOfAttributeArgument(arguments[0]);
+                var dataArg = syntaxFacts.GetExpressionOfAttributeArgument(arguments[1]);
+
+                if (!syntaxFacts.IsNumericLiteralExpression(versionArg) || !syntaxFacts.IsStringLiteralExpression(dataArg))
+                    continue;
+
+                var numericToken = syntaxFacts.GetTokenOfLiteralExpression(versionArg);
+                if (numericToken.Value is not int version)
+                    continue;
+
+                var dataToken = syntaxFacts.GetTokenOfLiteralExpression(dataArg);
+                if (dataToken.Value is not string data)
+                    continue;
+
+                if (syntaxFacts.IsQualifiedName(attributeName))
+                {
+                    syntaxFacts.GetPartsOfQualifiedName(attributeName, out _, out _, out var right);
+                    attributeName = right;
+                }
+
+                if (!syntaxFacts.IsIdentifierName(attributeName))
+                    continue;
+
+                var identifier = syntaxFacts.GetIdentifierOfIdentifierName(attributeName);
+                var identifierName = identifier.ValueText;
+                if (identifierName is not "InterceptsLocationAttribute")
+                    continue;
+
+                if (!InterceptsLocationUtilities.TryGetInterceptsLocationData(version, data, out var interceptsLocationData))
+                    continue;
+
+                interceptsLocationInfo ??= new();
+                interceptsLocationInfo[interceptsLocationData] = node.FullSpan;
             }
-
-            if (!syntaxFacts.IsIdentifierName(attributeName))
-                continue;
-
-            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(attributeName);
-            var identifierName = identifier.ValueText;
-            if (identifierName is not "InterceptsLocationAttribute")
-                continue;
-
-            if (!InterceptsLocationUtilities.TryGetInterceptsLocationData(version, data, out var interceptsLocationData))
-                continue;
-
-            interceptsLocationInfo ??= new();
-            interceptsLocationInfo[interceptsLocationData] = node.FullSpan;
         }
     }
 

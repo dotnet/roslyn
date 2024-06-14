@@ -1939,6 +1939,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Function
 
+        Public Function GetAttributesOfAttributeList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetAttributesOfAttributeList
+            Return DirectCast(node, AttributeListSyntax).Attributes
+        End Function
+
         Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfAwaitExpression
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function

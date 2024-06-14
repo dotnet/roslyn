@@ -4021,14 +4021,14 @@ class C
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document FilePath="C.cs"><%= firstFileContents %></Document>
-        <DocumentFromSourceGeneratorElementName FilePath="Generated.cs">
+        <DocumentFromSourceGenerator FilePath="Generated.cs">
 public partial class Program
 {
     <%= attributeText %>public void [|<%= methodName %>|]()
     {
     }
 }
-        </DocumentFromSourceGeneratorElementName>
+        </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
 

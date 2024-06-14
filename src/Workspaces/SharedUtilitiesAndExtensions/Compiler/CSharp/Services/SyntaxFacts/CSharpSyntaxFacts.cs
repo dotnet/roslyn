@@ -1734,6 +1734,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public SyntaxNode GetArgumentListOfImplicitElementAccess(SyntaxNode node)
         => ((ImplicitElementAccessSyntax)node).ArgumentList;
 
+    public SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node)
+        => ((AttributeListSyntax)node).Attributes;
+
     public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
         => ((AwaitExpressionSyntax)node).Expression;
 
