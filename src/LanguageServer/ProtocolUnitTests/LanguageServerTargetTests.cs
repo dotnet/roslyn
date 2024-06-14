@@ -52,8 +52,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Theory, CombinatorialData]
-        public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync(bool mutatingLspWorkspace)
+        public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync(bool mutatingLspWorkspace, [CombinatorialRange(0, 200)] int iteration)
         {
+            _ = iteration;
             await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
             AssertServerAlive(server);
 

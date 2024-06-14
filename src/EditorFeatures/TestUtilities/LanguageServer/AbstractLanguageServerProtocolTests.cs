@@ -710,8 +710,8 @@ namespace Roslyn.Test.Utilities
             {
                 var queueAccessor = GetQueueAccessor()!.Value;
                 await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
-                Assert.True(GetServerAccessor().HasShutdownStarted());
-                Assert.True(queueAccessor.IsComplete());
+                Assert.True(GetServerAccessor().HasShutdownStarted(), "Unexpected shutdown not started");
+                Assert.True(queueAccessor.IsComplete(), "Unexpected queue not complete");
             }
 
             internal async Task WaitForDiagnosticsAsync()
