@@ -247,13 +247,12 @@ internal abstract partial class AbstractDefinitionLocationService(
 
     private static async Task<Dictionary<ImmutableArray<byte>, DocumentId>> ComputeContentHashToDocumentMapAsync(ProjectState projectState, CancellationToken cancellationToken)
     {
-        var result = new Dictionary<ImmutableArray<byte>, DocumentId>(ByteArrayComparer.Instance);
+        var result = new Dictionary<ImmutableArray<byte>, DocumentId>(ImmutableArrayComparer<byte>.Instance);
 
         foreach (var (documentId, documentState) in projectState.DocumentStates.States)
         {
-            var text = await documentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var checksum = text.GetContentHash();
-            result[checksum] = documentId;
+            var contentHash = await documentState.GetContentHashAsync(cancellationToken).ConfigureAwait(false);
+            result[contentHash] = documentId;
         }
 
         return result;
