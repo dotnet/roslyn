@@ -395,8 +395,8 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         await testLspServer.InsertTextAsync(documentUri, (0, 0, "A"));
 
         // Assert that we don't crash when sending an old request to a new document
-        var firstDocumentResult2 = await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, firstCodeLens, CancellationToken.None);
-        Assert.NotNull(firstDocumentResult2?.Command?.Title);
+        var firstDocumentResult2 = Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, firstCodeLens, CancellationToken.None));
+        Assert.False(testLspServer.GetServerAccessor().HasShutdownStarted());
     }
 
     [Theory, CombinatorialData]
