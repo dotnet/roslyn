@@ -35,18 +35,21 @@
     <PackageVersion Include="Microsoft.Build" Version="17.3.4" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.4" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.4" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true' and '$(TargetFramework)' != 'net472'">
     <PackageVersion Include="Microsoft.Build" Version="17.7.2" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.7.2" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.7.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true' and '$(TargetFramework)' == 'net472'">
     <PackageVersion Include="Microsoft.Build" Version="17.10.4" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.10.4" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.10.4" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.10.4" />
   </ItemGroup>
 
   <ItemGroup>

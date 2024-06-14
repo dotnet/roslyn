@@ -28,6 +28,7 @@
     <PackageReference Include="Microsoft.Build" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.4" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Collections.Immutable" />
