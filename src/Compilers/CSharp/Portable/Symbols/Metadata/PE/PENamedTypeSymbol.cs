@@ -700,6 +700,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             uncommon.lazyIsExplicitExtension = isExplicit.ToThreeState();
             Interlocked.CompareExchange(ref uncommon.lazyDeclaredExtensionUnderlyingType, underlyingType, null);
         }
+
+        internal sealed override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            Debug.Assert(member.ContainingSymbol == (object)this);
+
+            if (member.ContainingSymbol != (object)this || member.IsStatic)
+            {
+                return null;
+            }
+
+            switch (member)
+            {
+                case PEExtensionInstanceMethodSymbol method:
+                    return method.UnderlyingMethod;
+
+                case PEExtensionInstancePropertySymbol property:
+                    return property.UnderlyingProperty;
+
+                case PEExtensionInstanceEventSymbol @event:
+                    return @event.UnderlyingEvent;
+
+                default:
+                    return null;
+            }
+        }
 #nullable disable
 
         // Record structs get erased when emitted to metadata
@@ -1063,9 +1089,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 // If there are any non-event fields, they are at the very beginning.
-                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers().WhereAsArray(m => !(m is TupleErrorFieldSymbol)), SymbolKind.Field, offset: 0);
+                IEnumerable<FieldSymbol> nonEventFields = GetMembersToEmit<FieldSymbol>(this.GetMembers().WhereAsArray(m => !(m is TupleErrorFieldSymbol)), SymbolKind.Field, offset: 0);
 
-                // Event backing fields are not part of the set returned by GetMembers. Let's add them manually.
+                // Event backing fields are not part of the set returned by GetMembersToEmit. Let's add them manually.
                 ArrayBuilder<FieldSymbol> eventFields = null;
 
                 foreach (var eventSymbol in GetEventsToEmit())
@@ -1152,12 +1178,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // Don't emit the default value type constructor - the runtime handles that.
                     if (!method.IsDefaultValueTypeConstructor())
                     {
-                        yield return method;
+                        yield return (MethodSymbol)TryGetCorrespondingStaticMetadataExtensionMember(method) ?? method;
                     }
                 }
             }
             else
             {
+                // PROTOTYPE(roles): Do we need to translate extension members in this branch or there is a guarantee that an interface won't be considered as a valid extension type?
+
                 // We do not create symbols for v-table gap methods, let's figure out where the gaps go.
 
                 if (index >= members.Length || members[index].Kind != SymbolKind.Method)
@@ -1228,12 +1256,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override IEnumerable<PropertySymbol> GetPropertiesToEmit()
         {
-            return GetMembers<PropertySymbol>(this.GetMembers(), SymbolKind.Property);
+            return GetMembersToEmit<PropertySymbol>(this.GetMembers(), SymbolKind.Property);
         }
 
         internal override IEnumerable<EventSymbol> GetEventsToEmit()
         {
-            return GetMembers<EventSymbol>(this.GetMembers(), SymbolKind.Event);
+            return GetMembersToEmit<EventSymbol>(this.GetMembers(), SymbolKind.Event);
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
@@ -1412,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     // Create a dictionary of method symbols indexed by metadata handle
                     // (to allow efficient lookup when matching property accessors).
-                    PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol = this.CreateMethods(nonFieldMembers);
+                    PooledDictionary<MethodDefinitionHandle, (PEMethodSymbol, PEExtensionInstanceMethodSymbol)> methodHandleToSymbol = this.CreateMethods(nonFieldMembers);
 
                     // PROTOTYPE revisit when handling constructors
                     if (this.TypeKind == TypeKind.Struct)
@@ -2302,16 +2330,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return privateFieldNameToSymbols;
         }
 
-        private PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members)
+        private PooledDictionary<MethodDefinitionHandle, (PEMethodSymbol, PEExtensionInstanceMethodSymbol)> CreateMethods(ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
-            var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
+            var map = PooledDictionary<MethodDefinitionHandle, (PEMethodSymbol, PEExtensionInstanceMethodSymbol)>.GetInstance();
 
             // PROTOTYPE are extensions embeddable?
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
             var extensionMarkerMethod = TryGetExtensionInfo().MarkerMethod;
+            TypeSymbol extendedType = GetDeclaredExtensionUnderlyingType();
 
             try
             {
@@ -2325,8 +2354,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
                         var method = new PEMethodSymbol(moduleSymbol, this, methodHandle);
-                        members.Add(method);
-                        map.Add(methodHandle, method);
+                        PEExtensionInstanceMethodSymbol extensionInstanceMethod = null;
+
+                        // If this check causes a perf problem, we could optimize it.
+                        if (extendedType is not null && method.IsStatic && method.ParameterCount > 0 &&
+                            IsSynthesizedExtensionThisParameter(extendedType, method.Parameters[0]) &&
+                            method.MethodKind is not MethodKind.Constructor)
+                        {
+                            extensionInstanceMethod = new PEExtensionInstanceMethodSymbol(method);
+                            members.Add(extensionInstanceMethod);
+                        }
+                        else
+                        {
+                            members.Add(method);
+                        }
+
+                        map.Add(methodHandle, (method, extensionInstanceMethod));
                     }
                 }
             }
@@ -2336,25 +2379,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return map;
         }
 
-        private void CreateProperties(Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members)
+        internal static bool IsSynthesizedExtensionThisParameter(TypeSymbol extendedType, ParameterSymbol parameter)
+        {
+            return parameter.Type.Equals(extendedType, TypeCompareKind.AllIgnoreOptions) &&
+                   parameter.TypeWithAnnotations.CustomModifiers.All(static (modifier) => modifier.IsOptional) &&
+                   parameter.TypeWithAnnotations.CustomModifiers.Any(
+                       static (modifier) => SourceAttributeData.IsTargetAttribute(
+                                                ((CSharpCustomModifier)modifier).ModifierSymbol,
+                                                AttributeDescription.CaseSensitiveExtensionAttribute.Namespace,
+                                                AttributeDescription.CaseSensitiveExtensionAttribute.Name));
+        }
+
+        private void CreateProperties(Dictionary<MethodDefinitionHandle, (PEMethodSymbol, PEExtensionInstanceMethodSymbol)> methodHandleToSymbol, ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
             try
             {
+                TypeSymbol extendedType = GetDeclaredExtensionUnderlyingType();
+
                 foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(_handle))
                 {
                     try
                     {
                         var methods = module.GetPropertyMethodsOrThrow(propertyDef);
 
-                        PEMethodSymbol getMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Getter);
-                        PEMethodSymbol setMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Setter);
+                        (PEMethodSymbol getMethod, PEExtensionInstanceMethodSymbol extensionGet) = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Getter);
+                        (PEMethodSymbol setMethod, PEExtensionInstanceMethodSymbol extensionSet) = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Setter);
 
                         if (((object)getMethod != null) || ((object)setMethod != null))
                         {
-                            members.Add(PEPropertySymbol.Create(moduleSymbol, this, propertyDef, getMethod, setMethod));
+                            PEPropertySymbol property = PEPropertySymbol.Create(moduleSymbol, this, propertyDef, getMethod, extensionGet, setMethod, extensionSet);
+
+                            // If this check causes a perf problem, we could optimize it.
+                            if (extendedType is not null && property.IsStatic && property.ParameterCount > 0 &&
+                                IsSynthesizedExtensionThisParameter(extendedType, property.Parameters[0]))
+                            {
+                                var extensionProperty = new PEExtensionInstancePropertySymbol(property, extensionGet, extensionSet);
+
+                                if (getMethod?.AssociatedSymbol is not null)
+                                {
+                                    extensionGet?.SetAssociatedProperty(extensionProperty);
+                                }
+
+                                if (setMethod?.AssociatedSymbol is not null)
+                                {
+                                    extensionSet?.SetAssociatedProperty(extensionProperty);
+                                }
+
+                                members.Add(extensionProperty);
+                            }
+                            else
+                            {
+                                members.Add(property);
+                            }
                         }
                     }
                     catch (BadImageFormatException)
@@ -2367,7 +2446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void CreateEvents(
             MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols,
-            Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol,
+            Dictionary<MethodDefinitionHandle, (PEMethodSymbol, PEExtensionInstanceMethodSymbol)> methodHandleToSymbol,
             ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
@@ -2382,14 +2461,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var methods = module.GetEventMethodsOrThrow(eventRid);
 
                         // NOTE: C# ignores all other accessors (most notably, raise/fire).
-                        PEMethodSymbol addMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Adder);
-                        PEMethodSymbol removeMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Remover);
+                        (PEMethodSymbol addMethod, PEExtensionInstanceMethodSymbol extensionAdd) = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Adder);
+                        (PEMethodSymbol removeMethod, PEExtensionInstanceMethodSymbol extensionRemove) = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Remover);
 
                         // NOTE: both accessors are required, but that will be reported separately.
                         // Create the symbol unless both accessors are missing.
                         if (((object)addMethod != null) || ((object)removeMethod != null))
                         {
-                            members.Add(new PEEventSymbol(moduleSymbol, this, eventRid, addMethod, removeMethod, privateFieldNameToSymbols));
+                            PEEventSymbol @event = new PEEventSymbol(moduleSymbol, this, eventRid, addMethod, extensionAdd, removeMethod, extensionRemove, privateFieldNameToSymbols);
+
+                            if (((object)extensionAdd != null) || ((object)extensionRemove != null))
+                            {
+                                var extensionEvent = new PEExtensionInstanceEventSymbol(@event, extensionAdd, extensionRemove);
+
+                                if (addMethod?.AssociatedSymbol is not null)
+                                {
+                                    extensionAdd?.SetAssociatedEvent(extensionEvent);
+                                }
+
+                                if (removeMethod?.AssociatedSymbol is not null)
+                                {
+                                    extensionRemove?.SetAssociatedEvent(extensionEvent);
+                                }
+
+                                members.Add(extensionEvent);
+                            }
+                            else
+                            {
+                                members.Add(@event);
+                            }
                         }
                     }
                     catch (BadImageFormatException)
@@ -2400,14 +2500,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             { }
         }
 
-        private PEMethodSymbol GetAccessorMethod(PEModule module, Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef)
+        private (PEMethodSymbol, PEExtensionInstanceMethodSymbol) GetAccessorMethod(PEModule module, Dictionary<MethodDefinitionHandle, (PEMethodSymbol, PEExtensionInstanceMethodSymbol)> methodHandleToSymbol, TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef)
         {
             if (methodDef.IsNil)
             {
-                return null;
+                return default;
             }
 
-            PEMethodSymbol method;
+            (PEMethodSymbol, PEExtensionInstanceMethodSymbol) method;
             bool found = methodHandleToSymbol.TryGetValue(methodDef, out method);
             Debug.Assert(found || !module.ShouldImportMethod(typeDef, methodDef, this.ContainingPEModule.ImportOptions));
             return method;
@@ -2793,7 +2893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Returns all members of the specific kind, starting at the optional offset.
         /// Members of the same kind are assumed to be contiguous.
         /// </summary>
-        private static IEnumerable<TSymbol> GetMembers<TSymbol>(ImmutableArray<Symbol> members, SymbolKind kind, int offset = -1)
+        private IEnumerable<TSymbol> GetMembersToEmit<TSymbol>(ImmutableArray<Symbol> members, SymbolKind kind, int offset = -1)
             where TSymbol : Symbol
         {
             if (offset < 0)
@@ -2808,7 +2908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     yield break;
                 }
-                yield return (TSymbol)member;
+                yield return (TSymbol)(TryGetCorrespondingStaticMetadataExtensionMember(member) ?? member);
             }
         }
 

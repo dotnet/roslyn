@@ -266,6 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+            else if (!IsStatic && ContainingType.IsExtension)
+            {
+                // PROTOTYPE(roles): Do we need to add similar check for properties and events or accessors come through here?
+                Binder.GetWellKnownType(DeclaringCompilation, WellKnownType.System_Runtime_CompilerServices_ExtensionAttribute, diagnostics, _location);
+            }
         }
 
         protected sealed override Location ReturnTypeLocation => GetSyntax().ReturnType.Location;

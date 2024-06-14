@@ -2366,10 +2366,10 @@ tryAgain:
         /// <param name="eventType">Type of the event containing the accessor.</param>
         /// <param name="methodParams">Signature of the accessor (return type and then parameters).</param>
         /// <returns>True if the accessor signature is appropriate for the containing event.</returns>
-        internal bool DoesSignatureMatchEvent(TypeSymbol eventType, ParamInfo<TypeSymbol>[] methodParams)
+        internal bool DoesSignatureMatchEvent(TypeSymbol eventType, ParamInfo<TypeSymbol>[] methodParams, bool isInstanceExtension)
         {
             // Check the number of parameters.
-            if (methodParams.Length != 2)
+            if (methodParams.Length != (isInstanceExtension ? 3 : 2))
             {
                 return false;
             }
@@ -2380,7 +2380,7 @@ tryAgain:
                 return false;
             }
 
-            var methodParam = methodParams[1];
+            var methodParam = methodParams[isInstanceExtension ? 2 : 1];
             return !methodParam.IsByRef && methodParam.Type.Equals(eventType);
         }
     }

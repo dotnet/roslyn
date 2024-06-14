@@ -492,6 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
 
+        internal sealed override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
+
         internal sealed override bool HasInlineArrayAttribute(out int length)
         {
             return _underlyingType.HasInlineArrayAttribute(out length);

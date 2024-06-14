@@ -179,6 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
 #nullable disable
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

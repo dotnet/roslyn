@@ -443,6 +443,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyDeclaredExtendedType;
         }
 
+        internal sealed override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            Debug.Assert(member.ContainingSymbol == (object)this);
+
+            if (member.ContainingSymbol != (object)this || member.IsStatic)
+            {
+                return null;
+            }
+
+            switch (member)
+            {
+                case RetargetingMethodSymbol method:
+
+                    if (UnderlyingNamedType.TryGetCorrespondingStaticMetadataExtensionMember(method.UnderlyingMethod) is MethodSymbol underlyingMetadataMethod)
+                    {
+                        return this.RetargetingTranslator.Retarget(underlyingMetadataMethod);
+                    }
+
+                    return null;
+
+                case RetargetingPropertySymbol property:
+                    if (UnderlyingNamedType.TryGetCorrespondingStaticMetadataExtensionMember(property.UnderlyingProperty) is PropertySymbol underlyingMetadataProperty)
+                    {
+                        return this.RetargetingTranslator.Retarget(underlyingMetadataProperty);
+                    }
+
+                    return null;
+
+                case RetargetingEventSymbol @event:
+                    if (UnderlyingNamedType.TryGetCorrespondingStaticMetadataExtensionMember(@event.UnderlyingEvent) is EventSymbol underlyingMetadataEvent)
+                    {
+                        return this.RetargetingTranslator.Retarget(underlyingMetadataEvent);
+                    }
+
+                    return null;
+
+                default:
+                    return null;
+            }
+        }
+
         private static NamedTypeSymbol MakeErrorType(TypeSymbol type)
         {
             // PROTOTYPE consider using a more specific diagnostic. Maybe ERR_MalformedExtensionInMetadata or "Extension type declaration is malformed"

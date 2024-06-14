@@ -773,6 +773,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         internal abstract TypeSymbol? GetDeclaredExtensionUnderlyingType();
+
+        /// <summary>
+        /// If this is an <see cref="OriginalDefinition"/> of an extension type and
+        /// <paramref name="member"/> is an instance extension member, return its corresponding
+        /// symbol from/for metadata. Return 'null' otherwise.  
+        /// </summary>
+        internal abstract Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member);
 #nullable disable
 
         public override int GetHashCode()

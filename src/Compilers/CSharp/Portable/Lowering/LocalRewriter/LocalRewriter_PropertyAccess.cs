@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? getMethodOpt = null,
             BoundPropertyAccess? oldNodeOpt = null)
         {
-            if (_inExpressionLambda && rewrittenArguments.IsEmpty)
+            if (_inExpressionLambda && rewrittenArguments.IsEmpty) // PROTOTYPE(roles): This and other similar places should be revisited.
             {
                 Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty);
                 return oldNodeOpt != null ?
@@ -94,13 +94,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
                 Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
 
-                return BoundCall.Synthesized(
+                // PROTOTYPE(roles): Adjust remaining call sites of BoundCall.Synthesized in the LocalRewriter to use MakeCall.
+                return MakeCall(
+                    node: null,
                     syntax,
                     rewrittenReceiver,
-                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     getMethod,
                     rewrittenArguments,
-                    argumentRefKindsOpt);
+                    argumentRefKindsOpt,
+                    LookupResultKind.Viable,
+                    ImmutableArray<LocalSymbol>.Empty).MakeCompilerGenerated();
             }
         }
     }

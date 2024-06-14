@@ -339,6 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved) => null;
 
         internal override TypeSymbol? GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
+
+        internal override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
+
 #nullable disable
         internal override bool IsInterpolatedStringHandlerType => false;
 

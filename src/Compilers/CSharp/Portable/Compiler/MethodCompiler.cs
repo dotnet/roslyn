@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var emittedBody = GenerateMethodBody(
                         moduleBeingBuilt,
                         synthesizedEntryPoint,
+                        methodBodySyntaxOpt: null,
                         methodOrdinal,
                         loweredBody,
                         ImmutableArray<EncLambdaInfo>.Empty,
@@ -775,9 +776,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
+                            var sourceMethod = method as SourceMemberMethodSymbol;
+                            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
+
                             emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
                                 method,
+                                blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode,
                                 methodOrdinal,
                                 loweredBody,
                                 ImmutableArray<EncLambdaInfo>.Empty,
@@ -1327,9 +1332,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             lambdaRuntimeRudeEditsBuilder.Sort(static (x, y) => x.LambdaId.CompareTo(y.LambdaId));
 
+                            MethodSymbol metadataSymbol = (MethodSymbol)methodSymbol.ContainingType.TryGetCorrespondingStaticMetadataExtensionMember(methodSymbol) ?? methodSymbol;
+
+                            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
+
                             var emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
-                                methodSymbol,
+                                metadataSymbol,
+                                (SyntaxNode)blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode,
                                 methodOrdinal,
                                 boundBody,
                                 lambdaDebugInfoBuilder.ToImmutable(),
@@ -1345,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 codeCoverageSpans,
                                 entryPointOpt: null);
 
-                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(metadataSymbol.PartialDefinitionPart ?? metadataSymbol, emittedBody);
                         }
                     }
 
@@ -1415,6 +1425,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (loweredBody.HasErrors)
                 {
                     return loweredBody;
+                }
+
+                if (method.ContainingType.TryGetCorrespondingStaticMetadataExtensionMember(method) is MethodSymbol metadataMethod)
+                {
+                    var extensionRewriter = new InstanceExtensionMethodBodyRewriter(method, (SourceExtensionMetadataMethodSymbol)metadataMethod);
+                    loweredBody = (BoundStatement)extensionRewriter.Visit(loweredBody);
+                    method = metadataMethod;
                 }
 
                 if (sawAwaitInExceptionHandler)
@@ -1493,6 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
+            SyntaxNode methodBodySyntaxOpt,
             int methodOrdinal,
             BoundStatement block,
             ImmutableArray<EncLambdaInfo> lambdaDebugInfo,
@@ -1522,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
+                var codeGen = new CodeGen.CodeGenerator(method, methodBodySyntaxOpt, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
                 {

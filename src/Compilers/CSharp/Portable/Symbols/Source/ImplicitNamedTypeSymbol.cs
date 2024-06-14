@@ -186,6 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
+
         protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
             => throw ExceptionUtilities.Unreachable();
 

@@ -331,12 +331,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight,
                     exprType);
 
-                BoundExpression setterCall = BoundCall.Synthesized(
+                BoundExpression setterCall = MakeCall(
+                    node: null,
                     syntax,
                     rewrittenReceiver,
-                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
-                    AppendToPossibleNull(arguments, rhsAssignment));
+                    AppendToPossibleNull(arguments, rhsAssignment),
+                    argumentRefKinds: default,
+                    LookupResultKind.Viable,
+                    ImmutableArray<LocalSymbol>.Empty).MakeCompilerGenerated();
 
                 return new BoundSequence(
                     syntax,
@@ -347,12 +350,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundCall setterCall = BoundCall.Synthesized(
+                BoundExpression setterCall = MakeCall(
+                    node: null,
                     syntax,
                     rewrittenReceiver,
-                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
-                    AppendToPossibleNull(arguments, rewrittenRight));
+                    AppendToPossibleNull(arguments, rewrittenRight),
+                    argumentRefKinds: default,
+                    LookupResultKind.Viable,
+                    ImmutableArray<LocalSymbol>.Empty).MakeCompilerGenerated();
 
                 if (argTemps.IsDefaultOrEmpty)
                 {

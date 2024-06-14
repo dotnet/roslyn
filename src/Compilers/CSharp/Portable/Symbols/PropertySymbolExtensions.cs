@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return property.IsIndexedProperty && (!property.IsIndexer || property.HasRefOrOutParameter());
         }
 
-        public static bool HasRefOrOutParameter(this PropertySymbol property)
+        public static bool HasRefOrOutParameter(this PropertySymbol property, int skipParameters = 0)
         {
-            foreach (ParameterSymbol param in property.Parameters)
+            foreach (ParameterSymbol param in property.Parameters[skipParameters..])
             {
                 if (param.RefKind == RefKind.Ref || param.RefKind == RefKind.Out)
                 {

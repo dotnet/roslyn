@@ -567,12 +567,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(method is { });
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
+                        bool isExtensionMethod = oldNodeOpt.IsExtensionMethod;
+                        var receiver = (!method.RequiresInstanceReceiver && !isExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
+                        AdjustDelegateTargetMethodIfNecessary(ref method, ref isExtensionMethod);
+
                         var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                                        isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
+                                                                                        isExtensionMethod: isExtensionMethod, wasTargetTyped: false, type: rewrittenType);
 
                         EnsureParamCollectionAttributeExists(rewrittenOperand.Syntax, rewrittenType);
                         Debug.Assert(_factory.TopLevelMethod is { });

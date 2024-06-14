@@ -292,6 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return TypeKind.Class; }
         }
 
+        internal override Symbol TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
+
         public override NamedTypeSymbol ContainingType
         {
             get { return null; }

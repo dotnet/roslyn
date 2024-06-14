@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (m.Kind == SymbolKind.Event)
                 {
-                    yield return (EventSymbol)m;
+                    yield return (EventSymbol)(TryGetCorrespondingStaticMetadataExtensionMember(m) ?? m);
                 }
             }
         }
@@ -1019,7 +1019,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (m.Kind == SymbolKind.Method)
                 {
-                    var method = (MethodSymbol)m;
+                    var method = (MethodSymbol)(TryGetCorrespondingStaticMetadataExtensionMember(m) ?? m);
+
                     if (method.ShouldEmit())
                     {
                         yield return method;
@@ -1036,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (m.Kind == SymbolKind.Property)
                 {
-                    yield return (PropertySymbol)m;
+                    yield return (PropertySymbol)(TryGetCorrespondingStaticMetadataExtensionMember(m) ?? m);
                 }
             }
         }

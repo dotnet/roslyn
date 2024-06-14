@@ -54,7 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENamedTypeSymbol containingType,
             EventDefinitionHandle handle,
             PEMethodSymbol addMethod,
+            PEExtensionInstanceMethodSymbol extensionAdd,
             PEMethodSymbol removeMethod,
+            PEExtensionInstanceMethodSymbol extensionRemove,
             MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols)
         {
             RoslynDebug.Assert((object)moduleSymbol != null);
@@ -114,7 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
             bool callMethodsDirectly = isWindowsRuntimeEvent
                 ? !DoModifiersMatch(_addMethod, _removeMethod)
-                : !DoSignaturesMatch(moduleSymbol, originalEventType, _addMethod, _removeMethod);
+                : !DoSignaturesMatch(moduleSymbol, originalEventType, _addMethod, _removeMethod,
+                                     isInstanceExtension: (extensionAdd is not null || extensionRemove is not null) &&
+                                                          (extensionAdd is not null || _addMethod is null) &&
+                                                          (extensionRemove is not null || _removeMethod is null));
+
+            Debug.Assert(_addMethod is not null);
+            Debug.Assert(_removeMethod is not null);
 
             if (callMethodsDirectly)
             {
@@ -413,12 +421,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEModuleSymbol moduleSymbol,
             TypeSymbol eventType,
             PEMethodSymbol addMethod,
-            PEMethodSymbol removeMethod)
+            PEMethodSymbol removeMethod,
+            bool isInstanceExtension)
         {
             return
                 (eventType.IsDelegateType() || eventType.IsErrorType()) &&
-                DoesSignatureMatch(moduleSymbol, eventType, addMethod) &&
-                DoesSignatureMatch(moduleSymbol, eventType, removeMethod) &&
+                DoesSignatureMatch(moduleSymbol, eventType, addMethod, isInstanceExtension) &&
+                DoesSignatureMatch(moduleSymbol, eventType, removeMethod, isInstanceExtension) &&
                 DoModifiersMatch(addMethod, removeMethod);
         }
 
@@ -439,7 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static bool DoesSignatureMatch(
             PEModuleSymbol moduleSymbol,
             TypeSymbol eventType,
-            PEMethodSymbol method)
+            PEMethodSymbol method,
+            bool isInstanceExtension)
         {
             // CONSIDER: It would be nice if we could reuse this signature information in the PEMethodSymbol.
             var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
@@ -452,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            return metadataDecoder.DoesSignatureMatchEvent(eventType, methodParams);
+            return metadataDecoder.DoesSignatureMatchEvent(eventType, methodParams, isInstanceExtension);
         }
 
         public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))

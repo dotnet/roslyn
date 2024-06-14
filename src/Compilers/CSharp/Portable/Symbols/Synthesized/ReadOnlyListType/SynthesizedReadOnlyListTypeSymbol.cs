@@ -949,5 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable();
+
+        internal override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
     }
 }

@@ -912,35 +912,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
-                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: getArgumentRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
+                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
                 invokedAsExtensionMethod: false, argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable,
                 type: method.ReturnType, hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
+        }
 
-            static ImmutableArray<RefKind> getArgumentRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+        public static ImmutableArray<RefKind> ArgumentRefKindsFromParameterRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+        {
+            var result = method.ParameterRefKinds;
+
+            if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
+                (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
             {
-                var result = method.ParameterRefKinds;
+                var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
 
-                if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
-                    (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
+                foreach (var refKind in result)
                 {
-                    var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
-
-                    foreach (var refKind in result)
-                    {
-                        builder.Add(refKind switch
-                        {
-                            RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
-                            RefKind.RefReadOnlyParameter => RefKind.In,
-                            _ => refKind
-                        });
-                    }
-
-                    return builder.ToImmutableAndFree();
+                    builder.Add(ArgumentRefKindFromParameterRefKind(refKind, useStrictArgumentRefKinds));
                 }
 
-                return result;
+                return builder.ToImmutableAndFree();
             }
+
+            return result;
+        }
+
+        public static RefKind ArgumentRefKindFromParameterRefKind(RefKind refKind, bool useStrictArgumentRefKinds)
+        {
+            return refKind switch
+            {
+                RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
+                RefKind.RefReadOnlyParameter => RefKind.In,
+                _ => refKind
+            };
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
