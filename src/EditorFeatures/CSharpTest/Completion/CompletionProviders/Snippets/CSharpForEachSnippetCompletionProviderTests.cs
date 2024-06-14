@@ -45,6 +45,23 @@ public class CSharpForEachSnippetCompletionProviderTests : AbstractCSharpSnippet
     }
 
     [WpfFact]
+    public async Task FalselyTestNoForEachSnippetInMethodTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    $$
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
     public async Task InsertForEachSnippetInMethodItemUsedTest()
     {
         var markupBeforeCommit =
