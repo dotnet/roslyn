@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -208,5 +209,12 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
         => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
 
-    #endregion
+#if !CODE_STYLE
+
+    public Task<ISymbol> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
+        => SemanticFacts.GetInterceptorSymbolAsync(document, position, cancellationToken);
+
+#endif
+
+#endregion
 }

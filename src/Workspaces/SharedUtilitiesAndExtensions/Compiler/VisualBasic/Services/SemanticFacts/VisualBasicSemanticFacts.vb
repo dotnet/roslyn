@@ -282,5 +282,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModel.GenerateNameForExpression(
                 DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
+
+        Public Function GetInterceptorSymbolAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ISymbol) Implements ISemanticFacts.GetInterceptorSymbolAsync
+            ' VB does not support interceptors
+            Return Nothing
+        End Function
     End Class
 End Namespace

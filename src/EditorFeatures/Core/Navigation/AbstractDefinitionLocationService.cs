@@ -26,9 +26,6 @@ internal abstract partial class AbstractDefinitionLocationService(
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
 
-    protected abstract Task<ISymbol?> GetInterceptorSymbolAsync(
-        Document document, TextSpan span, CancellationToken cancellationToken);
-
     private static Task<INavigableLocation?> GetNavigableLocationAsync(
         Document document, int position, CancellationToken cancellationToken)
     {
@@ -111,7 +108,9 @@ internal abstract partial class AbstractDefinitionLocationService(
         async ValueTask<ImmutableArray<DefinitionItem>> GetInterceptorDefinitionsAsync(
             Solution solution, Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var interceptorSymbol = await GetInterceptorSymbolAsync(document, span, cancellationToken).ConfigureAwait(false);
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+
+            var interceptorSymbol = await semanticFacts.GetInterceptorSymbolAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
             return await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
                 interceptorSymbol, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false);
         }
