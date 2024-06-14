@@ -125,11 +125,8 @@ internal abstract partial class AbstractDefinitionLocationService(
         if (definitionDocument != originalDocument)
             return null;
 
-        // Ok, we were already on the definition. Look for better symbols we could show results
-        // for instead. For now, just see if we're on an interface member impl. If so, we can
-        // instead navigate to the actual interface member.
-        //
-        // In the future we can expand this with other mappings if appropriate.
+        // Ok, we were already on the definition. Look for better symbols we could show results for instead. This can be
+        // expanded with other mappings in the future if appropriate.
         return await TryGetExplicitInterfaceLocationAsync().ConfigureAwait(false) ??
                await TryGetInterceptedLocationAsync().ConfigureAwait(false);
 
