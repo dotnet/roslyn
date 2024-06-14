@@ -31,6 +31,8 @@ internal class CSharpDefinitionLocationService(
         TextSpan span,
         CancellationToken cancellationToken)
     {
+        // Have to be on an invocation name.
+
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (span.Start >= root.FullWidth())
             return null;
@@ -42,6 +44,11 @@ internal class CSharpDefinitionLocationService(
             return null;
         }
 
+        // Supported syntax points for interception in v1 are:
+        //
+        // Goo()
+        // X.Goo()
+        // X?.Goo()
         var expression = simpleName.Parent switch
         {
             MemberAccessExpressionSyntax memberAccess when memberAccess.Name == simpleName => memberAccess,
