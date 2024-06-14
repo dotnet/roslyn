@@ -98,7 +98,7 @@ internal abstract partial class AbstractInheritanceMarginService
 
                 // Make sure the identifier declaration's span is within the spanToSearch.
                 // This is important because for example, for a class with big body, when the tagger is asking for the tag within the body of the class,
-                // we don't want to return the tag of identifier.
+                // we don't want to return the tag of the class identifier.
                 var declarationToken = GetDeclarationToken(memberDeclarationNode);
                 if (!spanToSearch.Contains(declarationToken.Span))
                 {

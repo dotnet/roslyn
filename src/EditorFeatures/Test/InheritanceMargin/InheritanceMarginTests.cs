@@ -524,9 +524,9 @@ public class {|target2:Bar|} : IBar
         var markup = $@"
         public abstract class {{|target1:Bar1|}}
         {{}}
-        public class Bar : Bar1
+        public class {{|{SearchAreaTag}:Bar : Bar1
         {{
-            {{|{SearchAreaTag}:{memberDeclaration}|}}
+            {{{memberDeclaration}|}}
         }}";
         return VerifyInSingleDocumentAsync(
             markup,
