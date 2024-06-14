@@ -216,5 +216,5 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
 
 #endif
 
-#endregion
+    #endregion
 }
