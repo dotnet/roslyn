@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
-        [ConditionalFact(typeof(WindowsOrLinuxOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/67912"), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void OverflowOnFluentCall()
         {
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
