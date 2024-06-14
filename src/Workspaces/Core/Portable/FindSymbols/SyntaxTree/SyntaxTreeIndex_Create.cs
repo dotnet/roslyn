@@ -237,6 +237,14 @@ internal sealed partial class SyntaxTreeIndex
         ref Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationInfo,
         SyntaxNode node)
     {
+        // Look for methods with attributes of the form:
+        // [...InterceptsLocationAttribute(versionNumber, "base64EncodedData")...]
+        //
+        // We take advantage here that we know exactly the form that GetInterceptsLocationAttributeSyntax produced, and
+        // we only support that form.  In practice, we do not care if people are handcrafting these and choosing to emit
+        // them in some other format (like aliasing the names, or putting the encoded data in a constant in a separate
+        // location.  We perform the entire analysis syntactically as that's more than sufficient for our needs.
+
         if (!syntaxFacts.IsMethodDeclaration(node))
             return;
 
