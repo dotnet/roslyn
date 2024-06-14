@@ -295,7 +295,7 @@ internal sealed partial class SyntaxTreeIndex
                 if (!InterceptsLocationUtilities.TryGetInterceptsLocationData(version, data, out var interceptsLocationData))
                     continue;
 
-                interceptsLocationInfo ??= new();
+                interceptsLocationInfo ??= [];
                 interceptsLocationInfo[interceptsLocationData] = node.FullSpan;
             }
         }
