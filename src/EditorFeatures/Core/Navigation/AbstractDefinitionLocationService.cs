@@ -28,8 +28,6 @@ internal abstract partial class AbstractDefinitionLocationService(
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
 
-    private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>>> s_projectToLazyContentHashMap = new();
-
     private static Task<INavigableLocation?> GetNavigableLocationAsync(
         Document document, int position, CancellationToken cancellationToken)
     {
@@ -164,25 +162,19 @@ internal abstract partial class AbstractDefinitionLocationService(
             if (interceptsLocationDatas.Length == 0)
                 return null;
 
-            var lazyContentHashToDocumentMap = s_projectToLazyContentHashMap.GetValue(
-                project.State,
-                static projectState => AsyncLazy.Create(
-                    static (projectState, cancellationToken) => ComputeContentHashToDocumentMapAsync(projectState, cancellationToken),
-                    projectState));
-
-            var contentHashToDocumentMap = await lazyContentHashToDocumentMap.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
             using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var documentSpans);
 
-            foreach (var interceptsLocationData in interceptsLocationDatas)
+            foreach (var (contentHash, position) in interceptsLocationDatas)
             {
-                if (contentHashToDocumentMap.TryGetValue(interceptsLocationData.ContentHash, out var documentId))
+                var document = await project.GetDocumentAsync(contentHash, cancellationToken).ConfigureAwait(false);
+
+                if (document != null)
                 {
-                    var document = solution.GetDocument(documentId);
-                    if (document != null)
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (position >= 0 && position < root.FullSpan.Length)
                     {
-                        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        var token = root.FindToken(interceptsLocationData.Position);
+                        var token = root.FindToken(position);
                         documentSpans.Add(new DocumentSpan(document, token.Span));
                     }
                 }
@@ -243,19 +235,6 @@ internal abstract partial class AbstractDefinitionLocationService(
                 });
             }
         }
-    }
-
-    private static async Task<Dictionary<ImmutableArray<byte>, DocumentId>> ComputeContentHashToDocumentMapAsync(ProjectState projectState, CancellationToken cancellationToken)
-    {
-        var result = new Dictionary<ImmutableArray<byte>, DocumentId>(ImmutableArrayComparer<byte>.Instance);
-
-        foreach (var (documentId, documentState) in projectState.DocumentStates.States)
-        {
-            var contentHash = await documentState.GetContentHashAsync(cancellationToken).ConfigureAwait(false);
-            result[contentHash] = documentId;
-        }
-
-        return result;
     }
 
     private static async Task<bool> IsThirdPartyNavigationAllowedAsync(

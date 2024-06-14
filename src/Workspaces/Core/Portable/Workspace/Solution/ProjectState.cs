@@ -150,10 +150,10 @@ internal partial class ProjectState
             .WithAnalyzerConfigDocuments([]);
     }
 
-    public async ValueTask<DocumentState?> GetDocumentAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
+    public async ValueTask<DocumentId?> GetDocumentIdAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
     {
         var map = await _lazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        return map.TryGetValue(contentHash, out var documentId) ? DocumentStates.GetState(documentId) : null;
+        return map.TryGetValue(contentHash, out var documentId) ? documentId : null;
     }
 
     private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)
