@@ -9,13 +9,13 @@
       ]
     },
     "dotnet-coverage": {
-      "version": "17.11.0",
+      "version": "17.11.3",
       "commands": [
         "dotnet-coverage"
       ]
     },
     "nbgv": {
-      "version": "3.6.133",
+      "version": "3.6.139",
       "commands": [
         "nbgv"
       ]
