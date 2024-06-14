@@ -88,7 +88,7 @@ internal static class InterceptsLocationUtilities
                 return false;
 
             var contentHash = bytes[HashIndex..HashSize].ToImmutableArray();
-            var position = BinaryPrimitives.ReadInt32LittleEndian(bytes.Slice(PositionIndex));
+            var position = BinaryPrimitives.ReadInt32LittleEndian(bytes[PositionIndex..]);
 
             result = new(contentHash, position);
             return true;
