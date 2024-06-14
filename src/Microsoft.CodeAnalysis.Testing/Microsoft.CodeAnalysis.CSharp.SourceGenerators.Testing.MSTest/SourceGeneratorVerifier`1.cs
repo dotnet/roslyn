@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Testing.MSTest
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class SourceGeneratorVerifier<TSourceGenerator> : CSharpSourceGeneratorVerifier<TSourceGenerator, MSTestVerifier>
         where TSourceGenerator : new()
     {

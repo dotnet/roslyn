@@ -7,6 +7,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class NotEmptyWithMessageException : NotEmptyException
     {
         public NotEmptyWithMessageException(string userMessage)

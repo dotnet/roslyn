@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class MSTestVerifier : IVerifier
     {
         public MSTestVerifier()

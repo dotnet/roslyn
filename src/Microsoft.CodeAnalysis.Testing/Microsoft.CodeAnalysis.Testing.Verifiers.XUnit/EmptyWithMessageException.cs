@@ -8,6 +8,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
+    [Obsolete(ObsoleteMessages.FrameworkPackages)]
     public class EmptyWithMessageException : EmptyException
     {
         public EmptyWithMessageException(IEnumerable collection, string userMessage)

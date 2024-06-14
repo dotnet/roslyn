@@ -17,52 +17,48 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 </configuration>
 ```
 
-### MSTest
+### Packages
 
 * C#
-  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest
-  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest
-  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest
-  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest
+  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
+  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing
 * Visual Basic
-  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest
-  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest
-  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest
-  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest
+  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing
+  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing
 
-### NUnit
+### Obsolete Packages
 
-* C#
-  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.NUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.NUnit
-  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit
-* Visual Basic
-  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.NUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.NUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.NUnit
-  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit
+This collection of packages previously included a number of packages for testing with specific test frameworks, such as
+MSTest, NUnit, and xUnit. These packages have been marked obsolete, and users are encouraged to migrate to the generic
+test packages. The migration process shown here is specific to MSTest; other frameworks can substitute `NUnit` or `XUnit`
+as appropriate.
 
-### xUnit.net
+* Remove the **.MSTest** suffix from all referenced packages. For example:
 
-* C#
-  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit
-  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit
-* Visual Basic
-  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit
-  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit
+    Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest &rarr; Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
+
+* Remove the **.MSTest** suffix from namespaces. For example:
+
+    ```patch
+    -using Microsoft.CodeAnalysis.CSharp.Testing.MSTest;
+    +using Microsoft.CodeAnalysis.CSharp.Testing;
+    ```
+
+* Use `CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>` instead of `AnalyzerVerifier<TAnalyzer>`. A similar change
+  should be applied for each of the other types impacted by this change (remove the language prefix, and add the
+  `DefaultVerifier` generic argument).
 
 ## Verifier overview
 
 Testing analyzers and code fixes starts with the selection of a *verifier* helper type. A default analyzer and code fix
-verifier types is defined for each test framework and language combination:
+verifier types is defined for each language:
 
-* `AnalyzerVerifier<TAnalyzer>`
-* `CodeFixVerifier<TAnalyzer, TCodeFix>`
+* `CSharpAnalyzerVerifier<TAnalyzer, TVerifier>` / `VisualBasicAnalyzerVerifier<TAnalyzer, TVerifier>`
+* `CSharpCodeFixVerifier<TAnalyzer, TCodeFix, TVerifier>` / `VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, TVerifier>`
 
 The verifier types provide limited functionality intended to serve the majority of analyzer and code fix tests:
 
@@ -73,8 +69,8 @@ The verifier types provide limited functionality intended to serve the majority 
 Each of the verifier helper types is supported by a *test* helper type, which provides the primary implementation of
 each test scenario:
 
-* `AnalyzerTest<TAnalyzer, TVerifier>`
-* `CodeFixTest<TAnalyzer, TCodeFix, TVerifier>`
+* `CSharpAnalyzerTest<TAnalyzer, TVerifier>` / `VisualBasicAnalyzerTest<TAnalyzer, TVerifier>`
+* `CSharpCodeFixTest<TAnalyzer, TCodeFix, TVerifier>` / `VisualBasicCodeFixTest<TAnalyzer, TCodeFix, TVerifier>`
 
 ### Imports
 
@@ -82,7 +78,9 @@ This document is written on the assumption that users will alias a verifier or c
 the context of a test class.
 
 ```csharp
-using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<SomeAnalyzerType>;
+using Verify = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<
+    SomeAnalyzerType,
+    Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 ```
 
 Users writing tests involving compiler errors may also want to import the static members of the `DiagnosticResult` type,
@@ -169,7 +167,7 @@ Advanced use cases involve the instantiation of a test helper, setting the appro
 `RunAsync` to run the test. These steps can be combined using the object initializer syntax:
 
 ```csharp
-await new CSharpAnalyzerTest<SomeAnalyzerType, XUnitVerifier>
+await new CSharpAnalyzerTest<SomeAnalyzerType, DefaultVerifier>
 {
     // Configure test by setting property values here...
 }.RunAsync();
@@ -178,7 +176,7 @@ await new CSharpAnalyzerTest<SomeAnalyzerType, XUnitVerifier>
 #### Additional files
 
 ```csharp
-await new CSharpAnalyzerTest<SomeAnalyzerType, XUnitVerifier>
+await new CSharpAnalyzerTest<SomeAnalyzerType, DefaultVerifier>
 {
     TestState =
     {
@@ -205,7 +203,7 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
     public static DiagnosticResult Diagnostic(string diagnosticId = null)
-        => CSharpAnalyzerVerifier<TAnalyzer, XUnitVerifier>.Diagnostic(diagnosticId);
+        => CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(diagnosticId);
 
     public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
         => new DiagnosticResult(descriptor);
@@ -219,7 +217,7 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
 
     // Code fix tests support both analyzer and code fix testing. This test class is derived from the code fix test
     // to avoid the need to maintain duplicate copies of the customization work.
-    public class Test : CSharpCodeFixTest<TAnalyzer, EmptyCodeFixProvider>
+    public class Test : CSharpCodeFixVerifier.Test<TAnalyzer, EmptyCodeFixProvider>
     {
     }
 }
@@ -229,7 +227,7 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     where TCodeFix : CodeFixProvider, new()
 {
     public static DiagnosticResult Diagnostic(string diagnosticId = null)
-        => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(diagnosticId);
+        => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(diagnosticId);
 
     public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
         => new DiagnosticResult(descriptor);
@@ -259,7 +257,7 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         return test.RunAsync();
     }
 
-    public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+    public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
