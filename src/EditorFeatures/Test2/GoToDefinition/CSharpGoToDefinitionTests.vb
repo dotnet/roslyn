@@ -4005,6 +4005,20 @@ class C
 }", methodName:="Goo", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
         End Function
 
+        <WpfFact>
+        Public Async Function TestInterceptors_FromCallSite3() As Task
+            Await TestInterceptorFromCallSite("
+class C
+{
+    void M(C? c)
+    {
+        c?.$$Goo();
+    }
+
+    void [|Goo|]() { }
+}", methodName:="Goo", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
+        End Function
+
         Private Async Function TestInterceptorFromCallSite(code As String, methodName As String, getInvocations As Func(Of SyntaxNode, IEnumerable(Of InvocationExpressionSyntax))) As Task
             Dim firstFileContents = code & s_interceptsLocationCode
 
