@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -48,6 +50,7 @@ internal sealed partial class SyntaxTreeIndex
         var longLiterals = LongLiteralHashSetPool.Allocate();
 
         HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
+        Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationToMethodSpan = null;
 
         try
         {
