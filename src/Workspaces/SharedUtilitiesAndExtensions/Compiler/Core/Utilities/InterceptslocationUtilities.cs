@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 /// cref="SyntaxToken.FullSpan"/>).</param>
 internal record struct InterceptsLocationData(ImmutableArray<byte> ContentHash, int Position)
 {
-    public bool Equals(InterceptsLocationData other)
+    public readonly bool Equals(InterceptsLocationData other)
         => Position == other.Position && ImmutableArrayComparer<byte>.Instance.Equals(ContentHash, other.ContentHash);
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
         => Hash.Combine(ImmutableArrayComparer<byte>.Instance.GetHashCode(ContentHash), Position);
 }
 
@@ -48,17 +48,25 @@ internal static class InterceptsLocationUtilities
                 ConstructorArguments: [{ Value: int version }, { Value: string attributeData }]
             })
         {
-            if (version == 1)
-                return TryGetInterceptsLocationDataVersion1(attributeData, out result);
-
-            // Add more supported versions here in the future if the compiler adds any.
+            return TryGetInterceptsLocationData(version, attributeData, out result);
         }
 
         result = default;
         return false;
     }
 
-    public static bool TryGetInterceptsLocationDataVersion1(string attributeData, out InterceptsLocationData result)
+    public static bool TryGetInterceptsLocationData(int version, string attributeData, out InterceptsLocationData result)
+    {
+        if (version == 1)
+            return TryGetInterceptsLocationDataVersion1(attributeData, out result);
+
+        // Add more supported versions here in the future if the compiler adds any.
+
+        result = default;
+        return false;
+    }
+
+    private static bool TryGetInterceptsLocationDataVersion1(string attributeData, out InterceptsLocationData result)
     {
         result = default;
 

@@ -33,25 +33,27 @@ internal class CSharpDefinitionLocationService(
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (span.Start < root.FullWidth())
-        {
-            var token = root.FindToken(span.Start);
-            if (token.IsKind(SyntaxKind.IdentifierToken) &&
-                token.Parent is SimpleNameSyntax simpleName)
-            {
-                var expression = simpleName.Parent switch
-                {
-                    MemberAccessExpressionSyntax memberAccess when memberAccess.Name == simpleName => memberAccess,
-                    MemberBindingExpressionSyntax memberBinding when memberBinding.Name == simpleName => memberBinding,
-                    _ => (ExpressionSyntax)simpleName,
-                };
+        if (span.Start >= root.FullWidth())
+            return null;
 
-                if (expression.Parent is InvocationExpressionSyntax invocationExpression)
-                    return GetInterceptorSymbolAsync(document, invocationExpression, cancellationToken);
-            }
+        var token = root.FindToken(span.Start);
+        if (!token.IsKind(SyntaxKind.IdentifierToken) ||
+            token.Parent is not SimpleNameSyntax simpleName)
+        {
+            return null;
         }
 
-        return null;
+        var expression = simpleName.Parent switch
+        {
+            MemberAccessExpressionSyntax memberAccess when memberAccess.Name == simpleName => memberAccess,
+            MemberBindingExpressionSyntax memberBinding when memberBinding.Name == simpleName => memberBinding,
+            _ => (ExpressionSyntax)simpleName,
+        };
+
+        if (expression.Parent is not InvocationExpressionSyntax invocationExpression)
+            return null;
+
+        return await GetInterceptorSymbolAsync(document, invocationExpression, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ISymbol?> GetInterceptorSymbolAsync(
@@ -68,10 +70,6 @@ internal class CSharpDefinitionLocationService(
             if (syntaxIndex.ContainsAttribute &&
                 syntaxIndex.ProbablyContainsIdentifier("InterceptsLocationAttribute"))
             {
-                var topLevelIndex = await TopLevelSyntaxTreeIndex.GetIndexAsync(siblingDoc, cancellationToken).ConfigureAwait(false);
-                if (topLevelIndex.ContainsInterceptor(contentHash, position))
-                    return await siblingDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
-                        .GetDeclaredSymbolAsync(invocationExpression.Expression, cancellationToken).ConfigureAwait(false);
             }
         }
     }

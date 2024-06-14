@@ -90,7 +90,8 @@ internal abstract partial class AbstractDefinitionLocationService(
             var solution = project.Solution;
             var regularDefinitions = await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
                 symbol, solution, isThirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
-            var interceptorDefinitions = await GetInterceptorDefinitionsAsync().ConfigureAwait(false);
+            var interceptorDefinitions = await GetInterceptorDefinitionsAsync(
+                project.Solution, document, span, cancellationToken).ConfigureAwait(false);
 
             var symbolDisplayName = FindUsagesHelpers.GetDisplayName(symbol);
             var title = interceptorDefinitions.Length == 0
