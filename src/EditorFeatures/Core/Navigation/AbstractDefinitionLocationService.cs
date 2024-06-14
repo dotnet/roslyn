@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -82,13 +84,20 @@ internal abstract partial class AbstractDefinitionLocationService(
             var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
                 symbol, position, document, cancellationToken).ConfigureAwait(false);
 
-            var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
-                symbol,
-                project.Solution,
-                _threadingContext,
-                _streamingPresenter,
-                thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var solution = project.Solution;
+            var regularDefinitions = await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                symbol, solution, isThirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
+            var interceptorDefinitions = ImmutableArray<DefinitionItem>.Empty;
+
+            var symbolDisplayName = FindUsagesHelpers.GetDisplayName(symbol);
+            var title = interceptorDefinitions.Length == 0
+                ? string.Format(EditorFeaturesResources._0_declarations, symbolDisplayName)
+                : string.Format(EditorFeaturesResources._0_declarations_and_interceptors, symbolDisplayName);
+
+            var allDefinitions = regularDefinitions;
+            var location = await _streamingPresenter.GetStreamingLocationAsync(
+                _threadingContext, solution.Workspace, title, allDefinitions, cancellationToken).ConfigureAwait(false);
+
             if (location is null)
                 return null;
 
