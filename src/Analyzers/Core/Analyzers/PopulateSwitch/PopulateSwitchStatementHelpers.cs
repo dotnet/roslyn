@@ -198,20 +198,22 @@ internal static class PopulateSwitchStatementHelpers
                         hasNullCase = true;
                         break;
                     case IPatternCaseClauseOperation { Pattern: var pattern }:
-                        var matchedType = pattern switch
-                        {
-                            ITypePatternOperation typePattern => typePattern.MatchedType,
-                            IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
-                            _ => null
-                        };
-
-                        if (SymbolEqualityComparer.Default.Equals(matchedType, underlyingType))
-                            hasUnderlyingTypeCase = true;
+                        hasUnderlyingTypeCase |= SymbolEqualityComparer.Default.Equals(
+                            underlyingType,
+                            pattern switch
+                            {
+                                ITypePatternOperation typePattern => typePattern.MatchedType,
+                                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                                _ => null
+                            });
                         break;
                 }
+
+                if (hasNullCase && hasUnderlyingTypeCase)
+                    return true;
             }
         }
 
-        return hasNullCase && hasUnderlyingTypeCase;
+        return false;
     }
 }

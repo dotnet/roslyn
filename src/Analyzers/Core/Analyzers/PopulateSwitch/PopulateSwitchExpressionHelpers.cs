@@ -118,20 +118,23 @@ internal static class PopulateSwitchExpressionHelpers
             if (pattern is IConstantPatternOperation { Value: IConversionOperation { ConstantValue: { HasValue: true, Value: null } } })
             {
                 hasNullArm = true;
-                continue;
+            }
+            else
+            {
+                hasUnderlyingTypeArm |= SymbolEqualityComparer.Default.Equals(
+                    underlyingType,
+                    pattern switch
+                    {
+                        ITypePatternOperation typePattern => typePattern.MatchedType,
+                        IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                        _ => null
+                    });
             }
 
-            var matchedType = pattern switch
-            {
-                ITypePatternOperation typePattern => typePattern.MatchedType,
-                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
-                _ => null
-            };
-
-            if (SymbolEqualityComparer.Default.Equals(matchedType, underlyingType))
-                hasUnderlyingTypeArm = true;
+            if (hasNullArm && hasUnderlyingTypeArm)
+                return true;
         }
 
-        return hasNullArm && hasUnderlyingTypeArm;
+        return false;
     }
 }
