@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -26,8 +27,6 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
                s_localizableTitle, s_localizableMessage)
     {
     }
-
-    #region Interface methods
 
     protected abstract OperationKind OperationKind { get; }
 
@@ -54,74 +53,77 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
         if (switchOperation.Syntax is not TSwitchSyntax switchBlock || IsSwitchTypeUnknown(switchOperation))
             return;
 
-        var tree = switchBlock.SyntaxTree;
+        if (HasExhaustiveNullAndTypeCheckCases(switchOperation))
+            return;
 
-        if (SwitchIsIncomplete(switchOperation, out var missingCases, out var missingDefaultCase) &&
-            !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
-        {
-            Debug.Assert(missingCases || missingDefaultCase);
-            var properties = ImmutableDictionary<string, string?>.Empty
-                .Add(PopulateSwitchStatementHelpers.MissingCases, missingCases.ToString())
-                .Add(PopulateSwitchStatementHelpers.MissingDefaultCase, missingDefaultCase.ToString());
-            var diagnostic = Diagnostic.Create(
-                Descriptor,
-                GetDiagnosticLocation(switchBlock),
-                properties: properties,
-                additionalLocations: [switchBlock.GetLocation()]);
-            context.ReportDiagnostic(diagnostic);
-        }
+        var value = GetValueOfSwitchOperation(switchOperation);
+        var type = value.Type;
+        if (type is null)
+            return;
+
+        var (missingCases, missingDefaultCase) = AnalyzeSwitch(switchOperation, type);
+        if (!missingCases && !missingDefaultCase)
+            return;
+
+        if (switchBlock.SyntaxTree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
+            return;
+
+        var properties = ImmutableDictionary<string, string?>.Empty
+            .Add(PopulateSwitchStatementHelpers.MissingCases, missingCases.ToString())
+            .Add(PopulateSwitchStatementHelpers.MissingDefaultCase, missingDefaultCase.ToString());
+        var diagnostic = Diagnostic.Create(
+            Descriptor,
+            GetDiagnosticLocation(switchBlock),
+            properties: properties,
+            additionalLocations: [switchBlock.GetLocation()]);
+        context.ReportDiagnostic(diagnostic);
     }
 
-    #endregion
-
-    private bool SwitchIsIncomplete(
-        TSwitchOperation operation,
-        out bool missingCases,
-        out bool missingDefaultCase)
+    private (bool missingCases, bool missingDefaultCase) AnalyzeSwitch(TSwitchOperation switchOperation, ITypeSymbol type)
     {
-        missingCases = false;
-        missingDefaultCase = false;
+        var typeWithoutNullable = type.RemoveNullableIfPresent();
 
-        if (HasExhaustiveNullAndTypeCheckCases(operation))
-            return false;
-
-        if (!IsBooleanSwitch(operation, out missingCases, out missingDefaultCase))
+        if (typeWithoutNullable.SpecialType == SpecialType.System_Boolean)
         {
-            var missingEnumMembers = GetMissingEnumMembers(operation);
-
-            missingCases = missingEnumMembers.Count > 0;
-            missingDefaultCase = !HasDefaultCase(operation);
+            return AnalyzeBooleanSwitch(switchOperation, type);
         }
-
-        return missingCases || missingDefaultCase;
-    }
-
-    private bool IsBooleanSwitch(TSwitchOperation operation, out bool missingCases, out bool missingDefaultCase)
-    {
-        missingCases = false;
-        missingDefaultCase = false;
-
-        var value = GetValueOfSwitchOperation(operation);
-        var type = value.Type.RemoveNullableIfPresent();
-        if (type is not { SpecialType: SpecialType.System_Boolean })
-            return false;
-
-        // If the switch already has a default case, then we don't have to offer the user anything.
-        if (HasDefaultCase(operation))
+        else if (typeWithoutNullable.TypeKind == TypeKind.Enum)
         {
-            missingDefaultCase = false;
+            return AnalyzeEnumSwitch(switchOperation, type);
         }
         else
         {
-            // Doesn't have a default.  We don't want to offer that if they're already complete.
-            var hasAllCases = HasConstantCase(operation, true) && HasConstantCase(operation, false);
-            if (value.Type.IsNullable())
-                hasAllCases = hasAllCases && HasConstantCase(operation, null);
-
-            missingDefaultCase = !hasAllCases;
+            return (missingCases: false, missingDefaultCase: !HasDefaultCase(switchOperation));
         }
+    }
 
-        return true;
+    private (bool missingCases, bool missingDefaultCase) AnalyzeBooleanSwitch(TSwitchOperation operation, ITypeSymbol type)
+    {
+        if (type.RemoveNullableIfPresent() is not { SpecialType: SpecialType.System_Boolean })
+            return default;
+
+        // If the switch already has a default case, then we don't have to offer the user anything.
+        if (HasDefaultCase(operation))
+            return default;
+
+        // Doesn't have a default.  We don't want to offer that if they're already complete.
+        var hasAllCases = HasConstantCase(operation, true) && HasConstantCase(operation, false);
+        if (type.IsNullable())
+            hasAllCases = hasAllCases && HasConstantCase(operation, null);
+
+        return (missingCases: !hasAllCases, missingDefaultCase: false);
+    }
+
+    private (bool missingCases, bool missingDefaultCase) AnalyzeEnumSwitch(TSwitchOperation operation, ITypeSymbol type)
+    {
+        if (type.RemoveNullableIfPresent()?.TypeKind != TypeKind.Enum)
+            return default;
+
+        var missingEnumMembers = GetMissingEnumMembers(operation);
+
+        var missingCases = missingEnumMembers.Count > 0;
+        var missingDefaultCase = !HasDefaultCase(operation);
+        return (missingCases, missingDefaultCase);
     }
 
     protected static bool ConstantValueEquals(Optional<object?> constantValue, object? value)
