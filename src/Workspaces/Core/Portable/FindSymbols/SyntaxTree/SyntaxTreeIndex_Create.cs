@@ -105,11 +105,10 @@ internal sealed partial class SyntaxTreeIndex
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
 
+                        TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
+
                         if (isCSharp)
-                        {
-                            TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                             TryAddInterceptsLocationInfo(syntaxFacts, ref interceptsLocationInfo, node);
-                        }
                     }
                     else
                     {
