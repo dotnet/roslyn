@@ -48,6 +48,7 @@ internal sealed partial class SyntaxTreeIndex
         var longLiterals = LongLiteralHashSetPool.Allocate();
 
         HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
+        var isCSharp = project.Language == LanguageNames.CSharp;
 
         try
         {
@@ -98,7 +99,8 @@ internal sealed partial class SyntaxTreeIndex
                         containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
 
-                        TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
+                        if (isCSharp)
+                            TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                     }
                     else
                     {
@@ -228,7 +230,7 @@ internal sealed partial class SyntaxTreeIndex
             return;
 
         syntaxFacts.GetPartsOfUsingAliasDirective(node, out var globalToken, out var alias, out var usingTarget);
-        if (globalToken.IsMissing)
+        if (globalToken == default)
             return;
 
         // if we have `global using X = Y.Z` then walk down the rhs to pull out 'Z'.

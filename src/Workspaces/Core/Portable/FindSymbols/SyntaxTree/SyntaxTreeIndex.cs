@@ -14,6 +14,7 @@ internal sealed partial class SyntaxTreeIndex : AbstractSyntaxIndex<SyntaxTreeIn
     private readonly LiteralInfo _literalInfo;
     private readonly IdentifierInfo _identifierInfo;
     private readonly ContextInfo _contextInfo;
+    private readonly HashSet<(string alias, string name, int arity)>? _aliasInfo;
     private readonly HashSet<(string alias, string name, int arity)>? _globalAliasInfo;
 
     private SyntaxTreeIndex(
@@ -21,12 +22,14 @@ internal sealed partial class SyntaxTreeIndex : AbstractSyntaxIndex<SyntaxTreeIn
         LiteralInfo literalInfo,
         IdentifierInfo identifierInfo,
         ContextInfo contextInfo,
+        HashSet<(string alias, string name, int arity)>? aliasInfo,
         HashSet<(string alias, string name, int arity)>? globalAliasInfo)
         : base(checksum)
     {
         _literalInfo = literalInfo;
         _identifierInfo = identifierInfo;
         _contextInfo = contextInfo;
+        _aliasInfo = aliasInfo;
         _globalAliasInfo = globalAliasInfo;
     }
 

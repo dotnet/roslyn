@@ -25,18 +25,20 @@ internal sealed partial class SyntaxTreeIndex
         _identifierInfo.WriteTo(writer);
         _contextInfo.WriteTo(writer);
 
-        if (_globalAliasInfo == null)
+        WriteTo(writer, _aliasInfo);
+        WriteTo(writer, _globalAliasInfo);
+
+        static void WriteTo(ObjectWriter writer, HashSet<(string alias, string name, int arity)>? aliasInfo)
         {
-            writer.WriteInt32(0);
-        }
-        else
-        {
-            writer.WriteInt32(_globalAliasInfo.Count);
-            foreach (var (alias, name, arity) in _globalAliasInfo)
+            writer.WriteInt32(aliasInfo?.Count ?? 0);
+            if (aliasInfo != null)
             {
-                writer.WriteString(alias);
-                writer.WriteString(name);
-                writer.WriteInt32(arity);
+                foreach (var (alias, name, arity) in aliasInfo)
+                {
+                    writer.WriteString(alias);
+                    writer.WriteString(name);
+                    writer.WriteInt32(arity);
+                }
             }
         }
     }
@@ -51,27 +53,33 @@ internal sealed partial class SyntaxTreeIndex
         if (literalInfo == null || identifierInfo == null || contextInfo == null)
             return null;
 
-        var globalAliasInfoCount = reader.ReadInt32();
-        HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
-
-        if (globalAliasInfoCount > 0)
-        {
-            globalAliasInfo = [];
-
-            for (var i = 0; i < globalAliasInfoCount; i++)
-            {
-                var alias = reader.ReadRequiredString();
-                var name = reader.ReadRequiredString();
-                var arity = reader.ReadInt32();
-                globalAliasInfo.Add((alias, name, arity));
-            }
-        }
-
         return new SyntaxTreeIndex(
             checksum,
             literalInfo.Value,
             identifierInfo.Value,
             contextInfo.Value,
-            globalAliasInfo);
+            ReadAliasInfo(reader),
+            ReadAliasInfo(reader));
+
+        static HashSet<(string alias, string name, int arity)>? ReadAliasInfo(ObjectReader reader)
+        {
+            var aliasInfoCount = reader.ReadInt32();
+            HashSet<(string alias, string name, int arity)>? aliasInfo = null;
+
+            if (aliasInfoCount > 0)
+            {
+                aliasInfo = [];
+
+                for (var i = 0; i < aliasInfoCount; i++)
+                {
+                    var alias = reader.ReadRequiredString();
+                    var name = reader.ReadRequiredString();
+                    var arity = reader.ReadInt32();
+                    aliasInfo.Add((alias, name, arity));
+                }
+            }
+
+            return aliasInfo;
+        }
     }
 }
