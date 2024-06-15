@@ -106,7 +106,7 @@ internal static class PopulateSwitchExpressionHelpers
     public static bool HasBothNullAndUnderlyingValueCases(ISwitchExpressionOperation operation)
     {
         var type = operation.Value.Type;
-        var underlyingType = type.IsNullable(out var underlying) ? underlying : type;
+        var underlyingType = type.RemoveNullableIfPresent();
 
         var hasNullArm = false;
         var hasUnderlyingTypeArm = false;

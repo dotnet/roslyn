@@ -183,7 +183,7 @@ internal static class PopulateSwitchStatementHelpers
     public static bool HasBothNullAndUnderlyingValueCases(ISwitchOperation operation)
     {
         var type = operation.Value.Type;
-        var underlyingType = type.IsNullable(out var underlying) ? underlying : type;
+        var underlyingType = type.RemoveNullableIfPresent();
 
         var hasNullCase = false;
         var hasUnderlyingTypeCase = false;
