@@ -47,8 +47,7 @@ internal sealed partial class SyntaxTreeIndex
         var stringLiterals = StringLiteralHashSetPool.Allocate();
         var longLiterals = LongLiteralHashSetPool.Allocate();
 
-        HashSet<(string alias, string name, int arity)>? aliasInfo = null;
-        HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
+        HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo = null;
 
         try
         {
@@ -99,7 +98,7 @@ internal sealed partial class SyntaxTreeIndex
                         containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
 
-                        TryAddAliasInfo(syntaxFacts, ref aliasInfo, ref globalAliasInfo, node);
+                        TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
                     }
                     else
                     {
@@ -187,8 +186,7 @@ internal sealed partial class SyntaxTreeIndex
                     containsConversion,
                     containsGlobalKeyword,
                     containsCollectionInitializer),
-                aliasInfo,
-                globalAliasInfo);
+                aliasInfo);
         }
         finally
         {
@@ -223,8 +221,7 @@ internal sealed partial class SyntaxTreeIndex
 
     private static void TryAddAliasInfo(
         ISyntaxFactsService syntaxFacts,
-        ref HashSet<(string alias, string name, int arity)>? aliasInfo,
-        ref HashSet<(string alias, string name, int arity)>? globalAliasInfo,
+        ref HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo,
         SyntaxNode node)
     {
         if (!syntaxFacts.IsUsingAliasDirective(node))
@@ -244,12 +241,8 @@ internal sealed partial class SyntaxTreeIndex
         {
             syntaxFacts.GetNameAndArityOfSimpleName(usingTarget, out var name, out var arity);
 
-            ref var set = ref globalToken == default
-                ? ref aliasInfo
-                : ref globalAliasInfo;
-
-            set ??= [];
-            set.Add((alias.ValueText, name, arity));
+            aliasInfo ??= [];
+            aliasInfo.Add((alias.ValueText, name, arity, isGlobal: globalToken != default));
         }
     }
 
