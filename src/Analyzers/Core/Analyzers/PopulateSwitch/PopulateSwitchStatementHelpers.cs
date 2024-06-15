@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
@@ -179,5 +178,40 @@ internal static class PopulateSwitchStatementHelpers
         }
 
         return true;
+    }
+
+    public static bool HasBothNullAndUnderlyingValueCases(ISwitchOperation operation)
+    {
+        var type = operation.Value.Type;
+        var underlyingType = type.IsNullable(out var underlying) ? underlying : type;
+
+        var hasNullCase = false;
+        var hasUnderlyingTypeCase = false;
+
+        foreach (var @case in operation.Cases)
+        {
+            foreach (var clause in @case.Clauses)
+            {
+                switch (clause)
+                {
+                    case ISingleValueCaseClauseOperation { Value: IConversionOperation { ConstantValue: { HasValue: true, Value: null } } }:
+                        hasNullCase = true;
+                        break;
+                    case IPatternCaseClauseOperation { Pattern: var pattern }:
+                        var matchedType = pattern switch
+                        {
+                            ITypePatternOperation typePattern => typePattern.MatchedType,
+                            IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                            _ => null
+                        };
+
+                        if (SymbolEqualityComparer.Default.Equals(matchedType, underlyingType))
+                            hasUnderlyingTypeCase = true;
+                        break;
+                }
+            }
+        }
+
+        return hasNullCase && hasUnderlyingTypeCase;
     }
 }

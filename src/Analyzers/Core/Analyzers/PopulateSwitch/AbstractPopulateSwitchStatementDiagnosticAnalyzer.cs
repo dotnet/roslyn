@@ -32,6 +32,9 @@ internal abstract class AbstractPopulateSwitchStatementDiagnosticAnalyzer<TSwitc
     protected sealed override bool HasDefaultCase(ISwitchOperation operation)
         => PopulateSwitchStatementHelpers.HasDefaultCase(operation);
 
+    protected override bool HasBothNullAndUnderlyingValueCases(ISwitchOperation operation)
+        => PopulateSwitchStatementHelpers.HasBothNullAndUnderlyingValueCases(operation);
+
     protected sealed override Location GetDiagnosticLocation(TSwitchSyntax switchBlock)
         => switchBlock.GetFirstToken().GetLocation();
 

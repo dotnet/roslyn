@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -38,6 +37,7 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
     protected abstract bool HasConstantCase(TSwitchOperation operation, object? value);
     protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
     protected abstract bool HasDefaultCase(TSwitchOperation operation);
+    protected abstract bool HasBothNullAndUnderlyingValueCases(TSwitchOperation operation);
     protected abstract Location GetDiagnosticLocation(TSwitchSyntax switchBlock);
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -86,8 +86,13 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
             missingDefaultCase = !HasDefaultCase(operation);
         }
 
-        // The switch is incomplete if we're missing any cases or we're missing a default case.
-        return missingDefaultCase || missingCases;
+        if (missingCases)
+            return true;
+
+        if (HasBothNullAndUnderlyingValueCases(operation))
+            return false;
+
+        return missingDefaultCase;
     }
 
     private bool IsBooleanSwitch(TSwitchOperation operation, out bool missingCases, out bool missingDefaultCase)

@@ -32,6 +32,9 @@ internal abstract class AbstractPopulateSwitchExpressionDiagnosticAnalyzer<TSwit
     protected sealed override bool HasDefaultCase(ISwitchExpressionOperation operation)
         => PopulateSwitchExpressionHelpers.HasDefaultCase(operation);
 
+    protected override bool HasBothNullAndUnderlyingValueCases(ISwitchExpressionOperation operation)
+        => PopulateSwitchExpressionHelpers.HasBothNullAndUnderlyingValueCases(operation);
+
     protected override bool HasConstantCase(ISwitchExpressionOperation operation, object? value)
     {
         foreach (var arm in operation.Arms)

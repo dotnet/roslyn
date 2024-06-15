@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
@@ -103,4 +102,36 @@ internal static class PopulateSwitchExpressionHelpers
             },
             _ => false
         };
+
+    public static bool HasBothNullAndUnderlyingValueCases(ISwitchExpressionOperation operation)
+    {
+        var type = operation.Value.Type;
+        var underlyingType = type.IsNullable(out var underlying) ? underlying : type;
+
+        var hasNullArm = false;
+        var hasUnderlyingTypeArm = false;
+
+        foreach (var arm in operation.Arms)
+        {
+            var pattern = arm.Pattern;
+
+            if (pattern is IConstantPatternOperation { Value: IConversionOperation { ConstantValue: { HasValue: true, Value: null } } })
+            {
+                hasNullArm = true;
+                continue;
+            }
+
+            var matchedType = pattern switch
+            {
+                ITypePatternOperation typePattern => typePattern.MatchedType,
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                _ => null
+            };
+
+            if (SymbolEqualityComparer.Default.Equals(matchedType, underlyingType))
+                hasUnderlyingTypeArm = true;
+        }
+
+        return hasNullArm && hasUnderlyingTypeArm;
+    }
 }

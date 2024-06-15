@@ -1758,4 +1758,168 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
             }
             """);
     }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                            break;
+                        case {{underlyingTypePattern}}:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case {{underlyingTypePattern}}:
+                            break;
+                        case null:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases3()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                        case int:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases4()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case int:
+                        case null:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                            break;
+                        case {{underlyingTypePattern}}:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case {{underlyingTypePattern}}:
+                            break;
+                        case null:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases3()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                        case string:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases4()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case string:
+                        case null:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
 }
