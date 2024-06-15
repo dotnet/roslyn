@@ -111,7 +111,7 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
         if (HasDefaultCase(operation) || hasAllCases)
             return default;
 
-        return (missingCases: true, missingDefaultCase: true);
+        return (missingCases: false, missingDefaultCase: true);
     }
 
     private (bool missingCases, bool missingDefaultCase) AnalyzeEnumSwitch(TSwitchOperation operation, ITypeSymbol type)
