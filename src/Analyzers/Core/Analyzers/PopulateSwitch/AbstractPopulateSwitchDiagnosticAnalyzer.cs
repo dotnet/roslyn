@@ -37,7 +37,7 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
     protected abstract bool HasConstantCase(TSwitchOperation operation, object? value);
     protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
     protected abstract bool HasDefaultCase(TSwitchOperation operation);
-    protected abstract bool HasBothNullAndUnderlyingValueCases(TSwitchOperation operation);
+    protected abstract bool HasExhaustiveNullAndTypeCheckCases(TSwitchOperation operation);
     protected abstract Location GetDiagnosticLocation(TSwitchSyntax switchBlock);
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -89,7 +89,7 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
         if (missingCases)
             return true;
 
-        if (HasBothNullAndUnderlyingValueCases(operation))
+        if (HasExhaustiveNullAndTypeCheckCases(operation))
             return false;
 
         return missingDefaultCase;

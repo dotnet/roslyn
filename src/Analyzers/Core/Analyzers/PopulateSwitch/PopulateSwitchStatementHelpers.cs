@@ -180,7 +180,7 @@ internal static class PopulateSwitchStatementHelpers
         return true;
     }
 
-    public static bool HasBothNullAndUnderlyingValueCases(ISwitchOperation operation)
+    public static bool HasExhaustiveNullAndTypeCheckCases(ISwitchOperation operation)
     {
         var type = operation.Value.Type;
         var underlyingType = type.RemoveNullableIfPresent();
@@ -197,7 +197,7 @@ internal static class PopulateSwitchStatementHelpers
                     case ISingleValueCaseClauseOperation { Value: IConversionOperation { ConstantValue: { HasValue: true, Value: null } } }:
                         hasNullCase = true;
                         break;
-                    case IPatternCaseClauseOperation { Pattern: var pattern }:
+                    case IPatternCaseClauseOperation { Pattern: var pattern, Guard: null }:
                         hasUnderlyingTypeCase |= SymbolEqualityComparer.Default.Equals(
                             underlyingType,
                             pattern switch

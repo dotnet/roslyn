@@ -103,7 +103,7 @@ internal static class PopulateSwitchExpressionHelpers
             _ => false
         };
 
-    public static bool HasBothNullAndUnderlyingValueCases(ISwitchExpressionOperation operation)
+    public static bool HasExhaustiveNullAndTypeCheckCases(ISwitchExpressionOperation operation)
     {
         var type = operation.Value.Type;
         var underlyingType = type.RemoveNullableIfPresent();
@@ -114,6 +114,8 @@ internal static class PopulateSwitchExpressionHelpers
         foreach (var arm in operation.Arms)
         {
             var pattern = arm.Pattern;
+            if (arm.Guard != null)
+                continue;
 
             if (pattern is IConstantPatternOperation { Value: IConversionOperation { ConstantValue: { HasValue: true, Value: null } } })
             {
