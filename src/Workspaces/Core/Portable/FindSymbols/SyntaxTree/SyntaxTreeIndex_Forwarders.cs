@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -42,13 +43,20 @@ internal sealed partial class SyntaxTreeIndex
     /// <c>name="C"</c> and arity=1 will return <c>X</c>.
     /// </summary>
     public ImmutableArray<string> GetGlobalAliases(string name, int arity)
+        => GetAliasesWorker(name, arity, _globalAliasInfo);
+
+    public ImmutableArray<string> GetAliases(string name, int arity)
+        => GetAliasesWorker(name, arity, _aliasInfo);
+
+    private static ImmutableArray<string> GetAliasesWorker(
+        string name, int arity, HashSet<(string alias, string name, int arity)>? aliases)
     {
-        if (_globalAliasInfo == null)
+        if (aliases == null)
             return [];
 
         using var result = TemporaryArray<string>.Empty;
 
-        foreach (var (alias, aliasName, aliasArity) in _globalAliasInfo)
+        foreach (var (alias, aliasName, aliasArity) in aliases)
         {
             if (aliasName == name && aliasArity == arity)
                 result.Add(alias);
