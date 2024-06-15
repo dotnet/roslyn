@@ -94,7 +94,9 @@ internal partial class FindReferencesSearchEngine
 
             foreach (var symbol in symbols)
             {
-                var state = new FindReferencesDocumentState(cache, TryGet(symbolToGlobalAliases, symbol));
+                var state = new FindReferencesDocumentState(
+                    cache, TryGet(symbolToGlobalAliases, symbol));
+
                 await PerformSearchInDocumentWorkerAsync(symbol, state).ConfigureAwait(false);
             }
         }
