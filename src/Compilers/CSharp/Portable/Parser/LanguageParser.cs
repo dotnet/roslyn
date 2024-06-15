@@ -7241,7 +7241,9 @@ done:;
                             // it's almost certainly the start of an `await expression` in a conditional expression
                             // (e.g. `x is Y ? await ...`), not a nullable type pattern (since users would not use
                             // 'await' as the name of a variable).  So just treat this as a conditional expression.
-                            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
+                            // Similarly, `async` can start a simple lambda in a conditional expression
+                            // (e.g. `x is Y ? async a => ...`). The correct behavior is to treat `async` as a keyword
+                            if (this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.AwaitKeyword)
                                 return false;
 
                             var nextTokenKind = PeekToken(1).Kind;
