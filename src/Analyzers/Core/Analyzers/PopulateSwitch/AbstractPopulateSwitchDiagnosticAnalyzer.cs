@@ -76,8 +76,15 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
 
     private bool SwitchIsIncomplete(
         TSwitchOperation operation,
-        out bool missingCases, out bool missingDefaultCase)
+        out bool missingCases,
+        out bool missingDefaultCase)
     {
+        missingCases = false;
+        missingDefaultCase = false;
+
+        if (HasExhaustiveNullAndTypeCheckCases(operation))
+            return false;
+
         if (!IsBooleanSwitch(operation, out missingCases, out missingDefaultCase))
         {
             var missingEnumMembers = GetMissingEnumMembers(operation);
@@ -86,13 +93,7 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
             missingDefaultCase = !HasDefaultCase(operation);
         }
 
-        if (missingCases)
-            return true;
-
-        if (HasExhaustiveNullAndTypeCheckCases(operation))
-            return false;
-
-        return missingDefaultCase;
+        return missingCases || missingDefaultCase;
     }
 
     private bool IsBooleanSwitch(TSwitchOperation operation, out bool missingCases, out bool missingDefaultCase)
