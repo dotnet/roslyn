@@ -102,16 +102,16 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
         if (type.RemoveNullableIfPresent() is not { SpecialType: SpecialType.System_Boolean })
             return default;
 
-        // If the switch already has a default case, then we don't have to offer the user anything.
-        if (HasDefaultCase(operation))
-            return default;
-
         // Doesn't have a default.  We don't want to offer that if they're already complete.
         var hasAllCases = HasConstantCase(operation, true) && HasConstantCase(operation, false);
         if (type.IsNullable())
             hasAllCases = hasAllCases && HasConstantCase(operation, null);
 
-        return (missingCases: !hasAllCases, missingDefaultCase: false);
+        // If the switch already has a default case or already has all cases, then we don't have to offer the user anything.
+        if (HasDefaultCase(operation) || hasAllCases)
+            return default;
+
+        return (missingCases: true, missingDefaultCase: true);
     }
 
     private (bool missingCases, bool missingDefaultCase) AnalyzeEnumSwitch(TSwitchOperation operation, ITypeSymbol type)
@@ -121,9 +121,7 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
 
         var missingEnumMembers = GetMissingEnumMembers(operation);
 
-        var missingCases = missingEnumMembers.Count > 0;
-        var missingDefaultCase = !HasDefaultCase(operation);
-        return (missingCases, missingDefaultCase);
+        return (missingCases: missingEnumMembers.Count > 0, missingDefaultCase: !HasDefaultCase(operation));
     }
 
     protected static bool ConstantValueEquals(Optional<object?> constantValue, object? value)
