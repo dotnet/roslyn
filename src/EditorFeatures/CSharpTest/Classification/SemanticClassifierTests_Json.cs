@@ -223,6 +223,7 @@ public partial class SemanticClassifierTests
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74020")]
     public async Task TestJsonOnApiWithStringSyntaxAttribute_OtherLanguage_Field(TestHost testHost)
     {
         await TestAsync(
