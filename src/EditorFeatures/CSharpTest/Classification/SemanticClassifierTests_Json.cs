@@ -223,6 +223,27 @@ public partial class SemanticClassifierTests
     }
 
     [Theory, CombinatorialData]
+    public async Task TestJsonOnApiWithStringSyntaxAttribute_OtherLanguage_Field(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Program
+            {
+                [StringSyntax("notjson")]
+                private string field;
+                void Goo()
+                {
+                    [|this.field = @"[{ 'goo': 0}]";|]
+                }
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Field("field"));
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
     {
         await TestAsync(
