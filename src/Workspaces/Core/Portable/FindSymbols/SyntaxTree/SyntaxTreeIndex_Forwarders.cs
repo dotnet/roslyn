@@ -45,15 +45,22 @@ internal sealed partial class SyntaxTreeIndex
     /// <c>name="C"</c> and arity=1 will return <c>X</c>.
     /// </summary>
     public ImmutableArray<string> GetGlobalAliases(string name, int arity)
+        => GetAliasesWorker(name, arity, isGlobal: true);
+
+    public ImmutableArray<string> GetAliases(string name, int arity)
+        => GetAliasesWorker(name, arity, isGlobal: false);
+
+    private ImmutableArray<string> GetAliasesWorker(
+        string name, int arity, bool isGlobal)
     {
-        if (_globalAliasInfo == null)
+        if (_aliasInfo == null)
             return [];
 
         using var result = TemporaryArray<string>.Empty;
 
-        foreach (var (alias, aliasName, aliasArity) in _globalAliasInfo)
+        foreach (var (alias, aliasName, aliasArity, aliasIsGlobal) in _aliasInfo)
         {
-            if (aliasName == name && aliasArity == arity)
+            if (aliasIsGlobal == isGlobal && aliasArity == arity && aliasName == name)
                 result.Add(alias);
         }
 

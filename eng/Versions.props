@@ -63,6 +63,8 @@
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
     <!-- TODO: remove https://github.com/dotnet/roslyn/issues/71827 -->
     <MicrosoftDotNetXliffTasksVersion Condition="'$(DotnetBuildFromSource)' != 'true'">9.0.0-beta.24076.5</MicrosoftDotNetXliffTasksVersion>
+    <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
+    <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>

@@ -45,7 +45,7 @@ class B
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.ClientCapabilities());
 
-        var results = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync<LSP.Location>(testLspServer, testLspServer.GetLocations("caret").First());
+        var results = await FindAllReferencesHandlerTests.RunFindAllReferencesNonVSAsync(testLspServer, testLspServer.GetLocations("caret").First());
         AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result));
     }
 }

@@ -28,15 +28,15 @@ internal sealed partial class SyntaxTreeIndex
         _identifierInfo.WriteTo(writer);
         _contextInfo.WriteTo(writer);
 
-        writer.WriteInt32(_globalAliasInfo?.Count ?? 0);
-
-        if (_globalAliasInfo is not null)
+        writer.WriteInt32(_aliasInfo?.Count ?? 0);
+        if (_aliasInfo != null)
         {
-            foreach (var (alias, name, arity) in _globalAliasInfo)
+            foreach (var (alias, name, arity, isGlobal) in _aliasInfo)
             {
                 writer.WriteString(alias);
                 writer.WriteString(name);
                 writer.WriteInt32(arity);
+                writer.WriteBoolean(isGlobal);
             }
         }
 
@@ -63,19 +63,20 @@ internal sealed partial class SyntaxTreeIndex
         if (literalInfo == null || identifierInfo == null || contextInfo == null)
             return null;
 
-        var globalAliasInfoCount = reader.ReadInt32();
-        HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
+        var aliasInfoCount = reader.ReadInt32();
+        HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo = null;
 
-        if (globalAliasInfoCount > 0)
+        if (aliasInfoCount > 0)
         {
-            globalAliasInfo = [];
+            aliasInfo = [];
 
-            for (var i = 0; i < globalAliasInfoCount; i++)
+            for (var i = 0; i < aliasInfoCount; i++)
             {
-                var alias = reader.ReadRequiredString();
-                var name = reader.ReadRequiredString();
-                var arity = reader.ReadInt32();
-                globalAliasInfo.Add((alias, name, arity));
+                aliasInfo.Add((
+                    reader.ReadRequiredString(),
+                    reader.ReadRequiredString(),
+                    reader.ReadInt32(),
+                    reader.ReadBoolean()));
             }
         }
 
@@ -100,7 +101,7 @@ internal sealed partial class SyntaxTreeIndex
             literalInfo.Value,
             identifierInfo.Value,
             contextInfo.Value,
-            globalAliasInfo,
+            aliasInfo,
             interceptsLocationInfo);
     }
 }

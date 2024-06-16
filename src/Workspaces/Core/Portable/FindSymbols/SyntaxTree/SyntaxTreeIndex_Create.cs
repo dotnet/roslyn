@@ -49,7 +49,7 @@ internal sealed partial class SyntaxTreeIndex
         var stringLiterals = StringLiteralHashSetPool.Allocate();
         var longLiterals = LongLiteralHashSetPool.Allocate();
 
-        HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
+        HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo = null;
         Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationInfo = null;
 
         var isCSharp = project.Language == LanguageNames.CSharp;
@@ -105,7 +105,7 @@ internal sealed partial class SyntaxTreeIndex
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
 
-                        TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
+                        TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
 
                         if (isCSharp)
                             TryAddInterceptsLocationInfo(syntaxFacts, ref interceptsLocationInfo, node);
@@ -197,7 +197,7 @@ internal sealed partial class SyntaxTreeIndex
                     containsGlobalKeyword,
                     containsCollectionInitializer,
                     containsAttribute),
-                globalAliasInfo,
+                aliasInfo,
                 interceptsLocationInfo);
         }
         finally
@@ -300,17 +300,15 @@ internal sealed partial class SyntaxTreeIndex
         }
     }
 
-    private static void TryAddGlobalAliasInfo(
+    private static void TryAddAliasInfo(
         ISyntaxFactsService syntaxFacts,
-        ref HashSet<(string alias, string name, int arity)>? globalAliasInfo,
+        ref HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo,
         SyntaxNode node)
     {
         if (!syntaxFacts.IsUsingAliasDirective(node))
             return;
 
         syntaxFacts.GetPartsOfUsingAliasDirective(node, out var globalToken, out var alias, out var usingTarget);
-        if (globalToken.IsMissing)
-            return;
 
         // if we have `global using X = Y.Z` then walk down the rhs to pull out 'Z'.
         if (syntaxFacts.IsQualifiedName(usingTarget))
@@ -323,8 +321,9 @@ internal sealed partial class SyntaxTreeIndex
         if (syntaxFacts.IsSimpleName(usingTarget))
         {
             syntaxFacts.GetNameAndArityOfSimpleName(usingTarget, out var name, out var arity);
-            globalAliasInfo ??= [];
-            globalAliasInfo.Add((alias.ValueText, name, arity));
+
+            aliasInfo ??= [];
+            aliasInfo.Add((alias.ValueText, name, arity, isGlobal: globalToken != default));
         }
     }
 

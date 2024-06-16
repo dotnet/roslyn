@@ -220,6 +220,8 @@ internal sealed class EditAndContinueLanguageService(
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
         }
+
+        workspaceProvider.Value.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
     public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
