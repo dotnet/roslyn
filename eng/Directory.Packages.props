@@ -144,7 +144,7 @@
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24281.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24316.1" />
 
     <!--
       Analyzers
