@@ -94,16 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
                 Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
 
-                // PROTOTYPE(roles): Adjust remaining call sites of BoundCall.Synthesized in the LocalRewriter to use MakeCall.
-                return MakeCall(
-                    node: null,
+                return BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     getMethod,
                     rewrittenArguments,
-                    argumentRefKindsOpt,
-                    LookupResultKind.Viable,
-                    ImmutableArray<LocalSymbol>.Empty).MakeCompilerGenerated();
+                    argumentRefKindsOpt);
             }
         }
     }

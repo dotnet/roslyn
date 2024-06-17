@@ -1433,6 +1433,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredBody = (BoundStatement)extensionRewriter.Visit(loweredBody);
                     method = metadataMethod;
                 }
+                else
+                {
+                    loweredBody = InstanceExtensionMethodReferenceRewriter.Rewrite(method, loweredBody);
+                }
 
                 if (sawAwaitInExceptionHandler)
                 {

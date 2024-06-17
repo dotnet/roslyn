@@ -1698,9 +1698,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
+            Debug.Assert(this.CurrentFunction is { });
+
+            return StoreToTemp(
+                this.CurrentFunction,
+                argument,
+                Compilation.IsPeVerifyCompatEnabled,
+                out store,
+                refKind,
+                kind,
+                isKnownToReferToTempIfReferenceType,
+                syntaxOpt
+#if DEBUG
+                , callerLineNumber
+                , callerFilePath
+#endif
+                );
+        }
+
+        /// <summary>
+        /// Takes an expression and returns the bound local expression "temp"
+        /// and the bound assignment expression "temp = expr".
+        /// </summary>
+        public static BoundLocal StoreToTemp(
+            MethodSymbol containingMethod,
+            BoundExpression argument,
+            bool isPeVerifyCompatEnabled,
+            out BoundAssignmentOperator store,
+            RefKind refKind = RefKind.None,
+            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            bool isKnownToReferToTempIfReferenceType = false,
+            SyntaxNode? syntaxOpt = null
+#if DEBUG
+            , [CallerLineNumber] int callerLineNumber = 0
+            , [CallerFilePath] string? callerFilePath = null
+#endif
+            )
+        {
             Debug.Assert(argument.Type is { });
-            MethodSymbol? containingMethod = this.CurrentFunction;
-            Debug.Assert(containingMethod is { });
             Debug.Assert(kind != SynthesizedLocalKind.UserDefined);
 
             switch (refKind)
@@ -1713,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!Binder.HasHome(argument,
                                         Binder.AddressKind.ReadOnly,
                                         containingMethod,
-                                        Compilation.IsPeVerifyCompatEnabled,
+                                        isPeVerifyCompatEnabled,
                                         stackLocalsOpt: null))
                     {
                         // If there was an explicit 'in' on the argument then we should have verified

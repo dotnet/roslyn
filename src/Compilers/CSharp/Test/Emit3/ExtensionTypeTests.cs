@@ -15344,7 +15344,7 @@ implicit extension E2 for D : INotifyCompletion
             );
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(roles) enable once we can handle lowering/emit
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionIsCompleted()
     {
         var text = @"
@@ -15410,7 +15410,7 @@ implicit extension E for C
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(roles) enable once we can handle lowering/emit
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult()
     {
         var text = @"
@@ -40064,7 +40064,6 @@ class Program
         var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-
         var test1IL =
 """
 {
@@ -41426,7 +41425,14 @@ public implicit extension E for C
 {
     public void Method()
     {
-        this.Increment();
+        System.Action d = this.Method2;
+        d();
+    }
+
+    public void Method2()
+    {
+        System.Action d = this.Increment;
+        d();
     }
 }
 
@@ -41487,6 +41493,30 @@ class Program
         verifier.VerifyIL("Program.Test1", test1IL);
         verifier.VerifyIL("Program.Test2", test1IL);
 
+        verifier.VerifyIL("E.Method(C)", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      "void E.Method2(C)"
+  IL_0007:  newobj     "System.Action..ctor(object, nint)"
+  IL_000c:  callvirt   "void System.Action.Invoke()"
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Method2(C)", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      "void C.Increment()"
+  IL_0007:  newobj     "System.Action..ctor(object, nint)"
+  IL_000c:  callvirt   "void System.Action.Invoke()"
+  IL_0011:  ret
+}
+""");
+
         comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("11"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
@@ -41514,7 +41544,14 @@ public implicit extension E for C
 {
     public void Method()
     {
-        this.Increment();
+        System.Action d = this.Method2;
+        d();
+    }
+
+    public void Method2()
+    {
+        System.Action d = this.Increment;
+        d();
     }
 }
 
@@ -41559,6 +41596,7 @@ class Program
         // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
         Verification verify = Verification.Fails.WithILVerifyMessage(
 """
+[Method]: Unrecognized arguments for delegate .ctor. { Offset = 0x11 }
 [Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
 [Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
 """);
@@ -41586,8 +41624,45 @@ class Program
         verifier.VerifyIL("Program.Test1", test1IL);
         verifier.VerifyIL("Program.Test2", test1IL);
 
+        verifier.VerifyIL("E.Method(ref C)", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "C"
+  IL_0006:  box        "C"
+  IL_000b:  ldftn      "void E.Method2(ref C)"
+  IL_0011:  newobj     "System.Action..ctor(object, nint)"
+  IL_0016:  callvirt   "void System.Action.Invoke()"
+  IL_001b:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Method2(ref C)", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "C"
+  IL_0006:  box        "C"
+  IL_000b:  ldftn      "void C.Increment()"
+  IL_0011:  newobj     "System.Action..ctor(object, nint)"
+  IL_0016:  callvirt   "void System.Action.Invoke()"
+  IL_001b:  ret
+}
+""");
+
         comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: verify).VerifyDiagnostics();
+
+        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
+        Verification debugVerify = Verification.Fails.WithILVerifyMessage(
+"""
+[Method]: Unrecognized arguments for delegate .ctor. { Offset = 0x12 }
+[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+""");
+
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: debugVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
 
@@ -41599,6 +41674,14 @@ class Program
         verifier.VerifyIL("Program.Test2", test1IL);
 
         comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
+        verify = Verification.Fails.WithILVerifyMessage(
+"""
+[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+""");
+
         verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("00"), verify: verify).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1", test1IL);

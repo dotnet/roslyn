@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -60,12 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override TypeMap TypeMap => _rewrittenContainingMethod.TypeMap;
 
-        // PROTOTYPE(roles): Should we adjust type of the node in the LocalRewriter, from extension type to extended type?
-        //                   When we are leaving the type as is in the LocalRewriter, we are producing somewhat inconsistent
-        //                   BoundCall nodes. The type of the first argument for the static/metadata call doesn't match corresponding
-        //                   parameter's type until we perform a fix up here. 
-        //                   If we were to adjust the type in the LocalRewriter, we would be be creating inconsistent BoundThisReference nodes.
-        //                   The type of the node wouldn't match the containing type.
         public override BoundNode? VisitThisReference(BoundThisReference node)
         {
             return new BoundParameter(node.Syntax, _metadataMethod.Parameters[0]);
@@ -138,5 +133,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitMethodSymbol(symbol);
         }
+
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            Debug.Assert(node != null);
+
+            BoundExpression rewrittenCall;
+
+            if (LocalRewriter.TryGetReceiver(node, out BoundCall? receiver1))
+            {
+                // Handle long call chain of both instance and extension method invocations.
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+                node = receiver1;
+
+                while (LocalRewriter.TryGetReceiver(node, out BoundCall? receiver2))
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = (BoundExpression?)this.Visit(node.ReceiverOpt);
+
+                do
+                {
+                    rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
+                    rewrittenReceiver = rewrittenCall;
+                }
+                while (calls.TryPop(out node!));
+
+                calls.Free();
+            }
+            else
+            {
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = (BoundExpression?)this.Visit(node.ReceiverOpt);
+                rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
+            }
+
+            return rewrittenCall;
+
+            BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
+            {
+                return InstanceExtensionMethodReferenceRewriter.UpdateCall(
+                    _rewrittenContainingMethod,
+                    node,
+                    this.VisitMethodSymbol(node.Method),
+                    this.VisitSymbols<MethodSymbol>(node.OriginalMethodsOpt),
+                    rewrittenReceiver,
+                    this.VisitList(node.Arguments),
+                    node.ArgumentRefKindsOpt,
+                    node.InvokedAsExtensionMethod,
+                    this.VisitType(node.Type));
+            }
+        }
+
+        public override BoundNode? VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+        {
+            return InstanceExtensionMethodReferenceRewriter.UpdateDelegateCreation(node, this.VisitMethodSymbol(node.MethodOpt), (BoundExpression)this.Visit(node.Argument), node.IsExtensionMethod, this.VisitType(node.Type));
+        }
+
+        // PROTOTYPE(roles): Handle deep recursion on long chain of binary operators
     }
 }

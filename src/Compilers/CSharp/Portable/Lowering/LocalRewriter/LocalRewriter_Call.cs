@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenCall;
 
-            if (tryGetReceiver(node, out BoundCall? receiver1))
+            if (TryGetReceiver(node, out BoundCall? receiver1))
             {
                 // Handle long call chain of both instance and extension method invocations.
                 var calls = ArrayBuilder<BoundCall>.GetInstance();
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 calls.Push(node);
                 node = receiver1;
 
-                while (tryGetReceiver(node, out BoundCall? receiver2))
+                while (TryGetReceiver(node, out BoundCall? receiver2))
                 {
                     calls.Push(node);
                     node = receiver2;
@@ -342,26 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return rewrittenCall;
-
-            // Gets the instance or extension invocation receiver if any.
-            static bool tryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
-            {
-                if (node.ReceiverOpt is BoundCall instanceReceiver)
-                {
-                    receiver = instanceReceiver;
-                    return true;
-                }
-
-                if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
-                {
-                    Debug.Assert(node.ReceiverOpt is null);
-                    receiver = extensionReceiver;
-                    return true;
-                }
-
-                receiver = null;
-                return false;
-            }
 
             BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
             {
@@ -421,6 +401,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the instance or extension invocation receiver if any.
+        /// </summary>
+        internal static bool TryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
+        {
+            if (node.ReceiverOpt is BoundCall instanceReceiver)
+            {
+                receiver = instanceReceiver;
+                return true;
+            }
+
+            if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
+            {
+                Debug.Assert(node.ReceiverOpt is null);
+                receiver = extensionReceiver;
+                return true;
+            }
+
+            receiver = null;
+            return false;
+        }
+
         private BoundExpression MakeCall(
             BoundCall? node,
             SyntaxNode syntax,
@@ -455,97 +457,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArguments[1],
                     method.ReturnType);
             }
+            else if (node == null)
+            {
+                rewrittenBoundCall = new BoundCall(
+                    syntax,
+                    rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    method,
+                    rewrittenArguments,
+                    argumentNamesOpt: default(ImmutableArray<string?>),
+                    argumentRefKinds,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default(ImmutableArray<int>),
+                    defaultArguments: default(BitVector),
+                    resultKind: resultKind,
+                    type: method.ReturnType);
+            }
             else
             {
-                if (argumentRefKinds.IsDefault)
-                {
-                    argumentRefKinds = SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds: false);
-                }
-
-                // PROTOTYPE(roles): We could do this transformation in a separate pass after LocalRewriter and for instance extension methods
-                //                   that work could be bundled with InstanceExtensionMethodBodyRewriter, addressing all the concerns about
-                //                   BoundThisReference result type inconsistencies (see a comment for InstanceExtensionMethodBodyRewriter.VisitThisReference).
-                if (rewrittenReceiver is not null && method.OriginalDefinition.ContainingSymbol is NamedTypeSymbol declaringTypeDefinition &&
-                    declaringTypeDefinition.TryGetCorrespondingStaticMetadataExtensionMember(method.OriginalDefinition) is MethodSymbol metadataMethod)
-                {
-                    method = metadataMethod.AsMember(method.ContainingType).ConstructIfGeneric(method.TypeArgumentsWithAnnotations);
-
-                    var thisRefKind = method.Parameters[0].RefKind;
-
-                    if (argumentRefKinds.IsDefault)
-                    {
-                        if (thisRefKind != RefKind.None)
-                        {
-                            argumentRefKinds = SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds: true);
-                        }
-                    }
-                    else
-                    {
-                        argumentRefKinds = argumentRefKinds.Insert(0, SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(thisRefKind, useStrictArgumentRefKinds: true));
-                    }
-
-                    // PROTOTYPE(roles): We probably need to convert the receiver to the parameter's type here
-
-                    if (thisRefKind != RefKind.None)
-                    {
-                        Debug.Assert(thisRefKind == RefKind.Ref);
-
-                        if (!Binder.HasHome(rewrittenReceiver,
-                                            Binder.AddressKind.Writeable,
-                                            _factory.CurrentFunction,
-                                            peVerifyCompatEnabled: true,
-                                            stackLocalsOpt: null))
-                        {
-                            // PROTOTYPE(roles): If the following assert fails (for example this could happen if we start supporting 'readonly' extension members),
-                            //                   we will create a local of a wrong type below. 
-                            Debug.Assert(rewrittenReceiver is not BoundThisReference || _factory.CurrentType?.GetExtendedTypeNoUseSiteDiagnostics(null) is null);
-
-                            // We have an rValue, but the parameter is a 'ref'. Capture it in a local to keep CodeGenerator happy.
-                            rewrittenReceiver = _factory.StoreToTemp(rewrittenReceiver, out BoundAssignmentOperator assignmentToTemp);
-                            temps = temps.Add(((BoundLocal)rewrittenReceiver).LocalSymbol);
-                            rewrittenReceiver = new BoundSequence(rewrittenReceiver.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(assignmentToTemp), rewrittenReceiver, rewrittenReceiver.Type!);
-                        }
-                    }
-
-                    rewrittenArguments = rewrittenArguments.Insert(0, rewrittenReceiver);
-                    rewrittenReceiver = null;
-                }
-
-                if (node == null)
-                {
-                    rewrittenBoundCall = new BoundCall(
-                        syntax,
-                        rewrittenReceiver,
-                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                        method,
-                        rewrittenArguments,
-                        argumentNamesOpt: default(ImmutableArray<string?>),
-                        argumentRefKinds,
-                        isDelegateCall: false,
-                        expanded: false,
-                        invokedAsExtensionMethod: false,
-                        argsToParamsOpt: default(ImmutableArray<int>),
-                        defaultArguments: default(BitVector),
-                        resultKind: resultKind,
-                        type: method.ReturnType);
-                }
-                else
-                {
-                    rewrittenBoundCall = node.Update(
-                        rewrittenReceiver,
-                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                        method,
-                        rewrittenArguments,
-                        argumentNamesOpt: default(ImmutableArray<string?>),
-                        argumentRefKinds,
-                        node.IsDelegateCall,
-                        expanded: false,
-                        invokedAsExtensionMethod: false,
-                        argsToParamsOpt: default(ImmutableArray<int>),
-                        defaultArguments: default(BitVector),
-                        node.ResultKind,
-                        method.ReturnType);
-                }
+                rewrittenBoundCall = node.Update(
+                    rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    method,
+                    rewrittenArguments,
+                    argumentNamesOpt: default(ImmutableArray<string?>),
+                    argumentRefKinds,
+                    node.IsDelegateCall,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default(ImmutableArray<int>),
+                    defaultArguments: default(BitVector),
+                    node.ResultKind,
+                    method.ReturnType);
             }
 
             Debug.Assert(rewrittenBoundCall.Type is not null);
