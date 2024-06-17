@@ -23,7 +23,9 @@ partial class Methods
     /// <summary>
     /// Strongly typed message object for 'workspace/symbol'.
     /// </summary>
+#pragma warning disable CS0618 // SymbolInformation is obsolete but this property is not
     public static readonly LspRequest<WorkspaceSymbolParams, SumType<SymbolInformation[], WorkspaceSymbol[]>?> WorkspaceSymbol = new(WorkspaceSymbolName);
+#pragma warning restore CS0618
 
     /// <summary>
     /// Method name for 'workspaceSymbol/resolve'.

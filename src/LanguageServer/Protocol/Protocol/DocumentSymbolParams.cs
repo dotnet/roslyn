@@ -13,7 +13,11 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class DocumentSymbolParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SumType<SymbolInformation[], DocumentSymbol[]>>
+internal class DocumentSymbolParams
+    : ITextDocumentParams, IWorkDoneProgressParams,
+#pragma warning disable CS0618 // SymbolInformation is obsolete but this class is not
+      IPartialResultParams<SumType<SymbolInformation[], DocumentSymbol[]>>
+#pragma warning restore CS0618
 {
     /// <summary>
     /// Gets or sets the text document.
@@ -33,5 +37,7 @@ internal class DocumentSymbolParams : ITextDocumentParams, IWorkDoneProgressPara
     /// <inheritdoc/>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+#pragma warning disable CS0618 // SymbolInformation is obsolete but this property is not
     public IProgress<SumType<SymbolInformation[], DocumentSymbol[]>>? PartialResultToken { get; set; }
+#pragma warning restore CS0618
 }

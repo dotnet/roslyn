@@ -19,7 +19,9 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("contents")]
         [JsonRequired]
+#pragma warning disable CS0618 // MarkedString is obsolete but this property is not
         public SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent> Contents { get; set; }
+#pragma warning restore CS0618
 
         /// <summary>
         /// An optional range inside a text document that is used to visualize the applicable
