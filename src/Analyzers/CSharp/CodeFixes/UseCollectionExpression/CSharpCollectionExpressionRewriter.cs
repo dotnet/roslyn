@@ -48,15 +48,15 @@ internal static class CSharpCollectionExpressionRewriter
         var document = await ParsedDocument.CreateAsync(workspaceDocument, cancellationToken).ConfigureAwait(false);
 
 #if CODE_STYLE
-        var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
+        var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 #else
-        var formattingOptions = await workspaceDocument.GetSyntaxFormattingOptionsAsync(
+        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(
             fallbackOptions, cancellationToken).ConfigureAwait(false);
 #endif
 
         var indentationOptions = new IndentationOptions(formattingOptions);
 
-        var wrappingLength = ((CSharpSyntaxFormattingOptions)formattingOptions).CollectionExpressionWrappingLength;
+        var wrappingLength = formattingOptions.CollectionExpressionWrappingLength;
 
         var initializer = getInitializer(expressionToReplace);
         var endOfLine = DetermineEndOfLine(document, expressionToReplace, formattingOptions);
