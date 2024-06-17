@@ -550,6 +550,28 @@ class C { }
             Assert.Empty(results.Results);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74033")]
+        public void RunResults_Are_Empty_Before_Generation_With_Generators()
+        {
+            var generator = new SingleFileTestGenerator("public class D {}", "source.cs");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: TestOptions.Regular);
+            var results = driver.GetRunResult();
+
+            Assert.Empty(results.GeneratedTrees);
+            Assert.Empty(results.Diagnostics);
+
+            var result = Assert.Single(results.Results);
+
+            Assert.Null(result.Exception);
+            Assert.Empty(result.Diagnostics);
+            Assert.Empty(result.GeneratedSources);
+            Assert.Empty(result.TrackedSteps);
+            Assert.Empty(result.TrackedOutputSteps);
+            Assert.Equal(TimeSpan.Zero, result.ElapsedTime);
+            Assert.Equal(generator, result.Generator);
+        }
+
         [Fact]
         public void RunResults_Are_Available_After_Generation()
         {
