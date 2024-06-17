@@ -71,7 +71,7 @@ internal static class CodeGenerationHelpers
                 break;
             }
 
-            name = string.Join(".", [.. names]);
+            name = string.Join(".", names.ToString());
         }
         else
         {
