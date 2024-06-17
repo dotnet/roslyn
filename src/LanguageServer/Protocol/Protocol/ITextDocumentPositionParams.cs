@@ -17,6 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// The position within the document.
         /// </summary>
+        // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
         [JsonPropertyName("position")]
         [JsonRequired]
         public Position Position { get; set; }

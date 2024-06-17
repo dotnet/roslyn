@@ -18,6 +18,7 @@ internal interface ITextDocumentRegistrationOptions
     /// A document selector to identify the scope of the registration. If set to
     /// <see langword="null"/> the document selector provided on the client side will be used.
     /// </summary>
+    // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
     [JsonPropertyName("documentSelector")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DocumentFilter[]? DocumentSelector { get; set; }

@@ -24,6 +24,7 @@ internal interface IWorkDoneProgressParams
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.15</remarks>
+    // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
     [JsonPropertyName(Methods.WorkDoneTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }

@@ -19,6 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </para>
         /// </summary>
         /// <remarks>Since LSP 3.15</remarks>
+        // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

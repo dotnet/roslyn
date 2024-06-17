@@ -14,6 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// The identifier of the document.
         /// </summary>
+        // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
         [JsonPropertyName("textDocument")]
         [JsonRequired]
         public TextDocumentIdentifier TextDocument { get; }

@@ -20,6 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// An <see cref="IProgress{T}"/> instance that can be used to report partial results
         /// via the <c>$/progress</c> notification.
         /// </summary>
+        // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<T>? PartialResultToken { get; set; }

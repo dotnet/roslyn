@@ -17,6 +17,7 @@ internal interface IStaticRegistrationOptions
     /// <summary>
     /// Gets or sets the id used to register the request. The id can be used to deregister the request again.
     /// </summary>
+    // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
     [JsonPropertyName("id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Id { get; set; }
