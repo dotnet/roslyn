@@ -39,7 +39,7 @@ internal record class SyntaxFormattingOptions
         SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.SeparateImportDirectiveGroups);
         AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language, fallbackOptions.AccessibilityModifiersRequired);
         WrappingColumn = options.GetOption(FormattingOptions2.WrappingColumn, language, fallbackOptions.WrappingColumn);
-        ConditionalExpressionWrappingLength = options.GetOption(FormattingOptions2.ConditionalExpressionWrappingLength, fallbackOptions.ConditionalExpressionWrappingLength);
+        ConditionalExpressionWrappingLength = options.GetOption(FormattingOptions2.ConditionalExpressionWrappingLength, language, fallbackOptions.ConditionalExpressionWrappingLength);
     }
 
     public bool UseTabs => LineFormatting.UseTabs;

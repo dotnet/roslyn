@@ -85,7 +85,7 @@ internal sealed partial class FormattingOptions2
     /// <summary>
     /// Internal option -- not exposed to editorconfig tooling.
     /// </summary>
-    public static readonly Option2<int> ConditionalExpressionWrappingLength = new(
+    public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
         $"dotnet_unsupported_conditional_expression_wrapping_length",
         defaultValue: SyntaxFormattingOptions.CommonDefaults.ConditionalExpressionWrappingLength,
         isEditorConfigOption: true);

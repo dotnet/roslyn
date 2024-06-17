@@ -413,7 +413,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_compute_task_list_items_for_closed_files", new RoamingProfileStorage("TextEditor.Specific.ComputeTaskListItemsForClosedFiles")},
         {"dotnet_task_list_storage_descriptors", new RoamingProfileStorage("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens")},
         {"dotnet_unsupported_conditional_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
-        {"csharp_unsupported_collection_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollectionExpressionWrappingLength")},
+        {"csharp_unsupported_collection_expression_wrapping_length", new RoamingProfileStorage("TextEditor.CSharp.Specific.CollectionExpressionWrappingLength")},
         {"dotnet_report_invalid_placeholders_in_string_dot_format_calls", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls")},
         {"visual_basic_preferred_modifier_order", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferredModifierOrder")},
         {"visual_basic_style_prefer_isnot_expression", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferIsNotExpression")},

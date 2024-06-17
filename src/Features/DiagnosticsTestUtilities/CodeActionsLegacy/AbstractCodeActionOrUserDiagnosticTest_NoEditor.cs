@@ -195,6 +195,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 MakeProjectsAndDocumentsRooted(workspace);
                 AddAnalyzerConfigDocumentWithOptions(workspace, parameters.options);
             }
+
+#if !CODE_STYLE
+            parameters.globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
+#endif
             return workspace;
         }
 
