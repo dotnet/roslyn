@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // For properties the compiler prefers the `get` method over the `set` irrespective
                     // of which one is actually used in the code. This simplification does lead to 
                     // one case where the compiler incorrectly flags code as a ref safety error 
-                    // when it's not (when a readonly set) is involved. That is tracked by the following
+                    // when it's not (when a readonly set is involved). That is tracked by the following
                     // issue.
                     //
                     // If that issue raises to a high enough priority then likely it should take a similar
