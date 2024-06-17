@@ -403,9 +403,14 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
         internal bool HasShutdownStarted()
         {
+            return GetShutdownTaskAsync() != null;
+        }
+
+        internal Task? GetShutdownTaskAsync()
+        {
             lock (_server._lifeCycleLock)
             {
-                return _server._shutdownRequestTask != null;
+                return _server._shutdownRequestTask;
             }
         }
     }

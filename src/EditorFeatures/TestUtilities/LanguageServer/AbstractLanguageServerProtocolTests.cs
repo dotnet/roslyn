@@ -710,7 +710,12 @@ namespace Roslyn.Test.Utilities
             {
                 var queueAccessor = GetQueueAccessor()!.Value;
                 await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
-                Assert.True(GetServerAccessor().HasShutdownStarted(), "Unexpected shutdown not started");
+
+                var shutdownTask = GetServerAccessor().GetShutdownTaskAsync();
+                AssertEx.NotNull(shutdownTask, "Unexpected shutdown not started");
+
+                // Shutdown task will close the queue, so we need to wait for it to complete.
+                await shutdownTask.ConfigureAwait(false);
                 Assert.True(queueAccessor.IsComplete(), "Unexpected queue not complete");
             }
 
