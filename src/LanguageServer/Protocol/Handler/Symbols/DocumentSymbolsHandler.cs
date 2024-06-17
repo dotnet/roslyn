@@ -17,6 +17,8 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol
+
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
