@@ -9,6 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExtractClass
 {
     internal static class ExtractClassOptionStorage
     {
-        public static PerLanguageOption2<NewTypeDestination> ExtractClassDestination = new("", defaultValue: NewTypeDestination.NewFile);
+        public static PerLanguageOption2<NewTypeDestination> ExtractClassDestination = new("dotnet_extract_class_destination", defaultValue: NewTypeDestination.NewFile);
     }
 }
