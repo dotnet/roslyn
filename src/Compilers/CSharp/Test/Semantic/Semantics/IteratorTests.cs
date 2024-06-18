@@ -195,7 +195,7 @@ class Test
                 After: False
                 """;
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithWarningLevel(8),
+            CompileAndVerify(source, options: TestOptions.ReleaseExe,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
