@@ -243,7 +243,8 @@ class $$MyClass
                     languageName:=languageName,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,
                     conflictingNames:=symbol.ContainingNamespace.GetAllTypes(CancellationToken.None).SelectAsArray(Function(t) t.Name),
-                    syntaxFactsService:=workspaceDoc.GetRequiredLanguageService(Of ISyntaxFactsService))
+                    syntaxFactsService:=workspaceDoc.GetRequiredLanguageService(Of ISyntaxFactsService),
+                    globalOptionService:=workspace.GetService(Of IGlobalOptionService))
             End Using
         End Function
     End Class

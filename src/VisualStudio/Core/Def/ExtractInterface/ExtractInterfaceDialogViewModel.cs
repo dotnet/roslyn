@@ -10,6 +10,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -32,7 +34,7 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         string languageName,
-        NewTypeDestination newTypeDestination)
+        IGlobalOptionService globalOptionService)
     {
         _notificationService = notificationService;
 
@@ -51,7 +53,8 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
             generatedNameTypeParameterSuffix,
             conflictingTypeNames.ToImmutableArray(),
             syntaxFactsService,
-            newTypeDestination);
+            new PersistNewTypeDestinationValueSource(
+                globalOptionService, NewTypeDestinationOptionStorage.ExtractInterfaceDestination, languageName));
     }
 
     internal bool TrySubmit()

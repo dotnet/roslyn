@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.ExtractClass;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -80,6 +81,7 @@ internal class VisualStudioExtractClassOptionsService : IExtractClassOptionsServ
 
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, selectedType, membersInType, cancellationToken);
+        var languageName = document.Project.Language;
 
         var viewModel = new ExtractClassViewModel(
             _uiThreadOperationExecutor,
@@ -89,11 +91,11 @@ internal class VisualStudioExtractClassOptionsService : IExtractClassOptionsServ
             memberToDependentsMap,
             defaultTypeName,
             containingNamespaceDisplay,
-            document.Project.Language,
+            languageName,
             generatedNameTypeParameterSuffix,
             conflictingTypeNames.ToImmutableArray(),
             document.GetRequiredLanguageService<ISyntaxFactsService>(),
-            _globalOptions.GetOption(ExtractClassOptionStorage.ExtractClassDestination, document.Project.Language));
+            new PersistNewTypeDestinationValueSource(_globalOptions, NewTypeDestinationOptionStorage.ExtractClassDestination, languageName));
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         var dialog = new ExtractClassDialog(viewModel);

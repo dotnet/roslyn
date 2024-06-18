@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.ExtractInterface;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -85,7 +84,7 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
             defaultNamespace,
             generatedNameTypeParameterSuffix,
             languageName,
-            _globalOptionService.GetOption(ExtractInterfaceOptionStorage.ExtractInterfaceDestination, language: languageName));
+            _globalOptionService);
 
         var dialog = new ExtractInterfaceDialog(viewModel);
         var result = dialog.ShowModal();
