@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="AI_generated_content_may_be_inaccurate">
         <source>AI-generated content may be inaccurate</source>
-        <target state="new">AI-generated content may be inaccurate</target>
+        <target state="translated">AI 生成的內容可能不正確。</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
         <source>An error occurred while generating documentation for this code.</source>
-        <target state="new">An error occurred while generating documentation for this code.</target>
+        <target state="translated">產生此程式碼的文件時發生錯誤。</target>
         <note />
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
@@ -74,12 +74,12 @@
       </trans-unit>
       <trans-unit id="GitHub_Copilot">
         <source>GitHub Copilot</source>
-        <target state="new">GitHub Copilot</target>
+        <target state="translated">GitHub Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="GitHub_Copilot_thinking">
         <source>GitHub Copilot thinking...</source>
-        <target state="new">GitHub Copilot thinking...</target>
+        <target state="translated">GitHub Copilot 思考中...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -224,12 +224,12 @@
       </trans-unit>
       <trans-unit id="Obsolete_symbol">
         <source>Obsolete symbol</source>
-        <target state="new">Obsolete symbol</target>
+        <target state="translated">已淘汰的符號</target>
         <note />
       </trans-unit>
       <trans-unit id="On_the_fly_documentation">
         <source>On-the-fly documentation</source>
-        <target state="new">On-the-fly documentation</target>
+        <target state="translated">即時文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -324,12 +324,12 @@
       </trans-unit>
       <trans-unit id="Run">
         <source>Run</source>
-        <target state="new">Run</target>
+        <target state="translated">執行</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_an_AI_generated_summary_of_this_code">
         <source>Show an AI generated summary of this code</source>
-        <target state="new">Show an AI generated summary of this code</target>
+        <target state="translated">顯示 AI 對此程式碼生成的摘要</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -354,7 +354,7 @@
       </trans-unit>
       <trans-unit id="Tell_me_more">
         <source>Tell me more</source>
-        <target state="new">Tell me more</target>
+        <target state="translated">告訴我更多資訊</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
