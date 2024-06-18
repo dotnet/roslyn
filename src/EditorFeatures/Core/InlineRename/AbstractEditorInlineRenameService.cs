@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -34,12 +32,12 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
             _refactorNotifyServices, symbolicInfo, _globalOptions.CreateProvider(), cancellationToken);
     }
 
-    public Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(InlineRenameSession renameSession, CancellationToken cancellationToken)
+    public Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameSession renameSession, CancellationToken cancellationToken)
     {
         return GetRenameContextCoreAsync(renameSession, cancellationToken);
     }
 
-    protected virtual Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(InlineRenameSession renameSession, CancellationToken cancellationToken)
+    protected virtual Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameSession renameSession, CancellationToken cancellationToken)
     {
         return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);
     }

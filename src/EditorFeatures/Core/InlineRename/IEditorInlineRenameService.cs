@@ -256,5 +256,5 @@ internal interface IEditorInlineRenameService : ILanguageService
 {
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 
-    Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(InlineRenameSession renameSession, CancellationToken cancellationToken);
+    Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameSession renameSession, CancellationToken cancellationToken);
 }
