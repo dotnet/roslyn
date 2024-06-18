@@ -50,8 +50,7 @@ internal static class CSharpCollectionExpressionRewriter
 #if CODE_STYLE
         var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 #else
-        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(
-            fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
         var indentationOptions = new IndentationOptions(formattingOptions);

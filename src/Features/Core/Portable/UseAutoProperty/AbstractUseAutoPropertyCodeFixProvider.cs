@@ -211,7 +211,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
             var newRoot = editor.GetChangedRoot();
-            newRoot = await FormatAsync(newRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
+            newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
 
             return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
         }
@@ -225,8 +225,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             Contract.ThrowIfNull(newFieldTreeRoot);
             var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-            newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
-            newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, context.Options, cancellationToken).ConfigureAwait(false);
+            newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
+            newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
 
             var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -277,13 +277,13 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         return canEditDocument;
     }
 
-    private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
     {
         var formattingRules = GetFormattingRules(document);
         if (formattingRules.IsDefault)
             return newRoot;
 
-        var options = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Services, options, formattingRules, cancellationToken);
     }
 

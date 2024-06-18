@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         hasFix: d => provider.IsFixableDiagnostic(d),
                         getFixes: async dxs =>
                         {
-                            var fixes = await provider.GetFixesAsync(document, diagnosticsSpan, dxs, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                            var fixes = await provider.GetFixesAsync(document, diagnosticsSpan, dxs, cancellationToken).ConfigureAwait(false);
                             return fixes.WhereAsArray(f => registeredConfigurationFixTitles.Add(f.Action.Title));
                         },
                         fallbackOptions,

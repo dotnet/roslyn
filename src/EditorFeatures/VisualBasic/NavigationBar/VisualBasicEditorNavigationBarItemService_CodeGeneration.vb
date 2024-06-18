@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End If
 
             Dim simplifierOptions = Await newDocument.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim formattingOptions = Await newDocument.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(False)
+            Dim formattingOptions = Await newDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
 
             newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, simplifierOptions, cancellationToken).ConfigureAwait(False)
 

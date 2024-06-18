@@ -150,8 +150,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 #if CODE_STYLE
             var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
 #else
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-                fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);

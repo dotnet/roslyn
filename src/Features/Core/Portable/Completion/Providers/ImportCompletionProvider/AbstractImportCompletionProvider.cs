@@ -154,7 +154,7 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
         var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
 
         var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var importNode = CreateImport(document, containingNamespace);
 

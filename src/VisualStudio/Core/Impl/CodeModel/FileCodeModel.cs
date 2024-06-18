@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(CancellationToken.None).ConfigureAwait(false);
                     var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
                     formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
 
