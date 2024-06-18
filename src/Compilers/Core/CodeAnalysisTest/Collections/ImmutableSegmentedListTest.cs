@@ -361,9 +361,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.False(list.Contains(10));
 
             var removeList = new int[] { 20, 70 };
-            // PROTOTYPE: Can we make the commented line work in bootstrap builds?
-            // list = list.RemoveAll(removeList.Contains);
-            list = list.RemoveAll(x => Array.IndexOf(removeList, x) >= 0);
+            list = list.RemoveAll(removeList.Contains);
             Assert.Equal(5, list.Count);
             Assert.False(list.Contains(20));
             Assert.False(list.Contains(70));
@@ -386,9 +384,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(7, list2.Count);
             Assert.False(list2.Contains(10));
 
-            // PROTOTYPE: Can we make the commented line work in bootstrap builds?
-            // list2 = list2.RemoveAll(removeList.Contains);
-            list2 = list2.RemoveAll(x => Array.IndexOf(removeList, x) >= 0);
+            list2 = list2.RemoveAll(removeList.Contains);
             Assert.Equal(5, list2.Count);
             Assert.False(list2.Contains(20));
             Assert.False(list2.Contains(70));
