@@ -20,8 +20,8 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         string.Empty,
         string.Empty,
         ImmutableArray<string>.Empty,
-        null
-    );
+        null,
+        NewTypeDestination.NewFile);
 
     private readonly string _fileExtension;
     private readonly string _defaultNamespace;
@@ -37,7 +37,8 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         ImmutableArray<string> conflictingNames,
-        ISyntaxFactsService? syntaxFactsService)
+        ISyntaxFactsService? syntaxFactsService,
+        NewTypeDestination typeDestination)
     {
         _defaultName = defaultName;
         _fileExtension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
@@ -48,6 +49,7 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         _typeName = _defaultName;
         _syntaxFactsService = syntaxFactsService;
         _fileName = $"{defaultName}{_fileExtension}";
+        Destination = typeDestination;
     }
 
     private string _typeName;
