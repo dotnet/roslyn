@@ -318,7 +318,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             documentToEditorMap, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
         var updatedSolution = await ApplyChangesAsync(
-            document, documentToEditorMap, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            document, documentToEditorMap, cancellationToken).ConfigureAwait(false);
 
         return updatedSolution;
     }
@@ -583,7 +583,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
     }
 
     private static async Task<Solution> ApplyChangesAsync(
-        Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CancellationToken cancellationToken)
     {
         var currentSolution = startingDocument.Project.Solution;
 

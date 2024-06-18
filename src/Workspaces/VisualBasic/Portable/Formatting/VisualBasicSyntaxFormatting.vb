@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Property
 
         Public Overrides Function GetFormattingOptions(options As IOptionsReader) As SyntaxFormattingOptions
-            Return New VisualBasicSyntaxFormattingOptions(options, fallbackOptions:=Nothing)
+            Return New VisualBasicSyntaxFormattingOptions(options)
         End Function
 
         Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As TextSpanMutableIntervalTree = Nothing) As IFormattingResult

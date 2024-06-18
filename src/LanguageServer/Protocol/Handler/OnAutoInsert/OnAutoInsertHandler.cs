@@ -239,10 +239,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static async Task<(IBraceCompletionService Service, BraceCompletionContext Context)?> GetBraceCompletionContextAsync(ImmutableArray<IBraceCompletionService> servicesForDocument, int caretLocation, Document document, CancellationToken cancellationToken)
         {
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var fallbackOptions = document.Project.GetFallbackAnalyzerOptions();
 
             foreach (var service in servicesForDocument)
             {
-                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
+                var context = service.GetCompletedBraceContext(parsedDocument, fallbackOptions, caretLocation);
                 if (context != null)
                 {
                     return (service, context.Value);

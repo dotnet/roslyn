@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         protected static async Task<LSP.TextEdit[]?> GetTextEditsAsync(
             RequestContext context,
             LSP.FormattingOptions options,
-            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken,
             LSP.Range? range = null)
         {

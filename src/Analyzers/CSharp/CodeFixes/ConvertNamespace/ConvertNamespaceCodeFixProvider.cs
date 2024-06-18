@@ -58,7 +58,7 @@ internal class ConvertNamespaceCodeFixProvider : SyntaxEditorBasedCodeFixProvide
 
         var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var converted = await ConvertNamespaceTransform.ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(

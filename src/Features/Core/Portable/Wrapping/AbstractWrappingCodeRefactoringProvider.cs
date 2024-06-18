@@ -31,7 +31,7 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
         _wrappers = wrappers;
     }
 
-    protected abstract SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions);
+    protected abstract SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -44,7 +44,7 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
         var token = root.FindToken(position);
 
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var options = GetWrappingOptions(configOptions, context.Options.GetOptions(document.Project.Services));
+        var options = GetWrappingOptions(configOptions);
 
         foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
         {

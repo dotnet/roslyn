@@ -15,5 +15,5 @@ internal sealed class CSharpSimplification : AbstractSimplification
         => CSharpSimplifierOptions.Default;
 
     public override SimplifierOptions GetSimplifierOptions(IOptionsReader options)
-        => new CSharpSimplifierOptions(options, fallbackOptions: null);
+        => new CSharpSimplifierOptions(options);
 }

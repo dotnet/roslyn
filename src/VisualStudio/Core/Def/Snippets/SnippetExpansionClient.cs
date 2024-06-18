@@ -1062,8 +1062,9 @@ internal class SnippetExpansionClient : IVsExpansionClient
         }
 
         var languageServices = documentWithImports.Project.Services;
-        var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, languageServices, documentWithImports.AllowImportsInHiddenRegions());
-        var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, languageServices, explicitFormat: false);
+        var fallbackOptions = documentWithImports.Project.GetFallbackAnalyzerOptions();
+        var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, fallbackOptions, languageServices, documentWithImports.AllowImportsInHiddenRegions());
+        var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, fallbackOptions, languageServices, explicitFormat: false);
 
         documentWithImports = _languageHelper.AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
         AddReferences(documentWithImports.Project, snippetNode);

@@ -36,7 +36,7 @@ internal class ConvertToTopLevelStatementsCodeFixProvider : SyntaxEditorBasedCod
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var priority = options.PreferTopLevelStatements.Notification.Severity == ReportDiagnostic.Hidden
             ? CodeActionPriority.Low
             : CodeActionPriority.Default;

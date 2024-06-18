@@ -46,7 +46,7 @@ internal class ConvertToProgramMainCodeRefactoringProvider : CodeRefactoringProv
         if (!acceptableLocation.SourceSpan.IntersectsWith(position))
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
 
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferUseProgramMain(options.PreferTopLevelStatements, root, compilation, forAnalyzer: false))

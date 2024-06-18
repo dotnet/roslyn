@@ -42,7 +42,7 @@ internal class ConvertToTopLevelStatementsCodeRefactoringProvider : CodeRefactor
         if (methodDeclaration is null)
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferUseTopLevelStatements(options.PreferTopLevelStatements, forAnalyzer: false))
             return;
 
