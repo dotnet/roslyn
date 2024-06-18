@@ -167,11 +167,21 @@ internal static class CSharpCollectionExpressionRewriter
                 if (nodesAndTokens.Count > 0)
                     nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
 
+                var shouldIncludeAdditionalLeadingTrivia = initializer is not null &&
+                    initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment() || x.IsEndOfLine());
+
+                var trivia = shouldIncludeAdditionalLeadingTrivia
+                    ? initializer!.OpenBraceToken.GetPreviousToken().TrailingTrivia.SkipInitialWhitespace()
+                        .Concat(initializer.OpenBraceToken.LeadingTrivia)
+                        .Concat(expressionToReplace.GetLeadingTrivia().SkipInitialWhitespace())
+                    : [];
+
                 var collectionExpression = CollectionExpression(
                     OpenBracketToken.WithoutTrivia(),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
                     CloseBracketToken.WithoutTrivia());
-                return collectionExpression.WithTriviaFrom(expressionToReplace);
+                //return collectionExpression.WithTriviaFrom(expressionToReplace).WithPrependedLeadingTrivia(trivia);
+                return collectionExpression.WithLeadingTrivia(trivia);
             }
         }
 
