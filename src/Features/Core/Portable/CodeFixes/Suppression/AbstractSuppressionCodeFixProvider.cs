@@ -212,7 +212,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 if (diagnostic.Location.IsInSource && documentOpt != null)
                 {
                     // pragma warning disable.
-                    lazyFormattingOptions ??= await documentOpt.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    lazyFormattingOptions ??= await documentOpt.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
                     nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, lazyFormattingOptions, diagnostic, this));
                 }
 
@@ -221,7 +221,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     // global assembly-level suppress message attribute.
                     nestedActions.Add(new GlobalSuppressMessageCodeAction(
-                        suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this, fallbackOptions));
+                        suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this));
 
                     // local suppress message attribute
                     // please note that in order to avoid issues with existing unit tests referencing the code fix
@@ -242,7 +242,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             }
             else if (!skipUnsuppress)
             {
-                var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
                 if (codeAction != null)
                 {
                     result.Add(new CodeFix(project, codeAction, diagnostic));

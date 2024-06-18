@@ -600,7 +600,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
                 // so that our generated methods follow any special formatting rules specific to
                 // them.
                 var equalsAndGetHashCodeService = startingDocument.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
-                var formattingOptions = await updatedDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await updatedDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 updatedDocument = await equalsAndGetHashCodeService.FormatDocumentAsync(
                     updatedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);

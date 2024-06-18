@@ -69,7 +69,7 @@ internal sealed class FormatNewFileHandler : ILspServiceRequestHandler<FormatNew
         }
 
         // Unlike normal new file formatting, Razor also wants to remove unnecessary usings
-        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var removeImportsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
         if (removeImportsService is not null)
         {

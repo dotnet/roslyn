@@ -318,7 +318,7 @@ public static class Formatter
     internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
     {
         var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-        return syntaxFormattingService.GetFormattingOptions(optionSet ?? workspace.CurrentSolution.Options, fallbackOptions: null);
+        return syntaxFormattingService.GetFormattingOptions(optionSet ?? workspace.CurrentSolution.Options);
     }
 
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
@@ -332,7 +332,7 @@ public static class Formatter
         var syntaxFormattingService = document.GetLanguageService<ISyntaxFormattingService>();
         if (syntaxFormattingService != null)
         {
-            syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(optionSet, fallbackOptions: null);
+            syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(optionSet);
             lineFormattingOptions = syntaxFormattingOptions.LineFormatting;
         }
         else

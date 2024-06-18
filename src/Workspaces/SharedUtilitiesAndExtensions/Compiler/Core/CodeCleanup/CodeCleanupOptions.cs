@@ -87,7 +87,7 @@ internal static class CodeCleanupOptionsProviders
     public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions)
         => new()
         {
-            FormattingOptions = options.GetSyntaxFormattingOptions(languageServices, fallbackOptions?.FormattingOptions),
+            FormattingOptions = options.GetSyntaxFormattingOptions(languageServices),
             SimplifierOptions = options.GetSimplifierOptions(languageServices),
             AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions),
             DocumentFormattingOptions = options.GetDocumentFormattingOptions(fallbackOptions?.DocumentFormattingOptions),
