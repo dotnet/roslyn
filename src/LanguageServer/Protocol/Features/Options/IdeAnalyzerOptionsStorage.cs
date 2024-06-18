@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -27,6 +28,7 @@ internal static class IdeAnalyzerOptionsStorage
             CrashOnAnalyzerException = globalOptions.GetOption(CrashOnAnalyzerException),
             CleanCodeGenerationOptions = supportsLanguageSpecificOptions ? globalOptions.GetCleanCodeGenerationOptions(languageServices) : null,
             CodeStyleOptions = supportsLanguageSpecificOptions ? globalOptions.GetCodeStyleOptions(languageServices) : null,
+            SimplifierOptions = supportsLanguageSpecificOptions ? globalOptions.GetSimplifierOptions(languageServices) : null,
         };
     }
 
