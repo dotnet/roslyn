@@ -397,11 +397,6 @@
         <target state="translated">Элемент недопустим.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">Включить все функции в открытых файлах из генераторов источника (экспериментальная версия)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">Включить структуру документа (экспериментальная функция, требуется перезапуск)</target>

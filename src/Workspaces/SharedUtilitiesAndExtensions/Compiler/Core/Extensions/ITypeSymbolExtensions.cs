@@ -732,9 +732,9 @@ internal static partial class ITypeSymbolExtensions
     [return: NotNullIfNotNull(parameterName: nameof(symbol))]
     public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)
     {
-        if (symbol.IsNullable())
+        if (symbol.IsNullable(out var underlyingType))
         {
-            return symbol.GetTypeArguments().Single();
+            return underlyingType;
         }
 
         return symbol;

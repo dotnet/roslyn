@@ -32,6 +32,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests" />
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />

@@ -642,6 +642,11 @@
         <target state="translated">구현된 멤버 '{0}'개</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="new">'{0}' intercepted locations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">해결할 수 없는 충돌 {0}개</target>

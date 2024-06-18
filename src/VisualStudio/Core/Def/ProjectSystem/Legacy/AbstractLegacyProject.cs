@@ -149,7 +149,9 @@ internal abstract partial class AbstractLegacyProject
         ConnectHierarchyEvents();
         RefreshBinOutputPath();
 
-        _externalErrorReporter = new ProjectExternalErrorReporter(ProjectSystemProject.Id, externalErrorReportingPrefix, language, workspaceImpl);
+        var projectHierarchyGuid = GetProjectIDGuid(hierarchy);
+
+        _externalErrorReporter = new ProjectExternalErrorReporter(ProjectSystemProject.Id, projectHierarchyGuid, externalErrorReportingPrefix, language, workspaceImpl);
         _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
         _batchScopeCreator.StartTrackingProject(ProjectSystemProject, Hierarchy);
     }

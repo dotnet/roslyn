@@ -2608,8 +2608,8 @@
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</source>
-        <target state="new">'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</target>
+        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
+        <target state="new">'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
@@ -2870,36 +2870,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Odwołanie do analizatora określono wiele razy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno lub więcej przeciążeń konstruktora z parametrem kolekcji parametrów niebędącym tablicą może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno lub więcej przeciążeń konstruktora z parametrem kolekcji parametrów niebędącym tablicą może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno lub więcej przeciążeń indeksatora z parametrem kolekcji niebędącym tablicą parametrów może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno lub więcej przeciążeń indeksatora z parametrem kolekcji niebędącym tablicą parametrów może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
-        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Co najmniej jedno przeciążenie metody „{0}” z parametrem kolekcji params innych niż tablicowe może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
-        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Co najmniej jedno przeciążenie metody posiadającej parametr kolekcji params inny niż tablica może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">

@@ -1750,10 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
                     {
                         var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-                        if (Compilation.LanguageVersion < requiredVersion)
-                        {
-                            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
-                        }
+                        diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
                     }
                     break;
             }
@@ -6593,15 +6590,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportMemberNotSupportedByDynamicDispatch(node, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
                     }
 
-                    if (finalApplicableCandidates.Length != 1 &&
-                        Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                        HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                    {
-                        Error(diagnostics,
-                            ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor,
-                            node);
-                    }
-
                     var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
                     var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
 
@@ -9710,15 +9698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(finalApplicableCandidates[0].IsApplicable);
                     ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
-                }
-
-                if (finalApplicableCandidates.Length != 1 &&
-                    Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                    HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                {
-                    Error(diagnostics,
-                        ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer,
-                        syntax);
                 }
 
                 overloadResolutionResult.Free();

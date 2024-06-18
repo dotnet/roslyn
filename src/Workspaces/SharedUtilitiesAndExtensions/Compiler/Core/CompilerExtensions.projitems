@@ -485,11 +485,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\ValueTaskExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImmutableArrayComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Base64Utilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BKTree.Builder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BKTree.cs" />
@@ -503,6 +505,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FixedSizeArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\InterceptslocationUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\OptionalExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
