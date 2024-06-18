@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Utilities
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
     <[UseExportProvider]>
@@ -313,7 +314,8 @@ public class $$MyClass
                     memberViewModels:=memberViewModels.ToImmutableArray(),
                     defaultNamespace:=defaultNamespace,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,
-                    languageName:=doc.Project.Language)
+                    languageName:=doc.Project.Language,
+                    globalOptionService:=workspace.GetService(Of IGlobalOptionService))
             End Using
         End Function
     End Class

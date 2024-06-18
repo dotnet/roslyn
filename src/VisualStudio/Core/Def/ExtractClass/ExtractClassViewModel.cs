@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.VisualStudio.LanguageServices.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -30,7 +31,7 @@ internal class ExtractClassViewModel
         string typeParameterSuffix,
         ImmutableArray<string> conflictingNames,
         ISyntaxFactsService syntaxFactsService,
-        NewTypeDestination newTypeDestination)
+        INewTypeDestinationValueSource newTypeDestination)
     {
         _notificationService = notificationService;
         _selectedType = selectedType;
