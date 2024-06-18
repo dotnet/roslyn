@@ -1891,16 +1891,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public Conversion ConvertExtensionMethodThisArg(TypeSymbol parameterType, TypeSymbol thisType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ConvertExtensionMethodThisArg(TypeSymbol parameterType, TypeSymbol thisType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool isMethodGroupConversion)
         {
             Debug.Assert((object)thisType != null);
-            var conversion = this.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, thisType, parameterType, ref useSiteInfo);
+            var conversion = this.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, thisType, parameterType, ref useSiteInfo, isMethodGroupConversion);
             return IsValidExtensionMethodThisArgConversion(conversion) ? conversion : Conversion.NoConversion;
         }
 
         // Spec 7.6.5.2: "An extension method ... is eligible if ... [an] implicit identity, reference,
         // or boxing conversion exists from expr to the type of the first parameter"
-        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool isMethodGroupConversion)
         {
             Debug.Assert(sourceExpressionOpt is null || Compilation is not null);
             Debug.Assert(sourceExpressionOpt == null || (object)sourceExpressionOpt.Type == sourceType);
@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ImplicitReference;
                 }
 
-                if (HasImplicitSpanConversion(sourceType, destination, ref useSiteInfo))
+                if (!isMethodGroupConversion && HasImplicitSpanConversion(sourceType, destination, ref useSiteInfo))
                 {
                     return Conversion.ImplicitSpan;
                 }
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref useSiteInfo,
                     ConversionKind.ImplicitTupleLiteral,
                     (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
-                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u),
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u, isMethodGroupConversion: false),
                     isChecked: false,
                     forCast: false);
                 if (tupleConversion.Exists)
@@ -1962,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return Conversion.NoConversion;
                         }
-                        return conversions.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, s.Type, d.Type, ref u);
+                        return conversions.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, s.Type, d.Type, ref u, isMethodGroupConversion: false);
                     },
                     isChecked: false,
                     forCast: false);

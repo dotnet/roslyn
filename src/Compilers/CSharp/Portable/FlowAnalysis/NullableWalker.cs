@@ -7918,7 +7918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useExpression ? sourceExpression : null,
                     sourceType,
                     destinationType,
-                    ref discardedUseSiteInfo);
+                    ref discardedUseSiteInfo,
+                    isMethodGroupConversion: false);
             }
             return useExpression ?
                 (fromExplicitCast ?
