@@ -126,6 +126,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_implicit_object_creation
             => ServicesVSResources.Show_hints_for_implicit_object_creation;
 
+        public static string Option_Show_hints_for_collection_expressions
+            => ServicesVSResources.Show_hints_for_collection_expressions;
+
         public static string Option_Display_diagnostics_inline_experimental
             => ServicesVSResources.Display_diagnostics_inline_experimental;
 

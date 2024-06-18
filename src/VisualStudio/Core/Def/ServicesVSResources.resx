@@ -1936,4 +1936,7 @@ Additional information: {1}</value>
   <data name="Prefer_static_anonymous_functions" xml:space="preserve">
     <value>Prefer static anonymous functions</value>
   </data>
+  <data name="Show_hints_for_collection_expressions" xml:space="preserve">
+    <value>Show hints for collection expressions</value>
+  </data>
 </root>
