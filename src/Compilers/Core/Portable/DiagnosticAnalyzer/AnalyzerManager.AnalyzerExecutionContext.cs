@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         return Task.Run(() =>
                         {
-                            var sessionScope = new HostSessionStartAnalysisScope();
+                            var sessionScope = new HostSessionStartAnalysisScope(context._analyzer);
                             executor.ExecuteInitializeMethod(context._analyzer, sessionScope, executor.SeverityFilter, cancellationToken);
                             return sessionScope;
                         }, cancellationToken);
@@ -117,6 +117,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _lazyCompilationScopeTask = Task.Run(() =>
                         {
+                            if (sessionScope.Analyzer != _analyzer)
+                                throw new InvalidOperationException();
+
                             var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
                             analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions(_analyzer).CompilationStartActions, compilationAnalysisScope, cancellationToken);
                             return compilationAnalysisScope;
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
-                        var symbolAnalysisScope = new HostSymbolStartAnalysisScope();
+                        var symbolAnalysisScope = new HostSymbolStartAnalysisScope(_analyzer);
                         analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);

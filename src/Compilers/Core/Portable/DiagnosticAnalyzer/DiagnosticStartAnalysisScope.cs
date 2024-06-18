@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -24,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope, SeverityFilter severityFilter)
         {
+            if (analyzer != scope.Analyzer)
+                throw new InvalidOperationException();
+
             _analyzer = analyzer;
             _scope = scope;
             MinimumReportedSeverity = severityFilter.GetMinimumUnfilteredSeverity();
@@ -138,6 +142,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken)
             : base(compilation, options, cancellationToken)
         {
+            if (analyzer != scope.Analyzer)
+                throw new InvalidOperationException();
+
             _analyzer = analyzer;
             _scope = scope;
             _compilationAnalysisValueProviderFactory = compilationAnalysisValueProviderFactory;
@@ -241,6 +248,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        CancellationToken cancellationToken)
             : base(owningSymbol, compilation, options, isGeneratedCode, filterTree, filterSpan, cancellationToken)
         {
+            if (analyzer != scope.Analyzer)
+                throw new InvalidOperationException();
+
             _analyzer = analyzer;
             _scope = scope;
         }
@@ -365,36 +375,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Scope for setting up analyzers for an entire session, capable of retrieving the actions.
     /// </summary>
-    internal sealed class HostSessionStartAnalysisScope : HostAnalysisScope
+    internal sealed class HostSessionStartAnalysisScope(DiagnosticAnalyzer analyzer)
+        : HostAnalysisScope(analyzer)
     {
         private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = ImmutableHashSet<DiagnosticAnalyzer>.Empty;
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
 
         public bool IsConcurrentAnalyzer(DiagnosticAnalyzer analyzer)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             return _concurrentAnalyzers.Contains(analyzer);
         }
 
         public GeneratedCodeAnalysisFlags GetGeneratedCodeAnalysisFlags(DiagnosticAnalyzer analyzer)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             GeneratedCodeAnalysisFlags mode;
             return _generatedCodeConfigurationMap.TryGetValue(analyzer, out mode) ? mode : AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags;
         }
 
         public void RegisterCompilationStartAction(DiagnosticAnalyzer analyzer, Action<CompilationStartAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             CompilationStartAnalyzerAction analyzerAction = new CompilationStartAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationStartAction(analyzerAction);
         }
 
         public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
             GetOrCreateAnalyzerActions(analyzer).Value.EnableConcurrentExecution();
         }
 
         public void ConfigureGeneratedCodeAnalysis(DiagnosticAnalyzer analyzer, GeneratedCodeAnalysisFlags mode)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             _generatedCodeConfigurationMap.AddOrUpdate(analyzer, addValue: mode, updateValueFactory: (a, c) => mode);
         }
     }
@@ -407,6 +433,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly HostSessionStartAnalysisScope _sessionScope;
 
         public HostCompilationStartAnalysisScope(HostSessionStartAnalysisScope sessionScope)
+            : base(sessionScope.Analyzer)
         {
             _sessionScope = sessionScope;
         }
@@ -433,11 +460,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Scope for setting up analyzers for analyzing a symbol and its members.
     /// </summary>
-    internal sealed class HostSymbolStartAnalysisScope : HostAnalysisScope
+    internal sealed class HostSymbolStartAnalysisScope(DiagnosticAnalyzer analyzer)
+        : HostAnalysisScope(analyzer)
     {
-        public HostSymbolStartAnalysisScope()
-        {
-        }
     }
 
     /// <summary>
@@ -497,47 +522,70 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 
-    internal abstract class HostAnalysisScope
+    internal abstract class HostAnalysisScope(DiagnosticAnalyzer analyzer)
     {
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>> _analyzerActions = new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>>();
 
+        internal DiagnosticAnalyzer Analyzer { get; } = analyzer;
+
         public virtual AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             return this.GetOrCreateAnalyzerActions(analyzer).Value;
         }
 
         public void RegisterCompilationAction(DiagnosticAnalyzer analyzer, Action<CompilationAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             CompilationAnalyzerAction analyzerAction = new CompilationAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationAction(analyzerAction);
         }
 
         public void RegisterCompilationEndAction(DiagnosticAnalyzer analyzer, Action<CompilationAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             CompilationAnalyzerAction analyzerAction = new CompilationAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationEndAction(analyzerAction);
         }
 
         public void RegisterSemanticModelAction(DiagnosticAnalyzer analyzer, Action<SemanticModelAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             SemanticModelAnalyzerAction analyzerAction = new SemanticModelAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSemanticModelAction(analyzerAction);
         }
 
         public void RegisterSyntaxTreeAction(DiagnosticAnalyzer analyzer, Action<SyntaxTreeAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             SyntaxTreeAnalyzerAction analyzerAction = new SyntaxTreeAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSyntaxTreeAction(analyzerAction);
         }
 
         public void RegisterAdditionalFileAction(DiagnosticAnalyzer analyzer, Action<AdditionalFileAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             var analyzerAction = new AdditionalFileAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddAdditionalFileAction(analyzerAction);
         }
 
         public void RegisterSymbolAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             SymbolAnalyzerAction analyzerAction = new SymbolAnalyzerAction(action, symbolKinds, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolAction(analyzerAction);
 
@@ -594,66 +642,99 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void RegisterSymbolStartAction(DiagnosticAnalyzer analyzer, Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             var analyzerAction = new SymbolStartAnalyzerAction(action, symbolKind, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolStartAction(analyzerAction);
         }
 
         public void RegisterSymbolEndAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             var analyzerAction = new SymbolEndAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolEndAction(analyzerAction);
         }
 
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             CodeBlockStartAnalyzerAction<TLanguageKindEnum> analyzerAction = new CodeBlockStartAnalyzerAction<TLanguageKindEnum>(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCodeBlockStartAction(analyzerAction);
         }
 
         public void RegisterCodeBlockEndAction(DiagnosticAnalyzer analyzer, Action<CodeBlockAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             CodeBlockAnalyzerAction analyzerAction = new CodeBlockAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCodeBlockEndAction(analyzerAction);
         }
 
         public void RegisterCodeBlockAction(DiagnosticAnalyzer analyzer, Action<CodeBlockAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             CodeBlockAnalyzerAction analyzerAction = new CodeBlockAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCodeBlockAction(analyzerAction);
         }
 
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             SyntaxNodeAnalyzerAction<TLanguageKindEnum> analyzerAction = new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSyntaxNodeAction(analyzerAction);
         }
 
         public void RegisterOperationBlockStartAction(DiagnosticAnalyzer analyzer, Action<OperationBlockStartAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             OperationBlockStartAnalyzerAction analyzerAction = new OperationBlockStartAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationBlockStartAction(analyzerAction);
         }
 
         public void RegisterOperationBlockEndAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             OperationBlockAnalyzerAction analyzerAction = new OperationBlockAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationBlockEndAction(analyzerAction);
         }
 
         public void RegisterOperationBlockAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             OperationBlockAnalyzerAction analyzerAction = new OperationBlockAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationBlockAction(analyzerAction);
         }
 
         public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationAction(analyzerAction);
         }
 
         protected StrongBox<AnalyzerActions> GetOrCreateAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
+            if (analyzer != Analyzer)
+                throw new InvalidOperationException();
+
             return _analyzerActions.GetOrAdd(analyzer, _ => new StrongBox<AnalyzerActions>(AnalyzerActions.Empty));
         }
     }

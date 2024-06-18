@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerExecutor analyzerExecutor,
             CancellationToken cancellationToken)
         {
+            if (analyzer != sessionScope.Analyzer)
+                throw new InvalidOperationException();
+
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
         }

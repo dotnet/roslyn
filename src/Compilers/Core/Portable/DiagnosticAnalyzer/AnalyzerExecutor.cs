@@ -200,6 +200,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </remarks>
         public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope, SeverityFilter severityFilter, CancellationToken cancellationToken)
         {
+            if (analyzer != sessionScope.Analyzer)
+                throw new InvalidOperationException();
+
             var context = new AnalyzerAnalysisContext(analyzer, sessionScope, severityFilter);
 
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
@@ -254,6 +257,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan? filterSpan,
             CancellationToken cancellationToken)
         {
+            if (analyzer != symbolScope.Analyzer)
+                throw new InvalidOperationException();
+
             if (isGeneratedCodeSymbol && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForSymbol(analyzer, symbol, cancellationToken))
             {
