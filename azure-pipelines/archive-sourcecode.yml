@@ -63,7 +63,16 @@ extends:
         - powershell: azure-pipelines/variables/_pipelines.ps1
           failOnStderr: true
           displayName: ⚙ Set pipeline variables based on source
-        - powershell: >
+        - task: AzureCLI@2
+          displayName: 🔏 Authenticate with WIF service connection
+          inputs:
+            azureSubscription: VS Core Source Code Archival
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $accessToken = az account get-access-token --query accessToken --resource api://177cf50a-4bf5-4481-8b7e-f32900dfc8e6 -o tsv
+              Write-Host "##vso[task.setvariable variable=scaToken;issecret=true]$accessToken"
+        - pwsh: >
             $TeamAlias = '$(TeamEmail)'.Substring(0, '$(TeamEmail)'.IndexOf('@'))
 
             azure-pipelines/Archive-SourceCode.ps1
@@ -73,6 +82,7 @@ extends:
             -ProductName '$(SymbolsFeatureName)'
             -ProductLanguage English
             -Notes '${{ parameters.notes }}'
+            -AccessToken '$(scaToken)'
             -Verbose
             -WhatIf:$${{ parameters.whatif }}
           displayName: 🗃️ Submit archival request
