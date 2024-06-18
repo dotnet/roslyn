@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.ExtractClass;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -91,7 +92,8 @@ internal class VisualStudioExtractClassOptionsService : IExtractClassOptionsServ
             document.Project.Language,
             generatedNameTypeParameterSuffix,
             conflictingTypeNames.ToImmutableArray(),
-            document.GetRequiredLanguageService<ISyntaxFactsService>());
+            document.GetRequiredLanguageService<ISyntaxFactsService>(),
+            _globalOptions.GetOption(ExtractClassOptionStorage.ExtractClassDestination, document.Project.Language));
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         var dialog = new ExtractClassDialog(viewModel);

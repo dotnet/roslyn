@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.ExtractInterface;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -31,14 +33,20 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
     private readonly IGlyphService _glyphService;
     private readonly IThreadingContext _threadingContext;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+    private readonly IGlobalOptionService _globalOptionService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IUIThreadOperationExecutor uiThreadOperationExecutor)
+    public VisualStudioExtractInterfaceOptionsService(
+        IGlyphService glyphService,
+        IThreadingContext threadingContext,
+        IUIThreadOperationExecutor uiThreadOperationExecutor,
+        IGlobalOptionService globalOptionService)
     {
         _glyphService = glyphService;
         _threadingContext = threadingContext;
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
+        _globalOptionService = globalOptionService;
     }
 
     public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
@@ -76,7 +84,8 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
             memberViewModels,
             defaultNamespace,
             generatedNameTypeParameterSuffix,
-            languageName);
+            languageName,
+            _globalOptionService.GetOption(ExtractInterfaceOptionStorage.ExtractInterfaceDestination, language: languageName));
 
         var dialog = new ExtractInterfaceDialog(viewModel);
         var result = dialog.ShowModal();
