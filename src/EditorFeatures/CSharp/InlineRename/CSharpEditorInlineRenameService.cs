@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,13 +25,13 @@ internal sealed class CSharpEditorInlineRenameService(
     [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
     IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
 {
-    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken)
+    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(InlineRenameSession renameSession, CancellationToken cancellationToken)
     {
         var seen = PooledHashSet<TextSpan>.GetInstance();
         var definitions = ArrayBuilder<string>.GetInstance();
         var references = ArrayBuilder<string>.GetInstance();
 
-        foreach (var renameDefinition in renameInfo.DefinitionLocations)
+        foreach (var renameDefinition in renameSession.RenameInfo.DefinitionLocations)
         {
             var containingStatementOrDeclarationSpan =
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false) ??
@@ -45,8 +46,7 @@ internal sealed class CSharpEditorInlineRenameService(
             AddSpanOfInterest(documentText, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
         }
 
-        var renameLocationOptions = new Rename.SymbolRenameOptions(RenameOverloads: true, RenameInStrings: true, RenameInComments: true);
-        var renameLocations = await renameInfo.FindRenameLocationsAsync(renameLocationOptions, cancellationToken);
+        var renameLocations = await renameSession.AllRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
         foreach (var renameLocation in renameLocations.Locations)
         {
             var containingStatementOrDeclarationSpan =

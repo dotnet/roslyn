@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -255,5 +256,5 @@ internal interface IEditorInlineRenameService : ILanguageService
 {
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 
-    Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo renameInfo, CancellationToken cancellationToken);
+    Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(InlineRenameSession renameSession, CancellationToken cancellationToken);
 }

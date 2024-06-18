@@ -123,7 +123,9 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private CancellationTokenSource _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
 
     private readonly IInlineRenameInfo _renameInfo;
+
     internal IInlineRenameInfo RenameInfo => _renameInfo;
+    internal JoinableTask<IInlineRenameLocationSet> AllRenameLocationsTask => _allRenameLocationsTask;
 
     /// <summary>
     /// The initial text being renamed.
