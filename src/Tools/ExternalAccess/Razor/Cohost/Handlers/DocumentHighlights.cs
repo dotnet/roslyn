@@ -4,20 +4,21 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
-internal static class FoldingRanges
+internal static class DocumentHighlights
 {
-    public static Task<FoldingRange[]> GetFoldingRangesAsync(Document document, CancellationToken cancellationToken)
+    public static Task<DocumentHighlight[]?> GetHighlightsAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
     {
-        // We need to manually get the IGlobalOptionsService out of the Mef composition, because Razor has its own
-        // composition so can't import it (and its internal anyway)
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var highlightingService = document.Project.Solution.Services.ExportProvider.GetService<IHighlightingService>();
 
-        return FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, document, cancellationToken);
+        return DocumentHighlightsHandler.GetHighlightsAsync(globalOptions, highlightingService, document, linePosition, cancellationToken);
     }
 }

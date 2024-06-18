@@ -6,18 +6,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
-internal static class FoldingRanges
+internal static class Rename
 {
-    public static Task<FoldingRange[]> GetFoldingRangesAsync(Document document, CancellationToken cancellationToken)
+    public static Task<Range?> GetRenameRangeAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
+        => PrepareRenameHandler.GetRenameRangeAsync(document, linePosition, cancellationToken);
+
+    public static Task<WorkspaceEdit?> GetRenameEditAsync(Document document, LinePosition linePosition, string newName, CancellationToken cancellationToken)
     {
-        // We need to manually get the IGlobalOptionsService out of the Mef composition, because Razor has its own
-        // composition so can't import it (and its internal anyway)
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
 
-        return FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, document, cancellationToken);
+        return RenameHandler.GetRenameEditAsync(globalOptions, document, linePosition, newName, cancellationToken);
     }
 }
