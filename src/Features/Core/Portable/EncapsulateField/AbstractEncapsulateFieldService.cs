@@ -220,7 +220,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
             new SyntaxAnnotation(),
             document);
 
-        var simplifierOptions = await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithProperty = await AddPropertyAsync(
             document, document.Project.Solution, field, generatedProperty, fallbackOptions, cancellationToken).ConfigureAwait(false);

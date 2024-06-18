@@ -256,7 +256,7 @@ public static partial class Simplifier
     {
         optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplificationService = document.Project.Solution.Services.GetRequiredLanguageService<ISimplificationService>(document.Project.Language);
-        return simplificationService.GetSimplifierOptions(optionSet, fallbackOptions: null);
+        return simplificationService.GetSimplifierOptions(optionSet);
     }
 #pragma warning restore
 }

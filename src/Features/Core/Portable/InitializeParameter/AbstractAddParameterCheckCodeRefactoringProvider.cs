@@ -76,7 +76,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         // Great.  The list has parameters that need null checks. Offer to add null checks for all.
         return [CodeAction.Create(
             FeaturesResources.Add_null_checks_for_all_parameters,
-            c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, fallbackOptions, c),
+            c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c),
             nameof(FeaturesResources.Add_null_checks_for_all_parameters))];
     }
 
@@ -96,7 +96,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
             return [];
 
-        var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Great.  There was no null check.  Offer to add one.
         using var result = TemporaryArray<CodeAction>.Empty;
@@ -128,7 +128,6 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         IBlockOperation? blockStatementOpt,
         List<int> listOfParametersOrdinals,
         TextSpan parameterSpan,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         TSimplifierOptions? lazySimplifierOptions = null;
@@ -156,7 +155,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
                 continue;
 
-            lazySimplifierOptions ??= (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            lazySimplifierOptions ??= (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more
             // commonly used in this regard according to telemetry and UX testing.
