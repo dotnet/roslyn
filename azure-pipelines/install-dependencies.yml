@@ -1,5 +1,7 @@
 parameters:
 - name: initArgs
+  type: string
+  default: ''
 - name: needsAzurePublicFeeds
   type: boolean
   default: true # If nuget.config pulls from the azure-public account, we need to authenticate when building on the devdiv account.
