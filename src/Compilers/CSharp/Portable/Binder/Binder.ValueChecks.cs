@@ -23,19 +23,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Encapsulates a property or indexer and the accessor(s) on it that were used. The particular
-        /// indexer used is important as it impacts ref safety analysis
+        /// Encapsulates a symbol used in ref safety analysis. For properties and indexers this
+        /// captures the accessor(s) on it that were used. The particular accessor used is 
+        /// important as it can impact ref safety analysis.
         /// </summary>
         private readonly struct MethodInfo
         {
             internal Symbol Symbol { get; }
+
+            /// <summary>
+            /// This is the primary <see cref="MethodSymbol" /> used in ref safety analysis.
+            /// </summary>
+            /// <remarks>
+            /// This will be null in error scenarios. For example when an indexer with only a set
+            /// method is used in a get scenario. That will lead to a non-null <see cref="MethodInfo.Symbol"/>
+            /// but a null value here.
+            /// </remarks>
             internal MethodSymbol? Method { get; }
+
+            /// <summary>
+            /// In the case of a compound operation on a property or indexer with a non-ref return
+            /// <see cref="Method"/> with a will represent the `get` accessor and this will 
+            /// represent the `set` accessor. 
+            /// </summary>
             internal MethodSymbol? SetMethod { get; }
-            internal bool IsCompoundUsage => SetMethod is not null;
+
             internal bool UseUpdatedEscapeRules => Method?.UseUpdatedEscapeRules == true;
             internal bool ReturnsRefToRefStruct =>
                 Method is { RefKind: not RefKind.None, ReturnType: { } returnType } &&
-               returnType.IsRefLikeOrAllowsRefLikeType();
+                returnType.IsRefLikeOrAllowsRefLikeType();
 
             private MethodInfo(Symbol symbol, MethodSymbol? method, MethodSymbol? setMethod)
             {
@@ -53,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new MethodInfo(
                     property,
-                    property.GetMethod ?? property.SetMethod,
+                    property.GetOwnOrInheritedGetMethod() ?? property.GetOwnOrInheritedSetMethod(),
                     null);
             }
 
@@ -391,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private AccessorKind GetIndexerAccessorKind(BoundIndexerAccess indexerAccess, BindValueKind valueKind)
+        private static AccessorKind GetIndexerAccessorKind(BoundIndexerAccess indexerAccess, BindValueKind valueKind)
         {
             var coreValueKind = valueKind & ValueKindSignificantBitsMask;
             var returnsByRef = indexerAccess.Indexer.RefKind != RefKind.None;
@@ -416,9 +432,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
             var coreValueKind = valueKind & ValueKindSignificantBitsMask;
-            var returnsByRef = indexerAccess.Indexer.RefKind != RefKind.None;
             AccessorKind kind = GetIndexerAccessorKind(indexerAccess, valueKind);
-            var useSetAccessor = coreValueKind == BindValueKind.Assignable && !returnsByRef;
+            var useSetAccessor = coreValueKind == BindValueKind.Assignable && indexerAccess.Indexer.RefKind != RefKind.Ref;
             var accessorForDefaultArguments = useSetAccessor
                 ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
                 : indexerAccess.Indexer.GetOwnOrInheritedGetMethod();
@@ -2263,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// set potentially includes the receiver of the method call.  Each argument is returned (only once)
         /// with the corresponding parameter and ref kind.
         /// 
-        /// No filtering like removing non-reflike types is done by this method. It is theh responsibility of
+        /// No filtering like removing non-reflike types is done by this method. It is the responsibility of
         /// the caller to determine which arguments impact escape analysis.
         ///
         /// This method is used by for old and new escape rules to collect information.
@@ -2373,23 +2388,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // When there is compound usage the receiver is used once but both the get and 
                 // set methods are invoked. Return the most permissive of the two in order to get
                 // the complete set of ref safety errors.
-                if (methodInfo.IsCompoundUsage)
+                if (methodInfo.Method is not null && methodInfo.SetMethod is not null)
                 {
-                    Debug.Assert(methodInfo.SetMethod is not null);
                     var getArgument = getReceiverCore(methodInfo.Method, receiver);
-                    var setArgument = getReceiverCore(methodInfo.SetMethod, receiver);
                     if (getArgument.RefKind == RefKind.Ref)
                     {
                         return getArgument;
                     }
-                    else if (setArgument.RefKind == RefKind.Ref)
+
+                    var setArgument = getReceiverCore(methodInfo.SetMethod, receiver);
+                    if (setArgument.RefKind == RefKind.Ref)
                     {
                         return setArgument;
                     }
-                    else
-                    {
-                        return getArgument;
-                    }
+
+                    return getArgument;
                 }
 
                 return getReceiverCore(methodInfo.Method, receiver);
@@ -3371,7 +3384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var indexerSymbol = indexerAccess.Indexer;
 
                             return GetInvocationEscapeScope(
-                                MethodInfo.Create((BoundIndexerAccess)implicitIndexerAccess.IndexerOrSliceAccess),
+                                MethodInfo.Create(indexerAccess),
                                 implicitIndexerAccess.Receiver,
                                 indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,

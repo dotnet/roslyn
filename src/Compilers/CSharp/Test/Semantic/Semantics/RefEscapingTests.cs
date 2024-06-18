@@ -2722,6 +2722,9 @@ class Program
                         _ = local[heapSpan];
                         local[stackSpan] = 42; // 3
                         local[heapSpan] = 42;
+
+                        local[stackSpan]++; // 4
+                        local[heapSpan]++;
                     }
                 }
 
@@ -2740,8 +2743,11 @@ class Program
                         S4 local = default;
                         _ = local[stackSpan];
                         _ = local[heapSpan];
-                        local[stackSpan] = 42; // 4
+                        local[stackSpan] = 42; // 5
                         local[heapSpan] = 42;
+
+                        local[stackSpan]++; // 6
+                        local[heapSpan]++;
                     }
                 }
 
@@ -2758,16 +2764,36 @@ class Program
                         Span<int> stackSpan = stackalloc int[] { 13 };
                         Span<int> heapSpan = default;
                         S5 local = default;
-                        _ = local[stackSpan]; // 5
+                        _ = local[stackSpan]; // 7
                         _ = local[heapSpan];
                         local[stackSpan] = 42;
                         local[heapSpan] = 42;
 
-                        local[stackSpan]++; // 6
+                        local[stackSpan]++; // 8
                         local[heapSpan]++;
                     }
                 }
 
+                ref struct S6
+                {
+                    public ref int this[Span<int> span]
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S6 local = default;
+                        _ = local[stackSpan]; // 9
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42; // 10
+                        local[heapSpan] = 42;
+                        local[stackSpan]++; // 11
+                        local[heapSpan]++;
+                    }
+                }
                 """, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
@@ -2790,31 +2816,116 @@ class Program
                 // (45,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[stackSpan] = 42; // 3
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(45, 15),
-                // (65,9): error CS8350: This combination of arguments to 'S4.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //         local[stackSpan] = 42; // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S4.this[System.Span<int>]", "span").WithLocation(65, 9),
-                // (65,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
-                //         local[stackSpan] = 42; // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(65, 15),
-                // (83,13): error CS8350: This combination of arguments to 'S5.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //         _ = local[stackSpan]; // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S5.this[System.Span<int>]", "span").WithLocation(83, 13),
-                // (83,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
-                //         _ = local[stackSpan]; // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(83, 19),
-                // (88,9): error CS8350: This combination of arguments to 'S5.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                // (48,9): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(48, 9),
+                // (48,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(48, 15),
+                // (68,9): error CS8350: This combination of arguments to 'S4.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan] = 42; // 5
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S4.this[System.Span<int>]", "span").WithLocation(68, 9),
+                // (68,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan] = 42; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(68, 15),
+                // (71,9): error CS8350: This combination of arguments to 'S4.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
                 //         local[stackSpan]++; // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S5.this[System.Span<int>]", "span").WithLocation(88, 9),
-                // (88,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S4.this[System.Span<int>]", "span").WithLocation(71, 9),
+                // (71,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[stackSpan]++; // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(88, 15));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(71, 15),
+                // (89,13): error CS8350: This combination of arguments to 'S5.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = local[stackSpan]; // 7
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S5.this[System.Span<int>]", "span").WithLocation(89, 13),
+                // (89,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan]; // 7
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(89, 19),
+                // (94,9): error CS8350: This combination of arguments to 'S5.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 8
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S5.this[System.Span<int>]", "span").WithLocation(94, 9),
+                // (94,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 8
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(94, 15),
+                // (111,13): error CS8350: This combination of arguments to 'S6.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = local[stackSpan]; // 9
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S6.this[System.Span<int>]", "span").WithLocation(111, 13),
+                // (111,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan]; // 9
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(111, 19),
+                // (113,9): error CS8350: This combination of arguments to 'S6.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan] = 42; // 10
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S6.this[System.Span<int>]", "span").WithLocation(113, 9),
+                // (113,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan] = 42; // 10
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(113, 15),
+                // (115,9): error CS8350: This combination of arguments to 'S6.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 11
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S6.this[System.Span<int>]", "span").WithLocation(115, 9),
+                // (115,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 11
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(115, 15));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73550")]
+        public void RefLikeEscapeMixingIndexer2()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+                ref struct S1
+                {
+                    public int this[scoped Span<int> span]
+                    {
+                        get => 42;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S1 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42;
+                        local[heapSpan] = 42;
+                        local[stackSpan]++;
+                        local[heapSpan]++;
+                    }
+                }
+
+                ref struct S2
+                {
+                    public ref int this[scoped Span<int> span]
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S2 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42;
+                        local[heapSpan] = 42;
+                        local[stackSpan]++;
+                        local[heapSpan]++;
+                    }
+                }
+
+                """, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
-        public void RefLikeEscapeMixingIndexer2(LanguageVersion languageVersion)
+        public void RefLikeEscapeMixingIndexer3(LanguageVersion languageVersion)
         {
             var tree = SyntaxFactory.ParseSyntaxTree("""
                 using System;

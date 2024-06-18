@@ -279,12 +279,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedArguments,
                 refKinds,
                 expanded: false,
+                accessorKind: AccessorKind.Unknown,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 originalIndexersOpt: originalIndexers,
                 type: indexer.Type,
-                hasErrors: true,
-                accessorKind: AccessorKind.Unknown);
+                hasErrors: true);
         }
         public BoundIndexerAccess(
             SyntaxNode syntax,
