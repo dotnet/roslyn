@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Utilities
         private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, NullableEnablePublicApiFix, XUnitVerifier>
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, NullableEnablePublicApiFix, DefaultVerifier>
             {
                 TestState =
                 {
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         private async Task VerifyAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newSource, string newShippedApiText, string newUnshippedApiText)
         {
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, NullableEnablePublicApiFix, XUnitVerifier>();
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, NullableEnablePublicApiFix, DefaultVerifier>();
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicShippedFileName, oldShippedApiText));

@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace Test.Utilities
 {
     public static partial class CSharpCodeRefactoringVerifier<TRefactoring>
         where TRefactoring : CodeRefactoringProvider, new()
     {
-        public class Test : CSharpCodeRefactoringTest<TRefactoring, XUnitVerifier>
+        public class Test : CSharpCodeRefactoringTest<TRefactoring, DefaultVerifier>
         {
             public Test()
             {

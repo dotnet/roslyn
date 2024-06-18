@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Test.Utilities;
 using Xunit;
@@ -1004,7 +1003,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         private async Task VerifyCSharpAsync(string source, string shippedText, string unshippedText, params DiagnosticResult[] expected)
         {
-            var test = new CSharpCodeFixTest<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix, XUnitVerifier>
+            var test = new CSharpCodeFixTest<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix, DefaultVerifier>
             {
                 TestState =
                 {
@@ -1044,8 +1043,8 @@ class MyAnalyzer : DiagnosticAnalyzer
             ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInInput, ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInResult)
         {
             var test = language == LanguageNames.CSharp
-                ? new CSharpCodeFixTest<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix, XUnitVerifier>()
-                : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix, XUnitVerifier>();
+                ? new CSharpCodeFixTest<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix, DefaultVerifier>()
+                : (CodeFixTest<DefaultVerifier>)new VisualBasicCodeFixTest<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix, DefaultVerifier>();
 
             test.ReferenceAssemblies = AdditionalMetadataReferences.Default;
             test.SolutionTransforms.Add(DisableNonReleaseTrackingWarnings);

@@ -21,7 +21,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
     public static partial class VisualBasicSourceGeneratorVerifier<TSourceGenerator>
         where TSourceGenerator : IIncrementalGenerator, new()
     {
-        public class Test : VisualBasicSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+        public class Test : VisualBasicSourceGeneratorTest<TSourceGenerator, DefaultVerifier>
         {
             private readonly string _identifier;
             private readonly string? _testFile;

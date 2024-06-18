@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 
@@ -11,7 +11,7 @@ namespace Test.Utilities
     public static partial class VisualBasicCodeRefactoringVerifier<TRefactoring>
         where TRefactoring : CodeRefactoringProvider, new()
     {
-        public class Test : VisualBasicCodeRefactoringTest<TRefactoring, XUnitVerifier>
+        public class Test : VisualBasicCodeRefactoringTest<TRefactoring, DefaultVerifier>
         {
             public Test()
             {
