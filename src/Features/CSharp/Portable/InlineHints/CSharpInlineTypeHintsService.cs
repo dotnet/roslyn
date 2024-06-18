@@ -106,7 +106,8 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
         {
             if (node is CollectionExpressionSyntax collectionExpression)
             {
-                var type = semanticModel.GetTypeInfo(collectionExpression, cancellationToken).Type;
+                var x = semanticModel.GetTypeInfo(collectionExpression, cancellationToken);
+                var type = x.ConvertedType;
                 if (IsValidType(type))
                 {
                     var span = new TextSpan(collectionExpression.OpenBracketToken.SpanStart, 0);
