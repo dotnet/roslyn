@@ -2386,8 +2386,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             static EscapeArgument getReceiver(in MethodInfo methodInfo, BoundExpression receiver)
             {
                 // When there is compound usage the receiver is used once but both the get and 
-                // set methods are invoked. Return the most permissive of the two in order to get
-                // the complete set of ref safety errors.
+                // set methods are invoked. This will prefer an accessor that has a writable 
+                // `this` as it's more dangerous from a ref safety standpoint. 
                 if (methodInfo.Method is not null && methodInfo.SetMethod is not null)
                 {
                     var getArgument = getReceiverCore(methodInfo.Method, receiver);
@@ -2402,6 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return setArgument;
                     }
 
+                    Debug.Assert(!getArgument.RefKind.IsWritableReference());
                     return getArgument;
                 }
 

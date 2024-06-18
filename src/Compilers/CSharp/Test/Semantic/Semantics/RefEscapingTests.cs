@@ -2624,7 +2624,7 @@ class Program
                     S1 local = default;
                     Span<int> span = stackalloc int[] { 42 };
                     local.M1(span); // 1
-                    local.M2(span); // 2
+                    local.M2(span);
                 }
             }
 
@@ -5302,6 +5302,105 @@ public class C
                 // (8,36): error CS0611: Array elements cannot be of type 'TestStruct'
                 //     public static unsafe void Test(TestStruct[] ar)
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PropertyEscape(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                ref struct S1
+                {
+                    internal Span<int> Span 
+                    {
+                        get => default;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local = default;
+                        local.Span = stackSpan; // 1
+                        local.Span = heapSpan;
+                    }
+                }
+
+                ref struct S2
+                {
+                    internal Span<int> Span 
+                    {
+                        readonly get => default;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local = default;
+                        local.Span = stackSpan; // 2
+                        local.Span = heapSpan;
+                    }
+                }
+
+                ref struct S3
+                {
+                    internal ref Span<int> Span 
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S3 local = default;
+                        local.Span = stackSpan; // 3
+                        local.Span = heapSpan;
+                    }
+                }
+
+                ref struct S4
+                {
+                    internal readonly ref Span<int> Span 
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S4 local = default;
+                        local.Span = stackSpan; // 4
+                        local.Span = heapSpan;
+                    }
+                }
+                """, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (17,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(17, 22),
+                // (36,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(36, 22),
+                // (54,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(54, 22),
+                // (72,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(72, 22));
         }
 
         [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
