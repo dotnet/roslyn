@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -19,7 +20,7 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
         out SolutionAnalyzerConfigOptionsUpdater updater,
         out IAsynchronousOperationWaiter workspaceOperations)
     {
-        var workspace = new TestWorkspace(LspTestCompositions.LanguageServerProtocol);
+        var workspace = new TestWorkspace(EditorTestCompositions.LanguageServerProtocol);
 
         updater = (SolutionAnalyzerConfigOptionsUpdater)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is SolutionAnalyzerConfigOptionsUpdater).Value;
         var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
