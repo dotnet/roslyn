@@ -11892,6 +11892,35 @@ class C
         }
 
         [Fact]
+        public void RefOnly_Extension()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText("""
+public implicit extension E for object { }
+""");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(null, dir.Path, ["/nologo", "/target:library", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/langversion:preview", "a.cs"]);
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal("", outWriter.ToString());
+            Assert.Equal(0, exitCode);
+
+            var refDll = Path.Combine(dir.Path, "a.dll");
+            Assert.True(File.Exists(refDll));
+            // PROTOTYPE extension marker method is missing (see logic in CSharpCompilation.CompileMethods)
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
+                ["TypeDefinition:E", "TypeDefinition:<Module>", "TypeDefinition:Microsoft.CodeAnalysis.EmbeddedAttribute", "TypeDefinition:System.Runtime.CompilerServices.RefSafetyRulesAttribute"],
+                [/*"MethodDefinition:Void E.<ImplicitExtension>$(Object)",*/ "MethodDefinition:Void Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()", "MethodDefinition:Void System.Runtime.CompilerServices.RefSafetyRulesAttribute..ctor(Int32)"],
+                ["RefSafetyRulesAttribute", "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute", "CompilerGeneratedAttribute", "EmbeddedAttribute", "CompilerGeneratedAttribute", "EmbeddedAttribute", "AttributeUsageAttribute"]
+                );
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
             var parsedArgs = DefaultParse(new[] { "/define:1", "a.cs" }, WorkingDirectory);

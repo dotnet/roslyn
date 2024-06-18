@@ -399,7 +399,7 @@ class C<T>
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -3205,28 +3205,28 @@ public explicit extension R for C<dynamic> { }
         // Note: we don't emit a DynamicAttribute on synthesized field
         verifier.VerifyTypeIL("R", $$"""
 .class public sequential ansi sealed beforefieldinit R
-	extends [System.Runtime]System.ValueType
+    extends [System.Runtime]System.ValueType
 {
-	// Fields
-	.field private class C`1<object> '{{WellKnownMemberNames.ExtensionFieldName}}'
-	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-		01 00 00 00
-	)
-	// Methods
-	.method private hidebysig static
-		void '<ExplicitExtension>$' (
-			class C`1<object> ''
-		) cil managed
-	{
-		.param [1]
-			.custom instance void [System.Linq.Expressions]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = (
-				01 00 02 00 00 00 00 01 00 00
-			)
-		// Method begins at RVA 0x206f
-		// Code size 1 (0x1)
-		.maxstack 8
-		IL_0000: ret
-	} // end of method R::'<ExplicitExtension>$'
+    // Fields
+    .field private class C`1<object> '{{WellKnownMemberNames.ExtensionFieldName}}'
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Methods
+    .method public hidebysig static
+        void '{{ExtensionMarkerName(isExplicit: true)}}' (
+            class C`1<object> ''
+        ) cil managed
+    {
+        .param [1]
+            .custom instance void [System.Linq.Expressions]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = (
+                01 00 02 00 00 00 00 01 00 00
+            )
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method R::'<ExplicitExtension>$'
 } // end of class R
 """);
 
@@ -7133,7 +7133,7 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7170,7 +7170,7 @@ public explicit extension R2 for object : R1 { }
     .pack 1
     .size 0
 
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7207,7 +7207,7 @@ public explicit extension R2 for object : R1 { }
     .pack 0
     .size 1
 
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7235,10 +7235,10 @@ public explicit extension R2 for object : R1 { }
     }
 
     [Theory]
-    [InlineData("public")]
+    [InlineData("private")]
     [InlineData("family")]
     [InlineData("assembly")]
-    public void ExtensionMarkerMethod_NotPrivateMethod(string methodAccessibility)
+    public void ExtensionMarkerMethod_NotPublicMethod(string methodAccessibility)
     {
         var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
@@ -7279,7 +7279,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object& '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object& '') cil managed
     {
         IL_0000: ret
     }
@@ -7407,7 +7407,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modopt(object) '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modopt(object) '') cil managed
     {
         IL_0000: ret
     }
@@ -7452,7 +7452,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modopt(object) '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modopt(object) '') cil managed
     {
         IL_0000: ret
     }
@@ -7493,7 +7493,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modreq(object) '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modreq(object) '') cil managed
     {
         IL_0000: ret
     }
@@ -7540,7 +7540,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7550,7 +7550,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R2
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '', valuetype R2 modopt(object) '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '', valuetype R2 modopt(object) '') cil managed
     {
         IL_0000: ret
     }
@@ -7633,11 +7633,11 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(string '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(string '') cil managed
     {
         IL_0000: ret
     }
@@ -7691,11 +7691,11 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
-    .method private hidebysig static void '{{ExtensionMarkerName(!isExplicit)}}'(string '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(!isExplicit)}}'(string '') cil managed
     {
         IL_0000: ret
     }
@@ -7750,7 +7750,7 @@ public explicit extension R2 for object : R1 { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00)
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
@@ -7788,7 +7788,7 @@ static class OtherExtension
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 01 )
         IL_0000: ret
@@ -7818,7 +7818,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .param [1]
         .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 )
@@ -7866,7 +7866,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R0
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -7876,7 +7876,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(valuetype R0 '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(valuetype R0 '') cil managed
     {
         IL_0000: ret
     }
@@ -7924,7 +7924,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(valuetype R1 '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -7971,7 +7971,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', object '') cil managed
     {
         IL_0000: ret
     }
@@ -8010,7 +8010,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -8051,7 +8051,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -8061,7 +8061,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R2
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '', valuetype R1 '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '', valuetype R1 '') cil managed
     {
         IL_0000: ret
     }
@@ -8102,13 +8102,13 @@ public explicit extension R3 for object : R2 { }
     }
 
     [Theory, CombinatorialData]
-    public void ExtensionMarkerMethod_NotPrivate(bool isExplicit)
+    public void ExtensionMarkerMethod_NotPublic(bool isExplicit)
     {
         var ilSource = $$"""
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -8194,7 +8194,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
+    .method public static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -8228,7 +8228,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'() cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'() cil managed
     {
         IL_0000: ret
     }
@@ -8314,7 +8314,7 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'<T>(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'<T>(object '') cil managed
     {
         IL_0000: ret
     }
@@ -8552,7 +8552,7 @@ public explicit extension R2 for object : R1<nint> { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00)
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -8591,7 +8591,7 @@ static class OtherExtension
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -12174,7 +12174,7 @@ implicit extension E<T, U> for I2<T>
 .class public sequential ansi sealed beforefieldinit E`1<T>
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -35252,7 +35252,7 @@ public implicit extension E<T> for T where T : struct
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39404,7 +39404,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39443,7 +39443,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39480,7 +39480,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39516,7 +39516,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39552,7 +39552,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39591,7 +39591,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39630,7 +39630,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39669,7 +39669,7 @@ object.M();
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = ( 01 00 01 00 00 )
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39720,7 +39720,7 @@ object.M();
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = ( 01 00 01 00 00)
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(class C`1<object> '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(class C`1<object> '') cil managed
     {
         .param [1]
         .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 02 00 00 00 01 02 00 00)
@@ -39760,7 +39760,7 @@ C<object>.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39799,7 +39799,7 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    .method public hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
     }
@@ -39829,5 +39829,25 @@ object.M();
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void StaticInvocationOnDynamic()
+    {
+        var source = """
+object.M();
+dynamic.M();
+
+static implicit extension E for object
+{
+    public static void M() => throw null;
+}
+""";
+        // PROTOTYPE this should probably bind "dynamic" identifier to `dynamic` type and fail in a better way
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (2,1): error CS0103: The name 'dynamic' does not exist in the current context
+            // dynamic.M();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(2, 1));
     }
 }
