@@ -180,7 +180,6 @@ internal static class CSharpCollectionExpressionRewriter
                     OpenBracketToken.WithoutTrivia(),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
                     CloseBracketToken.WithoutTrivia());
-                //return collectionExpression.WithTriviaFrom(expressionToReplace).WithPrependedLeadingTrivia(trivia);
                 return collectionExpression.WithLeadingTrivia(trivia);
             }
         }
