@@ -119,13 +119,4 @@ internal static partial class AnalyzerOptionsProviders
 
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this SyntaxNodeAnalysisContext context)
         => context.Options.GetIdeOptions();
-
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this SyntaxTreeAnalysisContext context)
-        => context.Options.GetIdeOptions();
-
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this OperationAnalysisContext context)
-        => context.Options.GetIdeOptions();
-
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this CodeBlockAnalysisContext context)
-        => context.Options.GetIdeOptions();
 }
