@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorState
     {
 
+        /// <summary>
+        /// A generator state that has been initialized but produced no results
+        /// </summary>
         public static readonly GeneratorState Empty = new GeneratorState(ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<SyntaxInputNode>.Empty,
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,
@@ -24,6 +27,11 @@ namespace Microsoft.CodeAnalysis
                                                                          ImmutableArray<(string, string)>.Empty,
                                                                          exception: null,
                                                                          elapsedTime: TimeSpan.Zero);
+
+        /// <summary>
+        /// A generator state for a generator that has not yet been initialized
+        /// </summary>
+        public static readonly GeneratorState Uninitialized = Empty with { Initialized = false };
 
         /// <summary>
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
@@ -100,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                                       elapsedTime);
         }
 
-        internal bool Initialized { get; }
+        internal bool Initialized { get; private init; }
 
         internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
 

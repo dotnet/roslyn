@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, generators.SelectAsArray(g => GeneratorState.Empty), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero, parseOptionsChanged: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, generators.SelectAsArray(g => GeneratorState.Uninitialized), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero, parseOptionsChanged: true);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    states.Add(GeneratorState.Empty);
+                    states.Add(GeneratorState.Uninitialized);
                 }
             }
 

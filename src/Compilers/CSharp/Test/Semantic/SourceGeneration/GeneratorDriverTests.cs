@@ -4198,5 +4198,35 @@ class C { }
                 });
             }
         }
+
+        [Fact]
+        public void ReplaceGenerators_Initializes_New_Generators()
+        {
+            var generator1 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx => { }));
+
+            bool initWasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                initWasCalled = true;
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                });
+            }));
+
+            var compilation = CreateCompilation("class C{}");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator1 });
+            driver = driver.RunGenerators(compilation);
+            var results = driver.GetRunResult();
+            Assert.Empty(results.GeneratedTrees);
+
+            driver = driver.ReplaceGenerators([generator2]);
+            driver = driver.RunGenerators(compilation);
+
+            results = driver.GetRunResult();
+            Assert.True(initWasCalled);
+            Assert.Single(results.GeneratedTrees);
+        }
     }
 }
