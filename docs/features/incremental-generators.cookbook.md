@@ -638,13 +638,10 @@ TODO: https://github.com/dotnet/roslyn/issues/72149
 
 **User scenario:** As a generator author I want to be able to implement the properties of interfaces passed as arguments to a decorator of a class automatically for a user
 
-**Solution:** Require the user to decorate the interface that they want to self-implement with the `[AutoImplement]` Attribute; Require the user to make the classes that implement the decorated interface be a `partial class`.
-Provide that attribute in a `RegisterPostInitializationOutput` step. Register for callbacks on the classes with
-`CreateSyntaxProvider` using the predicate `node is ClassDeclarationSyntax classDeclarationSyntax && classDeclarationSyntax.BaseList is not null && classDeclarationSyntax.BaseList.Types.Count > 0` to collect the classes that possibly implements at least one interface, And use tuples (or create an equatable model) to pass along that information.
-
-**Solution:** Require the user to decorate the class with the `[AutoImplement]` Attribute and pass as arguments the types of the interfaces they want to self-implement themselves; The classes that implement the attribute havr to be `partial class`.
+**Solution:** Require the user to decorate the class with the `[AutoImplement]` Attribute and pass as arguments the types of the interfaces they want to self-implement themselves; The classes that implement the attribute have to be `partial class`.
 Provide that attribute in a `RegisterPostInitializationOutput` step. Register for callbacks on the classes with
 `ForAttributeWithMetadataName` using the fullyQualifiedMetadataName `FullyQualifiedAttributeName`, and use tuples (or create an equatable model) to pass along that information.
+The Attribute could work for Structs too, the example was kept simple on purpose for the workbook sample
 
 **Example:**
 
