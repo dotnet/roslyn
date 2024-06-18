@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim generatedTree = Await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim generatedNode = generatedTree.GetAnnotatedNodes(GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
-            Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(False)
+            Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
             Dim indentSize = formattingOptions.IndentationSize
 
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
@@ -146,8 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return Await CodeGenerator.AddMethodDeclarationAsync(
                 New CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    codeGenerationContext,
-                    fallbackOptions),
+                    codeGenerationContext),
                 destinationType,
                 methodSymbol,
                 cancellationToken).ConfigureAwait(False)
@@ -203,8 +202,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return Await CodeGenerator.AddMethodDeclarationAsync(
                 New CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    codeGenerationContext,
-                    fallbackOptions),
+                    codeGenerationContext),
                 destinationType,
                 methodSymbol,
                 cancellationToken).ConfigureAwait(False)
@@ -249,8 +247,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return Await CodeGenerator.AddMethodDeclarationAsync(
                 New CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    codeGenerationContext,
-                    fallbackOptions),
+                    codeGenerationContext),
                 destinationType,
                 finalizerMethodSymbol,
                 cancellationToken).ConfigureAwait(False)
@@ -278,8 +275,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return Await CodeGenerator.AddMethodDeclarationAsync(
                  New CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    codeGenerationContext,
-                    fallbackOptions),
+                    codeGenerationContext),
                 destinationType,
                 codeGenerationSymbol,
                 cancellationToken).ConfigureAwait(False)

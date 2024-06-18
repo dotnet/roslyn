@@ -31,28 +31,21 @@ internal interface LineFormattingOptionsProvider
 
 internal static partial class LineFormattingOptionsProviders
 {
-    public static LineFormattingOptions GetLineFormattingOptions(this IOptionsReader options, string language, LineFormattingOptions? fallbackOptions)
-    {
-        fallbackOptions ??= LineFormattingOptions.Default;
-
-        return new()
+    public static LineFormattingOptions GetLineFormattingOptions(this IOptionsReader options, string language)
+        => new()
         {
-            UseTabs = options.GetOption(FormattingOptions2.UseTabs, language, fallbackOptions.UseTabs),
-            TabSize = options.GetOption(FormattingOptions2.TabSize, language, fallbackOptions.TabSize),
-            IndentationSize = options.GetOption(FormattingOptions2.IndentationSize, language, fallbackOptions.IndentationSize),
-            NewLine = options.GetOption(FormattingOptions2.NewLine, language, fallbackOptions.NewLine),
+            UseTabs = options.GetOption(FormattingOptions2.UseTabs, language),
+            TabSize = options.GetOption(FormattingOptions2.TabSize, language),
+            IndentationSize = options.GetOption(FormattingOptions2.IndentationSize, language),
+            NewLine = options.GetOption(FormattingOptions2.NewLine, language),
         };
-    }
 
 #if !CODE_STYLE
-    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetLineFormattingOptions(document.Project.Language, fallbackOptions);
+        return configOptions.GetLineFormattingOptions(document.Project.Language);
     }
-
-    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetLineFormattingOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }
 

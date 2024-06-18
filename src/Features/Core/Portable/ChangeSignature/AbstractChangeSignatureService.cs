@@ -55,7 +55,6 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         SyntaxNode potentiallyUpdatedNode,
         SyntaxNode originalNode,
         SignatureChange signaturePermutation,
-        LineFormattingOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -91,9 +90,9 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
     protected abstract SyntaxGenerator Generator { get; }
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-    public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
     {
-        var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken).ConfigureAwait(false);
 
         return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
             ? [new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext)]
@@ -101,7 +100,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
     }
 
     internal async Task<ChangeSignatureAnalyzedContext> GetChangeSignatureContextAsync(
-        Document document, int position, bool restrictToDeclarations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
     {
         var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
             document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
@@ -186,7 +185,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             symbol.IsExtensionMethod(), selectedIndex);
 
         return new ChangeSignatureAnalysisSucceededContext(
-            declarationDocument, positionForTypeBinding, symbol, parameterConfiguration, fallbackOptions);
+            declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
     }
 
     internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -396,7 +395,6 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                     potentiallyUpdatedNode,
                     originalNode,
                     UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
-                    context.FallbackOptions,
                     cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             });
 
@@ -421,7 +419,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             {
                 var (currentSolution, updatedRoots, context) = args;
                 var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
                 var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);

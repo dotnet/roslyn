@@ -153,7 +153,7 @@ internal abstract class AbstractAddImportsPasteCommandHandler(
 
         var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var options = new AddMissingImportsOptions(
             CleanupOptions: cleanupOptions,

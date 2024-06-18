@@ -40,7 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Protected Overrides Function GetReplacementNodesAsync(
                 document As Document,
-                options As CodeActionOptionsProvider,
                 objectCreation As ObjectCreationExpressionSyntax,
                 useCollectionExpression As Boolean,
                 matches As ImmutableArray(Of Match(Of StatementSyntax)),

@@ -42,7 +42,7 @@ internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefac
         // Check pasted text span for missing imports
         var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
         var options = new AddMissingImportsOptions(
             cleanupOptions,
             context.Options.GetOptions(document.Project.Services).HideAdvancedMembers);

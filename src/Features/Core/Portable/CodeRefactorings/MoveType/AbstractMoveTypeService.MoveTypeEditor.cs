@@ -158,7 +158,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// </summary>
         private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
         {
-            var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+            var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
             var insertFinalNewLine = documentFormattingOptions.InsertFinalNewLine;
             if (insertFinalNewLine)
             {
@@ -169,7 +169,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 if (endOfFileToken.LeadingTrivia.IsEmpty() &&
                     !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
                 {
-                    var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+                    var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
                     var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
                     var endOfLine = generator.EndOfLine(lineFormattingOptions.NewLine);
                     return modifiedRoot.ReplaceToken(

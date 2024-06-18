@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Property
 
         Public Overrides Function GetSimplifierOptions(options As IOptionsReader) As SimplifierOptions
-            Return New VisualBasicSimplifierOptions(options, fallbackOptions:=Nothing)
+            Return New VisualBasicSimplifierOptions(options)
         End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
