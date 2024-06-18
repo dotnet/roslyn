@@ -87,18 +87,11 @@ internal sealed class InlineRenameService(
             return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
         }
 
-        var context = await editorRenameService.GetRenameContextAsync(renameInfo, cancellationToken).ConfigureAwait(false);
-
         var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
         if (symbolService is not null)
         {
             var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
                 document, textSpan.Start, cancellationToken).ConfigureAwait(false);
-            var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
-            if (!string.IsNullOrWhiteSpace(docComment))
-            {
-                context = context.Add("documentation", ImmutableArray<string>.Empty.Add(docComment));
-            }
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -124,7 +117,6 @@ internal sealed class InlineRenameService(
             document.Project.Solution.Workspace,
             renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
             renameInfo,
-            context,
             options,
             previewChanges,
             _uiThreadOperationExecutor,

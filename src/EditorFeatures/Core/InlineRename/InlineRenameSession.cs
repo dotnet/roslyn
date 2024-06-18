@@ -55,6 +55,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private readonly IThreadingContext _threadingContext;
     public readonly InlineRenameService RenameService;
 
+    internal Document TriggerDocument => _triggerDocument;
+
     private bool _dismissed;
     private bool _isApplyingEdit;
     private string _replacementText;
@@ -91,11 +93,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
     /// <summary>
-    /// Information on references of rename symbol.
-    /// </summary>
-    public ImmutableDictionary<string, ImmutableArray<string>> Context { get; }
-
-    /// <summary>
     /// Keep-alive session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
     /// the oop side, which is valuable for preventing it from constantly being dropped/synced on every conflict
     /// resolution step.
@@ -126,6 +123,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private CancellationTokenSource _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
 
     private readonly IInlineRenameInfo _renameInfo;
+    internal IInlineRenameInfo RenameInfo => _renameInfo;
 
     /// <summary>
     /// The initial text being renamed.
@@ -138,7 +136,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         Workspace workspace,
         SnapshotSpan triggerSpan,
         IInlineRenameInfo renameInfo,
-        ImmutableDictionary<string, ImmutableArray<string>> context,
         SymbolRenameOptions options,
         bool previewChanges,
         IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -190,7 +187,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
         FileRenameInfo = _renameInfo.GetFileRenameInfo();
-        Context = context;
 
         // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
         // _cancellationTokenSource is canceled (which we always do when the session is finally ended).

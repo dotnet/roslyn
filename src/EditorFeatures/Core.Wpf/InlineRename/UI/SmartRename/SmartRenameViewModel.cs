@@ -13,12 +13,15 @@ using System.Runtime.Remoting.Contexts;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -154,24 +157,34 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
 
-            // TODO: Context should be lazily evaluated now.
-            var context = ImmutableDictionary.CreateRange<string, string[]>(
-                BaseViewModel.Session.Context
-                .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
-
-            // TODO: This is for local prototyping.
-            _smartRenameSession.PromptOverride = """
-                Your task is to help a software developer improve the identifier name indicated by [NameThisIdentifier]. The existing identifier name is {identifier}
-
-                Use the following information as context:
-
-                {context}
-
-                Given the provided information, generate five suggestions to rename the selected symbol. The suggested name should match the style of similar identifiers in the provided [CODE]. Put the suggestions in a JSON array called SuggestedNames and return the json object only as a response. Do not include any markdown formatting. Here are an example of the RESPONSE format: { ""SuggestedNames"": [""..."", ""..."", ""..."", ""..."", ""...""] }
-                """;
-            _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(context, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
-
+            _getSuggestionsTask = GetSuggestionsTask(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
+    }
+
+    private async Task GetSuggestionsTask(CancellationToken cancellationToken)
+    {
+        var document = this.BaseViewModel.Session.TriggerDocument;
+        var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+        var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, cancellationToken);
+
+        var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
+        if (symbolService is not null)
+        {
+            var textSpan = this.BaseViewModel.Session.RenameInfo.TriggerSpan;
+            var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+                document, textSpan.Start, cancellationToken);
+            var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
+            if (!string.IsNullOrWhiteSpace(docComment))
+            {
+                context = context.Add("documentation", ImmutableArray<string>.Empty.Add(docComment));
+            }
+        }
+
+        var smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
+            context
+            .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
+
+        _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken);
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
