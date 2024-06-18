@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Test.Utilities;
 using Xunit;
 
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Utilities
         private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>
             {
                 TestState =
                 {
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         private async Task VerifyAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newShippedApiText, string newUnshippedApiText)
         {
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>();
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>();
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((ShippedFileName, oldShippedApiText));
@@ -130,7 +129,7 @@ C<T>.C() -> void
 C<T>
 ";
 
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>
             {
                 TestState =
                 {
@@ -389,7 +388,7 @@ C.OldField -> string?
 C.Field -> string?
 C.Field2 -> string!";
 
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>();
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>();
 
             test.TestState.Sources.Add(source);
 
