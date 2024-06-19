@@ -110,9 +110,11 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
         private void OnSymbolEnd(SymbolAnalysisContext context)
         {
+            var interpolatedStringHandlerAttribute = context.Compilation.InterpolatedStringHandlerAttributeType();
+
             foreach (var (parameter, hasReference) in _unusedParameters)
             {
-                ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, interpolatedStringHandlerAttribute, context.CancellationToken);
             }
         }
 
@@ -121,9 +123,10 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             bool hasReference,
             Action<Diagnostic> reportDiagnostic,
             AnalyzerOptions analyzerOptions,
+            INamedTypeSymbol interpolatedStringHandlerAttributeType,
             CancellationToken cancellationToken)
         {
-            if (!IsUnusedParameterCandidate(parameter, cancellationToken))
+            if (!IsUnusedParameterCandidate(parameter, interpolatedStringHandlerAttributeType, cancellationToken))
             {
                 return;
             }
@@ -192,7 +195,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
         }
 
-        private bool IsUnusedParameterCandidate(IParameterSymbol parameter, CancellationToken cancellationToken)
+        private bool IsUnusedParameterCandidate(IParameterSymbol parameter, INamedTypeSymbol interpolatedStringHandlerAttributeType, CancellationToken cancellationToken)
         {
             // Ignore certain special parameters/methods.
             // Note that "method.ExplicitOrImplicitInterfaceImplementations" check below is not a complete check,
@@ -265,13 +268,26 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 return false;
             }
 
-            // Don't report on valid GetInstance method of ICustomMarshaler.
-            // See https://docs.microsoft.com/dotnet/api/system.runtime.interopservices.icustommarshaler#implementing-the-getinstance-method
-            if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters.Length: 1, ContainingType: { } containingType } methodSymbol &&
-                methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String &&
-                containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), _iCustomMarshaler))
+            if (method.ContainingType is { } containingType)
             {
-                return false;
+                // Don't report on valid GetInstance method of ICustomMarshaler.
+                // See https://docs.microsoft.com/dotnet/api/system.runtime.interopservices.icustommarshaler#implementing-the-getinstance-method
+                if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters.Length: 1 } &&
+                    method.Parameters[0].Type.SpecialType == SpecialType.System_String &&
+                    containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), _iCustomMarshaler))
+                {
+                    return false;
+                }
+
+                // 2 first `int` parameters of an interpolated string handler
+                // constructor are mandatory. Therefore, do not report them as unused
+                if (parameter is { Type.SpecialType: SpecialType.System_Int32 } &&
+                    method is { Parameters: [var firstParameter, ..], MethodKind: MethodKind.Constructor } &&
+                    (firstParameter == parameter || (method.Parameters.Length > 1 && method.Parameters[1] == parameter)) &&
+                    containingType.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, interpolatedStringHandlerAttributeType)))
+                {
+                    return false;
+                }
             }
 
             return true;
