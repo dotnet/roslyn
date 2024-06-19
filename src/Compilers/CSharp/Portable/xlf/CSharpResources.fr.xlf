@@ -2342,6 +2342,11 @@
         <target state="translated">Remplacement du générateur de méthode asynchrone</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
+        <source>allows ref struct constraint</source>
+        <target state="new">allows ref struct constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">champs de struct par défaut automatique</target>
