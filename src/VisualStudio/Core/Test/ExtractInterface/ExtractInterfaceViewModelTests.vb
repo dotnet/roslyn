@@ -288,6 +288,7 @@ public class $$MyClass
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
+            Assert.Equal(NewTypeDestination.NewFile, viewModel.DestinationViewModel.Destination)
             viewModel.DestinationViewModel.Destination = NewTypeDestination.CurrentFile
             Dim newViewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
             Assert.Equal(viewModel.DestinationViewModel.Destination, newViewModel.DestinationViewModel.Destination)
