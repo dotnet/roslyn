@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
         /// </summary>
-        /// <param name="analyzer">Analyzer to get session wide analyzer actions.</param>
         /// <param name="sessionScope">Session scope to store register session wide analyzer actions.</param>
         /// <param name="severityFilter">Severity filter for analysis.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
@@ -198,18 +197,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Use <see cref="ExecuteCompilationStartActions(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope, CancellationToken)"/> API
         /// to get execute these actions to get the per-compilation analyzer actions.
         /// </remarks>
-        public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope, SeverityFilter severityFilter, CancellationToken cancellationToken)
+        public void ExecuteInitializeMethod(HostSessionStartAnalysisScope sessionScope, SeverityFilter severityFilter, CancellationToken cancellationToken)
         {
-            if (analyzer != sessionScope.Analyzer)
-                throw new InvalidOperationException();
-
-            var context = new AnalyzerAnalysisContext(analyzer, sessionScope, severityFilter);
+            var context = new AnalyzerAnalysisContext(sessionScope, severityFilter);
 
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
-                analyzer,
+                sessionScope.Analyzer,
                 data => data.analyzer.Initialize(data.context),
-                (analyzer, context),
+                (analyzer: sessionScope.Analyzer, context),
                 contextInfo: null,
                 cancellationToken);
         }
@@ -226,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var context = new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope,
+                var context = new AnalyzerCompilationStartAnalysisContext(compilationScope,
                     Compilation, AnalyzerOptions, _compilationAnalysisValueProviderFactory, cancellationToken);
 
                 ExecuteAndCatchIfThrows(
@@ -242,14 +238,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Executes the symbol start actions.
         /// </summary>
         /// <param name="symbol">Symbol whose symbol start actions are to be executed.</param>
-        /// <param name="analyzer">Analyzer whose symbol start actions are to be executed.</param>
         /// <param name="actions"><see cref="AnalyzerActions"/> whose symbol start actions are to be executed.</param>
         /// <param name="symbolScope">Symbol scope to store the analyzer actions.</param>
         /// <param name="isGeneratedCodeSymbol">Flag indicating if the symbol being analyzed is generated code.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteSymbolStartActions(
             ISymbol symbol,
-            DiagnosticAnalyzer analyzer,
             ImmutableArray<SymbolStartAnalyzerAction> actions,
             HostSymbolStartAnalysisScope symbolScope,
             bool isGeneratedCodeSymbol,
@@ -257,21 +251,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan? filterSpan,
             CancellationToken cancellationToken)
         {
-            if (analyzer != symbolScope.Analyzer)
-                throw new InvalidOperationException();
-
-            if (isGeneratedCodeSymbol && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                IsAnalyzerSuppressedForSymbol(analyzer, symbol, cancellationToken))
+            if (isGeneratedCodeSymbol && _shouldSkipAnalysisOnGeneratedCode(symbolScope.Analyzer) ||
+                IsAnalyzerSuppressedForSymbol(symbolScope.Analyzer, symbol, cancellationToken))
             {
                 return;
             }
 
             foreach (var startAction in actions)
             {
-                Debug.Assert(startAction.Analyzer == analyzer);
+                Debug.Assert(startAction.Analyzer == symbolScope.Analyzer);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var context = new AnalyzerSymbolStartAnalysisContext(startAction.Analyzer, symbolScope,
+                var context = new AnalyzerSymbolStartAnalysisContext(symbolScope,
                     symbol, Compilation, AnalyzerOptions, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
 
                 ExecuteAndCatchIfThrows(

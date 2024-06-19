@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return Task.Run(() =>
                         {
                             var sessionScope = new HostSessionStartAnalysisScope(context._analyzer);
-                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, executor.SeverityFilter, cancellationToken);
+                            executor.ExecuteInitializeMethod(sessionScope, executor.SeverityFilter, cancellationToken);
                             return sessionScope;
                         }, cancellationToken);
                     }
@@ -117,11 +117,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _lazyCompilationScopeTask = Task.Run(() =>
                         {
-                            if (sessionScope.Analyzer != _analyzer)
-                                throw new InvalidOperationException();
-
+                            Debug.Assert(sessionScope.Analyzer == _analyzer);
                             var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions(_analyzer).CompilationStartActions, compilationAnalysisScope, cancellationToken);
+                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions().CompilationStartActions, compilationAnalysisScope, cancellationToken);
                             return compilationAnalysisScope;
                         }, cancellationToken);
                     }
@@ -161,9 +159,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
                         var symbolAnalysisScope = new HostSymbolStartAnalysisScope(_analyzer);
-                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
+                        analyzerExecutor.ExecuteSymbolStartActions(symbol, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
 
-                        var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
+                        var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions();
                         if (symbolEndActions.SymbolEndActionsCount > 0)
                         {
                             var dependentSymbols = getDependentSymbols();
