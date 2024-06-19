@@ -8,13 +8,14 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing a single signature of a callable item.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureInformation">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SignatureInformation
     {
         /// <summary>
-        /// Gets or sets the label of this signature.
+        /// The label of this signature. Will be shown in the UI.
         /// </summary>
         [JsonPropertyName("label")]
         public string Label
@@ -24,7 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the human-readable documentation of this signature.
+        /// The human-readable documentation of this signature.
+        /// Will be shown in the UI but can be omitted.
         /// </summary>
         [JsonPropertyName("documentation")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -44,5 +46,16 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// The index of the active parameter.
+        /// <para>
+        /// If provided, this is used in place of <see cref="SignatureHelp.ActiveParameter"/>.
+        /// </para>
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("activeParameter")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? ActiveParameter { get; init; }
     }
 }

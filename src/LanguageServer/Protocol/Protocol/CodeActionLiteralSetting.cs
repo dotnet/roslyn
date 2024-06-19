@@ -7,16 +7,19 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing support for code action literals.
-    ///
+    /// Represents the client's support for code action literals in the response of the <c>textDocument/codeAction</c> request
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.8</remarks>
     internal class CodeActionLiteralSetting
     {
         /// <summary>
         /// Gets or sets a value indicating what code action kinds are supported.
         /// </summary>
         [JsonPropertyName("codeActionKind")]
+        [JsonRequired]
         public CodeActionKindSetting CodeActionKind
         {
             get;

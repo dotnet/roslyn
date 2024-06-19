@@ -17,6 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the id used to register the request. This can be used to deregister later.
         /// </summary>
         [JsonPropertyName("id")]
+        [JsonRequired]
         public string Id
         {
             get;
@@ -27,6 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the method / capability to register for.
         /// </summary>
         [JsonPropertyName("method")]
+        [JsonRequired]
         public string Method
         {
             get;

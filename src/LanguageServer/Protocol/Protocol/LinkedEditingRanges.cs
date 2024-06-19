@@ -8,15 +8,20 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the response of an LinkedEditingRanges response.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#linkedEditingRanges">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class LinkedEditingRanges
     {
         /// <summary>
-        /// Gets or sets the ranges for the type rename.
+        /// A list of ranges that can be renamed together. The ranges must have
+        /// identical length and contain identical text content. The ranges cannot
+        /// overlap.
         /// </summary>
         [JsonPropertyName("ranges")]
+        [JsonRequired]
         public Range[] Ranges
         {
             get;
@@ -24,7 +29,9 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the word pattern for the type rename.
+        /// An optional word pattern (regular expression) that describes valid
+        /// contents for the given ranges. If no pattern is provided, the client
+        /// configuration's word pattern will be used.
         /// </summary>
         [JsonPropertyName("wordPattern")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

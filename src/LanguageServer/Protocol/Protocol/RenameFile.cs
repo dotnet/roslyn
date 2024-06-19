@@ -9,11 +9,13 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing a rename file operation.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameFile">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.13</remarks>
     [Kind("rename")]
-    internal class RenameFile
+    internal class RenameFile : IAnnotatedChange
     {
         /// <summary>
         /// Gets the kind value.
@@ -56,5 +58,10 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <inheritdoc/>
+        [JsonPropertyName("annotationId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ChangeAnnotationIdentifier? AnnotationId { get; init; }
     }
 }

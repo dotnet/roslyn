@@ -7,12 +7,13 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents capabilites for the completion list type.
+    /// Client capabilities specific to <see cref="CompletionList"/>
     /// </summary>
+    /// <remarks>Since 3.17</remarks>
     internal class CompletionListSetting
     {
         /// <summary>
-        /// Gets or sets a value containing the supported property names of the <see cref="CompletionList.ItemDefaults"/> object.
+        /// The supported property names of the <see cref="CompletionList.ItemDefaults"/> object.
         /// If omitted, no properties are supported.
         /// </summary>
         [JsonPropertyName("itemDefaults")]

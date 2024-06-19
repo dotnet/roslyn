@@ -13,9 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     internal class DocumentFormattingOptions : IWorkDoneProgressOptions
     {
-        /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the registration options for code actions support.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class CodeActionOptions : IWorkDoneProgressOptions
     {
@@ -17,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the kinds of code action that this server may return.
         /// </summary>
         /// <remarks>
-        /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
+        /// The list of kinds may be generic, such as <see cref="CodeActionKind.Refactor"/>, or the server
         /// may list out every specific kind they provide.
         /// </remarks>
         [JsonPropertyName("codeActionKinds")]
@@ -29,16 +30,10 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
-        /// </summary>
-        [JsonPropertyName("workDoneProgress")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public bool WorkDoneProgress { get; init; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether the server provides support to resolve
         /// additional information for a code action.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("resolveProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ResolveProvider
@@ -46,5 +41,12 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether work done progress is supported.
+        /// </summary>
+        [JsonPropertyName("workDoneProgress")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool WorkDoneProgress { get; init; }
     }
 }

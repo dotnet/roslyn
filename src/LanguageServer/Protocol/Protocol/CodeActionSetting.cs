@@ -7,15 +7,18 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing settings for code action support.
-    ///
+    /// Client capabilities specific to code actions.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class CodeActionSetting : DynamicRegistrationSetting
     {
         /// <summary>
-        /// Gets or sets a value indicating the client supports code action literals.
+        /// The client supports code action literals as a valid response of
+        /// the <c>textDocument/codeAction</c> request.
         /// </summary>
+        /// <remarks>Since LSP 3.8</remarks>
         [JsonPropertyName("codeActionLiteralSupport")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionLiteralSetting? CodeActionLiteralSupport
@@ -25,10 +28,41 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
+        /// Whether code action supports the <see cref="CodeAction.IsPreferred"/> property.
+        /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
+        [JsonPropertyName("isPreferredSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool IsPreferredSupport { get; init; }
+
+        /// <summary>
+        /// Whether code action supports the <see cref="CodeAction.Disabled"/> property.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("disabledSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool DisabledSupport { get; init; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether code action supports the <see cref="CodeAction.Data"/>
+        /// property which is preserved between a `textDocument/codeAction` request and a
+        /// `codeAction/resolve` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("dataSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool DataSupport
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the client supports resolving
-        /// additional code action properties via a separate `codeAction/resolve`
+        /// additional code action properties via a separate <c>codeAction/resolve</c>
         /// request.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("resolveSupport")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionResolveSupportSetting? ResolveSupport
@@ -38,16 +72,14 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether code action supports the `data`
-        /// property which is preserved between a `textDocument/codeAction` and a
-        /// `codeAction/resolve` request.
+        /// Whether the client honors the change annotations in text edits and
+        /// resource operations returned via the <see cref="CodeAction.Edit"/> property by
+        /// for example presenting the workspace edit in the user interface and asking
+        /// for confirmation.
         /// </summary>
-        [JsonPropertyName("dataSupport")]
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("honorsChangeAnnotations")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public bool DataSupport
-        {
-            get;
-            set;
-        }
+        public bool HonorsChangeAnnotations { get; init; }
     }
 }

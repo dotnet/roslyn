@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the parameters for the workspace/configuration request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#configurationParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class ConfigurationParams
     {
@@ -17,6 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the ConfigurationItems being requested.
         /// </summary>
         [JsonPropertyName("items")]
+        [JsonRequired]
         public ConfigurationItem[] Items
         {
             get;

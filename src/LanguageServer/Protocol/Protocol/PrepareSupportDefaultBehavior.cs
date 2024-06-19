@@ -6,9 +6,11 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Enum representing the default behavior used by the client for computing a rename range.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#prepareSupportDefaultBehavior">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal enum PrepareSupportDefaultBehavior
     {
         /// <summary>

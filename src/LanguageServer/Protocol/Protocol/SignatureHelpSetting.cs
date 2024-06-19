@@ -7,14 +7,15 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the signature help initialization setting.
-    ///
+    /// Client capabilities specific to the `textDocument/signatureHelp` request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SignatureHelpSetting : DynamicRegistrationSetting
     {
         /// <summary>
-        /// Gets or sets the <see cref="SignatureInformationSetting"/> information.
+        /// Client capabilities specific to <see cref="Protocol.SignatureInformation"/>.
         /// </summary>
         [JsonPropertyName("signatureInformation")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -25,9 +26,13 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether additional context information
-        /// is supported for the `textDocument/signatureHelp` request.
+        /// The client supports sending additional context information for
+        /// the <c>textDocument/signatureHelp</c> request.
+        /// <para>
+        /// A client that opts into this will also support <see cref="SignatureHelpOptions.RetriggerCharacters"/>.
+        /// </para>
         /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
         [JsonPropertyName("contextSupport")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ContextSupport

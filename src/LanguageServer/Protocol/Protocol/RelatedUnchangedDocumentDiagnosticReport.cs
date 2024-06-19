@@ -10,14 +10,22 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing an unchanged diagnostic report with a set of related documents.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#relatedUnchangedDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#relatedUnchangedDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
 internal class RelatedUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
 {
     /// <summary>
-    /// Gets or sets the map of related document diagnostic reports.
+    /// Diagnostics of related documents.
+    /// <para>
+    /// </para>
+    /// This information is useful in programming languages where code in a
+    /// file A can generate diagnostics in a file B which A depends on. An
+    /// example of such a language is C/C++ where macro definitions in a file
+    /// a.cpp can result in errors in a header file b.hpp.
     /// </summary>
     [JsonPropertyName("relatedDocuments")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -7,14 +7,17 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the specific options for the folding range.
-    ///
+    /// Client capabilities specific to <see cref="FoldingRange"/>
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class FoldingRangeSettingOptions : DynamicRegistrationSetting
+    /// <remarks>Since LSP 3.17</remarks>
+    internal class FoldingRangeSettingOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether if client supports collapsedText on folding ranges.
+        /// If set, the client signals that it supports setting <see cref="FoldingRange.CollapsedText"/>
+        /// to display custom labels instead of the default text.
         /// </summary>
         [JsonPropertyName("collapsedText")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

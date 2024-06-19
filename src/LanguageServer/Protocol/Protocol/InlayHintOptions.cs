@@ -8,9 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Server capabilities for inlay hints.
-    ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#inlayHintOptions">Language Server Protocol specification</see> for additional information.
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
     internal class InlayHintOptions : IWorkDoneProgressOptions
     {
         /// <summary>
@@ -21,7 +23,7 @@ namespace Roslyn.LanguageServer.Protocol
         public bool WorkDoneProgress { get; init; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the inlay hints support has a resolve provider.
+        /// The server provides support to resolve additional information for an inlay hint item.
         /// </summary>
         [JsonPropertyName("resolveProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
+
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [ExportWorkspaceService(typeof(ILspSymbolInformationCreationService), ServiceLayer.Editor), Shared]

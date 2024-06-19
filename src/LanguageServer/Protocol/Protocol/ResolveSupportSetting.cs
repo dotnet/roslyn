@@ -7,10 +7,12 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents initialization setting for properties a client can resolve lazily on a completion item.
-    ///
+    /// Indicates which properties a client can resolve lazily on a <see cref="CompletionItem"/>.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since 3.16</remarks>
     internal class ResolveSupportSetting
     {
         /// <summary>

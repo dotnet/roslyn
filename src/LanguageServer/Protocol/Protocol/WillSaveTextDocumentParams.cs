@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the parameters sent for the textDocument/willSave request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#willSaveTextDocumentParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class WillSaveTextDocumentParams : ITextDocumentParams
     {
@@ -17,6 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> representing the document to be saved.
         /// </summary>
         [JsonPropertyName("textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,6 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the reason that the text document was saved.
         /// </summary>
         [JsonPropertyName("reason")]
+        [JsonRequired]
         public TextDocumentSaveReason Reason
         {
             get;

@@ -19,10 +19,18 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("_vs_rawContent")]
         [JsonConverter(typeof(ObjectContentConverter))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? RawContent
-        {
-            get;
-            set;
-        }
+        public object? RawContent { get; set; }
+
+        /// <summary>
+        /// The hover's content
+        /// </summary>
+        /// <remarks>
+        /// This may only be null when <see cref="RawContent"/> is specified instead of <see cref="Contents"/>.
+        /// </remarks>
+        [JsonPropertyName("contents")]
+        [JsonRequired]
+#pragma warning disable CS0618 // MarkedString is obsolete but this property is not
+        public new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>? Contents { get; set; }
+#pragma warning restore CS0618
     }
 }

@@ -8,13 +8,15 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the signature information initialization setting.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SignatureInformationSetting
     {
         /// <summary>
-        /// Gets or sets the set of documentation formats the client supports.
+        /// The client supports the following content formats for the <see cref="SignatureInformation.Documentation"/>
+        /// property. The order describes the preferred format of the client.
         /// </summary>
         [JsonPropertyName("documentationFormat")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -25,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the parameter information the client supports.
+        /// Client capabilities specific to <see cref="ParameterInformation"/>
         /// </summary>
         [JsonPropertyName("parameterInformation")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -34,5 +36,13 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// The client supports the <see cref="SignatureInformation.ActiveParameter"/> property
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("activeParameterSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool ActiveParameterSupport { get; init; }
     }
 }

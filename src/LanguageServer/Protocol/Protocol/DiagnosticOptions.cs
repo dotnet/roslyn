@@ -8,14 +8,14 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Server capabilities for pull diagnostics.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticOptions">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnosticOptions">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 internal class DiagnosticOptions : IWorkDoneProgressOptions
 {
-    /// <summary>
-    /// Gets or sets a value indicating whether work done progress is supported.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonPropertyName("workDoneProgress")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool WorkDoneProgress { get; init; }
@@ -32,7 +32,13 @@ internal class DiagnosticOptions : IWorkDoneProgressOptions
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the language has inter file dependencies.
+    /// Whether the language has inter-file dependencies meaning that
+    /// editing code in one file can result in a different diagnostic
+    /// set in another file.
+    /// <para>
+    /// Inter file dependencies are common for most programming
+    /// languages and typically uncommon for linters.
+    /// </para>
     /// </summary>
     [JsonPropertyName("interFileDependencies")]
     public bool InterFileDependencies

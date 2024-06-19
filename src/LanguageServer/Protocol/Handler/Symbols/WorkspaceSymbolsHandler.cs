@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
+#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to WorkspaceSymbol
+
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>

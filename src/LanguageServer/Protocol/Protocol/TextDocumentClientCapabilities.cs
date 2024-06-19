@@ -8,261 +8,236 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents text document capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class TextDocumentClientCapabilities
     {
+        // NOTE: these are kept in the same order as the spec to make them easier to update
+
         /// <summary>
         /// Gets or sets the synchronization setting.
         /// </summary>
         [JsonPropertyName("synchronization")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SynchronizationSetting? Synchronization
-        {
-            get;
-            set;
-        }
+        public SynchronizationSetting? Synchronization { get; set; }
 
         /// <summary>
-        /// Gets or sets the completion setting.
+        /// Capabilities specific to the `textDocument/completion` request.
         /// </summary>
         [JsonPropertyName("completion")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CompletionSetting? Completion
-        {
-            get;
-            set;
-        }
+        public CompletionSetting? Completion { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if hover can be dynamically registered.
+        /// Capabilities specific to the `textDocument/hover` request
         /// </summary>
         [JsonPropertyName("hover")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public HoverSetting? Hover
-        {
-            get;
-            set;
-        }
+        public HoverSetting? Hover { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if signature help can be dynamically registered.
+        /// Capabilities specific to the `textDocument/signatureHelp` request
         /// </summary>
         [JsonPropertyName("signatureHelp")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SignatureHelpSetting? SignatureHelp
-        {
-            get;
-            set;
-        }
+        public SignatureHelpSetting? SignatureHelp { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if definition can be dynamically registered.
+        /// Capabilities specific to the `textDocument/declaration` request
+        /// </summary>
+        /// <remarks>Since LSP 3.14</remarks>
+        [JsonPropertyName("declaration")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DeclarationClientCapabilities? Declaration { get; init; }
+
+        /// <summary>
+        /// Capabilities specific to the `textDocument/definition` request
         /// </summary>
         [JsonPropertyName("definition")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? Definition
-        {
-            get;
-            set;
-        }
+        public DefinitionClientCapabilities? Definition { get; set; }
 
         /// <summary>
-        /// Gets or sets the settings which determines if type definition can be dynamically registered.
+        /// Capabilities specific to the `textDocument/typeDefinition` request.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("typeDefinition")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? TypeDefinition
-        {
-            get;
-            set;
-        }
+        public TypeDefinitionClientCapabilities? TypeDefinition { get; set; }
 
         /// <summary>
-        /// Gets or sets the settings which determines if implementation can be dynamically registered.
+        /// Capabilities specific to the `textDocument/implementation` request.
         /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
         [JsonPropertyName("implementation")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? Implementation
-        {
-            get;
-            set;
-        }
+        public ImplementationClientCapabilities? Implementation { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if references can be dynamically registered.
+        /// Capabilities specific to the `textDocument/references` request.
         /// </summary>
         [JsonPropertyName("references")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? References
-        {
-            get;
-            set;
-        }
+        public ReferenceClientCapabilities? References { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if document highlight can be dynamically registered.
+        /// Capabilities specific to the `textDocument/documentHighlight` request.
         /// </summary>
         [JsonPropertyName("documentHighlight")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? DocumentHighlight
-        {
-            get;
-            set;
-        }
+        public DocumentHighlightClientCapabilities? DocumentHighlight { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if document symbol can be dynamically registered.
+        /// Capabilities specific to the `textDocument/documentSymbol` request.
         /// </summary>
         [JsonPropertyName("documentSymbol")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DocumentSymbolSetting? DocumentSymbol
-        {
-            get;
-            set;
-        }
+        public DocumentSymbolSetting? DocumentSymbol { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if code action can be dynamically registered.
+        /// Capabilities specific to the `textDocument/codeAction` request.
         /// </summary>
         [JsonPropertyName("codeAction")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CodeActionSetting? CodeAction
-        {
-            get;
-            set;
-        }
+        public CodeActionSetting? CodeAction { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if code lens can be dynamically registered.
+        /// Capabilities specific to the `textDocument/codeLens` request.
         /// </summary>
         [JsonPropertyName("codeLens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? CodeLens
-        {
-            get;
-            set;
-        }
+        public CodeLensClientCapabilities? CodeLens { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if document link can be dynamically registered.
+        /// Capabilities specific to the `textDocument/documentLink` request.
         /// </summary>
         [JsonPropertyName("documentLink")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? DocumentLink
-        {
-            get;
-            set;
-        }
+        public DocumentLinkClientCapabilities? DocumentLink { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if formatting can be dynamically registered.
+        /// Capabilities specific to the `textDocument/documentColor` and the `textDocument/colorPresentation` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.6</remarks>
+        [JsonPropertyName("colorProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DocumentColorClientCapabilities? ColorProvider { get; set; }
+
+        /// <summary>
+        /// Capabilities specific to the `textDocument/formatting` request.
         /// </summary>
         [JsonPropertyName("formatting")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? Formatting
-        {
-            get;
-            set;
-        }
+        public DocumentFormattingClientCapabilities? Formatting { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if range formatting can be dynamically registered.
+        /// Capabilities specific to the `textDocument/rangeFormatting` request.
         /// </summary>
         [JsonPropertyName("rangeFormatting")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? RangeFormatting
-        {
-            get;
-            set;
-        }
+        public RangeFormattingClientCapabilities? RangeFormatting { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if on type formatting can be dynamically registered.
+        /// Capabilities specific to the `textDocument/onTypeFormatting` request.
         /// </summary>
         [JsonPropertyName("onTypeFormatting")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? OnTypeFormatting
-        {
-            get;
-            set;
-        }
+        public OnTypeFormattingClientCapabilities? OnTypeFormatting { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if rename can be dynamically registered.
+        /// Capabilities specific to the `textDocument/rename` request.
         /// </summary>
         [JsonPropertyName("rename")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public RenameClientCapabilities? Rename
-        {
-            get;
-            set;
-        }
+        public RenameClientCapabilities? Rename { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting publish diagnostics setting.
+        /// Capabilities specific to the `textDocument/publishDiagnostics` notification.
         /// </summary>
         [JsonPropertyName("publishDiagnostics")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public PublishDiagnosticsSetting? PublishDiagnostics
-        {
-            get;
-            set;
-        }
+        public PublishDiagnosticsSetting? PublishDiagnostics { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines how folding range is supported.
+        /// Capabilities specific to the `textDocument/foldingRange` request.
         /// </summary>
+        /// <remarks>Since LSP 3.10</remarks>
         [JsonPropertyName("foldingRange")]
-        public FoldingRangeSetting? FoldingRange
-        {
-            get;
-            set;
-        }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public FoldingRangeSetting? FoldingRange { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines if linked editing range can be dynamically registered.
+        /// Capabilities specific to the `textDocument/selectionRange` request.
         /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
+        [JsonPropertyName("selectionRange")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SelectionRangeClientCapabilities? SelectionRange { get; set; }
+
+        /// <summary>
+        /// Capabilities specific to the `textDocument/linkedEditingRange` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("linkedEditingRange")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting LinkedEditingRange
-        {
-            get;
-            set;
-        }
+        public LinkedEditingRangeClientCapabilities LinkedEditingRange { get; set; }
 
         /// <summary>
-        /// Gets or sets a setting indicating whether semantic tokens is supported.
+        /// Capabilities specific to the various call hierarchy requests.
         /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("callHierarchy")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public CallHierarchyClientCapabilities CallHierarchy { get; init; }
+
+        /// <summary>
+        /// Capabilities specific to the various semantic token requests.
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
         [JsonPropertyName("semanticTokens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SemanticTokensSetting? SemanticTokens
-        {
-            get;
-            set;
-        }
+        public SemanticTokensSetting? SemanticTokens { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines what support the client has for pull diagnostics.
+        /// Capabilities specific to the `textDocument/moniker` request.
         /// </summary>
-        [JsonPropertyName("diagnostic")]
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("moniker")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DiagnosticSetting? Diagnostic
-        {
-            get;
-            set;
-        }
+        public MonikerClientCapabilities? Moniker { get; set; }
 
         /// <summary>
-        /// Gets or sets the setting which determines what support the client has for pull diagnostics.
+        /// Capabilities specific to the various type hierarchy requests.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("typeHierarchy")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public TypeHierarchyClientCapabilities? TypeHierarchy { get; init; }
+
+        /// <summary>
+        /// Capabilities specific to the `textDocument/inlineValue` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("inlineValue")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public InlineValueClientCapability? InlineValue { get; set; }
+
+        /// <summary>
+        /// Capabilities specific to the `textDocument/inlayHint` request.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("inlayHint")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public InlayHintSetting? InlayHint
-        {
-            get;
-            set;
-        }
+        public InlayHintSetting? InlayHint { get; set; }
+
+        /// <summary>
+        /// Capabilities specific to the diagnostic pull model.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("diagnostic")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DiagnosticSetting? Diagnostic { get; set; }
     }
 }

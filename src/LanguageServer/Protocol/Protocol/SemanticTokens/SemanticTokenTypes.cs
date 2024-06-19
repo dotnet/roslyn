@@ -8,7 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Well-known semantic tokens types.
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokenTypes">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal static class SemanticTokenTypes
     {
         /// <summary>
@@ -17,7 +21,8 @@ namespace Roslyn.LanguageServer.Protocol
         public const string Namespace = "namespace";
 
         /// <summary>
-        /// Semantic token modifier for 'type'.
+        /// Represents a generic type. Acts as a fallback for types which
+        /// can't be mapped to a specific type like class or enum
         /// </summary>
         public const string Type = "type";
 
@@ -123,6 +128,12 @@ namespace Roslyn.LanguageServer.Protocol
         public const string Operator = "operator";
 
         /// <summary>
+        /// Semantic token modifier for 'decorator'.
+        /// </summary>
+        /// <remarks>Sicne LSP 3.17</remarks>
+        public const string Decorator = "decorator";
+
+        /// <summary>
         /// Collection containing all well-known semantic tokens types.
         /// </summary>
         public static readonly IReadOnlyList<string> AllTypes =
@@ -149,6 +160,7 @@ namespace Roslyn.LanguageServer.Protocol
             Number,
             Regexp,
             Operator,
+            Decorator
         ];
     }
 }

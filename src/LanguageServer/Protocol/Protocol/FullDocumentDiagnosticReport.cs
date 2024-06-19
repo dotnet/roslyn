@@ -8,9 +8,11 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a diagnostic report with a full set of problems.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fullDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fullDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 [Kind(DocumentDiagnosticReportKind.Full)]
 internal class FullDocumentDiagnosticReport
 {
@@ -23,7 +25,9 @@ internal class FullDocumentDiagnosticReport
 #pragma warning restore CA1822 // Mark members as static
 
     /// <summary>
-    /// Gets or sets the optional result id.
+    /// An optional result id. If provided it will
+    /// be sent on the next diagnostic request for the
+    /// same document.
     /// </summary>
     [JsonPropertyName("resultId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

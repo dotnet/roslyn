@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Class representing the registration options for didChange events.
-    ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentChangeRegistrationOptions">Language Server Protocol specification</see> for additional information.
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentChangeRegistrationOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class TextDocumentChangeRegistrationOptions : TextDocumentRegistrationOptions
     {

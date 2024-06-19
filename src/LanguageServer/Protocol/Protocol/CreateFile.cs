@@ -9,11 +9,13 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing a create file operation.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#createFile">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.13</remarks>
     [Kind("create")]
-    internal class CreateFile
+    internal class CreateFile : IAnnotatedChange
     {
         /// <summary>
         /// Gets the kind value.
@@ -44,5 +46,10 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <inheritdoc/>
+        [JsonPropertyName("annotationId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ChangeAnnotationIdentifier? AnnotationId { get; init; }
     }
 }

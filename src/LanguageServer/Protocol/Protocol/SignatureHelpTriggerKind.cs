@@ -6,9 +6,11 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Enum which represents the various ways in which completion can be triggered.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpTriggerKind">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.15</remarks>
     internal enum SignatureHelpTriggerKind
     {
         /// <summary>

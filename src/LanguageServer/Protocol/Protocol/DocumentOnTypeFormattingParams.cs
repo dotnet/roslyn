@@ -8,29 +8,46 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the parameters sent for a textDocument/onTypeFormatting request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentOnTypeFormattingParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class DocumentOnTypeFormattingParams : TextDocumentPositionParams
+    internal class DocumentOnTypeFormattingParams : ITextDocumentPositionParams
     {
         /// <summary>
-        /// Gets or sets the character that was typed.
+        /// The document to format.
+        /// </summary>
+        [JsonPropertyName("textDocument")]
+        public TextDocumentIdentifier TextDocument { get; set; }
+
+        /// <summary>
+        /// The position around which the on type formatting should happen.
+        /// <para>
+        /// This is not necessarily the exact position where the character denoted
+        /// by the <see cref="Character"/> property got typed.
+        /// </para>
+        /// </summary>
+        [JsonPropertyName("position")]
+        public Position Position { get; set; }
+
+        /// <summary>
+        /// The character that has been typed that triggered the formatting
+        /// on type request.
+        /// <para>
+        /// That is not necessarily the last character that
+        /// got inserted into the document since the client could auto insert
+        /// characters as well (e.g. like automatic brace completion).
+        /// </para>
         /// </summary>
         [JsonPropertyName("ch")]
-        public string Character
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public string Character { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="FormattingOptions"/> for the request.
         /// </summary>
         [JsonPropertyName("options")]
-        public FormattingOptions Options
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public FormattingOptions Options { get; set; }
     }
 }

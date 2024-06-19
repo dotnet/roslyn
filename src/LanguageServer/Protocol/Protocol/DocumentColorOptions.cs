@@ -7,10 +7,12 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents workspace symbols capabilities.
-    ///
+    /// Server capabilities specific to DocumentColor.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentColorOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
     internal class DocumentColorOptions : IWorkDoneProgressOptions
     {
         /// <summary>

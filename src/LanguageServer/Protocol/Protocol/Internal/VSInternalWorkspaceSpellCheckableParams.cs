@@ -19,9 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalStreamingParams[]? PreviousResults { get; set; }
 
-        /// <summary>
-        /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("_vs_partialResultToken")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<VSInternalWorkspaceSpellCheckableReport[]>? PartialResultToken

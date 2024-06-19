@@ -10,9 +10,11 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a partial document diagnostic report for a set of related documents.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticReportPartialResult">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentDiagnosticReportPartialResult">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 internal class DocumentDiagnosticReportPartialResult
 {
     /// <summary>

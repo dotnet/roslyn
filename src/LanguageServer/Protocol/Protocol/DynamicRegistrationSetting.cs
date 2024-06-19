@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which represents a setting that can be dynamically registered.
     /// </summary>
-    internal class DynamicRegistrationSetting
+    internal class DynamicRegistrationSetting : IDynamicRegistrationSetting
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DynamicRegistrationSetting"/> class.
