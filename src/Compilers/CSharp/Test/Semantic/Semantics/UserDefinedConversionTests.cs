@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1931,6 +1933,362 @@ public struct S
   IL_0029:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ImplicitObjectCreation_Ambiguous()
+        {
+            var source = """
+                C c = ("a", new());
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", new());
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", new())").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ImplicitObjectCreation_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", new());
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair)
+                    {
+                        Console.WriteLine("int");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "int");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_DefaultLiteral_Ambiguous()
+        {
+            var source = """
+                C c = ("a", default);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", default);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", default)").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_NullLiteral_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", null);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair)
+                    {
+                        Console.WriteLine("string");
+                        return new C();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_NullLiteral_NoConversion()
+        {
+            var source = """
+                C c = ("a", null);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", null);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", null)").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_SwitchExpression_Ambiguous()
+        {
+            var source = """
+                C c = ("a", "b" switch { _ => default });
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", "b" switch { _ => default });
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", ""b"" switch { _ => default })").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_SwitchExpression_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", "b" switch { _ => null });
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair)
+                    {
+                        Console.WriteLine("string");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "string");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_SwitchExpression_NoConversion()
+        {
+            var source = """
+                C c = ("a", "b" switch { _ => null });
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", "b" switch { _ => null });
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", ""b"" switch { _ => null })").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_CollectionExpression_Ambiguous()
+        {
+            var source = """
+                C c = ("a", [default]);
+
+                class C
+                {
+                    public static implicit operator C((string, int[]) pair) => new C();
+                    public static implicit operator C((string, string[]) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", [default]);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", [default])").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_CollectionExpression_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", [null]);
+
+                class C
+                {
+                    public static implicit operator C((string, int[]) pair) => new C();
+                    public static implicit operator C((string, string[]) pair)
+                    {
+                        Console.WriteLine("string[]");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "string[]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_CollectionExpression_NoConversion()
+        {
+            var source = """
+                C c = ("a", [null]);
+
+                class C
+                {
+                    public static implicit operator C((string, int[]) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", [null]);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", [null])").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ConditionalExpression_Ambiguous()
+        {
+            var source = """
+                bool b = true;
+                C c = ("a", b ? default : throw null!);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", b ? default : throw null!);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", b ? default : throw null!)").WithArguments("2", "C").WithLocation(2, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ConditionalExpression_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                bool b = true;
+                C c = ("a", b ? null : throw null!);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair)
+                    {
+                        Console.WriteLine("string");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "string");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ConditionalExpression_NoConversion()
+        {
+            var source = """
+                bool b = true;
+                C c = ("a", b ? null : throw null!);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", b ? null : throw null!);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", b ? null : throw null!)").WithArguments("2", "C").WithLocation(2, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Repro_VsFeedback_2088611()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                public struct SpecialStruct
+                {
+                    public readonly string Value;
+                    public readonly bool Flag;
+                    public readonly Dictionary<string, string> Map;
+
+                    public SpecialStruct(string value)
+                    {
+                        this.Value = value;
+                    }
+                    public SpecialStruct(string value, bool flag)
+                    {
+                        this.Value = value;
+                        this.Flag = flag;
+                    }
+                    public SpecialStruct(string value, Dictionary<string, string> map)
+                    {
+                        Value = value;
+                        Map = map;
+                    }
+
+                    public static implicit operator SpecialStruct(string s) => new(s);
+                    public static implicit operator SpecialStruct((string, Dictionary<string, string>) tuple) => new(tuple.Item1, tuple.Item2);
+                    public static implicit operator SpecialStruct((string, bool) tuple) => new(tuple.Item1, tuple.Item2);
+                }
+
+                public class Class1
+                {
+                    Dictionary<string, SpecialStruct> specialMap = new()
+                        {
+                            { "key1", "value1" },
+                            { "key2", ("value2", true) },
+                            { "key3", ("value3", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                                {
+                                    { "subkey", "subvalue" },
+                                })
+                            },
+                        };
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (35,23): error CS8135: Tuple with 2 elements cannot be converted to type 'SpecialStruct'.
+                //             { "key3", ("value3", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""value3"", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                {
+                    { ""subkey"", ""subvalue"" },
+                })").WithArguments("2", "SpecialStruct").WithLocation(35, 23),
+                // (35,34): error CS8754: There is no target type for 'new(System.StringComparer)'
+                //             { "key3", ("value3", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, @"new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                {
+                    { ""subkey"", ""subvalue"" },
+                }").WithArguments("new(System.StringComparer)").WithLocation(35, 34));
         }
     }
 }
