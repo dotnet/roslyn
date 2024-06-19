@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.CommonControls;
-using Microsoft.VisualStudio.LanguageServices.ExtractClass;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;

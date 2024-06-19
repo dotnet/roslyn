@@ -7,27 +7,14 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 
 namespace Microsoft.VisualStudio.LanguageServices.CommonControls;
 
-internal class PersistNewTypeDestinationValueSource : INewTypeDestinationValueSource
-{
-    private readonly IGlobalOptionService _globalOptionService;
-
-    private readonly PerLanguageOption2<NewTypeDestination> _option;
-
-    private readonly string _languageName;
-
-    public PersistNewTypeDestinationValueSource(
+internal class PersistNewTypeDestinationValueSource(
         IGlobalOptionService globalOptionService,
         PerLanguageOption2<NewTypeDestination> option,
-        string languageName)
-    {
-        _globalOptionService = globalOptionService;
-        _option = option;
-        _languageName = languageName;
-    }
-
+        string languageName) : INewTypeDestinationValueSource
+{
     public NewTypeDestination NewTypeDestination
     {
-        get => _globalOptionService.GetOption(_option, _languageName);
-        set => _globalOptionService.SetGlobalOption(_option, _languageName, value);
+        get => globalOptionService.GetOption(option, languageName);
+        set => globalOptionService.SetGlobalOption(option, languageName, value);
     }
 }
