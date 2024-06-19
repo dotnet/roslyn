@@ -6,11 +6,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 
 namespace Microsoft.VisualStudio.LanguageServices.CommonControls;
 
-internal class InMemoryNewTypeDestinationValueSource : INewTypeDestinationValueSource
+internal class InMemoryNewTypeDestinationValueSource() : INewTypeDestinationValueSource
 {
-    public InMemoryNewTypeDestinationValueSource()
-    {
-    }
-
     public NewTypeDestination NewTypeDestination { get; set; }
 }
