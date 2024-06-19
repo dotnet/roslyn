@@ -49,7 +49,7 @@ You can build and package the tool using the following commands. The instruction
 
 ```console
 .\build.cmd -pack
-# One ofthe final lines from the build will read something like
+# One of the final lines from the build will read something like
 # Successfully created package '.\artifacts\packages\Debug\NonShipping\Microsoft.RoslynTools.1.1.0-dev.nupkg'..
 # Use the value that is in the form `1.1.0-dev` as the version in the next command.
 dotnet tool install --add-source .\artifacts\packages\Debug\NonShipping -g Microsoft.RoslynTools --version <version>
