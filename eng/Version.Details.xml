@@ -64,7 +64,15 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
+    <Dependency Name="System.ComponentModel.Composition" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+    </Dependency>
     <Dependency Name="System.Diagnostics.DiagnosticSource" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+    </Dependency>
+    <Dependency Name="System.IO.Hashing" Version="8.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
