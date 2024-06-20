@@ -3,7 +3,7 @@
 
 ## InlineArray attribute on a record struct type is no longer allowed.
 
-***Introduced in Visual Studio 2022 version 17.12***
+***Introduced in Visual Studio 2022 version 17.11***
 
 ```cs
 [System.Runtime.CompilerServices.InlineArray(10)] // error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
