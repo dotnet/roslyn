@@ -1821,5 +1821,189 @@ Block[B3] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <Fact()>
+        Public Sub ObjectCreation_WithMissingMember()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main() 'BIND:"Sub Main()"
+        Dim item = New C() With {.}
+    End Sub
+End Module
+Class C
+End Class
+]]>.Value
+            Dim expectedDiagnostics = <![CDATA[
+BC30201: Expression expected.
+        Dim item = New C() With {.}
+                                  ~
+BC30203: Identifier expected.
+        Dim item = New C() With {.}
+                                  ~
+BC30984: '=' expected (object initializer).
+        Dim item = New C() With {.}
+                                  ~
+]]>.Value
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [item As C]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'New C() With {.}')
+              Value:
+                IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'New C() With {.}')
+                  Arguments(0)
+                  Initializer:
+                    null
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.')
+              Left:
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.')
+                  Children(0)
+              Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'item = New C() With {.}')
+              Left:
+                ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'item')
+              Right:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'New C() With {.}')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub AnonymousObjectCreation_WithMissingMember_01()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main() 'BIND:"Sub Main()"
+        Dim item = New With {.}
+    End Sub
+End Module
+]]>.Value
+            Dim expectedDiagnostics = <![CDATA[
+BC30201: Expression expected.
+        Dim item = New With {.}
+                              ~
+BC30203: Identifier expected.
+        Dim item = New With {.}
+                              ~
+BC30984: '=' expected (object initializer).
+        Dim item = New With {.}
+                              ~
+]]>.Value
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [item As <anonymous type: $0 As ?>]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+              Value:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: $0 As ?>, IsInvalid, IsImplicit) (Syntax: 'item = New With {.}')
+              Left:
+                ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: $0 As ?>, IsImplicit) (Syntax: 'item')
+              Right:
+                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As ?>, IsInvalid) (Syntax: 'New With {.}')
+                  Initializers(1):
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.')
+                        Left:
+                          IPropertyReferenceOperation: Property <anonymous type: $0 As ?>.$0 As ? (OperationKind.PropertyReference, Type: ?, IsInvalid) (Syntax: '')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {.}')
+                        Right:
+                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub AnonymousObjectCreation_WithMissingMember_02()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main() 'BIND:"Sub Main()"
+        Dim item = New With {.a = 1, .b = .}
+    End Sub
+End Module
+]]>.Value
+            Dim expectedDiagnostics = <![CDATA[
+    BC30203: Identifier expected.
+        Dim item = New With {.a = 1, .b = .}
+                                           ~
+]]>.Value
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [item As <anonymous type: a As System.Int32, b As ?>]
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.')
+              Value:
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.')
+                  Children(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: a As System.Int32, b As ?>, IsInvalid, IsImplicit) (Syntax: 'item = New  ...  1, .b = .}')
+              Left:
+                ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: a As System.Int32, b As ?>, IsImplicit) (Syntax: 'item')
+              Right:
+                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As ?>, IsInvalid) (Syntax: 'New With {. ...  1, .b = .}')
+                  Initializers(2):
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
+                        Left:
+                          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As ?>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ...  1, .b = .}')
+                        Right:
+                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.b = .')
+                        Left:
+                          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As ?>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'b')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ...  1, .b = .}')
+                        Right:
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '.')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
