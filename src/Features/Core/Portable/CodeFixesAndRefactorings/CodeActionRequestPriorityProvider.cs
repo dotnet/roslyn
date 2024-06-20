@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -22,6 +23,11 @@ internal interface ICodeActionRequestPriorityProvider
     void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer);
 
     bool IsDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer);
+
+    /// <summary>
+    /// Indicates whether any deprioritized analyzer supports one of the passed in diagnostic ids.
+    /// </summary>
+    bool HasDeprioritizedAnalyzerSupportingDiagnosticId(ImmutableArray<string> diagnosticIds);
 }
 
 internal static class ICodeActionRequestPriorityProviderExtensions
@@ -81,18 +87,25 @@ internal static class ICodeActionRequestPriorityProviderExtensions
             return true;
         }
 
-        if (provider.Priority == CodeActionRequestPriority.Low)
+        if (provider.Priority == codeFixProvider.RequestPriority)
+        {
+            return true;
+        }
+
+        if (provider.Priority == CodeActionRequestPriority.Low && provider.HasDeprioritizedAnalyzerSupportingDiagnosticId(codeFixProvider.FixableDiagnosticIds))
         {
             // 'Low' priority can be used for two types of code fixers:
             //  1. Those which explicitly set their 'RequestPriority' to 'Low' and
             //  2. Those which can fix diagnostics for expensive analyzers which were de-prioritized
             //     to 'Low' priority bucket to improve lightbulb population performance.
-            // Hence, when processing the 'Low' Priority bucket, we accept fixers with any RequestPriority,
-            // as long as they can fix a diagnostic from an analyzer that was executed in the 'Low' bucket.
+            // Hence, when processing the 'Low' Priority bucket and the priority provider indicates
+            // there was a de-prioritized analyzer supporting one of our fixable diagnostic ids, we accept
+            // fixers with any RequestPriority, as long as they can fix a diagnostic from an analyzer that
+            // was executed in the 'Low' bucket.
             return true;
         }
 
-        return provider.Priority == codeFixProvider.RequestPriority;
+        return false;
     }
 }
 
@@ -100,6 +113,7 @@ internal sealed class DefaultCodeActionRequestPriorityProvider(CodeActionRequest
 {
     private readonly object _gate = new();
     private HashSet<DiagnosticAnalyzer>? _lowPriorityAnalyzers;
+    private HashSet<string>? _lowPriorityAnalyzerSupportedDiagnosticIds;
 
     public CodeActionRequestPriority? Priority { get; } = priority;
 
@@ -108,7 +122,29 @@ internal sealed class DefaultCodeActionRequestPriorityProvider(CodeActionRequest
         lock (_gate)
         {
             _lowPriorityAnalyzers ??= [];
+            _lowPriorityAnalyzerSupportedDiagnosticIds ??= [];
+
             _lowPriorityAnalyzers.Add(analyzer);
+
+            foreach (var supportedDiagnostic in analyzer.SupportedDiagnostics)
+                _lowPriorityAnalyzerSupportedDiagnosticIds.Add(supportedDiagnostic.Id);
+        }
+    }
+
+    public bool HasDeprioritizedAnalyzerSupportingDiagnosticId(ImmutableArray<string> diagnosticIds)
+    {
+        lock (_gate)
+        {
+            if (_lowPriorityAnalyzerSupportedDiagnosticIds == null)
+                return false;
+
+            foreach (var diagnosticId in diagnosticIds)
+            {
+                if (_lowPriorityAnalyzerSupportedDiagnosticIds.Contains(diagnosticId))
+                    return true;
+            }
+
+            return false;
         }
     }
 

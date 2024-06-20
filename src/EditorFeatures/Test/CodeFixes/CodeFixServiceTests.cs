@@ -1081,9 +1081,10 @@ class C
         await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
         var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-        var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzers);
+        var lowPriorityAnalyzerSupportedDiagnosticIds = new ConcurrentSet<string>();
+        var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzers, lowPriorityAnalyzerSupportedDiagnosticIds);
         var normalPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, CancellationToken.None);
-        priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzers);
+        priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzers, lowPriorityAnalyzerSupportedDiagnosticIds);
         var lowPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, CancellationToken.None);
 
         if (expectedNoFixes)
