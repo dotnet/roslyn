@@ -60,23 +60,6 @@ configuration:
     - if:
       - payloadType: Pull_Request
       - isPullRequest
-      - or:
-        - targetsBranch:
-            branch: main
-        - targetsBranch:
-            branch: main-vs-deps
-      - and:
-        - isAction:
-            action: Closed
-        - isMerged
-      then:
-      - addMilestone:
-          milestone: Next
-      description: Milestone tracking
-      triggerOnOwnActions: true
-    - if:
-      - payloadType: Pull_Request
-      - isPullRequest
       - isActivitySender:
           user: dotnet-bot
           issueAuthor: False

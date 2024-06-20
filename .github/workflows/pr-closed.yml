@@ -1,0 +1,53 @@
+name: Pull request closed
+on:
+  pull_request_target:
+    types: [closed]
+permissions:
+  issues: write
+  pull-requests: write
+jobs:
+  add_milestone:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'dotnet/roslyn' && github.event.pull_request.merged_at != null && github.event.pull_request.milestone == null && (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'main-vs-deps') }}
+    steps:
+    - name: Get milestone data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ORGANIZATION: dotnet
+        REPOSITORY: roslyn
+        MILESTONE_NAME: Next
+      run: |
+        gh api graphql -f query='
+          query($org: String!, $repo: String!, $milestone: String!) {
+            repository(name: $repo, owner: $org) {
+              milestones(query: $milestone, first: 2) {
+                nodes {
+                  id
+                  title
+                }
+              }
+            }
+          }' -f org=$ORGANIZATION -f repo=$REPOSITORY -f milestone="$MILESTONE_NAME" > milestone_data.json
+
+        echo 'MILESTONE_ID='$(jq -r 'if (((.data.repository.milestones.nodes | length) == 1) and .data.repository.milestones.nodes[0].title == $MILESTONE_NAME) then .data.repository.milestones.nodes[0].id else "" end' --arg MILESTONE_NAME "$MILESTONE_NAME" milestone_data.json) >> $GITHUB_ENV
+
+    - name: Assign milestone
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PULL_REQUEST_ID: ${{ github.event.pull_request.node_id }}
+      if: ${{ env.MILESTONE_ID != '' }}
+      run: |
+        gh api graphql -f query='
+          mutation($pull: ID!, $milestone: ID!) {
+            updatePullRequest(input: {pullRequestId: $pull, milestoneId: $milestone}) {
+              pullRequest {
+                id
+                number
+                milestone {
+                  id
+                  number
+                  title
+                }
+              }
+            }
+          }' -f pull=$PULL_REQUEST_ID -f milestone=$MILESTONE_ID
