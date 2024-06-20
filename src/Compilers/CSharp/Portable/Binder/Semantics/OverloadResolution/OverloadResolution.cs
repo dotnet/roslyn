@@ -3819,7 +3819,7 @@ outerDefault:
             // AnalyzeArguments matches arguments to parameter names and positions. 
             // For that purpose we use the most derived member.
             var argumentAnalysis = (options & Options.InferringUniqueMethodGroupSignature) != 0
-                ? ArgumentAnalysisResult.NormalForm(argsToParamsOpt: default)
+                ? ArgumentAnalysisResult.ExpandedForm(argsToParamsOpt: default)
                 : AnalyzeArguments(member, arguments, isMethodGroupConversion: false, expanded: true);
             if (!argumentAnalysis.IsValid)
             {
