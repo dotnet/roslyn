@@ -37,5 +37,12 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets any optional command that will be executed after insertion.
+        /// </summary>
+        [JsonPropertyName("command")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Command? Command { get; set; }
     }
 }
