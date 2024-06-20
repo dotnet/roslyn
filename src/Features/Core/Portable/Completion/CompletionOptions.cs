@@ -48,7 +48,7 @@ internal sealed record class CompletionOptions
 
     public bool FilterOutOfScopeLocals { get; init; } = true;
     public bool ShowXmlDocCommentCompletion { get; init; } = true;
-    public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
+    public bool? ShowNewSnippetExperienceUserOption { get; init; } = true;
     public bool ShowNewSnippetExperienceFeatureFlag { get; init; } = true;
     public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
     public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
