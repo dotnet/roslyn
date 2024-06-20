@@ -743,7 +743,8 @@ sealed class {{AttributeClassName}} : Attribute
         EquatableList<InterfaceModel> ret = [];
 
         AttributeData attribute = classSymbol.GetAttributes().First(a => a.AttributeClass!.Name == AttributeClassName);
-        INamedTypeSymbol[] interfaceSymbols = attribute.ConstructorArguments[0].Values.Select(x => (x.Value as INamedTypeSymbol)!).ToArray();
+        // A separate analyzer should error on using a non-interface type in this list.
+        INamedTypeSymbol[] interfaceSymbols = attribute.ConstructorArguments[0].Values.Select(x => x.Type).Where(t => t is { TypeKind: TypeKind.Interface }).ToArray()!;
         foreach (INamedTypeSymbol interfaceSymbol in interfaceSymbols)
         {
             EquatableList<string> properties = new();
