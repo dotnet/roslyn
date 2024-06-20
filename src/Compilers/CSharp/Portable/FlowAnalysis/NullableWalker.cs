@@ -3243,7 +3243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitAlways(lambdaOrFunction.Body);
-                EnforceDoesNotReturn(syntaxOpt: null);
+                //EnforceDoesNotReturn(syntaxOpt: null);
                 EnforceParameterNotNullOnExit(null, this.State);
 
                 RestorePending(oldPending2); // process any forward branches within the lambda body
