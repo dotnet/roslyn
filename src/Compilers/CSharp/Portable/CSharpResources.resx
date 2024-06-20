@@ -7983,4 +7983,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
     <value>allows ref struct constraint</value>
   </data>
+  <data name="ERR_InlineArrayAttributeOnRecord" xml:space="preserve">
+    <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
+  </data>
 </root>

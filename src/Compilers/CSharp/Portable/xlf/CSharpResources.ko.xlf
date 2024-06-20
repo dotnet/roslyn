@@ -972,6 +972,11 @@
         <target state="translated">'init' 접근자는 'readonly'로 표시할 수 없습니다. 대신 '{0}' 읽기 전용으로 표시합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">인라인 배열 유형의 요소는 'int', 'System.Index' 또는 'System.Range'로 암시적으로 변환할 수 있는 단일 인수로만 액세스할 수 있습니다.</target>
