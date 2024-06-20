@@ -2054,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // PROTOTYPE do we want to tighten the flags check further? (require that type be sealed?)
-                if ((localFlags & MethodAttributes.MemberAccessMask) != MethodAttributes.Private ||
+                if ((localFlags & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
                     (localFlags & MethodAttributes.Static) == 0)
                 {
                     return false;

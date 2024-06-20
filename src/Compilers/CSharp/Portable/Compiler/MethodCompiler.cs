@@ -482,6 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (containingType.IsExtension)
                     {
+                        // PROTOTYPE the extension marker should also be added in metadata-only emit scenario (see SynthesizedMetadataCompiler)
                         CompileSynthesizedExtensionMarker((SourceExtensionTypeSymbol)containingType, compilationState);
                     }
 

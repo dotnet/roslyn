@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// - the underlying type (first parameter type)
     ///
     /// For example: 'implicit extension R for UnderlyingType' yield
-    /// 'private static void &lt;Extension>$(UnderlyingType)'. // PROTOTYPE
+    /// 'public static void &lt;ImplicitExtension>$(UnderlyingType)'.
     /// </summary>
     internal sealed class SynthesizedExtensionMarker : SynthesizedMethodSymbol
     {
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodKind MethodKind => MethodKind.Ordinary;
 
-        public override Accessibility DeclaredAccessibility => Accessibility.Private;
+        public override Accessibility DeclaredAccessibility => Accessibility.Public;
 
         public override bool IsStatic => true;
 
