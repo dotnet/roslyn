@@ -704,6 +704,8 @@ namespace Roslyn.Test.Utilities
 
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
+            public Dictionary<string, IList<LSP.Location>> GetLocations() => _locations;
+
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
 
             public async Task AssertServerShuttingDownAsync()
