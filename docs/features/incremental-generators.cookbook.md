@@ -655,9 +655,6 @@ public interface IUserInterface2
 {
     float InterfacePropertyOnlyGetter { get; }
 }
-```
-
-```csharp
 [AutoImplementProperties(typeof(IUserInterface), typeof(IUserInterface2))]
 public partial class UserClass
 {
