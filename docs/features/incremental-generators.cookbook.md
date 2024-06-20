@@ -700,7 +700,7 @@ sealed class {{AttributeClassName}} : Attribute
             predicate: static (node, cancellationToken_) => node is ClassDeclarationSyntax,
             transform: static (ctx, cancellationToken) =>
             {
-                ISymbol classSymbol = ctx.SemanticModel.GetDeclaredSymbol(ctx.TargetNode, cancellationToken)!;
+                ISymbol classSymbol = ctx.TargetSymbol;
 
                 return new ClassModel(
                     classSymbol.Name,
