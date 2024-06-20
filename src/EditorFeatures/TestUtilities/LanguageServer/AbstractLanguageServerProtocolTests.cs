@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
-        protected static readonly TestComposition FeaturesLspComposition = EditorTestCompositions.LanguageServerProtocol
+        protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
