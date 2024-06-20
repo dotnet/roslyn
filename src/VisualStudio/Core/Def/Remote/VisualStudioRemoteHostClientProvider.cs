@@ -87,7 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         public readonly SolutionServices Services;
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly IGlobalOptionService _globalOptions;
+#pragma warning restore IDE0052 // Remove unread private members
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
@@ -119,9 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var brokeredServiceContainer = await _brokeredServiceContainer.GetValueAsync().ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
-                var configuration =
-                    (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr) ? RemoteProcessConfiguration.Core : 0) |
-                    (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0);
+                RemoteProcessConfiguration configuration = 0;
 
                 // VS AsyncLazy does not currently support cancellation:
                 var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
