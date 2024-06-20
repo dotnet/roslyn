@@ -59,7 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static ConcurrentDictionary<Symbol, Symbol> ensureDictionary(ref ConcurrentDictionary<Symbol, Symbol>? storage)
             {
-                return storage ??= new ConcurrentDictionary<Symbol, Symbol>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                if (storage is null)
+                {
+                    Interlocked.CompareExchange(ref storage, new ConcurrentDictionary<Symbol, Symbol>(Roslyn.Utilities.ReferenceEqualityComparer.Instance), null);
+                }
+
+                return storage;
             }
         }
 
