@@ -19,11 +19,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class InstanceExtensionMethodBodyRewriter : BoundTreeToDifferentEnclosingContextRewriter
     {
         private readonly SourceExtensionMetadataMethodSymbol _metadataMethod;
+
+        /// <summary>
+        /// Maps parameters and local functions from original enclosing context to corresponding rewritten symbols for rewritten context.
+        /// </summary>
         private ImmutableDictionary<Symbol, Symbol> _symbolMap;
+
         private RewrittenMethodSymbol _rewrittenContainingMethod;
 
         public InstanceExtensionMethodBodyRewriter(MethodSymbol sourceMethod, SourceExtensionMetadataMethodSymbol metadataMethod)
         {
+            Debug.Assert(sourceMethod is not null);
+            Debug.Assert(metadataMethod is not null);
+            Debug.Assert(sourceMethod.ContainingType.TryGetCorrespondingStaticMetadataExtensionMember(sourceMethod) == (object)metadataMethod);
+
             _metadataMethod = metadataMethod;
             _symbolMap = ImmutableDictionary<Symbol, Symbol>.Empty.WithComparers(ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance);
             EnterMethod(sourceMethod, metadataMethod, metadataMethod.Parameters.AsSpan()[1..]);
@@ -52,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (savedContainer, saveSymbolMap);
         }
 
-        private (RewrittenMethodSymbol, ImmutableDictionary<Symbol, Symbol>) EnterMethod(MethodSymbol symbol, RewrittenMethodSymbol rewritten)
+        private (RewrittenMethodSymbol, ImmutableDictionary<Symbol, Symbol>) EnterMethod(MethodSymbol symbol, RewrittenLambdaOrLocalFunctionSymbol rewritten)
         {
             return EnterMethod(symbol, rewritten, rewritten.Parameters.AsSpan());
         }
@@ -86,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             MethodSymbol symbol = this.VisitMethodSymbol(node.Symbol);
-            var savedState = EnterMethod(node.Symbol, (RewrittenMethodSymbol)symbol);
+            var savedState = EnterMethod(node.Symbol, (RewrittenLambdaOrLocalFunctionSymbol)symbol);
 
             BoundBlock? blockBody = (BoundBlock?)this.Visit(node.BlockBody);
             BoundBlock? expressionBody = (BoundBlock?)this.Visit(node.ExpressionBody);
@@ -134,6 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitMethodSymbol(symbol);
         }
 
+        // PROTOTYPE(roles): Here we are pretty much duplicating what InstanceExtensionMethodReferenceRewriter would do.
+        //                   We need to reevaluate whether we are getting enough advantage from this duplication.  
         public override BoundNode VisitCall(BoundCall node)
         {
             Debug.Assert(node != null);
@@ -190,6 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(roles): Here we are pretty much duplicating what InstanceExtensionMethodReferenceRewriter would do.
+        //                   We need to reevaluate whether we are getting enough advantage from this duplication.  
         public override BoundNode? VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
             return InstanceExtensionMethodReferenceRewriter.UpdateDelegateCreation(node, this.VisitMethodSymbol(node.MethodOpt), (BoundExpression)this.Visit(node.Argument), node.IsExtensionMethod, this.VisitType(node.Type));

@@ -777,13 +777,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
-                            var sourceMethod = method as SourceMemberMethodSymbol;
-                            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
-
                             emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
                                 method,
-                                blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode,
+                                TryGetMethodBodySyntax(method as SourceMemberMethodSymbol),
                                 methodOrdinal,
                                 loweredBody,
                                 ImmutableArray<EncLambdaInfo>.Empty,
@@ -832,6 +829,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stateMachineStateDebugInfoBuilder.Free();
             }
         }
+
+#nullable enable
+
+        private static SyntaxNode? TryGetMethodBodySyntax(SourceMemberMethodSymbol? sourceMethod)
+        {
+            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
+            return blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode;
+        }
+
+#nullable disable
 
         /// <summary>
         /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
@@ -1335,12 +1342,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             MethodSymbol metadataSymbol = (MethodSymbol)methodSymbol.ContainingType.TryGetCorrespondingStaticMetadataExtensionMember(methodSymbol) ?? methodSymbol;
 
-                            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
-
                             var emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
                                 metadataSymbol,
-                                (SyntaxNode)blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode,
+                                TryGetMethodBodySyntax(sourceMethod),
                                 methodOrdinal,
                                 boundBody,
                                 lambdaDebugInfoBuilder.ToImmutable(),

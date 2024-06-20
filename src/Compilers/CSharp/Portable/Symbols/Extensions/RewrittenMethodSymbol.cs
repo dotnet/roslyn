@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return UnderlyingMethod.GetUseSiteInfo();
+            return _originalMethod.GetUseSiteInfo();
         }
 
         public sealed override ImmutableArray<ParameterSymbol> Parameters

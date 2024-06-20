@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override ImmutableArray<ParameterSymbol> MakeParameters()
         {
-            var sourceParameters = _originalMethod.Parameters;
-            var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(ParameterCount);
-
-            foreach (var parameter in sourceParameters)
-            {
-                parameters.Add(new RewrittenMethodParameterSymbol(this, parameter));
-            }
-
             return ImmutableArray<ParameterSymbol>.CastUp(_originalMethod.Parameters.SelectAsArray(static (p, @this) => new RewrittenMethodParameterSymbol(@this, p), this));
         }
     }

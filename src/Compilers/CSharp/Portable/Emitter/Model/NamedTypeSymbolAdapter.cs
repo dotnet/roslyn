@@ -1019,6 +1019,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (m.Kind == SymbolKind.Method)
                 {
+                    // PROTOTYPE(roles): Make sure this transformation is not going to break handling of partial
+                    //                   methods. For example, it looks like ShouldEmit filters out partial methods without
+                    //                   an implementation. In general we should make sure we have adequate testing
+                    //                   for partial instance methods.
                     var method = (MethodSymbol)(TryGetCorrespondingStaticMetadataExtensionMember(m) ?? m);
 
                     if (method.ShouldEmit())

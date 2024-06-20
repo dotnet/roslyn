@@ -1736,6 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             )
         {
             Debug.Assert(argument.Type is { });
+            Debug.Assert(containingMethod is { });
             Debug.Assert(kind != SynthesizedLocalKind.UserDefined);
 
             switch (refKind)
