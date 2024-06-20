@@ -39997,7 +39997,7 @@ class Program
 		IL_0001: callvirt instance void C::Increment()
 		IL_0006: ret
 	} // end of method E::EIncrement
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			class C ''
 		) cil managed 
@@ -40167,7 +40167,7 @@ class Program
 		IL_0001: call instance void C::Increment()
 		IL_0006: ret
 	} // end of method E::EIncrement
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			valuetype C ''
 		) cil managed 
@@ -40337,7 +40337,7 @@ class C<T>
 		IL_0002: callvirt instance void class C`1<!T>::Increment(!0)
 		IL_0007: ret
 	} // end of method E`1::EIncrement
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			class C`1<!T> ''
 		) cil managed 
@@ -40492,7 +40492,7 @@ class C
 		IL_0002: callvirt instance void C::Increment<!!S>(!!0)
 		IL_0007: ret
 	} // end of method E::EIncrement
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			class C ''
 		) cil managed 
@@ -40646,7 +40646,7 @@ class C : I1
 		IL_0006: callvirt instance void I1::Increment()
 		IL_000b: ret
 	} // end of method E`1::EIncrement
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			!T ''
 		) cil managed 
@@ -40864,7 +40864,7 @@ struct S : I1
 		IL_0007: callvirt instance void I1::Increment()
 		IL_000c: ret
 	} // end of method E`1::EIncrement
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			!T ''
 		) cil managed 
@@ -41024,7 +41024,7 @@ struct S : I1
 		IL_0007: callvirt instance void I1::Increment()
 		IL_000c: ret
 	} // end of method E`1::EIncrement
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			!T ''
 		) cil managed 
@@ -41830,7 +41830,7 @@ class Program
 		IL_0002: callvirt instance void C::set_P(int32)
 		IL_0007: ret
 	} // end of method E::set_P2
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			class C ''
 		) cil managed 
@@ -42000,7 +42000,7 @@ class Program
 		IL_0002: call instance void C::set_P(int32)
 		IL_0007: ret
 	} // end of method E::set_P2
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			valuetype C ''
 		) cil managed 
@@ -42143,7 +42143,7 @@ class Program
 		IL_0002: callvirt instance void C::set_P(int32)
 		IL_0007: ret
 	} // end of method E::set_Item
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			class C ''
 		) cil managed 
@@ -42283,7 +42283,7 @@ class Program
 		IL_0002: call instance void C::set_P(int32)
 		IL_0007: ret
 	} // end of method E::set_Item
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			valuetype C ''
 		) cil managed 
@@ -42463,7 +42463,7 @@ class Program
 		IL_0002: callvirt instance void C::remove_E(class [System.Runtime]System.Action)
 		IL_0007: ret
 	} // end of method E::remove_E2
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			class C ''
 		) cil managed 
@@ -42648,7 +42648,7 @@ class Program
 		IL_0002: call instance void C::remove_E(class [System.Runtime]System.Action)
 		IL_0007: ret
 	} // end of method E::remove_E2
-	.method private hidebysig static 
+	.method public hidebysig static 
 		void '<ImplicitExtension>$' (
 			valuetype C ''
 		) cil managed 
