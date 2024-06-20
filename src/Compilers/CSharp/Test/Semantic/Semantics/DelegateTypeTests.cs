@@ -1098,25 +1098,25 @@ class Program
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // static and instance
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "base.F", "F"); // static and instance
-            yield return getData("internal void F(object x) { }", "internal static void F() { }", "F", "F", null, "System.Action"); // instance and static, different number of parameters
+            yield return getData("internal void F(object x) { }", "internal static void F() { }", "F", "F"); // instance and static, different number of parameters
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "B.F", "F", null, "System.Action"); // instance and static, different number of parameters
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "this.F", "F", null, "System.Action<System.Object>"); // instance and static, different number of parameters
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "base.F", "F", null, "System.Action<System.Object>"); // instance and static, different number of parameters
-            yield return getData("internal static void F() { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // static and instance, different number of parameters
+            yield return getData("internal static void F() { }", "internal void F(object x) { }", "F", "F"); // static and instance, different number of parameters
             yield return getData("internal static void F() { }", "internal void F(object x) { }", "B.F", "F", null, "System.Action"); // static and instance, different number of parameters
             yield return getData("internal static void F() { }", "internal void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance, different number of parameters
             yield return getData("internal static void F() { }", "internal void F(object x) { }", "base.F", "F"); // static and instance, different number of parameters
-            yield return getData("internal static void F(object x) { }", "private static void F() { }", "F", "F", null, "System.Action"); // internal and private
+            yield return getData("internal static void F(object x) { }", "private static void F() { }", "F", "F"); // internal and private
             yield return getData("private static void F(object x) { }", "internal static void F() { }", "F", "F", null, "System.Action"); // internal and private
             yield return getData("internal abstract void F(object x);", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // override
             yield return getData("internal virtual void F(object x) { }", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // override
             yield return getData("internal void F(object x) { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // hiding
             yield return getData("internal void F(object x) { }", "internal new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // hiding
             yield return getData("internal void F(object x) { }", "internal new void F(object y) { }", "F", "F", null, "System.Action<System.Object>"); // different parameter name
-            yield return getData("internal void F(object x) { }", "internal void F(string x) { }", "F", "F", null, "System.Action<System.String>"); // different parameter type
-            yield return getData("internal void F(object x) { }", "internal void F(object x, object y) { }", "F", "F", null, "System.Action<System.Object, System.Object>"); // different number of parameters
-            yield return getData("internal void F(object x) { }", "internal void F(ref object x) { }", "F", "F", null, "<>A{00000001}<System.Object>"); // different parameter ref kind
-            yield return getData("internal void F(ref object x) { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // different parameter ref kind
+            yield return getData("internal void F(object x) { }", "internal void F(string x) { }", "F", "F"); // different parameter type
+            yield return getData("internal void F(object x) { }", "internal void F(object x, object y) { }", "F", "F"); // different number of parameters
+            yield return getData("internal void F(object x) { }", "internal void F(ref object x) { }", "F", "F"); // different parameter ref kind
+            yield return getData("internal void F(ref object x) { }", "internal void F(object x) { }", "F", "F"); // different parameter ref kind
             yield return getData("internal abstract object F();", "internal override object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // override
             yield return getData("internal virtual object F() => throw null;", "internal override object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // override
             yield return getData("internal object F() => throw null;", "internal object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // hiding
@@ -7053,19 +7053,7 @@ class Program
         [Fact]
         public void OverloadResolution_DefaultValue_01()
         {
-            var source = """
-                var d1 = new Z().M;
-                System.Console.WriteLine(d1.GetType());
-                d1();
-
-                var d2 = ((Y<long>)(new Z())).M;
-                System.Console.WriteLine(d2.GetType());
-                d2();
-
-                var d3 = ((X)(new Z())).M;
-                System.Console.WriteLine(d3.GetType());
-                d3();
-
+            var source1 = """
                 public class Z : Y<long>
                 {
                     public override void M(int x = 3) => System.Console.WriteLine("I" + x);
@@ -7083,25 +7071,40 @@ class Program
                     public abstract void M(int x = 1);
                 }
                 """;
-            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
-                <>f__AnonymousDelegate0`1[System.Int64]
-                L4
-                <>f__AnonymousDelegate1`1[System.Int64]
-                L0
-                <>f__AnonymousDelegate2`1[System.Int32]
+
+            var source2 = """
+                var d1 = new Z().M;
+                System.Console.WriteLine(d1.GetType());
+                d1();
+
+                var d2 = ((Y<long>)(new Z())).M;
+                System.Console.WriteLine(d2.GetType());
+                d2();
+                """;
+
+            CreateCompilation([source1, source2]).VerifyDiagnostics(
+                // (1,10): error CS8917: The delegate type could not be inferred.
+                // var d1 = new Z().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Z().M").WithLocation(1, 10),
+                // (5,10): error CS8917: The delegate type could not be inferred.
+                // var d2 = ((Y<long>)(new Z())).M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "((Y<long>)(new Z())).M").WithLocation(5, 10));
+
+            var source3 = """
+                var d3 = ((X)(new Z())).M;
+                System.Console.WriteLine(d3.GetType());
+                d3();
+                """;
+
+            CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int32]
                 I1
                 """).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
             {
                 var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
-                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 4])", m.ToTestDisplayString());
-
-                m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate1.Invoke");
-                Assert.Equal("void <>f__AnonymousDelegate1<T1>.Invoke([T1 arg = default(T1)])", m.ToTestDisplayString());
-
-                m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate2.Invoke");
-                Assert.Equal("void <>f__AnonymousDelegate2<T1>.Invoke([T1 arg = 1])", m.ToTestDisplayString());
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 1])", m.ToTestDisplayString());
             }
         }
 
@@ -7265,16 +7268,10 @@ class Program
                     public abstract void M(int x = 1);
                 }
                 """;
-            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
-                <>f__AnonymousDelegate0`1[System.Int32]
-                3
-                """).VerifyDiagnostics();
-
-            static void validateSymbols(ModuleSymbol module)
-            {
-                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
-                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 3])", m.ToTestDisplayString());
-            }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new Z().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Z().M").WithLocation(1, 9));
         }
 
         [Fact]
@@ -13713,14 +13710,7 @@ class Program
         [Fact]
         public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Generic_02()
         {
-            var source = """
-                var c = ((C)new D<long>()).M<long>;
-                System.Console.WriteLine(c.GetType());
-                c(null);
-                var d = new D<long>().M;
-                System.Console.WriteLine(d.GetType());
-                d(null);
-
+            var source1 = """
                 abstract class C
                 {
                     public abstract void M<T>(params T[] xs);
@@ -13733,16 +13723,43 @@ class Program
                 }
                 """;
 
+            var source2 = """
+                var d = new D<long>().M;
+                System.Console.WriteLine(d.GetType());
+                d(null);
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D<long>().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D<long>().M").WithLocation(1, 9)
+            };
+
+            CreateCompilation([source1, source2], parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+
             var expectedOutput = """
-                <>f__AnonymousDelegate0`1[System.Int64]
-                A
                 System.Action`1[System.Int64[]]
                 B
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source2], parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source2], expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var source3 = """
+                var c = ((C)new D<long>()).M<long>;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                """;
+
+            expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                """;
+
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
@@ -13788,24 +13805,42 @@ class Program
             var comp1bRef = comp1b.EmitToImageReference();
 
             var source3 = """
-                var c = ((C)new D<long>()).M<long>;
-                System.Console.WriteLine(c.GetType());
-                c(null);
                 var d = new D<long>().M;
                 System.Console.WriteLine(d.GetType());
                 d(null);
                 """;
 
+            var expectedDiagnostics = new[]
+            {
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D<long>().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D<long>().M").WithLocation(1, 9)
+            };
+
+            CreateCompilation(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+
             var expectedOutput = """
-                <>f__AnonymousDelegate0`1[System.Int64]
-                A
                 System.Action`1[System.Int64[]]
                 B
                 """;
 
-            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            var verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var source4 = """
+                var c = ((C)new D<long>()).M<long>;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                """;
+
+            expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                """;
+
+            CompileAndVerify(source4, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source4, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source4, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);

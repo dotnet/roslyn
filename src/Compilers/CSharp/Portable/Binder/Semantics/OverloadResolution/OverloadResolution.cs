@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of candidate methods is reduced to contain only methods from the most derived types.
             if (checkOverriddenOrHidden)
             {
-                if ((options & Options.DynamicResolution) != 0)
+                if ((options & Options.DynamicResolution) != 0 ||
+                    (options & Options.InferringUniqueMethodGroupSignature) != 0)
                 {
                     // 'AddMemberToCandidateSet' takes care of hiding by name and by override,
                     // but we still need to take care of hiding by signature in order to
@@ -370,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // That is due to the fact that 'dynamic' converts to anything else, and
                     // a method applicable at compile time, might actually be inapplicable at runtime,
                     // therefore shouldn't shadow members with different signature from base, etc.
+                    // Similarly when inferring method signature we don't know the argument types
+                    // so we don't want to remove less derived members with different signature.
                     RemoveHiddenMembers(results);
                 }
                 else
