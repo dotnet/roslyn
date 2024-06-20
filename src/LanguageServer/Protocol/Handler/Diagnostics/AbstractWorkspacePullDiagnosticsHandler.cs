@@ -58,6 +58,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
     {
+        _logAction = context.TraceInformation;
         if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
         {
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
@@ -71,11 +72,13 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
     private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
     {
+        Log($"workspace changed {e.Kind}");
         UpdateLspChanged();
     }
 
     private void OnLspTextChanged(object? sender, EventArgs e)
     {
+        Log("lsp text changed");
         UpdateLspChanged();
     }
 
@@ -91,10 +94,20 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         }
     }
 
+    private Action<string>? _logAction;
+    private void Log(string s)
+    {
+        if (_logAction != null)
+        {
+            _logAction(s);
+        }
+    }
+
     protected override async Task WaitForChangesAsync(string? category, RequestContext context, CancellationToken cancellationToken)
     {
         // A null category counts a separate category and should track changes independently of other categories, so we'll add an empty entry in our map for it.
         category ??= string.Empty;
+        context.TraceInformation($"Waiting for changes for {category}");
 
         // Spin waiting until our LSP change flag has been set.  When the flag is set (meaning LSP has changed),
         // we reset the flag to false and exit out of the loop allowing the request to close.
@@ -106,7 +119,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         }
 
         // We've hit a change, so we close the current request to allow the client to open a new one.
-        context.TraceInformation("Closing workspace/diagnostics request");
+        context.TraceInformation($"Closing workspace/diagnostics request for {category}");
         return;
 
         bool HasChanged()
