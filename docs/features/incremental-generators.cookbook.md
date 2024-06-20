@@ -641,7 +641,7 @@ TODO: https://github.com/dotnet/roslyn/issues/72149
 **Solution:** Require the user to decorate the class with the `[AutoImplement]` Attribute and pass as arguments the types of the interfaces they want to self-implement themselves; The classes that implement the attribute have to be `partial class`.
 Provide that attribute in a `RegisterPostInitializationOutput` step. Register for callbacks on the classes with
 `ForAttributeWithMetadataName` using the fullyQualifiedMetadataName `FullyQualifiedAttributeName`, and use tuples (or create an equatable model) to pass along that information.
-The Attribute could work for Structs too, the example was kept simple on purpose for the workbook sample
+The attribute could work for structs too, the example was kept simple on purpose for the workbook sample.
 
 **Example:**
 
