@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -82,9 +83,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(namespacesToMerge.Length != 0);
 
-            return (namespacesToMerge.Length == 1 && nameOpt == null)
-                ? namespacesToMerge[0]
-                : new MergedNamespaceSymbol(extent, containingNamespace, namespacesToMerge, nameOpt);
+            if (namespacesToMerge.Length == 1 && nameOpt is null)
+                return namespacesToMerge[0];
+
+            if (namespacesToMerge.Any(ns => ns is MergedNamespaceSymbol))
+            {
+                // Resolving extern alias directives across multiple assemblies can produce multiple levels of nesting.
+                // Make sure to flatten them.
+                namespacesToMerge = namespacesToMerge.SelectManyAsArray(ns =>
+                {
+                    if (ns is MergedNamespaceSymbol merged)
+                        return merged._namespacesToMerge;
+                    else
+                        return SpecializedCollections.SingletonCollection(ns);
+                });
+            }
+
+            return new MergedNamespaceSymbol(extent, containingNamespace, namespacesToMerge, nameOpt);
         }
 
         // Constructor. Use static Create method to create instances.
