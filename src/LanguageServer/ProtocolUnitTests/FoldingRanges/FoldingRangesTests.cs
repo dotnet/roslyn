@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
             await AssertFoldingRanges(mutatingLspWorkspace, markup);
         }
 
-        private async Task AssertFoldingRanges(bool mutatingLspWorkspace, string markup, string? collapsedText = null)
+        private async Task AssertFoldingRanges(bool mutatingLspWorkspace, string markup, string collapsedText = null)
         {
             var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = testLspServer.GetLocations()
