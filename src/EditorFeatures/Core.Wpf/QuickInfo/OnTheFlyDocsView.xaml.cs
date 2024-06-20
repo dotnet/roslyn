@@ -208,6 +208,17 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
             m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
         }, LogLevel.Information));
 
+        OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
+        if (_onTheFlyDocsElement.HasComments)
+        {
+            Logger.Log(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, KeyValueLogMessage.Create(m =>
+            {
+                m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.SymbolSignature;
+            }, LogLevel.Information));
+
+            OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
+        }
+
         ResultsRequested?.Invoke(this, EventArgs.Empty);
     }
 

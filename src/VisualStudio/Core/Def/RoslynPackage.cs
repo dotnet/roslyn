@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
@@ -302,6 +303,7 @@ internal sealed class RoslynPackage : AbstractPackage
         AsyncCompletionLogger.ReportTelemetry();
         InheritanceMarginLogger.ReportTelemetry();
         FeaturesSessionTelemetry.Report();
+        OnTheFlyDocsLogger.ReportTelemetry();
         ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
     }
 
