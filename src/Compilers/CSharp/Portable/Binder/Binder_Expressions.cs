@@ -4839,47 +4839,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    BoundExpression result = null;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    ImmutableArray<MethodSymbol> accessibleConstructors = GetAccessibleConstructorsForOverloadResolution(initializerType, allowProtectedConstructorsOfBaseType: true, allInstanceConstructors: out _, ref useSiteInfo);
-                    OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                    this.OverloadResolution.ObjectCreationOverloadResolution(accessibleConstructors, analyzedArguments, overloadResolutionResult, dynamicResolution: true, ref useSiteInfo);
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, errorLocation);
 
-                    if (overloadResolutionResult.HasAnyApplicableMember)
-                    {
-                        var finalApplicableCandidates = GetCandidatesPassingFinalValidation(nonNullSyntax, overloadResolutionResult, receiverOpt: null, default(ImmutableArray<TypeWithAnnotations>), invokedAsExtensionMethod: false, diagnostics);
-
-                        if (finalApplicableCandidates.Length == 1)
-                        {
-                            Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                            if (!IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                            {
-                                result = BindConstructorInitializerCoreContinued(found: true, initializerArgumentListOpt, constructor, analyzedArguments, constructorReturnType,
-                                            initializerType, isBaseConstructorInitializer, nonNullSyntax, errorLocation, enableCallerInfo,
-                                            finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                        }
-
-                        if (result == null)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, errorLocation);
-                            diagnostics.Add(errorLocation, useSiteInfo);
-
-                            result = new BoundBadExpression(
-                                    syntax: initializerArgumentListOpt.Parent,
-                                    resultKind: LookupResultKind.Empty,
-                                    symbols: accessibleConstructors.Cast<MethodSymbol, Symbol>(),
-                                    childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
-                                    type: constructorReturnType);
-                        }
-                    }
-
-                    overloadResolutionResult.Free();
-                    if (result != null)
-                    {
-                        return result;
-                    }
+                    return new BoundBadExpression(
+                            syntax: initializerArgumentListOpt.Parent,
+                            resultKind: LookupResultKind.Empty,
+                            symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
+                            childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
+                            type: constructorReturnType);
                 }
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;

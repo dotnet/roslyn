@@ -1602,11 +1602,6 @@
         <target state="translated">Функция "проверка значений NULL параметров" не поддерживается.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Неоднозначность между расширенной и нормальной формами параметра коллекции params, отличных от массива, "{0}", единственный соответствующий аргумент имеет тип "dynamic". Рассмотрите возможность использования динамического аргумента.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Конструктор "{0}" оставляет необходимый элемент "{1}" не инициализированным.</target>

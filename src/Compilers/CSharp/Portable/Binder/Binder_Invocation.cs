@@ -678,15 +678,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ErrorCode.ERR_DynamicDispatchToParamsCollection,
                     syntax, candidate.LeastOverriddenMember);
             }
-            else if (IsAmbiguousDynamicParamsArgument(arguments, candidate, out SyntaxNode argumentSyntax) &&
-                     !candidate.LeastOverriddenMember.GetParameters().Last().Type.IsSZArray())
-            {
-                // We know that runtime binder might not be
-                // able to handle the disambiguation
-                Error(diagnostics,
-                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                    argumentSyntax, candidate.LeastOverriddenMember);
-            }
         }
 
         private BoundExpression BindMethodGroupInvocation(

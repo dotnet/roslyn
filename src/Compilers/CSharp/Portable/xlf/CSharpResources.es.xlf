@@ -1602,11 +1602,6 @@
         <target state="translated">No se admite la característica "parameter null-checking".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Ambigüedad entre las formas expandidas y normales del parámetro de colección params no matriz de "{0}", el único argumento correspondiente tiene el tipo "dynamic". Considere la posibilidad de convertir el argumento dinámico.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">El constructor "{0}" deja el miembro requerido "{1}" sin inicializar.</target>

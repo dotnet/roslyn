@@ -1602,11 +1602,6 @@
         <target state="translated">Funkce parameter null-checking se nepodporuje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Nejednoznačnost mezi rozbalenými a normálními tvary parametru kolekce parametrů mimo pole {0}, jediný odpovídající argument má dynamický typ. Zvažte přetypování dynamického argumentu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Konstruktor {0} ponechá požadovaný člen {1} neinicializovaný.</target>
