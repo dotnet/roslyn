@@ -303,7 +303,6 @@ internal sealed class RoslynPackage : AbstractPackage
         AsyncCompletionLogger.ReportTelemetry();
         InheritanceMarginLogger.ReportTelemetry();
         FeaturesSessionTelemetry.Report();
-        OnTheFlyDocsLogger.ReportTelemetry();
         ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
     }
 

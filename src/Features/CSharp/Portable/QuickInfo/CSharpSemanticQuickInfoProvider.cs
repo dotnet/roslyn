@@ -168,12 +168,19 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
+        if (symbol.MetadataToken != 0)
+        {
+            OnTheFlyDocsLogger.LogHoveredSourceSymbol();
+        }
+        else
+        {
+            OnTheFlyDocsLogger.LogHoveredMetadataSymbol();
+        }
+
         if (symbol.DeclaringSyntaxReferences.Length == 0)
         {
             return null;
         }
-
-        var hasDocumentationComment = HasDocumentationComment(symbol.DeclaringSyntaxReferences);
 
         var maxLength = 1000;
         var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
@@ -183,30 +190,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasDocumentationComment);
-
-        bool HasDocumentationComment(ImmutableArray<SyntaxReference> references)
-        {
-            foreach (var reference in references)
-            {
-                var node = reference.GetSyntax(cancellationToken);
-                if (node is null)
-                {
-                    continue;
-                }
-
-                var triviaList = node.GetLeadingTrivia();
-                foreach (var trivia in triviaList)
-                {
-                    if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
-                        trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
+        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language);
     }
 }

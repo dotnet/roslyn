@@ -5,7 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
+namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal static class OnTheFlyDocsLogger
 {
@@ -13,11 +13,19 @@ internal static class OnTheFlyDocsLogger
 
     private enum ActionInfo
     {
+        HoveredSourceSymbol,
+        HoveredMetadataSymbol,
         ShowedOnTheFlyDocsLink,
         ShowedOnTheFlyDocsLinkWithDocComments,
         OnTheFlyDocsResultsRequested,
         OnTheFlyDocsResultsRequestedWithDocComments,
     }
+
+    internal static void LogHoveredSourceSymbol()
+        => s_countLogAggregator.IncreaseCount(ActionInfo.HoveredSourceSymbol);
+
+    internal static void LogHoveredMetadataSymbol()
+        => s_countLogAggregator.IncreaseCount(ActionInfo.HoveredMetadataSymbol);
 
     internal static void LogShowedOnTheFlyDocsLink()
         => s_countLogAggregator.IncreaseCount(ActionInfo.ShowedOnTheFlyDocsLink);
