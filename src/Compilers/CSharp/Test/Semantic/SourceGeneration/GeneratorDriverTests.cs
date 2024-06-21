@@ -4176,5 +4176,63 @@ class C { }
                 });
             }
         }
+
+        [Fact]
+        public void SourceGenerator_As_IncrementalGenerator_As_SourceGenerator()
+        {
+            ISourceGenerator generator = new TestSourceGenerator();
+
+            var incrementalGenerator = generator.AsIncrementalGenerator();
+            var sourceGenerator = incrementalGenerator.AsSourceGenerator();
+
+            Assert.Same(generator, sourceGenerator);
+        }
+
+        [Fact]
+        public void SourceGenerator_As_IncrementalGenerator_GetGeneratorType()
+        {
+            ISourceGenerator generator = new TestSourceGenerator();
+
+            var incrementalGenerator = generator.AsIncrementalGenerator();
+            var type = incrementalGenerator.GetGeneratorType();
+
+            Assert.Same(generator.GetType(), type);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_As_SourceGenerator_As_IncrementalGenerator()
+        {
+            IIncrementalGenerator generator = new PipelineCallbackGenerator(ctx => { });
+
+            var sourceGenerator = generator.AsSourceGenerator();
+            var incrementalGenerator = sourceGenerator.AsIncrementalGenerator();
+
+            Assert.Same(generator, incrementalGenerator);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_As_SourceGenerator_GetGeneratorType()
+        {
+            IIncrementalGenerator generator = new PipelineCallbackGenerator(ctx => { });
+
+            var sourceGenerator = generator.AsSourceGenerator();
+            var type = sourceGenerator.GetGeneratorType();
+
+            Assert.Same(generator.GetType(), type);
+        }
+
+        [Fact]
+        public void GeneratorDriver_CreateWith_Wrapped_ISourceGenerator()
+        {
+            bool executeCalled = false;
+            ISourceGenerator generator = new TestSourceGenerator() { ExecuteImpl = (context) => { executeCalled = true; } };
+
+            var incrementalGenerator = generator.AsIncrementalGenerator();
+
+            var generatorDriver = CSharpGeneratorDriver.Create(incrementalGenerator);
+            generatorDriver.RunGenerators(CreateCompilation("class C { }"));
+
+            Assert.True(executeCalled);
+        }
     }
 }
