@@ -202,6 +202,9 @@ use of "basic use cases" for test scenarios that would otherwise be considered a
 public static class CSharpAnalyzerVerifier<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
+    public static DiagnosticResult Diagnostic()
+        => CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic();
+
     public static DiagnosticResult Diagnostic(string diagnosticId)
         => CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(diagnosticId);
 
