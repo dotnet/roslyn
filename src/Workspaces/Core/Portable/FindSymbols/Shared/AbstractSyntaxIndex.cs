@@ -61,9 +61,16 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
                 return null;
 
             // Populate our caches with this data.
-            s_documentToIndex.GetValue(document, _ => index);
+#if NET
+            s_documentToIndex.TryAdd(document, index);
+            s_documentIdToIndex.AddOrUpdate(document.Id, index);
+#else
+            // Avoid capturing index on the fast path by making a copy for the slow path
+            var indexCopy = index;
+            s_documentToIndex.GetValue(document, _ => indexCopy);
             s_documentIdToIndex.Remove(document.Id);
-            s_documentIdToIndex.GetValue(document.Id, _ => index);
+            s_documentIdToIndex.GetValue(document.Id, _ => indexCopy);
+#endif
         }
 
         return index;
