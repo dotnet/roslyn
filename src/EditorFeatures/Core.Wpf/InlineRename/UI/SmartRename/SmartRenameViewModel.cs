@@ -157,26 +157,28 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
 
-            _getSuggestionsTask = GetSuggestionsTask(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+            _getSuggestionsTask = GetSuggestionsTaskAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
     }
 
-    private async Task GetSuggestionsTask(CancellationToken cancellationToken)
+    private async Task GetSuggestionsTaskAsync(CancellationToken cancellationToken)
     {
         var document = this.BaseViewModel.Session.TriggerDocument;
         var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-        var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session, cancellationToken);
+        var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session, cancellationToken)
+            .ConfigureAwait(true);
 
         var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
         if (symbolService is not null)
         {
             var textSpan = this.BaseViewModel.Session.RenameInfo.TriggerSpan;
             var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                document, textSpan.Start, cancellationToken);
+                document, textSpan.Start, cancellationToken)
+                .ConfigureAwait(true);
             var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
             if (!string.IsNullOrWhiteSpace(docComment))
             {
-                context = context.Add("documentation", ImmutableArray<string>.Empty.Add(docComment));
+                context = context.Add("documentation", ImmutableArray<string>.Empty.Add(docComment!));
             }
         }
 
@@ -184,7 +186,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             context
             .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
 
-        _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken);
+        _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
+            .ConfigureAwait(true);
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
