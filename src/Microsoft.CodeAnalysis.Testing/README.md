@@ -202,7 +202,7 @@ use of "basic use cases" for test scenarios that would otherwise be considered a
 public static class CSharpAnalyzerVerifier<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
-    public static DiagnosticResult Diagnostic(string diagnosticId = null)
+    public static DiagnosticResult Diagnostic(string diagnosticId)
         => CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(diagnosticId);
 
     public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
@@ -217,7 +217,7 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
 
     // Code fix tests support both analyzer and code fix testing. This test class is derived from the code fix test
     // to avoid the need to maintain duplicate copies of the customization work.
-    public class Test : CSharpCodeFixVerifier.Test<TAnalyzer, EmptyCodeFixProvider>
+    public class Test : CSharpCodeFixVerifier<TAnalyzer, EmptyCodeFixProvider>.Test
     {
     }
 }
@@ -226,7 +226,7 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TCodeFix : CodeFixProvider, new()
 {
-    public static DiagnosticResult Diagnostic(string diagnosticId = null)
+    public static DiagnosticResult Diagnostic(string diagnosticId)
         => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(diagnosticId);
 
     public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
@@ -258,10 +258,8 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     }
 
     public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
-        where TAnalyzer : DiagnosticAnalyzer, new()
-        where TCodeFix : CodeFixProvider, new()
     {
-        public CSharpCodeFixTest()
+        public Test()
         {
             // Custom initialization logic here
         }
@@ -269,6 +267,4 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         // Custom analyzers and/or code fix properties here
     }
 }
-
 ```
-
