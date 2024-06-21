@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export, Shared]
 internal sealed class ProjectInitializationHandler : IDisposable
 {
+    private const string ProjectInitializationStartedName = "workspace/projectInitializationStarted";
     private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
     private readonly IServiceBroker _serviceBroker;
@@ -39,6 +40,13 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
+    }
+
+    public static async Task SendProjectInitializationStartedNotificationAsync()
+    {
+        Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
+        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
+        await languageServerManager.SendNotificationAsync(ProjectInitializationStartedName, CancellationToken.None);
     }
 
     public static async Task SendProjectInitializationCompleteNotificationAsync()
@@ -76,7 +84,9 @@ internal sealed class ProjectInitializationHandler : IDisposable
     private void AvailabilityChanged(object? sender, BrokeredServicesChangedEventArgs e)
     {
         if (e.ImpactedServices.Contains(Descriptors.RemoteProjectInitializationStatusService.Moniker))
+        {
             _serviceAvailable.SetResult();
+        }
     }
 
     public void Dispose()

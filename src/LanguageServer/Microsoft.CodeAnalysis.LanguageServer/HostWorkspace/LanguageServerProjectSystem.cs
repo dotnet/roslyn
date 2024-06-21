@@ -98,6 +98,8 @@ internal sealed class LanguageServerProjectSystem
     {
         using (await _gate.DisposableWaitAsync())
         {
+            await ProjectInitializationHandler.SendProjectInitializationStartedNotificationAsync();
+
             _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
             _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
 
@@ -128,6 +130,8 @@ internal sealed class LanguageServerProjectSystem
     {
         if (!projectFilePaths.Any())
             return;
+
+        await ProjectInitializationHandler.SendProjectInitializationStartedNotificationAsync();
 
         using (await _gate.DisposableWaitAsync())
         {
