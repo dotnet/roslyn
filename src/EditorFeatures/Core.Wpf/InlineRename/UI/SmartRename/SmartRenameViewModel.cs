@@ -31,7 +31,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
     private CancellationTokenSource? _cancellationTokenSource;
-
+    private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private Task _getSuggestionsTask = Task.CompletedTask;
 
     public event PropertyChangedEventHandler? PropertyChanged;
