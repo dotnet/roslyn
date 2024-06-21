@@ -5,6 +5,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,8 +49,22 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
     public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
-    public bool IsUsingResultPanel { get; set; }
-    public bool IsUsingDropdown { get; set; }
+
+    public bool SupportsAutomaticSuggestions { get; }
+
+    public bool IsAutomaticSuggestionsEnabled { get; private set; }
+
+    public void ToggleAutomaticSuggestions()
+    {
+        if (!SupportsAutomaticSuggestions)
+        {
+            return;
+        }
+        IsAutomaticSuggestionsEnabled = !IsAutomaticSuggestionsEnabled;
+        // Use existing option (true if user does not wish to get suggestions automatically) to honor user's choice from before the refactoring.
+        _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);
+        NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
+    }
 
     private string? _selectedSuggestedName;
 
@@ -70,32 +85,17 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
     }
 
-    public bool IsSuggestionsPanelCollapsed
-    {
-        get => IsUsingDropdown || _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
-        set
-        {
-            if (value != IsSuggestionsPanelCollapsed)
-            {
-                _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, value);
-                NotifyPropertyChanged(nameof(IsSuggestionsPanelCollapsed));
-                NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
-            }
-        }
-    }
+    public bool IsSuggestionsPanelCollapsed => !HasSuggestions;
 
-    public bool IsSuggestionsPanelExpanded
-    {
-        get => IsUsingResultPanel && !IsSuggestionsPanelCollapsed;
-    }
+    public bool IsSuggestionsPanelExpanded => HasSuggestions;
 
     public string GetSuggestionsTooltip
-        => IsUsingDropdown
+        => SupportsAutomaticSuggestions
         ? EditorFeaturesWpfResources.Get_AI_suggestions
         : EditorFeaturesWpfResources.Toggle_AI_suggestions;
 
     public string SubmitTextOverride
-        => IsUsingDropdown
+        => SupportsAutomaticSuggestions
         ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
         : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 
@@ -124,11 +124,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
 
-        var getSuggestionsAutomatically = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
-        IsUsingResultPanel = getSuggestionsAutomatically;
-        IsUsingDropdown = !IsUsingResultPanel;
         SetupTelemetry();
-        if (IsUsingResultPanel && IsSuggestionsPanelExpanded)
+
+        this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+        if (this.SupportsAutomaticSuggestions && this.IsAutomaticSuggestionsEnabled)
         {
             OnGetSuggestionsCommandExecute();
         }
@@ -137,7 +137,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private void OnGetSuggestionsCommandExecute()
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (IsUsingResultPanel && SuggestedNames.Count > 0)
+        if (IsAutomaticSuggestionsEnabled && SuggestedNames.Count > 0)
         {
             // Don't get suggestions again in the automatic scenario
             return;
@@ -146,10 +146,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         {
             var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
             var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-            if (IsUsingDropdown && _suggestionsDropdownTelemetry is not null)
-            {
-                _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
-            }
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
             _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
@@ -165,20 +161,17 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             var textInputBackup = BaseViewModel.IdentifierText;
 
             SuggestedNames.Clear();
-            var count = 0;
-            foreach (var name in _smartRenameSession.SuggestedNames)
+            // Set limit of 3 results
+            foreach (var name in _smartRenameSession.SuggestedNames.Take(3))
             {
-                if (++count > 3 && IsUsingResultPanel)
-                {
-                    // Set limit of 3 results when using the result panel
-                    break;
-                }
                 SuggestedNames.Add(name);
             }
 
             // Changing the list may have changed the text in the text box. We need to restore it.
             BaseViewModel.IdentifierText = textInputBackup;
 
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelCollapsed)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
             return;
         }
 

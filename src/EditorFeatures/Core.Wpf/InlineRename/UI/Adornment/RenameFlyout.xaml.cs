@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _threadingContext = threadingContext;
             _wpfThemeService = themeService;
 
-            RenameUserInput = _viewModel.SmartRenameViewModel is null ? new RenameUserInputTextBox(_viewModel) : new SmartRenameUserInputComboBox(_viewModel);
+            RenameUserInput = _viewModel.SmartRenameViewModel is null ? new RenameUserInputTextBox(_viewModel) : new SmartRenameUserInputTextBox(_viewModel);
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -205,10 +205,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         // If smart rename is available, trigger it.
                         if (_viewModel.SmartRenameViewModel is not null && _viewModel.SmartRenameViewModel.GetSuggestionsCommand.CanExecute(null))
                         {
-                            // If smart rename can use automatic behavior, enable it
-                            if (!_viewModel.SmartRenameViewModel.IsUsingDropdown)
+                            if (_viewModel.SmartRenameViewModel.SupportsAutomaticSuggestions)
                             {
-                                _viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed = !_viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed;
+                                // If smart rename can use automatic behavior, use the button to toggle it.
+                                _viewModel.SmartRenameViewModel.ToggleAutomaticSuggestions();
                             }
                             _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
                         }
