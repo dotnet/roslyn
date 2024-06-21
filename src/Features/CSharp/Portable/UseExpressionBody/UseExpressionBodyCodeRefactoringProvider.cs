@@ -80,7 +80,7 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var helper in _helpers)
         {
@@ -200,7 +200,7 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         var (helper, useExpressionBody) = s_equivalenceKeyMap[equivalenceKey];
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var declarationsToFix = GetDeclarationsToFix(fixAllSpans, root, helper, useExpressionBody, options, cancellationToken);
         await FixDeclarationsAsync(document, editor, root, declarationsToFix.ToImmutableArray(), helper, useExpressionBody, cancellationToken).ConfigureAwait(false);
         return;

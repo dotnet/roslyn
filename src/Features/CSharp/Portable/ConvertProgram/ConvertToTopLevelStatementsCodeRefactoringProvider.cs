@@ -57,7 +57,7 @@ internal class ConvertToTopLevelStatementsCodeRefactoringProvider : CodeRefactor
 
         context.RegisterRefactoring(CodeAction.Create(
             CSharpAnalyzersResources.Convert_to_top_level_statements,
-            c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, context.Options, c),
+            c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, c),
             nameof(CSharpAnalyzersResources.Convert_to_top_level_statements),
             CodeActionPriority.Low));
     }

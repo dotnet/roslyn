@@ -101,7 +101,7 @@ internal sealed class ImplementAbstractClassData(
             autoInsertionLocation: groupMembers,
             sortMembers: groupMembers);
 
-        var info = await _document.GetCodeGenerationInfoAsync(context, _options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await _document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
         var updatedClassNode = info.Service.AddMembers(
             classNodeToAddMembersTo,

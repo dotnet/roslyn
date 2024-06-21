@@ -18,28 +18,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField;
 
 internal interface IRemoteEncapsulateFieldService
 {
-    internal interface ICallback : IRemoteOptionsCallback<CleanCodeGenerationOptions>
-    {
-    }
-
     ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
         Checksum solutionChecksum,
-        RemoteServiceCallbackId callbackId,
         DocumentId documentId,
         ImmutableArray<string> fieldSymbolKeys,
         bool updateReferences,
         CancellationToken cancellationToken);
-}
-
-[ExportRemoteServiceCallbackDispatcher(typeof(IRemoteEncapsulateFieldService)), Shared]
-internal sealed class RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteEncapsulateFieldService.ICallback
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher()
-    {
-    }
-
-    public ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
-        => ((RemoteOptionsProvider<CleanCodeGenerationOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
 }

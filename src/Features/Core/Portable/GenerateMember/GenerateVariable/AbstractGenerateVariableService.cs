@@ -194,7 +194,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 return;
             }
 
-            result.Add(new GenerateLocalCodeAction((TService)this, document, state, fallbackOptions));
+            result.Add(new GenerateLocalCodeAction((TService)this, document, state));
         }
     }
 

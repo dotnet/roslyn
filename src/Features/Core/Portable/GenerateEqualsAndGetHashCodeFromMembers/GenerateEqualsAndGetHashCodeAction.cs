@@ -72,7 +72,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
                 await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
             }
 
-            var info = await _document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
             var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var newTypeDeclaration = info.Service.AddMembers(_typeDeclaration, methods, info, cancellationToken);

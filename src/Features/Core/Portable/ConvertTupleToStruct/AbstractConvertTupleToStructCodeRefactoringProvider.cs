@@ -575,7 +575,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             sortMembers: false,
             autoInsertionLocation: false);
 
-        var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
         // Then, actually insert the new class in the appropriate container.
         editor.ReplaceNode(container, (currentContainer, _) =>

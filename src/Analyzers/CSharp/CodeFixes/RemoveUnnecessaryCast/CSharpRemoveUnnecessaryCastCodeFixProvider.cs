@@ -44,7 +44,7 @@ internal partial class CSharpRemoveUnnecessaryCastCodeFixProvider : SyntaxEditor
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var castNodes = diagnostics.SelectAsArray(
             d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));

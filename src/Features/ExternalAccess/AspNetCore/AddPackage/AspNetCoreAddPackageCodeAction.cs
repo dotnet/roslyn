@@ -63,7 +63,7 @@ internal static class AspNetCoreAddPackageCodeAction
         var updatedDocument = await AddImportAsync(document, position, generator, importDirective, cancellationToken).ConfigureAwait(false);
 
         // Clean things up after adding (this is what normal add-package-import does).
-        var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(CodeCleanupOptions.GetDefault(document.Project.Services), cancellationToken).ConfigureAwait(false);
+        var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
         var cleanedDocument = await CodeAction.CleanupDocumentAsync(
             updatedDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
 

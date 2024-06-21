@@ -82,7 +82,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
 
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
         var generator = editor.Generator;
-        var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
         // Create full property. If the auto property had an initial value
         // we need to remove it and later add it to the backing field

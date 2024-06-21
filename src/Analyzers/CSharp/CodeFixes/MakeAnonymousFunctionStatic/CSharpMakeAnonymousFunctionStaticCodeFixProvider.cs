@@ -35,7 +35,7 @@ internal sealed class CSharpMakeAnonymousFunctionStaticCodeFixProvider() : Synta
         return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = editor.Generator;
 

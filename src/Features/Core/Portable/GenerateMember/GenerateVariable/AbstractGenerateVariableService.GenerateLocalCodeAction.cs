@@ -18,12 +18,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private sealed class GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions) : CodeAction
+    private sealed class GenerateLocalCodeAction(TService service, Document document, State state) : CodeAction
     {
         private readonly TService _service = service;
         private readonly Document _document = document;
         private readonly State _state = state;
-        private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string Title
         {
@@ -65,7 +64,7 @@ internal partial class AbstractGenerateVariableService<TService, TSimpleNameSynt
 
             var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
             var context = new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation());
-            var info = await _document.GetCodeGenerationInfoAsync(context, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
             return info.Service.AddStatements(root, [localStatement], info, cancellationToken);
         }

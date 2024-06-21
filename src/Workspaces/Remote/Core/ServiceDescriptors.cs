@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteProcessTelemetryService), null),
-            (typeof(IRemoteRenamerService), typeof(IRemoteRenamerService.ICallback)),
+            (typeof(IRemoteRenamerService), null),
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteSemanticSearchService), typeof(IRemoteSemanticSearchService.ICallback)),
             (typeof(IRemoteSourceGenerationService), null),

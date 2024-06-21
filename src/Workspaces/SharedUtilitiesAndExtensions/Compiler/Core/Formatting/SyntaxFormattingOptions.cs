@@ -34,7 +34,7 @@ internal record class SyntaxFormattingOptions
 
     private protected SyntaxFormattingOptions(IOptionsReader options, string language)
     {
-        LineFormatting = options.GetLineFormattingOptions(language, fallbackOptions: null);
+        LineFormatting = options.GetLineFormattingOptions(language);
         SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language);
         AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language);
         WrappingColumn = options.GetOption(FormattingOptions2.WrappingColumn, language);

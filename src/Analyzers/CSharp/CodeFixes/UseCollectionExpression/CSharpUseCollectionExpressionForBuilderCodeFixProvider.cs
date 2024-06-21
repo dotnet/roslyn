@@ -38,7 +38,6 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         InvocationExpressionSyntax invocationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -66,7 +65,6 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         // Get the new collection expression.
         var collectionExpression = await CreateCollectionExpressionAsync(
             newDocument,
-            fallbackOptions,
             dummyObjectCreation,
             analysisResult.Matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
             static o => o.Initializer,

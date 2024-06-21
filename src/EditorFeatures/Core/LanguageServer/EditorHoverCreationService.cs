@@ -45,7 +45,7 @@ internal sealed class EditorLspHoverResultCreationService(IGlobalOptionService g
             : new IntellisenseQuickInfoBuilderContext(
                 document,
                 classificationOptions,
-                await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false),
+                await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false),
                 threadingContext: null,
                 operationExecutor: null,
                 asynchronousOperationListener: null,

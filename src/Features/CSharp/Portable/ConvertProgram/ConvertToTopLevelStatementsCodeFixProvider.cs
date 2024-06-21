@@ -45,11 +45,11 @@ internal class ConvertToTopLevelStatementsCodeFixProvider : SyntaxEditorBasedCod
     }
 
     protected override async Task FixAllAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var methodDeclaration = (MethodDeclarationSyntax)diagnostics[0].AdditionalLocations[0].FindNode(cancellationToken);
 
-        var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, cancellationToken).ConfigureAwait(false);
         var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(editor.OriginalRoot, newRoot);

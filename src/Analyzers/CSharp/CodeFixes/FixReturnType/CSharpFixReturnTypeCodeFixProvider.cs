@@ -129,7 +129,7 @@ internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProv
         return (declarationTypeToFix, fixedDeclaration);
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var (declarationTypeToFix, fixedDeclaration) =
             await TryGetOldAndNewReturnTypeAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);

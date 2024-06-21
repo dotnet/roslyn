@@ -31,7 +31,6 @@ internal interface IReplacePropertyWithMethodsService : ILanguageService
         IFieldSymbol propertyBackingField,
         string desiredGetMethodName,
         string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
     SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);

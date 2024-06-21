@@ -75,25 +75,24 @@ namespace Microsoft.CodeAnalysis.Remote
             throw ExceptionUtilities.Unreachable();
         }
 
-        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;
 
             var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
                 source: changes,
-                produceItems: static async (docId, callback, args, cancellationToken) =>
+                produceItems: static async (docId, callback, newSolution, cancellationToken) =>
                 {
-                    var (newSolution, fallbackOptions) = args;
                     var document = newSolution.GetRequiredDocument(docId);
 
-                    var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var options = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
                     var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
                     var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     callback((docId, cleanedRoot));
                 },
-                args: (newSolution, fallbackOptions),
+                args: newSolution,
                 cancellationToken).ConfigureAwait(false);
 
             return newSolution.WithDocumentSyntaxRoots(changedDocuments);

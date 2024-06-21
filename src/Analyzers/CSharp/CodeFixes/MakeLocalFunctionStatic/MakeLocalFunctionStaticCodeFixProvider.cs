@@ -35,7 +35,7 @@ internal class MakeLocalFunctionStaticCodeFixProvider : SyntaxEditorBasedCodeFix
     }
 
     protected override Task FixAllAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var localFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
         foreach (var localFunction in localFunctions)

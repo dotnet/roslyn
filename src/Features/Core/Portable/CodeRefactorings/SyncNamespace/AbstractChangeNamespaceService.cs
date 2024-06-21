@@ -616,7 +616,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         // references to the type inside it's new namespace
         var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
-        var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithAddedImports = await AddImportsInContainersAsync(
             document,
@@ -660,7 +660,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, fallbackOptions, cancellationToken)
                 .ConfigureAwait(false);
 
-        var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithAdditionalImports = await AddImportsInContainersAsync(
             documentWithRefFixed,

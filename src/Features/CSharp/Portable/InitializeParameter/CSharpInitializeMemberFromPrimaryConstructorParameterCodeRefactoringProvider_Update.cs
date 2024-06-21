@@ -92,7 +92,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             var parseOptions = document.DocumentState.ParseOptions!;
 
             var solutionEditor = new SolutionEditor(solution);
-            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // We're assigning the parameter to a new field/prop .  Convert all existing references to this primary

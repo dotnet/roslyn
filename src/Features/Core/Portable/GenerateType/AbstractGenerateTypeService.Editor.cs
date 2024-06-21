@@ -320,7 +320,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
                 if (formattingService is not null)
                 {
-                    var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(_fallbackOptions, _cancellationToken).ConfigureAwait(false);
+                    var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(_cancellationToken).ConfigureAwait(false);
                     codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, cleanupOptions, _cancellationToken).ConfigureAwait(false);
                 }
             }

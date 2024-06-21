@@ -53,7 +53,7 @@ internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor(IGlobalO
 
     private async Task<AddMissingImportsOptions> GetOptionsAsync(Document document, CancellationToken cancellationToken)
     {
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var options = new AddMissingImportsOptions(
             CleanupOptions: cleanupOptions,

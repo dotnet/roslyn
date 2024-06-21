@@ -37,7 +37,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
     public LanguageServices LanguageServices { get; }
 
     public abstract CodeGenerationOptions DefaultOptions { get; }
-    public abstract CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions);
+    public abstract CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options);
     public abstract TCodeGenerationContextInfo GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions);
 
     CodeGenerationContextInfo ICodeGenerationService.GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions)
@@ -246,7 +246,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 #if CODE_STYLE
         var codeGenOptions = CodeGenerationOptions.CommonDefaults;
 #else
-        var codeGenOptions = await oldDocument.GetCodeGenerationOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+        var codeGenOptions = await oldDocument.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
         var info = GetInfo(context.Context, codeGenOptions, destinationDeclaration.SyntaxTree.Options);
         var transformedDeclaration = declarationTransform(destinationDeclaration, info, availableIndices, cancellationToken);

@@ -51,7 +51,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -60,7 +60,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
 #else
         var provider = document.Project.Solution.Services;
 #endif
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
         var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
 
         // Defer to our callback to actually make the edits for each diagnostic. In turn, it

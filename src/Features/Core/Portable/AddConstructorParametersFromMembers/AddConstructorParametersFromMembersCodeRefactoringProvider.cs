@@ -68,7 +68,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
                 var state = await State.GenerateAsync(info.SelectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                 {
-                    var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
                     return CreateCodeActions(document, contextInfo, state);
                 }
             }
