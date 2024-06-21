@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -135,12 +136,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull("symbol")]
         protected override MethodSymbol? VisitMethodSymbol(MethodSymbol? symbol)
         {
-            if (symbol?.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction)
+            switch (symbol?.MethodKind)
             {
-                return (MethodSymbol)_symbolMap[symbol];
-            }
+                case MethodKind.LambdaMethod:
+                    throw ExceptionUtilities.Unreachable();
 
-            return base.VisitMethodSymbol(symbol);
+                case MethodKind.LocalFunction:
+                    return (MethodSymbol)_symbolMap[symbol];
+
+                default:
+                    return base.VisitMethodSymbol(symbol);
+            }
         }
 
         // PROTOTYPE(roles): Here we are pretty much duplicating what InstanceExtensionMethodReferenceRewriter would do.

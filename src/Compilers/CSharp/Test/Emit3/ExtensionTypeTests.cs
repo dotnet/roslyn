@@ -42689,7 +42689,7 @@ class Program
         verifier.VerifyIL("Program.Test1", test1IL);
     }
 
-    // PROTOTYPE(roles): Add flavors of "_Metadata" types for an underlying type a type parameter known/unknown to be a reference type
+    // PROTOTYPE(roles): Add flavors of "_Metadata" tests for an underlying type a type parameter known/unknown to be a reference type
 
     // PROTOTYPE(roles): Test capturing of struct underlying type into a closure in an instance extension member.  
     //                   Probably should be an error.
