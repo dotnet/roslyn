@@ -16,11 +16,9 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 /// Interaction logic for SmartRenameUserInputComboBox.xaml
 /// </summary>
 [TemplatePart(Name = InnerTextBox, Type = typeof(TextBox))]
-[TemplatePart(Name = DropDownPopup, Type = typeof(Popup))]
 internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUserInput
 {
     private const string InnerTextBox = "PART_EditableTextBox";
-    private const string DropDownPopup = "PART_Popup";
 
     private readonly SmartRenameViewModel _smartRenameViewModel;
     private readonly Lazy<TextBox> _innerTextBox;
@@ -95,19 +93,12 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         this.Focus();
     }
 
-    public override void OnApplyTemplate()
-    {
-        base.OnApplyTemplate();
-
-        _dropDownPopup = (Popup)GetTemplateChild(DropDownPopup)!;
-    }
-
     private void GetSuggestionsButtonClick(object sender, RoutedEventArgs e)
     {
-        if (_smartRenameViewModel.IsUsingResultPanel)
+        if (_smartRenameViewModel.SupportsAutomaticSuggestions)
         {
-            _smartRenameViewModel.IsSuggestionsPanelCollapsed = !_smartRenameViewModel.IsSuggestionsPanelCollapsed;
-            if (_smartRenameViewModel.IsSuggestionsPanelExpanded)
+            _smartRenameViewModel.ToggleAutomaticSuggestions();
+            if (_smartRenameViewModel.IsAutomaticSuggestionsEnabled)
             {
                 _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
             }
@@ -123,74 +114,12 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         _smartRenameViewModel.SuggestedNames.CollectionChanged -= SuggestedNames_CollectionChanged;
     }
 
-    private void ComboBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
-    {
-        e.Handled = true;
-    }
-
-    private void ComboBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
-    {
-        Assumes.NotNull(_dropDownPopup);
-        _dropDownPopup.IsOpen = false;
-    }
-
-    private void ComboBox_PreviewKeyUp(object sender, KeyEventArgs e)
-    {
-        if (!_smartRenameViewModel.IsUsingDropdown)
-        {
-            return;
-        }
-        if ((e.Key is Key.Up or Key.Down) && Items.Count > 0)
-        {
-            Assumes.NotNull(_dropDownPopup);
-            _dropDownPopup.IsOpen = true;
-        }
-    }
-
     private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count > 0)
         {
             var identifierName = e.AddedItems[0].ToString();
             _smartRenameViewModel.SelectedSuggestedName = identifierName;
-        }
-    }
-
-    private void ItemsPresenter_PreviewMouseUp(object sender, MouseButtonEventArgs e)
-    {
-        Assumes.NotNull(_dropDownPopup);
-        _dropDownPopup.IsOpen = false;
-    }
-
-    private void InnerTextBox_GotFocus(object sender, RoutedEventArgs e)
-    {
-        e.Handled = true; // Prevent selecting all the text
-        if (!_smartRenameViewModel.IsUsingDropdown)
-        {
-            return;
-        }
-        if (Items.Count > 0)
-        {
-            Assumes.NotNull(_dropDownPopup);
-            _dropDownPopup.IsOpen = true;
-        }
-    }
-
-    private void InnerTextBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        Assumes.NotNull(_dropDownPopup);
-        _dropDownPopup.IsOpen = false;
-    }
-
-    private void InnerTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
-    {
-        Assumes.NotNull(_dropDownPopup);
-        if ((e.Key is Key.Escape or Key.Space or Key.Enter)
-            && _dropDownPopup.IsOpen) // Handle these keystrokes when dropdown is present
-        {
-            _dropDownPopup.IsOpen = false;
-            SelectAllText();
-            e.Handled = true;
         }
     }
 

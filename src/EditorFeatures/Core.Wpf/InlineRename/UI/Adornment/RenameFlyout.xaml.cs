@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _threadingContext = threadingContext;
             _wpfThemeService = themeService;
 
-            RenameUserInput = _viewModel.SmartRenameViewModel is null ? new RenameUserInputTextBox(_viewModel) : new SmartRenameUserInputTextBox(_viewModel);
+            RenameUserInput = _viewModel.SmartRenameViewModel is null ? new RenameUserInputTextBox(_viewModel) : new SmartRenameUserInputComboBox(_viewModel);
 
             // On load focus the first tab target
             Loaded += (s, e) =>
