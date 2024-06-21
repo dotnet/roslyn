@@ -1607,11 +1607,6 @@
         <target state="translated">Funkcja „sprawdzanie wartości null parametru” nie jest obsługiwana.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Niejednoznaczność między rozszerzoną i normalną formą parametru kolekcji params niebędącego tablicą „{0}”, jedyny odpowiadający argument ma typ dynamiczny. Rozważ rzutowanie argumentu dynamicznego.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Konstruktor „{0}” pozostawia wymaganą składową "{1}".</target>

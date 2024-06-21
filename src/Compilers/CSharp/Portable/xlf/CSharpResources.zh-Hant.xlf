@@ -1607,11 +1607,6 @@
         <target state="translated">不支援 'parameter null-checking' 功能。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">非陣列參數集合參數 '{0}' 的展開形式和正常形式之間存在歧義，唯一對應的引數型別為 'dynamic'。請考慮轉換動態引數。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">建構函式 '{0}' 未初始化必要的成員 '{1}'。</target>
