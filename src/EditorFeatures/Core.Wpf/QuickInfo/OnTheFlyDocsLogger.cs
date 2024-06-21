@@ -14,12 +14,16 @@ internal static class OnTheFlyDocsLogger
     private enum ActionInfo
     {
         ShowedOnTheFlyDocsLink,
+        ShowedOnTheFlyDocsLinkWithDocComments,
         OnTheFlyDocsResultsRequested,
         OnTheFlyDocsResultsRequestedWithDocComments,
     }
 
     internal static void LogShowedOnTheFlyDocsLink()
         => s_countLogAggregator.IncreaseCount(ActionInfo.ShowedOnTheFlyDocsLink);
+
+    internal static void LogShowedOnTheFlyDocsLinkWithDocComments()
+        => s_countLogAggregator.IncreaseCount(ActionInfo.ShowedOnTheFlyDocsLinkWithDocComments);
 
     internal static void LogOnTheFlyDocsResultsRequested()
         => s_countLogAggregator.IncreaseCount(ActionInfo.OnTheFlyDocsResultsRequested);

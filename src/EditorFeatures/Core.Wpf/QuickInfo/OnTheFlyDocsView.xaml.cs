@@ -212,11 +212,6 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
         if (_onTheFlyDocsElement.HasComments)
         {
-            Logger.Log(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, KeyValueLogMessage.Create(m =>
-            {
-                m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
-            }, LogLevel.Information));
-
             OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
         }
 

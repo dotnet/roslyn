@@ -62,6 +62,11 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 
         OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLink();
 
+        if (editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.HasComments)
+        {
+            OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLinkWithDocComments();
+        }
+
         return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
     }
 }
