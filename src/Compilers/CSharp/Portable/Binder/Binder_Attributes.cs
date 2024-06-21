@@ -263,7 +263,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (attributeConstructor is not null)
             {
-                CheckRequiredMembersInObjectInitializer(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node, diagnostics);
+                if (IsEarlyAttributeBinder)
+                {
+                    diagnostics.Add(new LazyRequiredMembersDiagnosticsInfo(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node), node.GetLocation());
+                }
+                else
+                {
+                    CheckRequiredMembersInObjectInitializer(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node, diagnostics);
+                }
             }
 
             analyzedArguments.ConstructorArguments.Free();

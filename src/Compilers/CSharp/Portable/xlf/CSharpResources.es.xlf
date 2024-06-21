@@ -1952,6 +1952,11 @@
         <target state="translated">El miembro requerido '{0}' debe ser configurable.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMembersAttributeErrors">
+        <source>Attribute application had required members errors.</source>
+        <target state="new">Attribute application had required members errors.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
         <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
         <target state="translated">La lista de miembros necesarios para el tipo base '{0}' tiene un formato incorrecto y no se puede interpretar. Para usar este constructor, aplique el atributo 'SetsRequiredMembers'.</target>

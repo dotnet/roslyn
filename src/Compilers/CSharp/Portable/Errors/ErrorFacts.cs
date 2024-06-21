@@ -2265,6 +2265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RequiredMemberMustBeSettable
                 or ErrorCode.ERR_RequiredMemberMustBeSet
                 or ErrorCode.ERR_RequiredMembersMustBeAssignedValue
+                or ErrorCode.ERR_RequiredMembersAttributeErrors
                 or ErrorCode.ERR_RequiredMembersInvalid
                 or ErrorCode.ERR_RequiredMembersBaseTypeInvalid
                 or ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers

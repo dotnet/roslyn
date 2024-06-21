@@ -1952,6 +1952,11 @@
         <target state="translated">必需的成员 '{0}' 必须可设置。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMembersAttributeErrors">
+        <source>Attribute application had required members errors.</source>
+        <target state="new">Attribute application had required members errors.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
         <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
         <target state="translated">基类型 '{0}' 的必需成员列表格式不正确，无法解释。若要使用此构造函数，请应用 'SetsRequiredMembers' 属性。</target>
