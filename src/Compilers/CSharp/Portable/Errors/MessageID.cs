@@ -289,6 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeaturePartialProperties = MessageBase + 12845,
         IDS_FeatureFieldAndValueKeywords = MessageBase + 12846,
+
+        IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -475,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureParamsCollections:
                 case MessageID.IDS_FeatureRefUnsafeInIteratorAsync:
                 case MessageID.IDS_FeatureRefStructInterfaces:
+                case MessageID.IDS_FeatureAllowsRefStructConstraint:
                 case MessageID.IDS_FeaturePartialProperties:
                 case MessageID.IDS_FeatureFieldAndValueKeywords:
                     return LanguageVersion.Preview;

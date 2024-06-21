@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Automatic_Run_generators_after_any_change">
         <source>Automatic. Run generators after any change</source>
-        <target state="new">Automatic. Run generators after any change</target>
+        <target state="translated">自動。在任何變更後執行產生器</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Balanced_Run_generators_after_saving_or_building">
         <source>Balanced. Run generators after saving or building</source>
-        <target state="new">Balanced. Run generators after saving or building</target>
+        <target state="translated">已平衡。儲存或建置後執行產生器</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -509,7 +509,7 @@
       </trans-unit>
       <trans-unit id="Generator_running">
         <source>Generator running...</source>
-        <target state="new">Generator running...</target>
+        <target state="translated">產生器正在執行...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Definition">
@@ -1109,7 +1109,7 @@
       </trans-unit>
       <trans-unit id="Prefer_static_anonymous_functions">
         <source>Prefer static anonymous functions</source>
-        <target state="new">Prefer static anonymous functions</target>
+        <target state="translated">偏好靜態匿名函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -1219,7 +1219,7 @@
       </trans-unit>
       <trans-unit id="Rerun_generator">
         <source>Rerun generator</source>
-        <target state="new">Rerun generator</target>
+        <target state="translated">重新執行產生器</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -1234,7 +1234,7 @@
       </trans-unit>
       <trans-unit id="Roslyn_save_command_handler">
         <source>Roslyn save command handler</source>
-        <target state="new">Roslyn save command handler</target>
+        <target state="translated">Roslyn 儲存命令處理常式</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
@@ -1274,12 +1274,12 @@
       </trans-unit>
       <trans-unit id="Search_cancelled">
         <source>Search canceled</source>
-        <target state="new">Search canceled</target>
+        <target state="translated">搜尋已取消</target>
         <note />
       </trans-unit>
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
         <source>Search found no results: no C# or Visual Basic projects are opened</source>
-        <target state="new">Search found no results: no C# or Visual Basic projects are opened</target>
+        <target state="translated">搜尋找不到任何結果: 未開啟任何 C# 或 Visual Basic 專案</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1324,12 +1324,12 @@
       </trans-unit>
       <trans-unit id="Semantic_search_0">
         <source>Semantic Search ({0})</source>
-        <target state="new">Semantic Search ({0})</target>
+        <target state="translated">語意搜尋 ({0})</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_results">
         <source>Semantic Search Results</source>
-        <target state="new">Semantic Search Results</target>
+        <target state="translated">語意搜尋結果</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
@@ -1359,7 +1359,7 @@
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
         <source>Show guides for comments and preprocessor regions</source>
-        <target state="new">Show guides for comments and preprocessor regions</target>
+        <target state="translated">顯示註解及前置處理器區域的指南</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_collection_expressions">
@@ -1414,12 +1414,12 @@
       </trans-unit>
       <trans-unit id="Source_Generators">
         <source>Source Generators</source>
-        <target state="new">Source Generators</target>
+        <target state="translated">來源產生器</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_generator_execution_requires_restart">
         <source>Source generator execution (requires restart):</source>
-        <target state="new">Source generator execution (requires restart):</target>
+        <target state="translated">來源產生器執行 (需要重新啟動):</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">
@@ -1439,7 +1439,7 @@
       </trans-unit>
       <trans-unit id="Strike_out_obsolete_symbols">
         <source>Strike out obsolete symbols</source>
-        <target state="new">Strike out obsolete symbols</target>
+        <target state="translated">刪去已淘汰的符號</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggestion">
@@ -1504,7 +1504,7 @@
       </trans-unit>
       <trans-unit id="The_project_no_longer_exists">
         <source>The project no longer exists</source>
-        <target state="new">The project no longer exists</target>
+        <target state="translated">該專案已不存在</target>
         <note />
       </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
@@ -1514,7 +1514,7 @@
       </trans-unit>
       <trans-unit id="This_file_was_generated_by_0_at_1_and_cannot_be_edited">
         <source>This file was generated by '{0}' at {1} and cannot be edited.</source>
-        <target state="new">This file was generated by '{0}' at {1} and cannot be edited.</target>
+        <target state="translated">此檔案已在 {1} 由 '{0}' 產生，並且無法編輯。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">

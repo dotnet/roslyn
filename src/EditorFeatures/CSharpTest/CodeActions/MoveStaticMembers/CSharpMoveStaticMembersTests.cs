@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers;
+using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
     Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers.CSharpMoveStaticMembersRefactoringProvider>;
@@ -2618,6 +2619,57 @@ public class Class1Helpers
             selectedMembers,
             selectedDestinationName).ConfigureAwait(false);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66734")]
+    public async Task TestMoveMethodToExistingTypeInSameFile()
+    {
+        var initialSourceMarkup = """
+            public static class WorkflowTypes
+            {
+                public const string FirstType = "firstType";
+            }
+
+            public static class WorkflowValidations
+            {
+                private static readonly System.Collections.Generic.List<string> validWorkflowTypes = new System.Collections.Generic.List<string>()
+                {
+                    "firstType"
+                };
+
+            //  Moving this method and above dependency into WorkflowTypes static class 
+                public static bool IsValid[||]WorkflowType(this string workflowType) => validWorkflowTypes.Contains(workflowType);
+            }
+            """;
+        var selectedDestinationName = "WorkflowTypes";
+        var selectedMembers = ImmutableArray.Create("IsValidWorkflowType", "validWorkflowTypes");
+        var fixedSourceMarkup = """
+            public static class WorkflowTypes
+            {
+                public const string FirstType = "firstType";
+                private static readonly System.Collections.Generic.List<string> validWorkflowTypes = new System.Collections.Generic.List<string>()
+                {
+                    "firstType"
+                };
+            
+            //  Moving this method and above dependency into WorkflowTypes static class 
+                public static bool IsValidWorkflowType(this string workflowType) => validWorkflowTypes.Contains(workflowType);
+            }
+
+            public static class WorkflowValidations
+            {
+            }
+            """;
+
+        await TestMovementExistingFileAsync(
+            initialSourceMarkup,
+            // We're testing a move inside the same file, so just use an empty destination.
+            initialDestinationMarkup: string.Empty,
+            fixedSourceMarkup,
+            fixedDestinationMarkup: string.Empty,
+            selectedMembers,
+            selectedDestinationName).ConfigureAwait(false);
+    }
+
     #endregion
 
     #region Selections and caret position

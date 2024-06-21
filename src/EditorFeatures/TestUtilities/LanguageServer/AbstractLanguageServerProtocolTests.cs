@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
-        protected static readonly TestComposition FeaturesLspComposition = EditorTestCompositions.LanguageServerProtocol
+        protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -703,6 +703,8 @@ namespace Roslyn.Test.Utilities
             }
 
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
+
+            public Dictionary<string, IList<LSP.Location>> GetLocations() => _locations;
 
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
 
