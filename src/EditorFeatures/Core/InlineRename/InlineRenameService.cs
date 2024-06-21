@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Navigation;
@@ -85,13 +83,6 @@ internal sealed class InlineRenameService(
         if (!renameInfo.CanRename)
         {
             return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
-        }
-
-        var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-        if (symbolService is not null)
-        {
-            var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                document, textSpan.Start, cancellationToken).ConfigureAwait(false);
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
