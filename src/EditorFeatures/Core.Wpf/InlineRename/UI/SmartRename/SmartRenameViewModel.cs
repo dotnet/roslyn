@@ -148,8 +148,18 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
-            _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+            _getSuggestionsTask = GetSuggestionsTaskAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
+    }
+
+    private async Task GetSuggestionsTaskAsync(CancellationToken cancellationToken)
+    {
+        await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+        _ = await _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
