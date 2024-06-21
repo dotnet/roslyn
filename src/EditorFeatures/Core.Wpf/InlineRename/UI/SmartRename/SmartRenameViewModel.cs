@@ -165,7 +165,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         var document = this.BaseViewModel.Session.TriggerDocument;
         var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-        var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session, cancellationToken)
+        var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+            .ConfigureAwait(true);
+        var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
             .ConfigureAwait(true);
 
         var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();

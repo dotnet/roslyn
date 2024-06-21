@@ -24,18 +24,13 @@ internal sealed class CSharpEditorInlineRenameService(
     [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
     IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
 {
-    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameSession renameSession, CancellationToken cancellationToken)
+    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
         var seen = PooledHashSet<TextSpan>.GetInstance();
         var definitions = ArrayBuilder<string>.GetInstance();
         var references = ArrayBuilder<string>.GetInstance();
 
-        if (renameSession is not InlineRenameSession session)
-        {
-            return ImmutableDictionary<string, ImmutableArray<string>>.Empty;
-        }
-
-        foreach (var renameDefinition in session.RenameInfo.DefinitionLocations)
+        foreach (var renameDefinition in inlineRenameInfo.DefinitionLocations)
         {
             var containingStatementOrDeclarationSpan =
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false) ??
@@ -50,8 +45,7 @@ internal sealed class CSharpEditorInlineRenameService(
             AddSpanOfInterest(documentText, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
         }
 
-        var renameLocations = await session.AllRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var renameLocation in renameLocations.Locations)
+        foreach (var renameLocation in inlineRenameLocationSet.Locations)
         {
             var containingStatementOrDeclarationSpan =
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<BaseMethodDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
