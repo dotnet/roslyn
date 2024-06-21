@@ -15,6 +15,7 @@
           StaysOpenOnEdit="True"
           IsEditable="True"
           Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}"
+          GotKeyboardFocus="ComboBox_GotKeyboardFocus"
           VirtualizingStackPanel.IsVirtualizing="True"
           VirtualizingStackPanel.VirtualizationMode="Recycling">
     <ComboBox.Resources>
@@ -65,9 +66,9 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="GetSuggestionButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
+            <Style x:Key="GetSuggestionsButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
                 <Setter Property="Padding" Value="4,4,1,0"/>
-                <Setter Property="Margin" Value="3,0,1,1"/>
+                <Setter Property="Margin" Value="3,1,1,1"/>
                 <Setter Property="MinHeight" Value="0"/>
                 <Setter Property="MinWidth" Value="0"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderBrushKey}}"/>
@@ -127,7 +128,7 @@
                                 x:Uid="GetSuggestionsButton"
                                 Grid.Row="0"
                                 Grid.Column="1"
-                                Style="{StaticResource GetSuggestionButtonStyle}"
+                                Style="{StaticResource GetSuggestionsButtonStyle}"
                                 ToolTip="{Binding GetSuggestionsTooltip}"
                                 Click="GetSuggestionsButtonClick"
                                 Command="{Binding GetSuggestionsCommand}">
@@ -190,12 +191,14 @@
                         Grid.Column="0"
                         Grid.ColumnSpan="2"
                         Margin="1 0"
-                        Height="62"
+                        Height="65"
                         Visibility="{Binding IsSuggestionsPanelExpanded, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
                         BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
                         BorderThickness="1">
                     <ScrollViewer x:Name="SuggestionsPanelScrollViewer"
-                        x:Uid="SuggestionsPanelScrollViewer">
+                        x:Uid="SuggestionsPanelScrollViewer"
+                        HorizontalScrollBarVisibility="Hidden"
+                        MouseDoubleClick="SuggestionsPanelScrollViewer_MouseDoubleClick">
                         <Grid x:Name="SuggestionsPanelGrid"
                             x:Uid="SuggestionsPanelGrid"
                             RenderOptions.ClearTypeHint="Enabled"

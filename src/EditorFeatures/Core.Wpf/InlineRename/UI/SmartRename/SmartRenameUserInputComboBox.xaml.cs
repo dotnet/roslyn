@@ -21,6 +21,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     private const string InnerTextBox = "PART_EditableTextBox";
 
     private readonly SmartRenameViewModel _smartRenameViewModel;
+    private readonly RenameFlyoutViewModel _baseViewModel;
     private readonly Lazy<TextBox> _innerTextBox;
     private Popup? _dropDownPopup;
 
@@ -31,7 +32,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
         InitializeComponent();
         DataContext = viewModel.SmartRenameViewModel;
-
+        _baseViewModel = viewModel;
         _smartRenameViewModel = viewModel.SmartRenameViewModel;
         _innerTextBox = new Lazy<TextBox>(() =>
         {
@@ -91,6 +92,17 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     void IRenameUserInput.Focus()
     {
         this.Focus();
+    }
+
+    private void ComboBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        // Handle the event to avoid stack overflow through passing execution back RenameFlyout.Adornment_GotKeyboardFocus
+        e.Handled = true;
+    }
+
+    private void SuggestionsPanelScrollViewer_MouseDoubleClick(object sender, MouseEventArgs e)
+    {
+        _baseViewModel.Submit();
     }
 
     private void GetSuggestionsButtonClick(object sender, RoutedEventArgs e)
