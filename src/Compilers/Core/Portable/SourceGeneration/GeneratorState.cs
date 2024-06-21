@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                                       elapsedTime);
         }
 
-        internal bool Initialized { get; private init; }
+        internal bool Initialized { get; }
 
         internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
 
