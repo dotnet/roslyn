@@ -170,11 +170,11 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 
         if (symbol.MetadataToken != 0)
         {
-            OnTheFlyDocsLogger.LogHoveredSourceSymbol();
+            OnTheFlyDocsLogger.LogHoveredMetadataSymbol();
         }
         else
         {
-            OnTheFlyDocsLogger.LogHoveredMetadataSymbol();
+            OnTheFlyDocsLogger.LogHoveredSourceSymbol();
         }
 
         if (symbol.DeclaringSyntaxReferences.Length == 0)
