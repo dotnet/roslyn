@@ -210,6 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable();
 
+        internal override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
+
         private sealed class InlineArrayTypeParameterSymbol : TypeParameterSymbol
         {
             private readonly SynthesizedInlineArrayTypeSymbol _container;

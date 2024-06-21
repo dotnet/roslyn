@@ -15344,7 +15344,7 @@ implicit extension E2 for D : INotifyCompletion
             );
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(roles) enable once we can handle lowering/emit
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionIsCompleted()
     {
         var text = @"
@@ -15410,7 +15410,7 @@ implicit extension E for C
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(roles) enable once we can handle lowering/emit
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult()
     {
         var text = @"
@@ -17745,18 +17745,16 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(source);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: "E.M",
-            verify: Verification.Fails with { ILVerifyMessage = "[<Main>$]: Unrecognized arguments for delegate .ctor. { Offset = 0xb }" });
+        var verifier = CompileAndVerify(comp, expectedOutput: "E.M");
 
         verifier.VerifyDiagnostics();
 
-        // PROTOTYPE Fix when adding support for emitting non-static members
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       24 (0x18)
   .maxstack  2
   IL_0000:  newobj     "C..ctor()"
-  IL_0005:  ldftn      "void E.M(int)"
+  IL_0005:  ldftn      "void E.M(C, int)"
   IL_000b:  newobj     "D..ctor(object, System.IntPtr)"
   IL_0010:  ldc.i4.s   42
   IL_0012:  callvirt   "void D.Invoke(int)"
@@ -19335,12 +19333,10 @@ implicit extension E for C
 
         var comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: "ran",
-            verify: Verification.Fails with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x11 }" });
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran");
 
         verifier.VerifyDiagnostics();
 
-        // PROTOTYPE Fix when adding support for emitting non-static members
         verifier.VerifyIL("D.Main", """
 {
   // Code size       29 (0x1d)
@@ -19349,7 +19345,7 @@ implicit extension E for C
   IL_0000:  nop
   IL_0001:  newobj     "D..ctor()"
   IL_0006:  newobj     "C..ctor()"
-  IL_000b:  ldftn      "int E.M()"
+  IL_000b:  ldftn      "int E.M(C)"
   IL_0011:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
   IL_0016:  call       "int D.Select<int>(System.Func<int>)"
   IL_001b:  stloc.0
@@ -19607,11 +19603,7 @@ public static class E2
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
-        var verifier = CompileAndVerify(comp, expectedOutput: "not-invocation invocation",
-            verify: Verification.Fails with { ILVerifyMessage = """
-                [<Main>$]: Callvirt on a value type method. { Offset = 0x6 }
-                [<Main>$]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'object', Expected = address of 'E1' }
-                """ });
+        var verifier = CompileAndVerify(comp, expectedOutput: "not-invocation invocation");
         verifier.VerifyDiagnostics();
         // PROTOTYPE Fix IL when adding support for emitting non-static members
         verifier.VerifyIL("<top-level-statements-entry-point>", """
@@ -19620,7 +19612,7 @@ public static class E2
   .maxstack  2
   IL_0000:  newobj     "object..ctor()"
   IL_0005:  dup
-  IL_0006:  callvirt   "string E1.Member.get"
+  IL_0006:  call       "string E1.Member[object].get"
   IL_000b:  call       "void System.Console.Write(string)"
   IL_0010:  call       "void E2.Member(object)"
   IL_0015:  ret
@@ -19696,20 +19688,16 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp, expectedOutput: "not-invocation invocation",
-           verify: Verification.Fails with { ILVerifyMessage = """
-                [<Main>$]: Callvirt on a value type method. { Offset = 0x6 }
-                [<Main>$]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'object', Expected = address of 'N.E1' }
-                """ });
+        var verifier = CompileAndVerify(comp, expectedOutput: "not-invocation invocation");
         verifier.VerifyDiagnostics();
         // PROTOTYPE Fix IL when adding support for emitting non-static members
         verifier.VerifyIL("<top-level-statements-entry-point>", """
-    {
+{
   // Code size       22 (0x16)
   .maxstack  2
   IL_0000:  newobj     "object..ctor()"
   IL_0005:  dup
-  IL_0006:  callvirt   "string N.E1.Member.get"
+  IL_0006:  call       "string N.E1.Member[object].get"
   IL_000b:  call       "void System.Console.Write(string)"
   IL_0010:  call       "void N.E2.Member(object)"
   IL_0015:  ret
@@ -19878,7 +19866,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -24797,7 +24785,11 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 }
 """;
         var comp = CreateEmptyCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (34,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.ExtensionAttribute' is not defined or imported
+            //     public void M(E e) { this.M2(); e.M2(); }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(34, 17)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25473,7 +25465,11 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
 }
 """;
         var comp = CreateEmptyCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (30,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.ExtensionAttribute' is not defined or imported
+            //     public void M(E<T> e) { this.M2(); e.M2(); }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(30, 17)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25553,7 +25549,14 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
 }
 """;
         var comp = CreateEmptyCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (30,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.ExtensionAttribute' is not defined or imported
+            //     public void M2() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(30, 17),
+            // (31,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.ExtensionAttribute' is not defined or imported
+            //     public void M(E<T> e) { this.M2(); e.M2(); }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(31, 17)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25766,7 +25769,11 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 }
 """;
         var comp = CreateEmptyCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (32,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.ExtensionAttribute' is not defined or imported
+            //     public void M(E e) { this.M2(); e.M2(); }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(32, 17)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25820,7 +25827,14 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 }
 """;
         var comp = CreateEmptyCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (32,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.ExtensionAttribute' is not defined or imported
+            //     public void M2() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(32, 17),
+            // (33,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.ExtensionAttribute' is not defined or imported
+            //     public void M(E e) { this.M2(); e.M2(); }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(33, 17)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -29669,7 +29683,7 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.Fails).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -39850,4 +39864,2839 @@ static implicit extension E for object
             // dynamic.M();
             Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(2, 1));
     }
+
+    [Fact]
+    public void InstanceMethod_Metadata_01()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public void Method()
+    {
+        this.Increment();
+        this.EIncrement();
+    }
+
+    public void EIncrement()
+    {
+        this.Increment();
+    }
+}
+
+public class C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.Method();
+        System.Console.WriteLine(c.F);
+    }
+
+    static void Test2()
+    {
+        GetC().Method();
+    }
+
+    static C GetC() => new C();
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  call       "void E.Method(C)"
+  IL_000b:  ldfld      "int C.F"
+  IL_0010:  call       "void System.Console.WriteLine(int)"
+  IL_0015:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        var test2IL =
+"""
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       "C Program.GetC()"
+  IL_0005:  call       "void E.Method(C)"
+  IL_000a:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test2", test2IL);
+
+        verifier.VerifyIL("E.Method(C)",
+"""
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   "void C.Increment()"
+  IL_0006:  ldarg.0
+  IL_0007:  call       "void E.EIncrement(C)"
+  IL_000c:  ret
+}
+""");
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private class C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig static 
+		void Method (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 13 (0xd)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: callvirt instance void C::Increment()
+		IL_0006: ldarg.0
+		IL_0007: call void E::EIncrement(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		IL_000c: ret
+	} // end of method E::Method
+	.method public hidebysig static 
+		void EIncrement (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x205e
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: callvirt instance void C::Increment()
+		IL_0006: ret
+	} // end of method E::EIncrement
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2066
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test2IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test2IL);
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_02()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public void Method()
+    {
+        this.Increment();
+        this.EIncrement();
+    }
+
+    public void EIncrement()
+    {
+        this.Increment();
+    }
+}
+
+public struct C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.Method();
+        System.Console.WriteLine(c.F);
+    }
+
+    static void Test2()
+    {
+        GetC().Method();
+    }
+
+    static C GetC() => new C();
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (C V_0) //c
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "C"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "void E.Method(ref C)"
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      "int C.F"
+  IL_0015:  call       "void System.Console.WriteLine(int)"
+  IL_001a:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        var test2IL =
+"""
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  call       "C Program.GetC()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "void E.Method(ref C)"
+  IL_000d:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test2", test2IL);
+
+        verifier.VerifyIL("E.Method(ref C)",
+"""
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "void C.Increment()"
+  IL_0006:  ldarg.0
+  IL_0007:  call       "void E.EIncrement(ref C)"
+  IL_000c:  ret
+}
+""");
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private valuetype C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig static 
+		void Method (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 13 (0xd)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void C::Increment()
+		IL_0006: ldarg.0
+		IL_0007: call void E::EIncrement(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_000c: ret
+	} // end of method E::Method
+	.method public hidebysig static 
+		void EIncrement (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x205e
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void C::Increment()
+		IL_0006: ret
+	} // end of method E::EIncrement
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			valuetype C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2066
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test2IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test2IL);
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_03()
+    {
+        var src = """
+implicit extension E<T> for C<T>
+{
+    public void Method(T x)
+    {
+        this.Increment(x);
+        this.EIncrement(x);
+    }
+
+    public void EIncrement(T x)
+    {
+        this.Increment(x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C<int>();
+        c.Method(100);
+        System.Console.WriteLine(c.F);
+    }
+
+    static void Test2()
+    {
+        GetC().Method(200);
+    }
+
+    static C<uint> GetC() => new C<uint>();
+}
+
+class C<T>
+{
+    public int F;
+
+    public void Increment(T x)
+    {
+        F++;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  newobj     "C<int>..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.s   100
+  IL_0008:  call       "void E<int>.Method(C<int>, int)"
+  IL_000d:  ldfld      "int C<int>.F"
+  IL_0012:  call       "void System.Console.WriteLine(int)"
+  IL_0017:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  call       "C<uint> Program.GetC()"
+  IL_0005:  ldc.i4     0xc8
+  IL_000a:  call       "void E<uint>.Method(C<uint>, uint)"
+  IL_000f:  ret
+}
+""");
+
+        verifier.VerifyIL("E<T>.Method(C<T>, T)",
+"""
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  callvirt   "void C<T>.Increment(T)"
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  call       "void E<T>.EIncrement(C<T>, T)"
+  IL_000e:  ret
+}
+""");
+
+        verifier.VerifyTypeIL("E`1",
+"""
+.class private sequential ansi sealed beforefieldinit E`1<T>
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private class C`1<!T> '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig static 
+		void Method (
+			class C`1<!T> modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			!T x
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void class C`1<!T>::Increment(!0)
+		IL_0007: ldarg.0
+		IL_0008: ldarg.1
+		IL_0009: call void valuetype E`1<!T>::EIncrement(class C`1<!0> modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), !0)
+		IL_000e: ret
+	} // end of method E`1::Method
+	.method public hidebysig static 
+		void EIncrement (
+			class C`1<!T> modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			!T x
+		) cil managed 
+	{
+		// Method begins at RVA 0x2060
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void class C`1<!T>::Increment(!0)
+		IL_0007: ret
+	} // end of method E`1::EIncrement
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C`1<!T> ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E`1::'<ImplicitExtension>$'
+} // end of class E`1
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_04()
+    {
+        var src = """
+implicit extension E for C
+{
+    public void Method<S>(S x)
+    {
+        this.Increment<S>(x);
+        this.EIncrement<S>(x);
+    }
+
+    public void EIncrement<S>(S x)
+    {
+        this.Increment<S>(x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.Method<int>(100);
+        System.Console.WriteLine(c.F);
+    }
+
+    static void Test2()
+    {
+        GetC().Method<uint>(200);
+    }
+
+    static C GetC() => new C();
+}
+
+class C
+{
+    public int F;
+
+    public void Increment<S>(S x)
+    {
+        F++;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.s   100
+  IL_0008:  call       "void E.Method<int>(C, int)"
+  IL_000d:  ldfld      "int C.F"
+  IL_0012:  call       "void System.Console.WriteLine(int)"
+  IL_0017:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  call       "C Program.GetC()"
+  IL_0005:  ldc.i4     0xc8
+  IL_000a:  call       "void E.Method<uint>(C, uint)"
+  IL_000f:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Method<S>(C, S)",
+"""
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  callvirt   "void C.Increment<S>(S)"
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  call       "void E.EIncrement<S>(C, S)"
+  IL_000e:  ret
+}
+""");
+
+        verifier.VerifyTypeIL("E",
+"""
+.class private sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private class C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig static 
+		void Method<S> (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			!!S x
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::Increment<!!S>(!!0)
+		IL_0007: ldarg.0
+		IL_0008: ldarg.1
+		IL_0009: call void E::EIncrement<!!S>(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), !!0)
+		IL_000e: ret
+	} // end of method E::Method
+	.method public hidebysig static 
+		void EIncrement<S> (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			!!S x
+		) cil managed 
+	{
+		// Method begins at RVA 0x2060
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::Increment<!!S>(!!0)
+		IL_0007: ret
+	} // end of method E::EIncrement
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+} // end of class E
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_05()
+    {
+        var src = """
+implicit extension E<T> for T where T : class, I1
+{
+    public void Method()
+    {
+        this.Increment();
+        this.EIncrement();
+    }
+
+    public void EIncrement()
+    {
+        this.Increment();
+    }
+}
+
+interface I1
+{
+    void Increment();
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.Method();
+        System.Console.WriteLine(c.F);
+    }
+
+    static void Test2()
+    {
+        GetC().Method();
+    }
+
+    static C GetC() => new C();
+}
+
+class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  call       "void E<C>.Method(C)"
+  IL_000b:  ldfld      "int C.F"
+  IL_0010:  call       "void System.Console.WriteLine(int)"
+  IL_0015:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       "C Program.GetC()"
+  IL_0005:  call       "void E<C>.Method(C)"
+  IL_000a:  ret
+}
+""");
+
+        verifier.VerifyIL("E<T>.Method(T)",
+"""
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        "T"
+  IL_0006:  callvirt   "void I1.Increment()"
+  IL_000b:  ldarg.0
+  IL_000c:  call       "void E<T>.EIncrement(T)"
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyTypeIL("E`1",
+"""
+.class private sequential ansi sealed beforefieldinit E`1<class (I1) T>
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private !T '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig static 
+		void Method (
+			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 18 (0x12)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: box !T
+		IL_0006: callvirt instance void I1::Increment()
+		IL_000b: ldarg.0
+		IL_000c: call void valuetype E`1<!T>::EIncrement(!0 modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		IL_0011: ret
+	} // end of method E`1::Method
+	.method public hidebysig static 
+		void EIncrement (
+			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2063
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: box !T
+		IL_0006: callvirt instance void I1::Increment()
+		IL_000b: ret
+	} // end of method E`1::EIncrement
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			!T ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2070
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E`1::'<ImplicitExtension>$'
+} // end of class E`1
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_06()
+    {
+        var src = """
+implicit extension E<T> for T where T : I1
+{
+    public void Method()
+    {
+        this.Increment();
+        this.EIncrement();
+    }
+
+    public void EIncrement()
+    {
+        this.Increment();
+    }
+}
+
+interface I1
+{
+    void Increment();
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.Method();
+        System.Console.Write(c.F);
+    }
+
+    static void Test2()
+    {
+        GetC().Method();
+    }
+
+    static C GetC() => new C();
+
+    static void Test3()
+    {
+        var s = new S();
+        s.Method();
+        System.Console.Write(s.F);
+    }
+
+    static void Test4()
+    {
+        GetS().Method();
+    }
+
+    static S GetS() => new S();
+}
+
+class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+
+struct S : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (C V_0) //c
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "void E<C>.Method(ref C)"
+  IL_000d:  ldloc.0
+  IL_000e:  ldfld      "int C.F"
+  IL_0013:  call       "void System.Console.Write(int)"
+  IL_0018:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  call       "C Program.GetC()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "void E<C>.Method(ref C)"
+  IL_000d:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "void E<S>.Method(ref S)"
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      "int S.F"
+  IL_0015:  call       "void System.Console.Write(int)"
+  IL_001a:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test4",
+"""
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       "S Program.GetS()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "void E<S>.Method(ref S)"
+  IL_000d:  ret
+}
+""");
+
+        // PROTOTYPE(roles): The constraint call is probably a subject to a receiver overwrite during argument evaluation. 
+        verifier.VerifyIL("E<T>.Method(ref T)",
+"""
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. "T"
+  IL_0007:  callvirt   "void I1.Increment()"
+  IL_000c:  ldarg.0
+  IL_000d:  call       "void E<T>.EIncrement(ref T)"
+  IL_0012:  ret
+}
+""");
+
+        verifier.VerifyTypeIL("E`1",
+"""
+.class private sequential ansi sealed beforefieldinit E`1<(I1) T>
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private !T '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig static 
+		void Method (
+			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: constrained. !T
+		IL_0007: callvirt instance void I1::Increment()
+		IL_000c: ldarg.0
+		IL_000d: call void valuetype E`1<!T>::EIncrement(!0 modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_0012: ret
+	} // end of method E`1::Method
+	.method public hidebysig static 
+		void EIncrement (
+			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2064
+		// Code size 13 (0xd)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: constrained. !T
+		IL_0007: callvirt instance void I1::Increment()
+		IL_000c: ret
+	} // end of method E`1::EIncrement
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			!T ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2072
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E`1::'<ImplicitExtension>$'
+} // end of class E`1
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_07()
+    {
+        var src = """
+implicit extension E<T> for T where T : struct, I1
+{
+    public void Method()
+    {
+        this.Increment();
+        this.EIncrement();
+    }
+
+    public void EIncrement()
+    {
+        this.Increment();
+    }
+}
+
+interface I1
+{
+    void Increment();
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test3();
+        Test4();
+    }
+
+    static void Test3()
+    {
+        var s = new S();
+        s.Method();
+        System.Console.Write(s.F);
+    }
+
+    static void Test4()
+    {
+        GetS().Method();
+    }
+
+    static S GetS() => new S();
+}
+
+struct S : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "void E<S>.Method(ref S)"
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      "int S.F"
+  IL_0015:  call       "void System.Console.Write(int)"
+  IL_001a:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test4",
+"""
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       "S Program.GetS()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "void E<S>.Method(ref S)"
+  IL_000d:  ret
+}
+""");
+
+        verifier.VerifyIL("E<T>.Method(ref T)",
+"""
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. "T"
+  IL_0007:  callvirt   "void I1.Increment()"
+  IL_000c:  ldarg.0
+  IL_000d:  call       "void E<T>.EIncrement(ref T)"
+  IL_0012:  ret
+}
+""");
+
+        verifier.VerifyTypeIL("E`1",
+"""
+.class private sequential ansi sealed beforefieldinit E`1<valuetype .ctor (I1, [System.Runtime]System.ValueType) T>
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private !T '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig static 
+		void Method (
+			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: constrained. !T
+		IL_0007: callvirt instance void I1::Increment()
+		IL_000c: ldarg.0
+		IL_000d: call void valuetype E`1<!T>::EIncrement(!0 modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_0012: ret
+	} // end of method E`1::Method
+	.method public hidebysig static 
+		void EIncrement (
+			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2064
+		// Code size 13 (0xd)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: constrained. !T
+		IL_0007: callvirt instance void I1::Increment()
+		IL_000c: ret
+	} // end of method E`1::EIncrement
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			!T ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2072
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E`1::'<ImplicitExtension>$'
+} // end of class E`1
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_08()
+    {
+        var src = """
+implicit extension E for C
+{
+    public int Method(int x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Console.WriteLine(c.Method(123));
+    }
+}
+
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("E.Method(C, int)",
+"""
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_09()
+    {
+        var src = """
+implicit extension E for C
+{
+    public T Method<T>(T x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Console.WriteLine(c.Method(123));
+    }
+}
+
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("E.Method<T>(C, T)",
+"""
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_10()
+    {
+        var src = """
+implicit extension E for C
+{
+    public T Method<T>(T x)
+    {
+
+        T local(T y) => Method2(x);
+        return local(x);
+    }
+
+    public T Method2<T>(T x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Console.WriteLine(c.Method(123));
+    }
+}
+
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("E.Method<T>(C, T)",
+"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (E.<>c__DisplayClass0_0<T> V_0) //CS$<>8__locals0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  stfld      "C E.<>c__DisplayClass0_0<T>.<>4__this"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldarg.1
+  IL_000b:  stfld      "T E.<>c__DisplayClass0_0<T>.x"
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      "T E.<>c__DisplayClass0_0<T>.x"
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       "T E.<Method>b__0_0<T>(T, ref E.<>c__DisplayClass0_0<T>)"
+  IL_001d:  ret
+}
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_11()
+    {
+        var src = """
+implicit extension E for C
+{
+    public T Method<T>(T x)
+    {
+
+        var d = (T y) => Method2(x);
+        return d(x);
+    }
+
+    public T Method2<T>(T x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Console.WriteLine(c.Method(123));
+    }
+}
+
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("E.Method<T>(C, T)",
+"""
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (E.<>c__DisplayClass0_0<T> V_0) //CS$<>8__locals0
+  IL_0000:  newobj     "E.<>c__DisplayClass0_0<T>..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      "C E.<>c__DisplayClass0_0<T>.<>4__this"
+  IL_000d:  ldloc.0
+  IL_000e:  ldarg.1
+  IL_000f:  stfld      "T E.<>c__DisplayClass0_0<T>.x"
+  IL_0014:  ldloc.0
+  IL_0015:  ldftn      "T E.<>c__DisplayClass0_0<T>.<Method>b__0(T)"
+  IL_001b:  newobj     "System.Func<T, T>..ctor(object, nint)"
+  IL_0020:  ldloc.0
+  IL_0021:  ldfld      "T E.<>c__DisplayClass0_0<T>.x"
+  IL_0026:  callvirt   "T System.Func<T, T>.Invoke(T)"
+  IL_002b:  ret
+}
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_12()
+    {
+        var src = """
+implicit extension E for C
+{
+    public T Method<T>(T x)
+    {
+
+        T local(T y) => Method2(y);
+        return local(x);
+    }
+
+    public T Method2<T>(T x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Console.WriteLine(c.Method(123));
+    }
+}
+
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("E.Method<T>(C, T)",
+"""
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (E.<>c__DisplayClass0_0<T> V_0) //CS$<>8__locals0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  stfld      "C E.<>c__DisplayClass0_0<T>.<>4__this"
+  IL_0008:  ldarg.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       "T E.<Method>b__0_0<T>(T, ref E.<>c__DisplayClass0_0<T>)"
+  IL_0010:  ret
+}
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_13()
+    {
+        var src = """
+implicit extension E for C
+{
+    public T Method<T>(T x)
+    {
+
+        var d = (T y) => Method2(y);
+        return d(x);
+    }
+
+    public T Method2<T>(T x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Console.WriteLine(c.Method(123));
+    }
+}
+
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("E.Method<T>(C, T)",
+"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  IL_0000:  newobj     "E.<>c__DisplayClass0_0<T>..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldarg.0
+  IL_0007:  stfld      "C E.<>c__DisplayClass0_0<T>.<>4__this"
+  IL_000c:  ldftn      "T E.<>c__DisplayClass0_0<T>.<Method>b__0(T)"
+  IL_0012:  newobj     "System.Func<T, T>..ctor(object, nint)"
+  IL_0017:  ldarg.1
+  IL_0018:  callvirt   "T System.Func<T, T>.Invoke(T)"
+  IL_001d:  ret
+}
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_14()
+    {
+        var src = """
+implicit extension E for C
+{
+    public T Method<T>(T x)
+    {
+
+        T local()
+        {
+            T y = x;
+            return Method2(y);
+        }
+
+        return local();
+    }
+
+    public T Method2<T>(T x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Console.WriteLine(c.Method(123));
+    }
+}
+
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_15()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public void Method()
+    {
+        System.Action d = this.Method2;
+        d();
+    }
+
+    public void Method2()
+    {
+        System.Action d = this.Increment;
+        d();
+    }
+}
+
+public class C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Action d = c.Method;
+        d();
+        System.Console.Write(c.F);
+    }
+
+    static void Test2()
+    {
+        var c = new C();
+        var d = new System.Action(c.Method);
+        d();
+        System.Console.Write(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("11"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldftn      "void E.Method(C)"
+  IL_000c:  newobj     "System.Action..ctor(object, nint)"
+  IL_0011:  callvirt   "void System.Action.Invoke()"
+  IL_0016:  ldfld      "int C.F"
+  IL_001b:  call       "void System.Console.Write(int)"
+  IL_0020:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test1IL);
+
+        verifier.VerifyIL("E.Method(C)", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      "void E.Method2(C)"
+  IL_0007:  newobj     "System.Action..ctor(object, nint)"
+  IL_000c:  callvirt   "void System.Action.Invoke()"
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Method2(C)", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      "void C.Increment()"
+  IL_0007:  newobj     "System.Action..ctor(object, nint)"
+  IL_000c:  callvirt   "void System.Action.Invoke()"
+  IL_0011:  ret
+}
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("11"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("11"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("11"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test1IL);
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_16()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public void Method()
+    {
+        System.Action d = this.Method2;
+        d();
+    }
+
+    public void Method2()
+    {
+        System.Action d = this.Increment;
+        d();
+    }
+}
+
+public struct C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Action d = c.Method;
+        d();
+        System.Console.Write(c.F);
+    }
+
+    static void Test2()
+    {
+        var c = new C();
+        var d = new System.Action(c.Method);
+        d();
+        System.Console.Write(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
+        Verification verify = Verification.Fails.WithILVerifyMessage(
+"""
+[Method]: Unrecognized arguments for delegate .ctor. { Offset = 0x11 }
+[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+""");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: verify).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "C"
+  IL_0008:  ldloc.0
+  IL_0009:  dup
+  IL_000a:  box        "C"
+  IL_000f:  ldftn      "void E.Method(ref C)"
+  IL_0015:  newobj     "System.Action..ctor(object, nint)"
+  IL_001a:  callvirt   "void System.Action.Invoke()"
+  IL_001f:  ldfld      "int C.F"
+  IL_0024:  call       "void System.Console.Write(int)"
+  IL_0029:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test1IL);
+
+        verifier.VerifyIL("E.Method(ref C)", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "C"
+  IL_0006:  box        "C"
+  IL_000b:  ldftn      "void E.Method2(ref C)"
+  IL_0011:  newobj     "System.Action..ctor(object, nint)"
+  IL_0016:  callvirt   "void System.Action.Invoke()"
+  IL_001b:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Method2(ref C)", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "C"
+  IL_0006:  box        "C"
+  IL_000b:  ldftn      "void C.Increment()"
+  IL_0011:  newobj     "System.Action..ctor(object, nint)"
+  IL_0016:  callvirt   "void System.Action.Invoke()"
+  IL_001b:  ret
+}
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+
+        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
+        Verification debugVerify = Verification.Fails.WithILVerifyMessage(
+"""
+[Method]: Unrecognized arguments for delegate .ctor. { Offset = 0x12 }
+[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+""");
+
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: debugVerify).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("00"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
+        verify = Verification.Fails.WithILVerifyMessage(
+"""
+[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
+""");
+
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("00"), verify: verify).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+        verifier.VerifyIL("Program.Test2", test1IL);
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_01()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public int P1
+    {
+        get => this.P2;
+        set => this.P2 = value; 
+    }
+
+    public int P2
+    {
+        get => this.P;
+        set => this.P = value; 
+    }
+}
+
+public class C
+{
+    public int P { get; set; }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.P1 = 2;
+        System.Console.WriteLine(c.P1);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.2
+  IL_0007:  call       "void E.P1[C].set"
+  IL_000c:  call       "int E.P1[C].get"
+  IL_0011:  call       "void System.Console.WriteLine(int)"
+  IL_0016:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private class C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		int32 get_P1 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call int32 E::get_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		IL_0006: ret
+	} // end of method E::get_P1
+	.method public hidebysig specialname static 
+		void set_P1 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call void E::set_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+		IL_0007: ret
+	} // end of method E::set_P1
+	.method public hidebysig specialname static 
+		int32 get_P2 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: callvirt instance int32 C::get_P()
+		IL_0006: ret
+	} // end of method E::get_P2
+	.method public hidebysig specialname static 
+		void set_P2 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::set_P(int32)
+		IL_0007: ret
+	} // end of method E::set_P2
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2072
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+	// Properties
+	.property int32 P1(
+		class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+	)
+	{
+		.get int32 E::get_P1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		.set void E::set_P1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+	}
+	.property int32 P2(
+		class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+	)
+	{
+		.get int32 E::get_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		.set void E::set_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+	}
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_02()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public int P1
+    {
+        get => this.P2;
+        set => this.P2 = value; 
+    }
+
+    public int P2
+    {
+        get => this.P;
+        set => this.P = value; 
+    }
+}
+
+public struct C
+{
+    public int P { get; set; }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.P1 = 2;
+        System.Console.WriteLine(c.P1);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (C V_0) //c
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "C"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.2
+  IL_000b:  call       "void E.P1[ref C].set"
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "int E.P1[ref C].get"
+  IL_0017:  call       "void System.Console.WriteLine(int)"
+  IL_001c:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private valuetype C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		int32 get_P1 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call int32 E::get_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_0006: ret
+	} // end of method E::get_P1
+	.method public hidebysig specialname static 
+		void set_P1 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call void E::set_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+		IL_0007: ret
+	} // end of method E::set_P1
+	.method public hidebysig specialname static 
+		int32 get_P2 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance int32 C::get_P()
+		IL_0006: ret
+	} // end of method E::get_P2
+	.method public hidebysig specialname static 
+		void set_P2 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call instance void C::set_P(int32)
+		IL_0007: ret
+	} // end of method E::set_P2
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			valuetype C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2072
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+	// Properties
+	.property int32 P1(
+		valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+	)
+	{
+		.get int32 E::get_P1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		.set void E::set_P1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+	}
+	.property int32 P2(
+		valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+	)
+	{
+		.get int32 E::get_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		.set void E::set_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+	}
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_01()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public int this[int x]
+    {
+        get => this.P;
+        set => this.P = value; 
+    }
+}
+
+public class C
+{
+    public int P { get; set; }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c[1] = 2;
+        System.Console.WriteLine(c[1]);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       25 (0x19)
+  .maxstack  4
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldc.i4.2
+  IL_0008:  call       "void E.this[C, int].set"
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       "int E.this[C, int].get"
+  IL_0013:  call       "void System.Console.WriteLine(int)"
+  IL_0018:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	.custom instance void [System.Runtime]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+		01 00 04 49 74 65 6d 00 00
+	)
+	// Fields
+	.field private class C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		int32 get_Item (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			int32 x
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: callvirt instance int32 C::get_P()
+		IL_0006: ret
+	} // end of method E::get_Item
+	.method public hidebysig specialname static 
+		void set_Item (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			int32 x,
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.2
+		IL_0002: callvirt instance void C::set_P(int32)
+		IL_0007: ret
+	} // end of method E::set_Item
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+	// Properties
+	.property int32 Item(
+		class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+		int32 x
+	)
+	{
+		.get int32 E::get_Item(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+		.set void E::set_Item(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32, int32)
+	}
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_02()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public int this[int x]
+    {
+        get => this.P;
+        set => this.P = value; 
+    }
+}
+
+public struct C
+{
+    public int P { get; set; }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c[1] = 2;
+        System.Console.WriteLine(c[1]);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (C V_0) //c
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "C"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.1
+  IL_000b:  ldc.i4.2
+  IL_000c:  call       "void E.this[ref C, int].set"
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  ldc.i4.1
+  IL_0014:  call       "int E.this[ref C, int].get"
+  IL_0019:  call       "void System.Console.WriteLine(int)"
+  IL_001e:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	.custom instance void [System.Runtime]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+		01 00 04 49 74 65 6d 00 00
+	)
+	// Fields
+	.field private valuetype C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		int32 get_Item (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			int32 x
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance int32 C::get_P()
+		IL_0006: ret
+	} // end of method E::get_Item
+	.method public hidebysig specialname static 
+		void set_Item (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			int32 x,
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.2
+		IL_0002: call instance void C::set_P(int32)
+		IL_0007: ret
+	} // end of method E::set_Item
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			valuetype C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+	// Properties
+	.property int32 Item(
+		valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+		int32 x
+	)
+	{
+		.get int32 E::get_Item(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+		.set void E::set_Item(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32, int32)
+	}
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceEvent_Metadata_01()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public event System.Action E1
+    {
+        add => this.E2 += value ;
+        remove => this.E2 -= value; 
+    }
+
+    public event System.Action E2
+    {
+        add => this.E += value;
+        remove => this.E -= value; 
+    }
+}
+
+public class C
+{
+    public event System.Action E;
+
+    public void Fire() => E();
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.E1 += M2();
+        c.Fire();
+        c.E1 += M3();
+        c.E1 -= M2();
+        c.Fire();
+    }
+
+    static System.Action M2() => (() => System.Console.Write(2));
+    static System.Action M3() => (() => System.Console.Write(3));
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("23"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       50 (0x32)
+  .maxstack  3
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  call       "System.Action Program.M2()"
+  IL_000b:  call       "void E.E1.add"
+  IL_0010:  dup
+  IL_0011:  callvirt   "void C.Fire()"
+  IL_0016:  dup
+  IL_0017:  call       "System.Action Program.M3()"
+  IL_001c:  call       "void E.E1.add"
+  IL_0021:  dup
+  IL_0022:  call       "System.Action Program.M2()"
+  IL_0027:  call       "void E.E1.remove"
+  IL_002c:  callvirt   "void C.Fire()"
+  IL_0031:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private class C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		void add_E1 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call void E::add_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::add_E1
+	.method public hidebysig specialname static 
+		void remove_E1 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2059
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call void E::remove_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::remove_E1
+	.method public hidebysig specialname static 
+		void add_E2 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2062
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::add_E(class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::add_E2
+	.method public hidebysig specialname static 
+		void remove_E2 (
+			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x206b
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::remove_E(class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::remove_E2
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2074
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+	// Events
+	.event [System.Runtime]System.Action E1
+	{
+		.addon void E::add_E1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		.removeon void E::remove_E1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+	}
+	.event [System.Runtime]System.Action E2
+	{
+		.addon void E::add_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		.removeon void E::remove_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+	}
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("23"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("23"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("23"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceEvent_Metadata_02()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public event System.Action E1
+    {
+        add => this.E2 += value ;
+        remove => this.E2 -= value; 
+    }
+
+    public event System.Action E2
+    {
+        add => this.E += value;
+        remove => this.E -= value; 
+    }
+}
+
+public struct C
+{
+    public event System.Action E;
+
+    public void Fire() => E();
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.E1 += M2();
+        c.Fire();
+        c.E1 += M3();
+        c.E1 -= M2();
+        c.Fire();
+    }
+
+    static System.Action M2() => (() => System.Console.Write(2));
+    static System.Action M3() => (() => System.Console.Write(3));
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("23"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var test1IL =
+"""
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (C V_0) //c
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "C"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "System.Action Program.M2()"
+  IL_000f:  call       "void E.E1.add"
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       "void C.Fire()"
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       "System.Action Program.M3()"
+  IL_0022:  call       "void E.E1.add"
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       "System.Action Program.M2()"
+  IL_002e:  call       "void E.E1.remove"
+  IL_0033:  ldloca.s   V_0
+  IL_0035:  call       "void C.Fire()"
+  IL_003a:  ret
+}
+""";
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        verifier.VerifyTypeIL("E",
+"""
+.class public sequential ansi sealed beforefieldinit E
+	extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field private valuetype C '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		void add_E1 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call void E::add_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::add_E1
+	.method public hidebysig specialname static 
+		void remove_E1 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2059
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call void E::remove_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::remove_E1
+	.method public hidebysig specialname static 
+		void add_E2 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2062
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call instance void C::add_E(class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::add_E2
+	.method public hidebysig specialname static 
+		void remove_E2 (
+			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			class [System.Runtime]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x206b
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call instance void C::remove_E(class [System.Runtime]System.Action)
+		IL_0007: ret
+	} // end of method E::remove_E2
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			valuetype C ''
+		) cil managed 
+	{
+		// Method begins at RVA 0x2074
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method E::'<ImplicitExtension>$'
+	// Events
+	.event [System.Runtime]System.Action E1
+	{
+		.addon void E::add_E1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		.removeon void E::remove_E1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+	}
+	.event [System.Runtime]System.Action E2
+	{
+		.addon void E::add_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		.removeon void E::remove_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+	}
+} // end of class E
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("23"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("23"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("23"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    // PROTOTYPE(roles): Add flavors of "_Metadata" tests for an underlying type a type parameter known/unknown to be a reference type
+
+    // PROTOTYPE(roles): Test capturing of struct underlying type into a closure in an instance extension member.  
+    //                   Probably should be an error.
+
+    // PROTOTYPE(roles): Test expression trees with instance members.
+
+    // PROTOTYPE(roles): Ensure instance events are never treated as WINRT events.
+
+    // PROTOTYPE(roles): Test consumption of instance APIs from VB as static APIs. Also check behavior of legacy C# compilers.
 }

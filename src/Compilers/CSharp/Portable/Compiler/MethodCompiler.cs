@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var emittedBody = GenerateMethodBody(
                         moduleBeingBuilt,
                         synthesizedEntryPoint,
+                        methodBodySyntaxOpt: null,
                         methodOrdinal,
                         loweredBody,
                         ImmutableArray<EncLambdaInfo>.Empty,
@@ -779,6 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
                                 method,
+                                TryGetMethodBodySyntax(method as SourceMemberMethodSymbol),
                                 methodOrdinal,
                                 loweredBody,
                                 ImmutableArray<EncLambdaInfo>.Empty,
@@ -827,6 +829,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stateMachineStateDebugInfoBuilder.Free();
             }
         }
+
+#nullable enable
+
+        private static SyntaxNode? TryGetMethodBodySyntax(SourceMemberMethodSymbol? sourceMethod)
+        {
+            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
+            return blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode;
+        }
+
+#nullable disable
 
         /// <summary>
         /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
@@ -1328,9 +1340,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             lambdaRuntimeRudeEditsBuilder.Sort(static (x, y) => x.LambdaId.CompareTo(y.LambdaId));
 
+                            MethodSymbol metadataSymbol = (MethodSymbol)methodSymbol.ContainingType.TryGetCorrespondingStaticMetadataExtensionMember(methodSymbol) ?? methodSymbol;
+
                             var emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
-                                methodSymbol,
+                                metadataSymbol,
+                                TryGetMethodBodySyntax(sourceMethod),
                                 methodOrdinal,
                                 boundBody,
                                 lambdaDebugInfoBuilder.ToImmutable(),
@@ -1346,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 codeCoverageSpans,
                                 entryPointOpt: null);
 
-                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(metadataSymbol.PartialDefinitionPart ?? metadataSymbol, emittedBody);
                         }
                     }
 
@@ -1416,6 +1431,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (loweredBody.HasErrors)
                 {
                     return loweredBody;
+                }
+
+                if (method.ContainingType.TryGetCorrespondingStaticMetadataExtensionMember(method) is MethodSymbol metadataMethod)
+                {
+                    var extensionRewriter = new InstanceExtensionMethodBodyRewriter(method, (SourceExtensionMetadataMethodSymbol)metadataMethod);
+                    loweredBody = (BoundStatement)extensionRewriter.Visit(loweredBody);
+                    method = metadataMethod;
+                }
+                else
+                {
+                    loweredBody = InstanceExtensionMethodReferenceRewriter.Rewrite(method, loweredBody);
                 }
 
                 if (sawAwaitInExceptionHandler)
@@ -1494,6 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
+            SyntaxNode methodBodySyntaxOpt,
             int methodOrdinal,
             BoundStatement block,
             ImmutableArray<EncLambdaInfo> lambdaDebugInfo,
@@ -1523,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
+                var codeGen = new CodeGen.CodeGenerator(method, methodBodySyntaxOpt, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
                 {

@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (m.Kind == SymbolKind.Event)
                 {
-                    yield return (EventSymbol)m;
+                    yield return (EventSymbol)(TryGetCorrespondingStaticMetadataExtensionMember(m) ?? m);
                 }
             }
         }
@@ -1019,7 +1019,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (m.Kind == SymbolKind.Method)
                 {
-                    var method = (MethodSymbol)m;
+                    // PROTOTYPE(roles): Make sure this transformation is not going to break handling of partial
+                    //                   methods. For example, it looks like ShouldEmit filters out partial methods without
+                    //                   an implementation. In general we should make sure we have adequate testing
+                    //                   for partial instance methods.
+                    var method = (MethodSymbol)(TryGetCorrespondingStaticMetadataExtensionMember(m) ?? m);
+
                     if (method.ShouldEmit())
                     {
                         yield return method;
@@ -1036,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (m.Kind == SymbolKind.Property)
                 {
-                    yield return (PropertySymbol)m;
+                    yield return (PropertySymbol)(TryGetCorrespondingStaticMetadataExtensionMember(m) ?? m);
                 }
             }
         }

@@ -443,6 +443,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var location = GetSmallestSourceLocationOrNull(symbol);
             if (location != null)
             {
+                // PROTOTYPE(roles): Instead of performing this check here, we should consider adjusting implementation
+                //                   of PEModuleBuilder.GetSymbolToLocationMap to go through "ToEmit" symbols. Basically, 
+                //                   PEModuleBuilder shouldn't be looking at a set of members from the language point of view.
+                //                   It should be looking at members from metadata perspective.  
+                if (symbol.ContainingSymbol is NamedTypeSymbol declaringTypeDefinition)
+                {
+                    symbol = declaringTypeDefinition.TryGetCorrespondingStaticMetadataExtensionMember(symbol) ?? symbol;
+                }
+
                 AddSymbolLocation(result, location, (Cci.IDefinition)symbol.GetCciAdapter());
             }
         }
@@ -1246,6 +1255,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             DiagnosticBag diagnostics,
             bool needDeclaration)
         {
+            if (methodSymbol.OriginalDefinition.ContainingSymbol is NamedTypeSymbol declaringTypeDefinition &&
+                declaringTypeDefinition.TryGetCorrespondingStaticMetadataExtensionMember(methodSymbol.OriginalDefinition) is not null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
             object? reference;
             Cci.IMethodReference methodRef;
             NamedTypeSymbol container = methodSymbol.ContainingType;

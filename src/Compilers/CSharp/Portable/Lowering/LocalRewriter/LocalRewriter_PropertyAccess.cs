@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? getMethodOpt = null,
             BoundPropertyAccess? oldNodeOpt = null)
         {
-            if (_inExpressionLambda && rewrittenArguments.IsEmpty)
+            if (_inExpressionLambda && rewrittenArguments.IsEmpty) // PROTOTYPE(roles): This and other similar places should be revisited.
             {
                 Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty);
                 return oldNodeOpt != null ?

@@ -277,6 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
                 => throw ExceptionUtilities.Unreachable();
 
+            internal sealed override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
+
             internal abstract override bool Equals(TypeSymbol t2, TypeCompareKind comparison);
 
             public abstract override int GetHashCode();

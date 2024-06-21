@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression delegateCreationArgument = boundTemp ?? rewrittenReceiverOpt ?? _factory.Type(eventType);
 
+            // PROTOTYPE(roles): Ensure we are not getting here with instance extension events
             BoundDelegateCreationExpression removeDelegate = new BoundDelegateCreationExpression(
                 syntax: syntax,
                 argument: delegateCreationArgument,
@@ -140,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NamedTypeSymbol func2Type = _factory.WellKnownType(WellKnownType.System_Func_T2).Construct(eventType, tokenType);
 
+                // PROTOTYPE(roles): Ensure we are not getting here with instance extension events
                 BoundDelegateCreationExpression addDelegate = new BoundDelegateCreationExpression(
                     syntax: syntax,
                     argument: delegateCreationArgument,

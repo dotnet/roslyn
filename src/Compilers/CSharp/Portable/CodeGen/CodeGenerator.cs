@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public CodeGenerator(
             MethodSymbol method,
+            SyntaxNode methodBodySyntaxOpt,
             BoundStatement boundBody,
             ILBuilder builder,
             PEModuleBuilder moduleBuilder,
@@ -146,9 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            var sourceMethod = method as SourceMemberMethodSymbol;
-            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
-            _methodBodySyntaxOpt = (SyntaxNode)blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode;
+            _methodBodySyntaxOpt = methodBodySyntaxOpt;
         }
 
         private bool IsDebugPlus()

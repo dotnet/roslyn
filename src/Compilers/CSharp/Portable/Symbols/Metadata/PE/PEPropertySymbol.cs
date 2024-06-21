@@ -123,7 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENamedTypeSymbol containingType,
             PropertyDefinitionHandle handle,
             PEMethodSymbol getMethod,
-            PEMethodSymbol setMethod)
+            PEExtensionInstanceMethodSymbol extensionGet,
+            PEMethodSymbol setMethod,
+            PEExtensionInstanceMethodSymbol extensionSet)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -138,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var returnInfo = propertyParams[0];
 
             PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
-                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder)
-                : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet, propertyParams, metadataDecoder)
+                : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet, propertyParams, metadataDecoder);
 
             // A property should always have this modreq, and vice versa.
             var isBad = (result.RefKind == RefKind.In) != result.RefCustomModifiers.HasInAttributeModifier();
@@ -157,7 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENamedTypeSymbol containingType,
             PropertyDefinitionHandle handle,
             PEMethodSymbol getMethod,
+            PEExtensionInstanceMethodSymbol extensionGet,
             PEMethodSymbol setMethod,
+            PEExtensionInstanceMethodSymbol extensionSet,
             ParamInfo<TypeSymbol>[] propertyParams,
             MetadataDecoder metadataDecoder)
         {
@@ -248,9 +252,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
             // or if it has parameters and is not an indexer or indexed property.
-            bool callMethodsDirectly = !DoSignaturesMatch(module, metadataDecoder, propertyParams, _getMethod, getMethodParams, _setMethod, setMethodParams) ||
-                MustCallMethodsDirectlyCore() ||
-                anyUnexpectedRequiredModifiers(propertyParams);
+            bool callMethodsDirectly = !DoSignaturesMatch(module, metadataDecoder, propertyParams, _getMethod, getMethodParams, _setMethod, setMethodParams);
+
+            if (!callMethodsDirectly)
+            {
+                bool isInstanceExtension =
+                    (extensionGet is not null || extensionSet is not null) &&
+                    (extensionGet is not null || _getMethod is null) &&
+                    (extensionSet is not null || _setMethod is null) &&
+                    containingType.GetDeclaredExtensionUnderlyingType() is { } extendedType &&
+                    PENamedTypeSymbol.IsSynthesizedExtensionThisParameter(extendedType, Parameters[0]);
+
+                callMethodsDirectly = MustCallMethodsDirectlyCore(isInstanceExtension);
+            }
+
+            if (!callMethodsDirectly)
+            {
+                callMethodsDirectly = anyUnexpectedRequiredModifiers(propertyParams);
+            }
 
             if (!callMethodsDirectly)
             {
@@ -277,13 +296,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool MustCallMethodsDirectlyCore()
+        private bool MustCallMethodsDirectlyCore(bool isInstanceExtension)
         {
             if (this.RefKind != RefKind.None && _setMethod != null)
             {
                 return true;
             }
-            else if (this.ParameterCount == 0)
+            else if (this.ParameterCount == (isInstanceExtension ? 1 : 0))
             {
                 return false;
             }
@@ -293,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             else if (this.IsIndexer)
             {
-                return this.HasRefOrOutParameter();
+                return this.HasRefOrOutParameter(skipParameters: (isInstanceExtension ? 1 : 0));
             }
             else
             {
@@ -896,10 +915,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 PENamedTypeSymbol containingType,
                 PropertyDefinitionHandle handle,
                 PEMethodSymbol getMethod,
+                PEExtensionInstanceMethodSymbol extensionGet,
                 PEMethodSymbol setMethod,
+                PEExtensionInstanceMethodSymbol extensionSet,
                 ParamInfo<TypeSymbol>[] propertyParams,
                 MetadataDecoder metadataDecoder)
-                : base(moduleSymbol, containingType, handle, getMethod, setMethod,
+                : base(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet,
                     propertyParams,
                     metadataDecoder)
             {

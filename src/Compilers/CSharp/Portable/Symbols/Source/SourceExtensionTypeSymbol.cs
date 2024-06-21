@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,10 +23,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For non-static extensions, we emit a field of the underlying type
         private FieldSymbol? _lazyUnderlyingInstanceField = null;
 
+        private ConcurrentDictionary<Symbol, Symbol>? _lazyInstanceMetadataMembers;
+
         internal SourceExtensionTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
             : base(containingSymbol, declaration, diagnostics)
         {
             Debug.Assert(declaration.Kind == DeclarationKind.Extension);
+        }
+
+        internal override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            Debug.Assert(member.ContainingSymbol == (object)this);
+
+            if (member.ContainingSymbol != (object)this || member.IsStatic || GetExtendedTypeNoUseSiteDiagnostics(null) is null)
+            {
+                return null;
+            }
+
+            switch (member)
+            {
+                case SourceMemberMethodSymbol { MethodKind: not MethodKind.Constructor }:
+
+                    return ensureDictionary(ref _lazyInstanceMetadataMembers).GetOrAdd(member, static (member) => new SourceExtensionMetadataMethodSymbol((MethodSymbol)member));
+
+                case SourcePropertySymbol:
+                    return ensureDictionary(ref _lazyInstanceMetadataMembers).GetOrAdd(member, static (member) => new SourceExtensionMetadataPropertySymbol((PropertySymbol)member));
+
+                case SourceEventSymbol:
+                    return ensureDictionary(ref _lazyInstanceMetadataMembers).GetOrAdd(member, static (member) => new SourceExtensionMetadataEventSymbol((EventSymbol)member));
+
+                default:
+                    return null;
+            }
+
+            static ConcurrentDictionary<Symbol, Symbol> ensureDictionary(ref ConcurrentDictionary<Symbol, Symbol>? storage)
+            {
+                if (storage is null)
+                {
+                    Interlocked.CompareExchange(ref storage, new ConcurrentDictionary<Symbol, Symbol>(Roslyn.Utilities.ReferenceEqualityComparer.Instance), null);
+                }
+
+                return storage;
+            }
         }
 
         // PROTOTYPE restore base extensions or remove this wrapper type

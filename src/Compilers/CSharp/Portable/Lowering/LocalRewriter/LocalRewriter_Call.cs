@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenCall;
 
-            if (tryGetReceiver(node, out BoundCall? receiver1))
+            if (TryGetReceiver(node, out BoundCall? receiver1))
             {
                 // Handle long call chain of both instance and extension method invocations.
                 var calls = ArrayBuilder<BoundCall>.GetInstance();
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 calls.Push(node);
                 node = receiver1;
 
-                while (tryGetReceiver(node, out BoundCall? receiver2))
+                while (TryGetReceiver(node, out BoundCall? receiver2))
                 {
                     calls.Push(node);
                     node = receiver2;
@@ -342,26 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return rewrittenCall;
-
-            // Gets the instance or extension invocation receiver if any.
-            static bool tryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
-            {
-                if (node.ReceiverOpt is BoundCall instanceReceiver)
-                {
-                    receiver = instanceReceiver;
-                    return true;
-                }
-
-                if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
-                {
-                    Debug.Assert(node.ReceiverOpt is null);
-                    receiver = extensionReceiver;
-                    return true;
-                }
-
-                receiver = null;
-                return false;
-            }
 
             BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
             {
@@ -401,10 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps,
                     invokedAsExtensionMethod);
 
+                // PROTOTYPE(roles): Disable interception for extensions?
                 InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
 
                 if (Instrument)
                 {
+                    // PROTOTYPE(roles): Test this code path
                     Instrumenter.InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt);
                 }
 
@@ -417,6 +399,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return rewrittenCall;
             }
+        }
+
+        /// <summary>
+        /// Gets the instance or extension invocation receiver if any.
+        /// </summary>
+        internal static bool TryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
+        {
+            if (node.ReceiverOpt is BoundCall instanceReceiver)
+            {
+                receiver = instanceReceiver;
+                return true;
+            }
+
+            if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
+            {
+                Debug.Assert(node.ReceiverOpt is null);
+                receiver = extensionReceiver;
+                return true;
+            }
+
+            receiver = null;
+            return false;
         }
 
         private BoundExpression MakeCall(

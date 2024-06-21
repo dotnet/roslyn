@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override Symbol? TryGetCorrespondingStaticMetadataExtensionMember(Symbol member) => null;
+
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 #nullable disable
 
