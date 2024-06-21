@@ -168,6 +168,7 @@
                                 ItemsSource="{Binding SuggestedNames}"
                                 VirtualizingStackPanel.IsVirtualizing="True"
                                 KeyboardNavigation.DirectionalNavigation="Contained"
+                                Style="{StaticResource {x:Static vsfx:VsResourceKeys.ThemedDialogListBoxStyleKey}}"
                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
                         <!-- TODO: Add handling for mouse click to accept -->
                     </ListBox>
