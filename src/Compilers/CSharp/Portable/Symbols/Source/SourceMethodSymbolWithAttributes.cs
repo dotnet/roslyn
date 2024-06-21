@@ -376,6 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
                     {
                         arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
+
+                        if (hasAnyDiagnostics)
+                        {
+                            attributeData = null;
+                            boundAttribute = null;
+                        }
                     }
                     else
                     {

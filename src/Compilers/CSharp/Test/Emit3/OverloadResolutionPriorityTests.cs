@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test;
@@ -256,5 +259,140 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         // We don't error on consumption, only on definition, so this runs just fine.
         CompileAndVerify(consumingSource, references: [definingComp.ToMetadataReference()], parseOptions: TestOptions.Regular12, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AppliedToAttributeConstructors()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            [C("test")]
+            public class C : System.Attribute
+            {
+                [OverloadResolutionPriority(1)]
+                public C(object o) {}
+
+                public C(string s) {}
+            }
+            """;
+
+        var verifier = CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics();
+        var c = ((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("C");
+
+        var attr = c!.GetAttributes().Single();
+        AssertEx.Equal("C..ctor(System.Object o)", attr.AttributeConstructor.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void CycleOnOverloadResolutionPriorityConstructor_01()
+    {
+        var source = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+            public sealed class OverloadResolutionPriorityAttribute : Attribute
+            {
+                [OverloadResolutionPriority(1)]
+                public OverloadResolutionPriorityAttribute(int priority)
+                {
+                    Priority = priority;
+                }
+
+                public int Priority { get;}
+            }
+            """;
+
+        CompileAndVerify(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CycleOnOverloadResolutionPriorityConstructor_02()
+    {
+        var source = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+            public sealed class OverloadResolutionPriorityAttribute : Attribute
+            {
+                public OverloadResolutionPriorityAttribute(int priority)
+                {
+                }
+
+                [OverloadResolutionPriority(1)]
+                public OverloadResolutionPriorityAttribute(object priority)
+                {
+                }
+
+                public int Priority { get;}
+            }
+            """;
+
+        var verifier = CompileAndVerify(source).VerifyDiagnostics();
+
+        var attr = ((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute");
+        var ctors = attr!.GetMembers(".ctor");
+
+        AssertEx.Equal(["System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Int32 priority)", "System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Object priority)"],
+            ctors.SelectAsArray(ctor => ((MethodSymbol)ctor).ToTestDisplayString()));
+
+        var attrs = ctors.SelectAsArray(ctor => ctor.GetAttributes());
+
+        Assert.Empty(attrs[0]);
+        AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Int32 priority)",
+            attrs[1].Single().AttributeConstructor.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void CycleOnOverloadResolutionPriorityConstructor_03()
+    {
+        var source = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+            public sealed class OverloadResolutionPriorityAttribute : Attribute
+            {
+                [OverloadResolutionPriority(1)]
+                public OverloadResolutionPriorityAttribute(int priority)
+                {
+                    Priority = priority;
+                }
+
+                public required int Priority { get; set; }
+            }
+            """;
+
+        CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+            // (6,6): error CS9035: Required member 'OverloadResolutionPriorityAttribute.Priority' must be set in the object initializer or attribute constructor.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "OverloadResolutionPriority").WithArguments("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute.Priority").WithLocation(6, 6));
+    }
+
+    [Fact]
+    public void CycleOnOverloadResolutionPriorityConstructor_04()
+    {
+        var source = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+            public sealed class OverloadResolutionPriorityAttribute : Attribute
+            {
+                [OtherAttribute()]
+                public OverloadResolutionPriorityAttribute(int priority)
+                {
+                    Priority = priority;
+                }
+
+                public int Priority { get;}
+            }
+
+            class OtherAttribute : Attribute
+            {
+                [OverloadResolutionPriority(1)]
+                public OtherAttribute() {}
+            }
+            """;
+
+        CompileAndVerify(source).VerifyDiagnostics();
     }
 }

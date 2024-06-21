@@ -1622,6 +1622,8 @@ outerDefault:
 
             if (!dynamicResolution)
             {
+                RemoveLowerPriorityMembers(results);
+
                 // The best method of the set of candidate methods is identified. If a single best
                 // method cannot be identified, the method invocation is ambiguous, and a binding-time
                 // error occurs. 
