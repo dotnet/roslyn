@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis
                                                                          elapsedTime: TimeSpan.Zero);
 
         /// <summary>
-        /// A generator state for a generator that has not yet been initialized
-        /// </summary>
-        public static readonly GeneratorState Uninitialized = Empty with { Initialized = false };
-
-        /// <summary>
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
         public GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)

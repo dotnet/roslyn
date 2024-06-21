@@ -564,10 +564,10 @@ class C { }
             var result = Assert.Single(results.Results);
 
             Assert.Null(result.Exception);
-            Assert.Empty(result.Diagnostics);
-            Assert.Empty(result.GeneratedSources);
-            Assert.Empty(result.TrackedSteps);
-            Assert.Empty(result.TrackedOutputSteps);
+            Assert.True(result.Diagnostics.IsDefault);
+            Assert.True(result.GeneratedSources.IsDefault);
+            Assert.Null(result.TrackedSteps);
+            Assert.Null(result.TrackedOutputSteps);
             Assert.Equal(TimeSpan.Zero, result.ElapsedTime);
             Assert.Equal(generator, result.Generator);
         }
