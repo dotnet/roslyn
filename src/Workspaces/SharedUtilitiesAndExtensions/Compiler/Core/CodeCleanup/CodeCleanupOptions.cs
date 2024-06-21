@@ -89,7 +89,7 @@ internal static class CodeCleanupOptionsProviders
         {
             FormattingOptions = options.GetSyntaxFormattingOptions(languageServices),
             SimplifierOptions = options.GetSimplifierOptions(languageServices),
-            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions),
+            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions),
             DocumentFormattingOptions = options.GetDocumentFormattingOptions(fallbackOptions?.DocumentFormattingOptions),
         };
 

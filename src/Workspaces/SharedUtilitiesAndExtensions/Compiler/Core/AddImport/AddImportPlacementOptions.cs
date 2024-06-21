@@ -49,13 +49,13 @@ internal interface AddImportPlacementOptionsProvider
 internal static partial class AddImportPlacementOptionsProviders
 {
 #if !CODE_STYLE
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
-        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions ?? AddImportPlacementOptions.Default.AllowInHiddenRegions, fallbackOptions);
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowInHiddenRegions)
+        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions ?? AddImportPlacementOptions.Default.AllowInHiddenRegions);
 
-    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetAddImportPlacementOptions(document.Project.Services, document.AllowImportsInHiddenRegions(), fallbackOptions);
+        return configOptions.GetAddImportPlacementOptions(document.Project.Services, document.AllowImportsInHiddenRegions());
     }
 
     // Normally we don't allow generation into a hidden region in the file.  However, if we have a
@@ -63,8 +63,5 @@ internal static partial class AddImportPlacementOptionsProviders
     // our edit to their domain appropriate.
     public static bool AllowImportsInHiddenRegions(this Document document)
         => document.Services.GetService<ISpanMappingService>()?.SupportsMappingImportDirectives == true;
-
-    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetAddImportPlacementOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

@@ -78,7 +78,7 @@ internal static class AspNetCoreAddPackageCodeAction
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        var addImportOptions = await document.GetAddImportPlacementOptionsAsync(AddImportPlacementOptions.Default, cancellationToken).ConfigureAwait(false);
+        var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var service = document.GetRequiredLanguageService<IAddImportsService>();
 

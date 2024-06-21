@@ -672,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     Return updatedSolution
                 End If
 
-                Dim addImportOptions = Await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim addImportOptions = Await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(False)
                 Dim addedCompilationRoot = compilationRoot.AddImportsStatement(newImport, addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation, Simplifier.Annotation)
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity)
             End If

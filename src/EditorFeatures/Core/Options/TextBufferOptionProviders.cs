@@ -69,7 +69,7 @@ internal static class TextBufferOptionProviders
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var configOptions = editorOptions.ToAnalyzerConfigOptions(fallbackOptions);
-        return configOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions, fallbackOptions: null);
+        return configOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions);
     }
 
     public static CodeCleanupOptions GetCodeCleanupOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, StructuredAnalyzerConfigOptions fallbackOptions, LanguageServices languageServices, bool explicitFormat, bool allowImportsInHiddenRegions)

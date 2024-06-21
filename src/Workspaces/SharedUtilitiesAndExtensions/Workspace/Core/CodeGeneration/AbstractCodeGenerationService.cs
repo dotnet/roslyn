@@ -259,7 +259,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 #if !CODE_STYLE
         if (context.Context.AddImports)
         {
-            var addImportsOptions = await newDocument.GetAddImportPlacementOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportsOptions = await newDocument.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
             newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportsOptions, cancellationToken).ConfigureAwait(false);
         }
 #endif

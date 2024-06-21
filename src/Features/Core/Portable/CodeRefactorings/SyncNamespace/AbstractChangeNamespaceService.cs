@@ -741,7 +741,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
                 }
             }
 
-            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Use a dummy import node to figure out which container the new import will be added to.
             var container = addImportService.GetImportContainer(root, refNode, dummyImport, addImportsOptions);
