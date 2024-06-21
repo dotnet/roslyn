@@ -972,6 +972,11 @@
         <target state="translated">init-Zugriffsmethoden können nicht als schreibgeschützt markiert werden. Markieren Sie stattdessen "{0}" als schreibgeschützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">Auf Elemente eines Inlinearraytyps kann nur mit einem einzelnen Argument zugegriffen werden, das implizit in "int", "System.Index" oder "System.Range" konvertierbar ist.</target>

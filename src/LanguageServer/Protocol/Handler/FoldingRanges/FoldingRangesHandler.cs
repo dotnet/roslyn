@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     BlockTypes.Comment => FoldingRangeKind.Comment,
                     BlockTypes.Imports => FoldingRangeKind.Imports,
                     BlockTypes.PreprocessorRegion => FoldingRangeKind.Region,
+                    BlockTypes.Member => VSFoldingRangeKind.Implementation,
                     _ => null,
                 };
 
