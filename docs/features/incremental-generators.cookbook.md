@@ -701,13 +701,13 @@ sealed class {{AttributeClassName}} : Attribute
             transform: static (ctx, cancellationToken) =>
             {
                 ISymbol classSymbol = ctx.TargetSymbol;
-
+                
                 return new ClassModel(
                     classSymbol.Name,
                     classSymbol.ContainingNamespace.ToDisplayString(),
-                    GetInterfaceModels(classSymbol)
+                    GetInterfaceModels(ctx.Attributes[0])
                     );
-            }).Where(m => m is not null);
+            });
 
         context.RegisterSourceOutput(provider, static (context, classModel) =>
         {
@@ -738,34 +738,37 @@ sealed class {{AttributeClassName}} : Attribute
         });
     }
 
-    private static EquatableList<InterfaceModel> GetInterfaceModels(ISymbol classSymbol)
+    private static EquatableList<InterfaceModel> GetInterfaceModels(AttributeData attribute)
     {
         EquatableList<InterfaceModel> ret = [];
 
-        AttributeData attribute = classSymbol.GetAttributes().First(a => a.AttributeClass!.Name == AttributeClassName);
-        // A separate analyzer should error on using a non-interface type in this list.
-        INamedTypeSymbol[] interfaceSymbols = attribute.ConstructorArguments[0].Values.Select(x => x.Type).Where(t => t is { TypeKind: TypeKind.Interface }).ToArray()!;
-        foreach (INamedTypeSymbol interfaceSymbol in interfaceSymbols)
+        if (attribute.ConstructorArguments.Length == 0)
+            return ret;
+
+        foreach(TypedConstant constructorArgumentValue in attribute.ConstructorArguments[0].Values)
         {
-            EquatableList<string> properties = new();
-
-            foreach (IPropertySymbol interfaceProperty in interfaceSymbol
-                .GetMembers()
-                .OfType<IPropertySymbol>())
+            if (constructorArgumentValue.Value is not null and INamedTypeSymbol interfaceSymbol)
             {
-                string type = interfaceProperty.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                EquatableList<string> properties = new();
 
-                //Check if property has a setter
-                string setter = interfaceProperty.SetMethod is not null
-                    ? "set; "
-                    : string.Empty;
+                foreach (IPropertySymbol interfaceProperty in interfaceSymbol
+                    .GetMembers()
+                    .OfType<IPropertySymbol>())
+                {
+                    string type = interfaceProperty.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-                properties.Add($$"""
+                    //Check if property has a setter
+                    string setter = interfaceProperty.SetMethod is not null
+                        ? "set; "
+                        : string.Empty;
+
+                    properties.Add($$"""
                             public {{type}} {{interfaceProperty.Name}} { get; {{setter}}}
                         """);
-            }
+                }
 
-            ret.Add(new InterfaceModel(interfaceSymbol.ToDisplayString(), properties));
+                ret.Add(new InterfaceModel(interfaceSymbol.ToDisplayString(), properties));
+            }
         }
 
         return ret;
