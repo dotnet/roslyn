@@ -626,6 +626,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeInterceptsLocationAttribute(arguments);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+            {
+                if (this.OverriddenMethod is not null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt);
+                }
+
+                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;

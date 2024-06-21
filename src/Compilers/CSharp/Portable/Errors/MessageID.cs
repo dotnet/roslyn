@@ -290,6 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeaturePartialProperties = MessageBase + 12845,
         IDS_FeatureFieldAndValueKeywords = MessageBase + 12846,
 
+        // PROTOTYPE: condense
+        IDS_OverloadResolutionPriority = MessageBase + 12900,
+
         IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
     }
 
@@ -480,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureAllowsRefStructConstraint:
                 case MessageID.IDS_FeaturePartialProperties:
                 case MessageID.IDS_FeatureFieldAndValueKeywords:
+                case MessageID.IDS_OverloadResolutionPriority:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.

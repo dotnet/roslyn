@@ -1733,7 +1733,6 @@ outerDefault:
                 var containingType = result.LeastOverriddenMember.ContainingType;
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
-                    // PROTOTYPE: LeastOverriddenMember or Member? Also adjust assert in the else
                     var previousOverloadResolutionPriority = previousResults.First().LeastOverriddenMember.GetOverloadResolutionPriority();
                     var currentOverloadResolutionPriority = result.LeastOverriddenMember.GetOverloadResolutionPriority();
 
@@ -1768,7 +1767,7 @@ outerDefault:
             results.Clear();
             foreach (var (_, resultsForType) in resultsByContainingType)
             {
-                resultsForType.AddRangeTo(results);
+                results.AddRange(resultsForType);
             }
             resultsByContainingType.Free();
         }
