@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Specialized;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -110,8 +109,6 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
             _smartRenameViewModel.IsSuggestionsPanelCollapsed = !_smartRenameViewModel.IsSuggestionsPanelCollapsed;
             if (_smartRenameViewModel.IsSuggestionsPanelExpanded)
             {
-                _smartRenameViewModel._cancellationTokenSource.Cancel();
-                _smartRenameViewModel._cancellationTokenSource = new CancellationTokenSource();
                 _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
             }
         }

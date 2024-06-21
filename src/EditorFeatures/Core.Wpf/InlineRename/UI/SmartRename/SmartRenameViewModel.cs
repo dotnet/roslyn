@@ -29,7 +29,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private readonly IGlobalOptionService _globalOptionService;
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-    public CancellationTokenSource _cancellationTokenSource = new();
+    private CancellationTokenSource _cancellationTokenSource = new();
 
     private Task _getSuggestionsTask = Task.CompletedTask;
 
@@ -150,7 +150,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             {
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
-
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = new CancellationTokenSource();
             _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
     }
