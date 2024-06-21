@@ -972,6 +972,11 @@
         <target state="translated">Los descriptores de acceso "init" no se pueden marcar como "readonly". Marque en su lugar "{0}" como readOnly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">Solo se puede tener acceso a los elementos de un tipo de matriz insertada con un único argumento que se pueda convertir implícitamente en "int", "System.Index" o "System.Range".</target>
