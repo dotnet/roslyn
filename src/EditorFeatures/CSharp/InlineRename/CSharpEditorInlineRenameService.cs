@@ -10,9 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename;
@@ -29,6 +30,7 @@ internal sealed class CSharpEditorInlineRenameService(
         var seen = PooledHashSet<TextSpan>.GetInstance();
         var definitions = ArrayBuilder<string>.GetInstance();
         var references = ArrayBuilder<string>.GetInstance();
+        var docComments = ArrayBuilder<string>.GetInstance();
 
         foreach (var renameDefinition in inlineRenameInfo.DefinitionLocations)
         {
@@ -40,6 +42,20 @@ internal sealed class CSharpEditorInlineRenameService(
             if (documentText is null)
             {
                 continue;
+            }
+
+            var symbolService = renameDefinition.Document.GetLanguageService<IGoToDefinitionSymbolService>();
+            if (symbolService is not null)
+            {
+                var textSpan = inlineRenameInfo.TriggerSpan;
+                var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+                    renameDefinition.Document, textSpan.Start, cancellationToken)
+                    .ConfigureAwait(true);
+                var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
+                if (!string.IsNullOrWhiteSpace(docComment))
+                {
+                    docComments.Add(docComment!);
+                }
             }
 
             AddSpanOfInterest(documentText, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
@@ -61,9 +77,19 @@ internal sealed class CSharpEditorInlineRenameService(
             AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
         }
 
-        var context = ImmutableDictionary<string, ImmutableArray<string>>.Empty
-            .Add("definition", definitions.ToImmutableAndFree())
-            .Add("reference", references.ToImmutableAndFree());
+        var context = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
+        if (!definitions.IsEmpty)
+        {
+            context = context.Add("definition", definitions.ToImmutableAndFree());
+        }
+        if (!references.IsEmpty)
+        {
+            context = context.Add("reference", references.ToImmutableAndFree());
+        }
+        if (!docComments.IsEmpty)
+        {
+            context = context.Add("documentation", docComments.ToImmutableAndFree());
+        }
         return context;
 
         void AddSpanOfInterest(SourceText documentText, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<string> resultBuilder)

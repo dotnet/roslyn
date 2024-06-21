@@ -164,26 +164,12 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private async Task GetSuggestionsTaskAsync(CancellationToken cancellationToken)
     {
         var document = this.BaseViewModel.Session.TriggerDocument;
+        _ = document.GetLanguageService<IGoToDefinitionSymbolService>();
         var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
         var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
             .ConfigureAwait(true);
         var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
             .ConfigureAwait(true);
-
-        var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-        if (symbolService is not null)
-        {
-            var textSpan = this.BaseViewModel.Session.RenameInfo.TriggerSpan;
-            var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                document, textSpan.Start, cancellationToken)
-                .ConfigureAwait(true);
-            var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
-            if (!string.IsNullOrWhiteSpace(docComment))
-            {
-                context = context.Add("documentation", ImmutableArray<string>.Empty.Add(docComment!));
-            }
-        }
-
         var smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
             context
             .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
