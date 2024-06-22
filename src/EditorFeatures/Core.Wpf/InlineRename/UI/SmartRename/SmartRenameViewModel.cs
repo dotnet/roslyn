@@ -29,7 +29,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private readonly IGlobalOptionService _globalOptionService;
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-    private CancellationTokenSource _cancellationTokenSource = new();
+    private CancellationTokenSource? _cancellationTokenSource;
 
     private Task _getSuggestionsTask = Task.CompletedTask;
 
@@ -150,7 +150,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             {
                 _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
             }
-            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
             _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
@@ -205,7 +205,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Cancel()
     {
-        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource?.Cancel();
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnCancel();
         PostTelemetry(isCommit: false);
@@ -223,7 +223,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
         BaseViewModel.PropertyChanged -= IdentifierTextPropertyChanged;
         _smartRenameSession.Dispose();
-        _cancellationTokenSource.Dispose();
+        _cancellationTokenSource?.Dispose();
     }
 
     private void NotifyPropertyChanged([CallerMemberName] string? name = null)
@@ -233,7 +233,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
         {
-            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource?.Cancel();
         }
     }
 }
