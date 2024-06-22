@@ -778,10 +778,21 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
 
         diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
-        return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
+
+        var differenceOptions = new StringDifferenceOptions()
         {
             DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
-        });
+        };
+
+        var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
+        var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
+        var useSnapshots = oldTextSnapshot != null && newTextSnapshot != null;
+
+        var diffResult = useSnapshots
+            ? diffService.DiffSnapshotSpans(oldTextSnapshot!.GetFullSpan(), newTextSnapshot!.GetFullSpan(), differenceOptions)
+            : diffService.DiffStrings(oldText.ToString(), newText.ToString(), differenceOptions);
+
+        return diffResult;
     }
 
     private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
