@@ -70,7 +70,8 @@ internal partial class InlineHintsDataTaggerProvider(
                 option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
                 option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
                 option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
-                option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation)));
+                option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation) ||
+                option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)));
     }
 
     protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)

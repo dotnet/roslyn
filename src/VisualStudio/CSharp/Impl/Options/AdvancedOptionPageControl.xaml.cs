@@ -192,6 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForVariablesWithInferredTypes, InlineHintsOptionsStorage.ForImplicitVariableTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptionsStorage.ForLambdaParameterTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptionsStorage.ForImplicitObjectCreation, LanguageNames.CSharp);
+            BindToOption(ShowHintsForCollectionExpressions, InlineHintsOptionsStorage.ForCollectionExpressions, LanguageNames.CSharp);
 
             // Inheritance Margin
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
@@ -244,6 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             ShowHintsForVariablesWithInferredTypes.IsEnabled = enabledForTypes;
             ShowHintsForLambdaParameterTypes.IsEnabled = enabledForTypes;
             ShowHintsForImplicitObjectCreation.IsEnabled = enabledForTypes;
+            ShowHintsForCollectionExpressions.IsEnabled = enabledForTypes;
         }
 
         private void DisplayInlineParameterNameHints_Checked(object sender, RoutedEventArgs e)
