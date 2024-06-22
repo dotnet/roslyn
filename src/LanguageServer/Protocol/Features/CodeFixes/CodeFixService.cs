@@ -989,7 +989,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
-                => new(attribute.DocumentKinds, attribute.DocumentExtensions);
+        {
+            var kinds = new TextDocumentKind[attribute.DocumentKinds.Length];
+            for (var i = 0; i < kinds.Length; i++)
+            {
+                var kindString = attribute.DocumentKinds[i];
+                if (!Enum.TryParse(kindString, out TextDocumentKind kind))
+                    kind = 0;
+
+                kinds[i] = kind;
+            }
+
+            return new(kinds, attribute.DocumentExtensions);
+        }
 
         private sealed class FixerComparer : IComparer<CodeFixProvider>
         {
