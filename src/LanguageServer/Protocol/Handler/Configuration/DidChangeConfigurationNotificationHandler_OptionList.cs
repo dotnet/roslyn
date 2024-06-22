@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             InlineHintsOptionsStorage.ForImplicitVariableTypes,
             InlineHintsOptionsStorage.ForLambdaParameterTypes,
             InlineHintsOptionsStorage.ForImplicitObjectCreation,
+            InlineHintsOptionsStorage.ForCollectionExpressions,
             FormattingOptions2.TabSize,
             FormattingOptions2.IndentationSize,
             FormattingOptions2.UseTabs,

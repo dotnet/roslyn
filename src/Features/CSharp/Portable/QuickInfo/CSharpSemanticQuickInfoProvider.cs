@@ -168,6 +168,15 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
+        if (symbol.MetadataToken != 0)
+        {
+            OnTheFlyDocsLogger.LogHoveredMetadataSymbol();
+        }
+        else
+        {
+            OnTheFlyDocsLogger.LogHoveredSourceSymbol();
+        }
+
         if (symbol.DeclaringSyntaxReferences.Length == 0)
         {
             return null;

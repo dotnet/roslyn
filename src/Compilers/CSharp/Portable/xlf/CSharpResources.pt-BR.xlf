@@ -1607,11 +1607,6 @@
         <target state="translated">O recurso de 'verificação nula de parâmetro' não tem suporte.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Ambiguidade entre as formas expandida e normal do parâmetro de coleção de params que não é uma matriz de '{0}', o único argumento correspondente tem o tipo 'dynamic'. Considere a conversão do argumento dinâmico.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">O construtor '{0}' deixa o membro obrigatório '{1}' não inicializado.</target>
