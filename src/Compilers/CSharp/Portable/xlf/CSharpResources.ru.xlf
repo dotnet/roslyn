@@ -972,6 +972,11 @@
         <target state="translated">Методы доступа "init" не могут быть помечены как доступные только для чтения. Вместо них пометьте "{0}" как доступные только для чтения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">К элементам типа встроенного массива можно получить доступ только с одним аргументом, неявно преобразуемым в «int», «System.Index» или «System.Range».</target>
@@ -1600,11 +1605,6 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">Функция "проверка значений NULL параметров" не поддерживается.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Неоднозначность между расширенной и нормальной формами параметра коллекции params, отличных от массива, "{0}", единственный соответствующий аргумент имеет тип "dynamic". Рассмотрите возможность использования динамического аргумента.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">

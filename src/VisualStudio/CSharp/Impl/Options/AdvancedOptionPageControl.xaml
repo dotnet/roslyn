@@ -375,6 +375,9 @@
                         <CheckBox x:Uid="ShowHintsForImplicitObjectCreation"
                                   x:Name="ShowHintsForImplicitObjectCreation"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_implicit_object_creation}" />
+                        <CheckBox x:Uid="ShowHintsForCollectionExpressions"
+                                  x:Name="ShowHintsForCollectionExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_collection_expressions}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

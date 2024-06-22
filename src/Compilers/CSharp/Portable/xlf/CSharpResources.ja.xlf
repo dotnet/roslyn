@@ -972,6 +972,11 @@
         <target state="translated">'init' アクセサーを 'readonly' としてマークできません。代わりに '{0}' を readonly としてマークします。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">インライン配列型の要素にアクセスできるのは、暗黙的に 'int'、'System.Index'、または 'System.Range' に変換できる 1 つの引数を使用する場合のみです。</target>
@@ -1600,11 +1605,6 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">'parameter null-checking' 機能はサポートされていません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">'{0}' の非配列 params コレクション パラメーターの展開形式と通常の形式の間のあいまいさです。対応する引数の型は 'dynamic' のみです。動的引数のキャストを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">

@@ -1362,6 +1362,11 @@
         <target state="translated">Açıklamalar ve ön işlemci bölgeleri için kılavuzları göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_collection_expressions">
+        <source>Show hints for collection expressions</source>
+        <target state="new">Show hints for collection expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">Diğer her şey için ipuçlarını göster</target>

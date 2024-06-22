@@ -330,6 +330,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_inlay_hints_for_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints")},
         {"csharp_enable_inlay_hints_for_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints")},
         {"csharp_enable_inlay_hints_for_implicit_object_creation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation")},
+        {"csharp_enable_inlay_hints_for_collection_expressions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForCollectionExpressions")},
         {"csharp_enable_inlay_hints_for_implicit_variable_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitVariableTypes")},
         {"dotnet_enable_inlay_hints_for_indexer_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForArrayIndexers")},
         {"csharp_enable_inlay_hints_for_lambda_parameter_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForLambdaParameterTypes")},

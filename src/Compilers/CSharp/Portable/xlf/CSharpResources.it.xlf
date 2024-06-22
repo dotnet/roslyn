@@ -972,6 +972,11 @@
         <target state="translated">Non è possibile contrassegnare le funzioni di accesso 'init' come 'readonly'. Contrassegnare '{0}' come readonly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">È possibile accedere agli elementi di un tipo matrice inline solo con un singolo argomento convertibile in modo implicito in 'int', 'System.Index' o 'System.Range'.</target>
@@ -1600,11 +1605,6 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">La funzionalità 'parameter null-checking' non è supportata.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Ambiguità tra forme espanse e normali del parametro di raccolta parametri non di matrice di '{0}'. L'unico argomento corrispondente ha il tipo 'dynamic'. Provare a eseguire il cast dell'argomento dinamico.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">

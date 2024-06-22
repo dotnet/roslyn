@@ -972,6 +972,11 @@
         <target state="translated">init-Zugriffsmethoden können nicht als schreibgeschützt markiert werden. Markieren Sie stattdessen "{0}" als schreibgeschützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">Auf Elemente eines Inlinearraytyps kann nur mit einem einzelnen Argument zugegriffen werden, das implizit in "int", "System.Index" oder "System.Range" konvertierbar ist.</target>
@@ -1600,11 +1605,6 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">Das "Parameter null-checking"-Feature wird nicht unterstützt.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Mehrdeutigkeit zwischen erweiterten und normalen Formen des nicht arraybasierten Params-Auflistungsparameter von "{0}". Das einzige entsprechende Argument hat den Typ "dynamic". Erwägen Sie die Umwandlung des dynamischen Arguments.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
