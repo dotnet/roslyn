@@ -40,7 +40,6 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private const string GitHubAccountStatusIsCopilotEntitled = "3DE3FA6E-91B2-46C1-9E9E-DD04975BB890";
 
     private const string CopilotOptionNamePrefix = "Microsoft.VisualStudio.Conversations";
-    private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
     private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
     private const string CopilotOnTheFlyDocsOptionName = "EnableCSharpOnTheFlyDocs";
 
@@ -79,9 +78,6 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
         return settingManager.TryGetValue($"{CopilotOptionNamePrefix}.{optionName}", out int isEnabled) == GetValueResult.Success
             && isEnabled == 1;
     }
-
-    public Task<bool> IsCodeAnalysisOptionEnabledAsync()
-        => IsCopilotOptionEnabledAsync(CopilotCodeAnalysisOptionName);
 
     public Task<bool> IsRefineOptionEnabledAsync()
         => IsCopilotOptionEnabledAsync(CopilotRefineOptionName);

@@ -27,11 +27,6 @@
         <target state="translated">Anwenden von "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_Copilot_suggestion">
-        <source>Apply Copilot suggestion</source>
-        <target state="translated">Copilot-Vorschlag anwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Leerzeile nach Doppelpunkt in Konstruktorinitialisierereinstellungen anwenden (experimentell)</target>
@@ -250,11 +245,6 @@
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
         <target state="translated">Warnung: Durch das Inlining einer temporären Variablen kann sich die Codebedeutung ändern.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
-        <source>Warning: AI suggestions might be inaccurate.</source>
-        <target state="translated">Warnung: KI-Vorschläge sind möglicherweise ungenau.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">

@@ -27,11 +27,6 @@
         <target state="translated">Zastosuj „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_Copilot_suggestion">
-        <source>Apply Copilot suggestion</source>
-        <target state="translated">Zastosuj sugestię funkcji Copilot</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Zastosuj pusty wiersz po dwukropku w preferencjach inicjatora konstruktora (eksperymentalne)</target>
@@ -250,11 +245,6 @@
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
         <target state="translated">Ostrzeżenie: śródwierszowe użycie zmiennej tymczasowej może zmienić znaczenie kodu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
-        <source>Warning: AI suggestions might be inaccurate.</source>
-        <target state="translated">Uwaga: sugestie sztucznej inteligencji mogą być niedokładne.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">

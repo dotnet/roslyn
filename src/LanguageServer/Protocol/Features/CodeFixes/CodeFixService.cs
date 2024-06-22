@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -113,9 +112,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             }
 
-            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
-            allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
-
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
 
@@ -200,9 +196,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
             }
 
-            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
-            diagnostics = diagnostics.AddRange(copilotDiagnostics);
-
             if (diagnostics.IsEmpty)
                 yield break;
 
@@ -241,18 +234,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
             }
-        }
-
-        private static async Task<ImmutableArray<DiagnosticData>> GetCopilotDiagnosticsAsync(
-            TextDocument document,
-            TextSpan range,
-            CodeActionRequestPriority? priority,
-            CancellationToken cancellationToken)
-        {
-            if (priority is null or CodeActionRequestPriority.Low)
-                return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
-
-            return [];
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(

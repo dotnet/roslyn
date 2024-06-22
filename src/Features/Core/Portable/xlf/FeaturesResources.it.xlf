@@ -320,11 +320,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Le classi di base contengono membri non implementati inaccessibili</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">Analisi Copilot predefinita</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">Riferimenti per C# e Visual Basic</target>

@@ -3228,9 +3228,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Fix_All_0" xml:space="preserve">
     <value>Fix All: {0}</value>
   </data>
-  <data name="Built_in_Copilot_analysis" xml:space="preserve">
-    <value>Built-in Copilot analysis</value>
-  </data>
   <data name="Dismiss" xml:space="preserve">
     <value>Dismiss</value>
   </data>

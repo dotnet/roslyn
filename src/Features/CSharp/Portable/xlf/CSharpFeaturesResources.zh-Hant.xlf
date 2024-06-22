@@ -27,11 +27,6 @@
         <target state="translated">套用 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_Copilot_suggestion">
-        <source>Apply Copilot suggestion</source>
-        <target state="translated">套用 Copilot 建議</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">套用在建構函式初始設定式中的冒號後面加上空白行喜好設定 (實驗性)</target>
@@ -250,11 +245,6 @@
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
         <target state="translated">警告: 內嵌臨時變數可能會變更程式碼含義。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
-        <source>Warning: AI suggestions might be inaccurate.</source>
-        <target state="translated">警告: AI 建議可能不正確。</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">

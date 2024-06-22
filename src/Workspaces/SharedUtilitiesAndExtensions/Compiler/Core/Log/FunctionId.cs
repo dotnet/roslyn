@@ -625,7 +625,7 @@ internal enum FunctionId
     SemanticSearch_QueryExecution = 760,
 
     // 800-850 for Copilot performance logging.
-    Copilot_Suggestion_Dismissed = 800,
+    // obselete: Copilot_Suggestion_Dismissed = 800,
     Copilot_On_The_Fly_Docs_Showed_Link = 810,
     Copilot_On_The_Fly_Docs_Loading_State_Entered = 811,
     Copilot_On_The_Fly_Docs_Results_Displayed = 812,

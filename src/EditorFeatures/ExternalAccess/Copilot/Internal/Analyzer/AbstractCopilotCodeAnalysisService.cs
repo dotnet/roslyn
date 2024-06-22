@@ -2,17 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer;
 
@@ -24,167 +19,45 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer;
 /// Additionally, it performs all the option checks and Copilot service availability checks
 /// to determine if we should skip analysis or not.
 /// </summary>
-internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher diagnosticsRefresher) : ICopilotCodeAnalysisService
+internal abstract class AbstractCopilotCodeAnalysisService : ICopilotCodeAnalysisService
 {
-    // The _diagnosticsCache is a cache for computed diagnostics via `AnalyzeDocumentAsync`.
-    // Each document maps to a dictionary, which in tern maps a prompt title to a list of existing Diagnostics and a boolean flag.
-    // The list of diagnostics represents the diagnostics computed for the document under the given prompt title,
-    // the boolean flag indicates whether the diagnostics result is for the entire document.
-    // This cache is used to avoid duplicate analysis calls by storing the computed diagnostics for each document and prompt title.
-    private readonly ConditionalWeakTable<Document, ConcurrentDictionary<string, (ImmutableArray<Diagnostic> Diagnostics, bool IsCompleteResult)>> _diagnosticsCache = new();
+    /// <summary>
+    /// Guid for UI context that is set from Copilot when the package is initialized
+    /// </summary>
+    private const string CopilotHasLoadedGuid = "871c3e1c-e58c-4ce9-b6a7-26600555739a";
 
-    protected abstract Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken);
-    protected abstract Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken);
-    protected abstract Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken);
-    protected abstract Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken);
-    protected abstract Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
-    protected abstract Task<string> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
-    protected abstract Task<bool> IsAnyExclusionCoreAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// Guid for UI Context that is set from Copilot when sign in related UI contexts have been set properly. Used to determine when UI context status is final
+    /// for a set of operations. When this UI context is not active, the signed in and entitled contexts values may not be correct.
+    /// </summary>
+    private const string GitHubAccountStatusDetermined = "3049be7e-71ee-4045-a510-f8ee1a967723";
 
-    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
-        => IsAvailableCoreAsync(cancellationToken);
+    /// <summary>
+    /// Guid for UI context that is set from Copilot when we detect a GitHub account is signed in.
+    /// </summary>
+    private const string GitHubAccountStatusSignedIn = "ef3ebbb7-511d-472c-ae4b-6af1bb44f378";
 
-    public async Task<ImmutableArray<string>> GetAvailablePromptTitlesAsync(Document document, CancellationToken cancellationToken)
-    {
-        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service)
-            return [];
+    /// <summary>
+    /// Guid for UI context that is set from VS Identity Service when we detect that a signed in GitHub account is entitled to access Copilot.
+    /// </summary>
+    private const string GitHubAccountStatusIsCopilotEntitled = "3DE3FA6E-91B2-46C1-9E9E-DD04975BB890";
 
-        if (!await service.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
-            return [];
+    private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
+    private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
+    private static readonly UIContext s_gitHubAccountStatusIsCopilotEntitledUIContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusIsCopilotEntitled));
+    private static readonly UIContext s_gitHubAccountStatusSignedInUIContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusSignedIn));
 
-        return await GetAvailablePromptTitlesCoreAsync(document, cancellationToken).ConfigureAwait(false);
-    }
+    protected static bool IsCopilotSignedIn
+        => s_copilotHasLoadedUIContext.IsActive
+        && s_gitHubAccountStatusDeterminedContext.IsActive
+        && s_gitHubAccountStatusSignedInUIContext.IsActive
+        && s_gitHubAccountStatusIsCopilotEntitledUIContext.IsActive;
 
-    private static async Task<bool> ShouldSkipAnalysisAsync(Document document, CancellationToken cancellationToken)
-    {
-        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service)
-            return true;
+    public abstract bool IsCopilotAvailable { get; }
 
-        if (!await service.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
-            return true;
+    public abstract Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
 
-        if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
-            return true;
+    public abstract Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
 
-        return false;
-    }
-
-    public async Task AnalyzeDocumentAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
-    {
-        if (await ShouldSkipAnalysisAsync(document, cancellationToken).ConfigureAwait(false))
-            return;
-
-        if (FullDocumentDiagnosticsCached(document, promptTitle))
-            return;
-
-        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return;
-
-        var isFullDocumentAnalysis = !span.HasValue;
-        var diagnostics = await AnalyzeDocumentCoreAsync(document, span, promptTitle, cancellationToken).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        CacheAndRefreshDiagnosticsIfNeeded(document, promptTitle, diagnostics, isFullDocumentAnalysis);
-    }
-
-    private bool FullDocumentDiagnosticsCached(Document document, string promptTitle)
-        => TryGetDiagnosticsFromCache(document, promptTitle, out _, out var isCompleteResult) && isCompleteResult;
-
-    private bool TryGetDiagnosticsFromCache(Document document, string promptTitle, out ImmutableArray<Diagnostic> diagnostics, out bool isCompleteResult)
-    {
-        if (_diagnosticsCache.TryGetValue(document, out var existingDiagnosticsMap)
-            && existingDiagnosticsMap.TryGetValue(promptTitle, out var value))
-        {
-            diagnostics = value.Diagnostics;
-            isCompleteResult = value.IsCompleteResult;
-            return true;
-        }
-
-        diagnostics = [];
-        isCompleteResult = false;
-        return false;
-    }
-
-    private void CacheAndRefreshDiagnosticsIfNeeded(Document document, string promptTitle, ImmutableArray<Diagnostic> diagnostics, bool isCompleteResult)
-    {
-        lock (_diagnosticsCache)
-        {
-            // Nothing to be updated if we have already cached complete diagnostic result.
-            if (FullDocumentDiagnosticsCached(document, promptTitle))
-                return;
-
-            // No cancellation from here.
-            var diagnosticsMap = _diagnosticsCache.GetOrCreateValue(document);
-            diagnosticsMap[promptTitle] = (diagnostics, isCompleteResult);
-        }
-
-        // For LSP pull diagnostics, request a diagnostic workspace refresh.
-        // We will include the cached copilot diagnostics from this service as part of that pull request.
-        diagnosticsRefresher.RequestWorkspaceRefresh();
-    }
-
-    public async Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, TextSpan? span, ImmutableArray<string> promptTitles, CancellationToken cancellationToken)
-    {
-        if (await ShouldSkipAnalysisAsync(document, cancellationToken).ConfigureAwait(false))
-            return [];
-
-        using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
-
-        foreach (var promptTitle in promptTitles)
-        {
-            // First, we try to fetch the diagnostics from our local cache.
-            // If we haven't cached the diagnostics locally, then we fetch the cached diagnostics
-            // from the core copilot analyzer. Subsequently, we update our local cache to store
-            // these diagnostics so that future diagnostic requests can be served quickly.
-            // We also raise diagnostic refresh requests for all our diagnostic clients when
-            // updating our local diagnostics cache.
-
-            if (TryGetDiagnosticsFromCache(document, promptTitle, out var existingDiagnostics, out _))
-            {
-                diagnostics.AddRange(existingDiagnostics);
-            }
-            else
-            {
-                var cachedDiagnostics = await GetCachedDiagnosticsCoreAsync(document, promptTitle, cancellationToken).ConfigureAwait(false);
-                diagnostics.AddRange(cachedDiagnostics);
-                CacheAndRefreshDiagnosticsIfNeeded(document, promptTitle, cachedDiagnostics, isCompleteResult: false);
-            }
-        }
-
-        if (span.HasValue)
-            return await GetDiagnosticsIntersectWithSpanAsync(document, diagnostics, span.Value, cancellationToken).ConfigureAwait(false);
-
-        return diagnostics.ToImmutable();
-    }
-
-    protected virtual Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(diagnostics.WhereAsArray((diagnostic, _) => diagnostic.Location.SourceSpan.IntersectsWith(span), state: (object)null));
-    }
-
-    public async Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
-    {
-        if (oldDocument.GetLanguageService<ICopilotOptionsService>() is not { } service)
-            return;
-
-        if (await service.IsRefineOptionEnabledAsync().ConfigureAwait(false))
-            await StartRefinementSessionCoreAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
-    {
-        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return string.Empty;
-
-        return await GetOnTheFlyDocsCoreAsync(symbolSignature, declarationCode, language, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken)
-    {
-        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return false;
-
-        return await IsAnyExclusionCoreAsync(cancellationToken).ConfigureAwait(false);
-    }
+    public abstract Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken);
 }

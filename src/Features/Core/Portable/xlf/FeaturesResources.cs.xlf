@@ -320,11 +320,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Základní třídy obsahují nepřístupné nenaimplementované členy.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">Integrovaná analýza Copilot</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">Reference pro C# a Visual Basic</target>

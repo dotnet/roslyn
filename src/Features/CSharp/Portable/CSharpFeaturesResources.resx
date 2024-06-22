@@ -612,14 +612,8 @@
   <data name="Apply_0" xml:space="preserve">
     <value>Apply '{0}'</value>
   </data>
-  <data name="Apply_Copilot_suggestion" xml:space="preserve">
-    <value>Apply Copilot suggestion</value>
-  </data>
   <data name="Apply_fix_from" xml:space="preserve">
     <value>Apply fix from</value>
-  </data>
-  <data name="Warning_colon_AI_suggestions_might_be_inaccurate" xml:space="preserve">
-    <value>Warning: AI suggestions might be inaccurate.</value>
   </data>
   <data name="do_while_loop" xml:space="preserve">
     <value>do-while loop</value>

@@ -141,7 +141,7 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         var position = context.Position;
 
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-            !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            !copilotService.IsCopilotAvailable)
         {
             return null;
         }
