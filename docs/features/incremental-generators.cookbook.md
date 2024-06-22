@@ -701,7 +701,7 @@ sealed class {{AttributeClassName}} : Attribute
             transform: static (ctx, cancellationToken) =>
             {
                 ISymbol classSymbol = ctx.TargetSymbol;
-                
+
                 return new ClassModel(
                     classSymbol.Name,
                     classSymbol.ContainingNamespace.ToDisplayString(),
@@ -747,7 +747,7 @@ sealed class {{AttributeClassName}} : Attribute
 
         foreach(TypedConstant constructorArgumentValue in attribute.ConstructorArguments[0].Values)
         {
-            if (constructorArgumentValue.Value is not null and INamedTypeSymbol interfaceSymbol)
+            if (constructorArgumentValue.Value is INamedTypeSymbol interfaceSymbol && interfaceSymbol.TypeKind == TypeKind.Interface)
             {
                 EquatableList<string> properties = new();
 
