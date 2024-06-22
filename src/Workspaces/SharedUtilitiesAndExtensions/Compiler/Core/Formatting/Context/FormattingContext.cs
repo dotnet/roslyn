@@ -28,15 +28,15 @@ internal partial class FormattingContext
 
     // interval tree for inseparable regions (Span to indentation data)
     // due to dependencies, each region defined in the data can't be formatted independently.
-    private readonly ContextIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector> _relativeIndentationTree;
+    private readonly ContextMutableIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector> _relativeIndentationTree;
 
     // interval tree for each operations.
     // given a span in the tree, it returns data (indentation, anchor delta, etc) to be applied for the span
-    private readonly ContextIntervalTree<IndentationData, FormattingContextIntervalIntrospector> _indentationTree;
-    private readonly ContextIntervalTree<SuppressWrappingData, SuppressIntervalIntrospector> _suppressWrappingTree;
-    private readonly ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector> _suppressSpacingTree;
-    private readonly ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector> _suppressFormattingTree;
-    private readonly ContextIntervalTree<AnchorData, FormattingContextIntervalIntrospector> _anchorTree;
+    private readonly ContextMutableIntervalTree<IndentationData, FormattingContextIntervalIntrospector> _indentationTree;
+    private readonly ContextMutableIntervalTree<SuppressWrappingData, SuppressIntervalIntrospector> _suppressWrappingTree;
+    private readonly ContextMutableIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector> _suppressSpacingTree;
+    private readonly ContextMutableIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector> _suppressFormattingTree;
+    private readonly ContextMutableIntervalTree<AnchorData, FormattingContextIntervalIntrospector> _anchorTree;
 
     // anchor token to anchor data map.
     // unlike anchorTree that would return anchor data for given span in the tree, it will return
@@ -62,13 +62,13 @@ internal partial class FormattingContext
         _engine = engine;
         _tokenStream = tokenStream;
 
-        _relativeIndentationTree = new ContextIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
+        _relativeIndentationTree = new ContextMutableIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 
-        _indentationTree = new ContextIntervalTree<IndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
-        _suppressWrappingTree = new ContextIntervalTree<SuppressWrappingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
-        _suppressSpacingTree = new ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
-        _suppressFormattingTree = new ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
-        _anchorTree = new ContextIntervalTree<AnchorData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
+        _indentationTree = new ContextMutableIntervalTree<IndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
+        _suppressWrappingTree = new ContextMutableIntervalTree<SuppressWrappingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
+        _suppressSpacingTree = new ContextMutableIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
+        _suppressFormattingTree = new ContextMutableIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
+        _anchorTree = new ContextMutableIntervalTree<AnchorData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
     }
 
     public void Initialize(
@@ -408,7 +408,7 @@ internal partial class FormattingContext
     }
 
     [Conditional("DEBUG")]
-    private static void DebugCheckEmpty<T, TIntrospector>(ContextIntervalTree<T, TIntrospector> tree, TextSpan textSpan)
+    private static void DebugCheckEmpty<T, TIntrospector>(ContextMutableIntervalTree<T, TIntrospector> tree, TextSpan textSpan)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var intervals = tree.GetIntervalsThatContain(textSpan.Start, textSpan.Length);
@@ -431,7 +431,7 @@ internal partial class FormattingContext
     }
 
     public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
-        => _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
+        => _relativeIndentationTree.Algorithms.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
 
     public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
     {

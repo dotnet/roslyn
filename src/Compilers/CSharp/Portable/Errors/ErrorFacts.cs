@@ -558,9 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
 
                     return 1;
@@ -2422,10 +2419,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
-                or ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor
                 or ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls
                 or ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember
                 or ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember
@@ -2461,6 +2454,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyTypeDifference
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
+                or ErrorCode.INF_IdentifierConflictWithContextualKeyword
+                or ErrorCode.ERR_InlineArrayAttributeOnRecord
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
@@ -2482,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsWarning(code))
+            if (IsWarning(code) || IsInfo(code) || IsHidden(code))
             {
                 return false;
             }

@@ -6865,6 +6865,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
+  <data name="INF_IdentifierConflictWithContextualKeyword" xml:space="preserve">
+    <value>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</value>
+  </data>
+  <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
+    <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
@@ -7851,27 +7857,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DynamicDispatchToParamsCollection" xml:space="preserve">
     <value>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</value>
   </data>
-  <data name="ERR_ParamsCollectionAmbiguousDynamicArgument" xml:space="preserve">
-    <value>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionMethod" xml:space="preserve">
-    <value>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionMethod_Title" xml:space="preserve">
-    <value>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionIndexer" xml:space="preserve">
-    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionIndexer_Title" xml:space="preserve">
-    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionConstructor" xml:space="preserve">
-    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionConstructor_Title" xml:space="preserve">
-    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
   <data name="ERR_ParamsCollectionInfiniteChainOfConstructorCalls" xml:space="preserve">
     <value>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</value>
   </data>
@@ -7919,6 +7904,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRefUnsafeInIteratorAsync" xml:space="preserve">
     <value>ref and unsafe in async and iterator methods</value>
+  </data>
+  <data name="IDS_FeatureFieldAndValueKeywords" xml:space="preserve">
+    <value>field and value keywords</value>
   </data>
   <data name="ERR_RefLocalAcrossAwait" xml:space="preserve">
     <value>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</value>
@@ -7988,5 +7976,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
+  </data>
+  <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
+    <value>allows ref struct constraint</value>
+  </data>
+  <data name="ERR_InlineArrayAttributeOnRecord" xml:space="preserve">
+    <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
   </data>
 </root>

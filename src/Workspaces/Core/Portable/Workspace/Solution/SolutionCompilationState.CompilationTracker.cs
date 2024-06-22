@@ -584,6 +584,17 @@ namespace Microsoft.CodeAnalysis
                         staleCompilationWithGeneratedDocuments,
                         cancellationToken).ConfigureAwait(false);
 
+                    // Our generated documents are up to date if we just created them.  Note: when in balanced mode, we
+                    // will then change our creation policy below to DoNotCreate.  This means that any successive forks
+                    // will move us to an in-progress-state that is not running generators.  And the next time we get
+                    // here and produce a final compilation, this will then be 'false' since we'll be reusing old
+                    // generated docs.
+                    //
+                    // This flag can then be used later when we hear about external user events (like save/build) to
+                    // decide if we need to do anything.  If the generated documents are up to date, then we don't need
+                    // to do anything in that case.
+                    var generatedDocumentsUpToDate = creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.Create;
+
                     // If the user has the option set to only run generators to something other than 'automatic' then we
                     // want to set ourselves to not run generators again now that generators have run.  That way, any
                     // further *automatic* changes to the solution will not run generators again.  Instead, when one of
@@ -605,6 +616,7 @@ namespace Microsoft.CodeAnalysis
 
                     var finalState = FinalCompilationTrackerState.Create(
                         creationPolicy,
+                        generatedDocumentsUpToDate,
                         compilationWithGeneratedDocuments,
                         compilationWithoutGeneratedDocuments,
                         hasSuccessfullyLoaded,
@@ -667,13 +679,6 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
-            {
-                return create
-                    ? WithCreateCreationPolicy(forceRegeneration)
-                    : WithDoNotCreateCreationPolicy(forceRegeneration, cancellationToken);
-            }
-
             public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
             {
                 var state = this.ReadState();
@@ -685,11 +690,21 @@ namespace Microsoft.CodeAnalysis
                 if (state is null)
                     return this;
 
-                // If we're already in the state where we are running generators and skeletons (and we're not forcing
-                // regeneration) we don't need to do anything and can just return ourselves. The next request to create
-                // the compilation will do so fully.
-                if (state.CreationPolicy == desiredCreationPolicy && !forceRegeneration)
-                    return this;
+                // If we're not forcing regeneration, we can bail out from doing work in a few cases.
+                if (!forceRegeneration)
+                {
+                    // First If we're *already* in the state where we are running generators and skeletons we don't need
+                    // to do anything and can just return ourselves. The next request to create the compilation will do
+                    // so fully.
+                    if (state.CreationPolicy == desiredCreationPolicy)
+                        return this;
+
+                    // Second, if we know we are already in a final compilation state where the generated documents were
+                    // produced, then clearly we don't need to do anything.  Nothing changed between then and now, so we
+                    // can reuse the final compilation as is.
+                    if (state is FinalCompilationTrackerState { GeneratedDocumentsUpToDate: true })
+                        return this;
+                }
 
                 // If we're forcing regeneration then we have to drop whatever driver we have so that we'll start from
                 // scratch next time around.
@@ -720,13 +735,8 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy(
-                bool forceRegeneration, CancellationToken cancellationToken)
+            public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
             {
-                // We do not expect this to ever be passed true.  This is for freezing generators, and no callers
-                // (currently) will ask to drop drivers when they do that.
-                Contract.ThrowIfTrue(forceRegeneration);
-
                 var state = this.ReadState();
 
                 // We're freezing the solution for features where latency performance is paramount.  Do not run SGs or

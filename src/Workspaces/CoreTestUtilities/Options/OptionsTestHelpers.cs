@@ -124,6 +124,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ICodeStyleOption codeStyle => codeStyle
                     .WithValue(GetDifferentValue(codeStyle.GetType().GetGenericArguments()[0], codeStyle.Value!)!)
                     .WithNotification((codeStyle.Notification == NotificationOption2.Error) ? NotificationOption2.Warning : NotificationOption2.Error),
+                ICodeStyleOption2 codeStyle => codeStyle
+                    .WithValue(GetDifferentValue(codeStyle.GetType().GetGenericArguments()[0], codeStyle.Value!)!)
+                    .WithNotification((codeStyle.Notification == NotificationOption2.Error) ? NotificationOption2.Warning : NotificationOption2.Error),
                 NamingStylePreferences namingPreference => namingPreference.IsEmpty ? NamingStylePreferences.Default : NamingStylePreferences.Empty,
                 _ when type == typeof(bool?) => value is null ? true : null,
                 _ when type == typeof(int?) => value is null ? 1 : null,

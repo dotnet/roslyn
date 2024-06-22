@@ -431,10 +431,8 @@ class X
                         case ErrorCode.WRN_UseDefViolationRefField:
                         case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                         case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                         case ErrorCode.INF_TooManyBoundLambdas:
+                        case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

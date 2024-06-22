@@ -35,7 +35,7 @@ public partial class ProjectDependencyGraph
     private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
 
     // guards lazy computed data
-    private readonly NonReentrantLock _dataLock = new();
+    private readonly SemaphoreSlim _dataLock = new(initialCount: 1);
 
     /// <summary>
     /// The lazily-initialized map of projects to projects which reference them. This field is either null, or

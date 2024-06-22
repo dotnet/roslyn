@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             globalOptions.AddOptionChangedHandler(this, (_, e) =>
             {
-                if (IsGlobalOptionAffectingDiagnostics(e.Option))
+                if (e.HasOption(IsGlobalOptionAffectingDiagnostics))
                 {
                     RequestDiagnosticRefresh();
                 }

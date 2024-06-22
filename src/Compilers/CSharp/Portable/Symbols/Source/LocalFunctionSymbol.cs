@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ScopeBinder = binder;
 
             binder = binder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
+            _binder = binder;
 
             if (syntax.TypeParameterList != null)
             {
@@ -85,8 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
             _declarationDependencies.AddAll(diagnostics.DependenciesBag);
             diagnostics.Free();
-
-            _binder = binder;
         }
 
         /// <summary>
@@ -201,6 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowThis: true,
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
+
+            foreach (var parameter in this.Syntax.ParameterList.Parameters)
+            {
+                WithTypeParametersBinder.ReportFieldOrValueContextualKeywordConflictIfAny(parameter, parameter.Identifier, diagnostics);
+            }
 
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
@@ -433,6 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
+                _binder.ReportFieldOrValueContextualKeywordConflictIfAny(parameter, identifier, diagnostics);
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)

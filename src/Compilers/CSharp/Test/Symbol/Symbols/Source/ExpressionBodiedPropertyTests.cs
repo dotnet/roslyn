@@ -496,7 +496,7 @@ class C
 class C
 {
     int field = 0;
-    public ref int P => ref field;
+    public ref int P => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -519,7 +519,7 @@ class C
 class C
 {
     int field = 0;
-    public ref readonly int P => ref field;
+    public ref readonly int P => ref @field;
 }");
             comp.VerifyDiagnostics();
 

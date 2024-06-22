@@ -48,7 +48,7 @@ internal interface INavigableItem
 
     ImmutableArray<INavigableItem> ChildItems { get; }
 
-    public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id, bool IsSourceGeneratedDocument, Workspace Workspace)
+    public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id, bool IsSourceGeneratedDocument, Workspace? Workspace)
     {
         public static NavigableDocument FromDocument(Document document)
             => new(
@@ -58,7 +58,7 @@ internal interface INavigableItem
                 document.Folders,
                 document.Id,
                 IsSourceGeneratedDocument: document is SourceGeneratedDocument,
-                document.Project.Solution.Workspace);
+                document.Project.Solution.TryGetWorkspace());
 
         /// <summary>
         /// Get the <see cref="CodeAnalysis.Document"/> within <paramref name="solution"/> which is referenced by

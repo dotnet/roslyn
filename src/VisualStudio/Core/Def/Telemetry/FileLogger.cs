@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,11 +53,13 @@ internal sealed class FileLogger : ILogger
 
     private void OptionService_OptionChanged(object? sender, OptionChangedEventArgs e)
     {
-        if (e.Option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
+        foreach (var (key, newValue) in e.ChangedOptions)
         {
-            Contract.ThrowIfNull(e.Value);
-
-            _enabled = (bool)e.Value;
+            if (key.Option.Equals(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics))
+            {
+                Contract.ThrowIfNull(newValue);
+                _enabled = (bool)newValue;
+            }
         }
     }
 

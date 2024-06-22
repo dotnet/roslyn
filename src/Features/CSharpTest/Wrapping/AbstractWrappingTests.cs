@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
@@ -23,7 +24,7 @@ public abstract class AbstractWrappingTests : AbstractCSharpCodeActionTest_NoEdi
         => FlattenActions(actions);
 
     private protected TestParameters GetIndentionColumn(int column)
-        => new(globalOptions: Option(CodeActionOptionsStorage.WrappingColumn, column));
+        => new(options: Option(FormattingOptions2.WrappingColumn, column));
 
     protected Task TestAllWrappingCasesAsync(
         string input,

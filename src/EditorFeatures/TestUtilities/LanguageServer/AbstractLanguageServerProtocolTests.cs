@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
-        protected static readonly TestComposition FeaturesLspComposition = EditorTestCompositions.LanguageServerProtocol
+        protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -384,7 +384,7 @@ namespace Roslyn.Test.Utilities
             InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, TestComposition? composition = null)
         {
             var workspace = new EditorTestWorkspace(
-                composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true), supportsLspMutation: mutatingLspWorkspace);
+                composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true), supportsLspMutation: mutatingLspWorkspace);
             options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
@@ -704,14 +704,21 @@ namespace Roslyn.Test.Utilities
 
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
+            public Dictionary<string, IList<LSP.Location>> GetLocations() => _locations;
+
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
 
             public async Task AssertServerShuttingDownAsync()
             {
                 var queueAccessor = GetQueueAccessor()!.Value;
                 await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
-                Assert.True(GetServerAccessor().HasShutdownStarted());
-                Assert.True(queueAccessor.IsComplete());
+
+                var shutdownTask = GetServerAccessor().GetShutdownTaskAsync();
+                AssertEx.NotNull(shutdownTask, "Unexpected shutdown not started");
+
+                // Shutdown task will close the queue, so we need to wait for it to complete.
+                await shutdownTask.ConfigureAwait(false);
+                Assert.True(queueAccessor.IsComplete(), "Unexpected queue not complete");
             }
 
             internal async Task WaitForDiagnosticsAsync()

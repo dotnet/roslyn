@@ -6148,19 +6148,11 @@ class Program
 """;
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (8,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         Test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Helpers.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
 
-            comp.VerifyDiagnostics(
-                // (8,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         Test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Helpers.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
@@ -6225,30 +6217,9 @@ class Program
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             var expected = new[] {
-                    // (8,9): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         Test1(d1);                  // Called2
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d1)").WithArguments("Test1").WithLocation(8, 9),
-                // (11,9): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         Test1(d2);                  // Called1
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d2)").WithArguments("Test1").WithLocation(11, 9),
-                // (12,9): warning CS9220: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         Test2(1, d1);               // Called3
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test2(1, d1)").WithArguments("Test2").WithLocation(12, 9),
-                // (13,9): warning CS9220: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         Test2(1, d2);               // Called5
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test2(1, d2)").WithArguments("Test2").WithLocation(13, 9),
-                // (20,9): warning CS9220: One or more overloads of method 'Test3' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         Test3(d3, 1, 2);            // Called7
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test3(d3, 1, 2)").WithArguments("Test3").WithLocation(20, 9),
                 // (21,9): error CS9218: 'Helpers.Test3(byte, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test3(d3, x, x);            // Called6
-                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test3(d3, x, x)").WithArguments("Helpers.Test3(byte, params System.Collections.Generic.IEnumerable<int>)").WithLocation(21, 9),
-                // (25,9): warning CS9220: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         Test4(d3, x, x);            // Called9
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, x, x)").WithArguments("Test4").WithLocation(25, 9),
-                // (26,9): warning CS9220: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         Test4(d3, d4, d4);          // Called9
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, d4, d4)").WithArguments("Test4").WithLocation(26, 9)
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test3(d3, x, x)").WithArguments("Helpers.Test3(byte, params System.Collections.Generic.IEnumerable<int>)").WithLocation(21, 9)
                 };
 
             comp.VerifyDiagnostics(expected);
@@ -6396,10 +6367,7 @@ class P
             comp1.VerifyDiagnostics(
                 // (8,9): error CS9218: 'Program.Test<T>(params IEnumerable<T>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(d, 2, 3);
-                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9),
-                // (9,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(params IEnumerable<T>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         Test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(9, 14)
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
@@ -6407,10 +6375,7 @@ class P
             comp1.VerifyDiagnostics(
                 // (8,9): error CS9218: 'Program.Test<T>(params IEnumerable<T>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(d, 2, 3);
-                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9),
-                // (9,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(params IEnumerable<T>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         Test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(9, 14)
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -6480,10 +6445,7 @@ class P
             comp1.VerifyDiagnostics(
                 // (8,9): error CS9218: 'Program.Test<T>(T, params IEnumerable<long>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(0, d, 2, 3);
-                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9),
-                // (9,17): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(T, params IEnumerable<long>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         Test(0, d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
@@ -6491,10 +6453,7 @@ class P
             comp1.VerifyDiagnostics(
                 // (8,9): error CS9218: 'Program.Test<T>(T, params IEnumerable<long>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(0, d, 2, 3);
-                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9),
-                // (9,17): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(T, params IEnumerable<long>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         Test(0, d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -6799,11 +6758,7 @@ class C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (8,9): warning CS9220: One or more overloads of method 'Test' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new C1().Test(1, d, 2);
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "new C1().Test(1, d, 2)").WithArguments("Test").WithLocation(8, 9)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6837,11 +6792,7 @@ class Program
             CompileAndVerify(
                 comp,
                 expectedOutput: @"Called1Failed").
-            VerifyDiagnostics(
-                // (11,13): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //             Test1(d1);
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d1)").WithArguments("Test1").WithLocation(11, 13)
-                );
+            VerifyDiagnostics();
         }
 
         [Fact]
@@ -7113,19 +7064,11 @@ class Program
 """;
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (9,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'D.Invoke(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("D.Invoke(params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 14)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
 
-            comp.VerifyDiagnostics(
-                // (9,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'D.Invoke(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("D.Invoke(params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 14)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
@@ -7237,19 +7180,11 @@ class P
 """;
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (6,27): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.this[params IEnumerable<int>]', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         _ = new Program()[d];
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(6, 27)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
 
-            comp.VerifyDiagnostics(
-                // (6,27): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.this[params IEnumerable<int>]', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         _ = new Program()[d];
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(6, 27)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
@@ -7317,30 +7252,9 @@ class Program
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             var expected = new[] {
-                // (6,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new Test1()[d1];                  // Called2
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d1]").WithLocation(6, 13),
-                // (9,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new Test1()[d2];                  // Called1
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d2]").WithLocation(9, 13),
-                // (10,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new Test2()[1, d1];               // Called3
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d1]").WithLocation(10, 13),
-                // (11,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new Test2()[1, d2];               // Called5
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d2]").WithLocation(11, 13),
-                // (18,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new Test3()[d3, 1, 2];            // Called7
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test3()[d3, 1, 2]").WithLocation(18, 13),
                 // (19,13): error CS9218: 'Test3.this[byte, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         _ = new Test3()[d3, x, x];            // Called6
-                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test3()[d3, x, x]").WithArguments("Test3.this[byte, params System.Collections.Generic.IEnumerable<int>]").WithLocation(19, 13),
-                // (23,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new Test4()[d3, x, x];            // Called9
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, x, x]").WithLocation(23, 13),
-                // (24,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new Test4()[d3, d4, d4];          // Called9
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, d4, d4]").WithLocation(24, 13)
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test3()[d3, x, x]").WithArguments("Test3.this[byte, params System.Collections.Generic.IEnumerable<int>]").WithLocation(19, 13)
                 };
 
             comp.VerifyDiagnostics(expected);
@@ -7762,11 +7676,7 @@ class C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (8,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         _ = new C1()[1, d, 2];
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new C1()[1, d, 2]").WithLocation(8, 13)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7869,19 +7779,11 @@ class Program
 """;
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (6,18): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         new Test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Test.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(6, 18)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
 
-            comp.VerifyDiagnostics(
-                // (6,18): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
-                //         new Test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Test.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(6, 18)
-                );
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
@@ -7954,30 +7856,9 @@ class Program
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             var expected = new[] {
-                // (6,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test1(d1);                  // Called2
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d1)").WithLocation(6, 9),
-                // (9,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test1(d2);                  // Called1
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d2)").WithLocation(9, 9),
-                // (10,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test2(1, d1);               // Called3
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d1)").WithLocation(10, 9),
-                // (11,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test2(1, d2);               // Called5
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d2)").WithLocation(11, 9),
-                // (18,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test3(d3, 1, 2);            // Called7
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test3(d3, 1, 2)").WithLocation(18, 9),
                 // (19,9): error CS9218: 'Test3.Test3(byte, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         new Test3(d3, x, x);            // Called6
-                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test3(d3, x, x)").WithArguments("Test3.Test3(byte, params System.Collections.Generic.IEnumerable<int>)").WithLocation(19, 9),
-                // (23,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test4(d3, x, x);            // Called9
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, x, x)").WithLocation(23, 9),
-                // (24,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test4(d3, d4, d4);          // Called9
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, d4, d4)").WithLocation(24, 9)
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test3(d3, x, x)").WithArguments("Test3.Test3(byte, params System.Collections.Generic.IEnumerable<int>)").WithLocation(19, 9)
                 };
 
             comp.VerifyDiagnostics(expected);
@@ -8127,11 +8008,7 @@ class Test
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (8,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
-                //         new Test(1, d, 2);
-                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test(1, d, 2)").WithLocation(8, 9)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -8227,9 +8104,43 @@ class Program
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                //     class C01(dynamic d) : Test(d);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d)").WithLocation(23, 32),
+                // (24,32): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C02(dynamic d) : Test(d, 1);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, 1)").WithLocation(24, 32),
+                // (25,32): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C03(dynamic d) : Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, 2, 3)").WithLocation(25, 32),
+                // (26,32): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C04(dynamic d) : Test(2, d, 3);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(2, d, 3)").WithLocation(26, 32),
+                // (27,32): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C05(dynamic d) : Test(2, 3, d);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(2, 3, d)").WithLocation(27, 32),
+                // (28,32): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C06(dynamic d) : Test(d, [3, 4]);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, [3, 4])").WithLocation(28, 32),
+                // (30,33): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C07(dynamic d) : Test2(d);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d)").WithLocation(30, 33),
+                // (31,33): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C09(dynamic d) : Test2(d, 1);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, 1)").WithLocation(31, 33),
+                // (32,33): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C10(dynamic d) : Test2(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, 2, 3)").WithLocation(32, 33),
+                // (33,33): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C11(dynamic d) : Test2(2, d, 3);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(2, d, 3)").WithLocation(33, 33),
+                // (34,33): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C12(dynamic d) : Test2(2, 3, d);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(2, 3, d)").WithLocation(34, 33),
+                // (35,33): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C13(dynamic d) : Test2(d, [3, 4]);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, [3, 4])").WithLocation(35, 33)
+                );
         }
 
         [Fact]
@@ -8364,6 +8275,9 @@ class Program
                 // (38,34): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
                 //     class C07(dynamic d3) : Test3(d3, 1, 2);
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d3, 1, 2)").WithLocation(38, 34),
+                // (39,41): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C08(int x, dynamic d3) : Test3(d3, x, x);            // Called6
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d3, x, x)").WithLocation(39, 41),
                 // (42,41): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
                 //     class C10(dynamic d3, int x) : Test4(d3, x, x);
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d3, x, x)").WithLocation(42, 41),
@@ -8404,9 +8318,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called True").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,30): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C(dynamic d) : Test(d, 2);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, 2)").WithLocation(11, 30)
+                );
         }
 
         [Fact]
@@ -8436,9 +8352,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,30): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C(dynamic d) : Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d, 2, 3)").WithLocation(11, 30)
+                );
         }
 
         [Fact]

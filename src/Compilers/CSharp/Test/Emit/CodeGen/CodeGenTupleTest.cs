@@ -3918,7 +3918,7 @@ class C
         set
         {
             var t = (M(), value);
-            System.Console.Write(t.value);
+            System.Console.Write(t.@value);
         }
     }
 }

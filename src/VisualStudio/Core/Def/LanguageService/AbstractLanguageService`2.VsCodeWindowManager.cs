@@ -59,13 +59,10 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Language != _languageService.RoslynLanguageName ||
-                e.Option != NavigationBarViewOptionsStorage.ShowNavigationBar)
+            if (e.ChangedOptions.Any(item => item.key.Language == _languageService.RoslynLanguageName && item.key.Option.Equals(NavigationBarViewOptionsStorage.ShowNavigationBar)))
             {
-                return;
+                AddOrRemoveDropdown();
             }
-
-            AddOrRemoveDropdown();
         }
 
         private void AddOrRemoveDropdown()

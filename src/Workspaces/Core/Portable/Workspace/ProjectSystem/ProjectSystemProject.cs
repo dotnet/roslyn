@@ -31,6 +31,7 @@ internal sealed partial class ProjectSystemProject
 
     private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
     private readonly ProjectSystemHostInfo _hostInfo;
+    private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
     /// <summary>
     /// A semaphore taken for all mutation of any mutable field in this type.
@@ -155,6 +156,12 @@ internal sealed partial class ProjectSystemProject
         Id = id;
         Language = language;
         _displayName = displayName;
+
+        var provider = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
+        // NOTE: The provider will always return the same singleton analyzer loader instance, which is important to
+        // ensure that shadow copied analyzer dependencies are correctly loaded.
+        _analyzerAssemblyLoader = provider.GetLoader(shadowCopy: true);
 
         _sourceFiles = new BatchingDocumentCollection(
             this,
@@ -918,6 +925,7 @@ internal sealed partial class ProjectSystemProject
                     // Nope, we actually need to make a new one.
                     var visualStudioAnalyzer = new ProjectAnalyzerReference(
                         mappedFullPath,
+                        _analyzerAssemblyLoader,
                         _hostInfo.DiagnosticSource,
                         Id,
                         Language);

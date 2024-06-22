@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -523,9 +524,9 @@ public class {|target2:Bar|} : IBar
         var markup = $@"
         public abstract class {{|target1:Bar1|}}
         {{}}
-        public class Bar : Bar1
+        public class {{|{SearchAreaTag}:Bar : Bar1
         {{
-            {{|{SearchAreaTag}:{memberDeclaration}|}}
+            {{{memberDeclaration}|}}
         }}";
         return VerifyInSingleDocumentAsync(
             markup,
@@ -2291,5 +2292,59 @@ public class {|target1:C|}
 }",
             LanguageNames.CSharp,
             testHost);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1988154/")]
+    public async Task TestNoResultOutsideSpan(TestHost testHost)
+    {
+        // 1. If the searching span is the empty body, nothing should be returned.
+        var noResultCode = $@"
+public class B : C
+{{
+
+{{|{SearchAreaTag}:
+
+
+
+
+|}}
+
+}}
+
+public class C
+{{
+}}";
+
+        await VerifyNoItemForDocumentAsync(noResultCode,
+            LanguageNames.CSharp,
+            testHost);
+
+        // 2. If the searching span contains the identifier, correct result should be returned.
+        var correctSearchingCode = $@"
+public class {{|{SearchAreaTag}:B|}} : C
+{{
+
+
+
+
+
+
+}}
+
+public class {{|target:C|}}
+{{
+}}";
+
+        await VerifyInSingleDocumentAsync(correctSearchingCode,
+            LanguageNames.CSharp,
+            testHost,
+            memberItems: [new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "class B",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "C",
+                        locationTag: "target",
+                        relationship: InheritanceRelationship.BaseType)))]);
     }
 }

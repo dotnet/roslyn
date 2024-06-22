@@ -807,4 +807,10 @@ public partial class Project
 
     internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
         => Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+    internal async ValueTask<Document?> GetDocumentAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
+    {
+        var documentId = await _projectState.GetDocumentIdAsync(contentHash, cancellationToken).ConfigureAwait(false);
+        return documentId is null ? null : GetDocument(documentId);
+    }
 }
