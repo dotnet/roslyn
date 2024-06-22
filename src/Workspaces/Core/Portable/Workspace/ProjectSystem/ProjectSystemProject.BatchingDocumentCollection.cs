@@ -416,7 +416,7 @@ internal sealed partial class ProjectSystemProject
                     return;
                 }
 
-                await _project._projectSystemProjectFactory.ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
+                await _project._projectSystemProjectFactory.ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
                 {
                     foreach (var (documentId, textLoader) in documentsToChange)
                     {
@@ -428,7 +428,8 @@ internal sealed partial class ProjectSystemProject
                                 [documentId]);
                         }
                     }
-                }).ConfigureAwait(false);
+                    return projectUpdateState;
+                }, onAfterUpdate: null).ConfigureAwait(false);
 
                 documentsToChange.Free();
             }
@@ -528,6 +529,11 @@ internal sealed partial class ProjectSystemProject
             }
         }
 
+        /// <summary>
+        /// Updates the solution for a set of batch changes.
+        /// While it is OK for this method to *read* local state, it cannot *modify* it as this may
+        /// be called multiple times (when the workspace update fails due to interceding updates).
+        /// </summary>
         internal void UpdateSolutionForBatch(
             SolutionChangeAccumulator solutionChanges,
             ImmutableArray<string>.Builder documentFileNamesAdded,
@@ -537,40 +543,63 @@ internal sealed partial class ProjectSystemProject
             Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
             WorkspaceChangeKind removeDocumentChangeKind)
         {
-            // Document adding...
-            solutionChanges.UpdateSolutionForDocumentAction(
-                newSolution: addDocuments(solutionChanges.Solution, _documentsAddedInBatch.ToImmutable()),
-                changeKind: addDocumentChangeKind,
-                documentIds: _documentsAddedInBatch.Select(d => d.Id));
+            UpdateSolutionForBatch(solutionChanges, documentFileNamesAdded, documentsToOpen, addDocuments,
+                addDocumentChangeKind, removeDocuments, removeDocumentChangeKind, _project.Id, _documentsAddedInBatch.ToImmutableArray(),
+                _documentsRemovedInBatch.ToImmutableArray(), _orderedDocumentsInBatch,
+                (documentId) => _sourceTextContainersToDocumentIds.GetKeyOrDefault(documentId));
 
-            foreach (var documentInfo in _documentsAddedInBatch)
+            static void UpdateSolutionForBatch(
+                SolutionChangeAccumulator solutionChanges,
+                ImmutableArray<string>.Builder documentFileNamesAdded,
+                List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
+                Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
+                WorkspaceChangeKind addDocumentChangeKind,
+                Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
+                WorkspaceChangeKind removeDocumentChangeKind,
+                ProjectId projectId,
+                ImmutableArray<DocumentInfo> documentsAddedInBatch,
+                ImmutableArray<DocumentId> documentsRemovedInBatch,
+                ImmutableList<DocumentId>? orderedDocumentsInBatch,
+                Func<DocumentId, SourceTextContainer?> getContainer)
             {
-                Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
-                documentFileNamesAdded.Add(documentInfo.FilePath);
+                // Document adding...
+                solutionChanges.UpdateSolutionForDocumentAction(
+                    newSolution: addDocuments(solutionChanges.Solution, documentsAddedInBatch),
+                    changeKind: addDocumentChangeKind,
+                    documentIds: documentsAddedInBatch.Select(d => d.Id));
 
-                if (_sourceTextContainersToDocumentIds.TryGetKey(documentInfo.Id, out var textContainer))
+                foreach (var documentInfo in documentsAddedInBatch)
                 {
-                    documentsToOpen.Add((documentInfo.Id, textContainer));
+                    Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
+                    documentFileNamesAdded.Add(documentInfo.FilePath);
+
+                    var textContainer = getContainer(documentInfo.Id);
+                    if (textContainer != null)
+                    {
+                        documentsToOpen.Add((documentInfo.Id, textContainer));
+                    }
+                }
+
+                // Document removing...
+                solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, [.. documentsRemovedInBatch]),
+                    removeDocumentChangeKind,
+                    documentsRemovedInBatch);
+
+                // Update project's order of documents.
+                if (orderedDocumentsInBatch != null)
+                {
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        projectId,
+                        solutionChanges.Solution.WithProjectDocumentsOrder(projectId, orderedDocumentsInBatch));
                 }
             }
+        }
 
+        internal void ClearBatchState()
+        {
             ClearAndZeroCapacity(_documentsAddedInBatch);
-
-            // Document removing...
-            solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, [.. _documentsRemovedInBatch]),
-                removeDocumentChangeKind,
-                _documentsRemovedInBatch);
-
             ClearAndZeroCapacity(_documentsRemovedInBatch);
-
-            // Update project's order of documents.
-            if (_orderedDocumentsInBatch != null)
-            {
-                solutionChanges.UpdateSolutionForProjectAction(
-                    _project.Id,
-                    solutionChanges.Solution.WithProjectDocumentsOrder(_project.Id, _orderedDocumentsInBatch));
-                _orderedDocumentsInBatch = null;
-            }
+            _orderedDocumentsInBatch = null;
         }
 
         private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, ImmutableArray<string> folders)
