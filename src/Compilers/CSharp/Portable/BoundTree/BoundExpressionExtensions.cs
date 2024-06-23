@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return RefKind.RefReadOnly;
                         }
-                        var altRefKind.Alternative.GetRefKind();
+                        var altRefKind = cond.Alternative.GetRefKind();
                         if (altRefKind == RefKind.RefReadOnly)
                         {
                             return RefKind.RefReadOnly;
