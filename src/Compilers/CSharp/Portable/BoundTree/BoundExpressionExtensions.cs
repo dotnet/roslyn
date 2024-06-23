@@ -42,6 +42,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
 
+                case BoundKind.ConditionalOperator:
+                    {
+                        var cond = (BoundConditionalOperator)node;
+                        if (!cond.IsRef)
+                        {
+                            return RefKind.None;
+                        }
+                        var conseqRefKind = cond.Consequence.GetRefKind();
+                        if (conseqRefKind == RefKind.RefReadOnly)
+                        {
+                            return RefKind.RefReadOnly;
+                        }
+                        var altRefKind.Alternative.GetRefKind();
+                        if (altRefKind == RefKind.RefReadOnly)
+                        {
+                            return RefKind.RefReadOnly;
+                        }
+                        return RefKind.Ref;
+                    }
+
                 case BoundKind.InlineArrayAccess:
                     {
                         var elementAccess = (BoundInlineArrayAccess)node;

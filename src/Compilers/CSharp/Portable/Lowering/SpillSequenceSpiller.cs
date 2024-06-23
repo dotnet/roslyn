@@ -1132,7 +1132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
+                var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax,
+                    refKind: node.GetRefKind());
 
                 conditionBuilder.AddLocal(tmp);
                 conditionBuilder.AddStatement(
