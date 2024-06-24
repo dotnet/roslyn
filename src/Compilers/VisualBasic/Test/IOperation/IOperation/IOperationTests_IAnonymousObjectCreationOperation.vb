@@ -1844,6 +1844,37 @@ BC30984: '=' expected (object initializer).
         Dim item = New C() With {.}
                                   ~
 ]]>.Value
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()  ... End Sub')
+  Locals: Local_1: item As C
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim item =  ... () With {.}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'item = New C() With {.}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: item As C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'item')
+            Initializer:
+              null
+      Initializer:
+        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New C() With {.}')
+          IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'New C() With {.}')
+            Arguments(0)
+            Initializer:
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: 'With {.}')
+                Initializers(1):
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.')
+                      Left:
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.')
+                          Children(0)
+                      Right:
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                          Children(0)
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement:
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue:
+      null
+]]>.Value
+
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
     Statements (0)
@@ -1881,6 +1912,7 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
@@ -1903,6 +1935,34 @@ BC30203: Identifier expected.
 BC30984: '=' expected (object initializer).
         Dim item = New With {.}
                               ~
+]]>.Value
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()  ... End Sub')
+  Locals: Local_1: item As <anonymous type: $0 As ?>
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim item = New With {.}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'item = New With {.}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: item As <anonymous type: $0 As ?>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'item')
+            Initializer:
+              null
+      Initializer:
+        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {.}')
+          IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As ?>, IsInvalid) (Syntax: 'New With {.}')
+            Initializers(1):
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.')
+                  Left:
+                    IPropertyReferenceOperation: Property <anonymous type: $0 As ?>.$0 As ? (OperationKind.PropertyReference, Type: ?, IsInvalid) (Syntax: '')
+                      Instance Receiver:
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {.}')
+                  Right:
+                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                      Children(0)
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement:
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue:
+      null
 ]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
@@ -1940,6 +2000,7 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
@@ -1956,6 +2017,41 @@ End Module
     BC30203: Identifier expected.
         Dim item = New With {.a = 1, .b = .}
                                            ~
+]]>.Value
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()  ... End Sub')
+  Locals: Local_1: item As <anonymous type: a As System.Int32, b As ?>
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim item =  ...  1, .b = .}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'item = New  ...  1, .b = .}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: item As <anonymous type: a As System.Int32, b As ?>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'item')
+            Initializer:
+              null
+      Initializer:
+        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With  ...  1, .b = .}')
+          IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As ?>, IsInvalid) (Syntax: 'New With {. ...  1, .b = .}')
+            Initializers(2):
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
+                  Left:
+                    IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As ?>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                      Instance Receiver:
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ...  1, .b = .}')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.b = .')
+                  Left:
+                    IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As ?>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'b')
+                      Instance Receiver:
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ...  1, .b = .}')
+                  Right:
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.')
+                      Children(0)
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement:
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue:
+      null
 ]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
@@ -2003,6 +2099,7 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
     End Class
