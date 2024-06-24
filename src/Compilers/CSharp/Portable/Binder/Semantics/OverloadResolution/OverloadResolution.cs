@@ -221,9 +221,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <returns>false if there are ambiguous candidates in the set</returns>
-        /// <remarks><paramref name="useParams"/> is only changed if there are some applicable candidates</remarks>
-        internal bool FilterMethodsForUniqueSignature(ArrayBuilder<MethodSymbol> methods, ref bool useParams)
+        internal bool FilterMethodsForUniqueSignature(ArrayBuilder<MethodSymbol> methods, out bool useParams)
         {
+            useParams = false;
+
             if (methods.Count == 0)
             {
                 return true;
@@ -270,10 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods.AddRange(applicableMethods);
             }
 
-            if (methods.Count != 0)
-            {
-                useParams = hasExpandedForm;
-            }
+            useParams = hasExpandedForm;
             return true;
         }
 #nullable disable
