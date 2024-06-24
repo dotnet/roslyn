@@ -71,8 +71,13 @@ internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuilt
                 // If the severity is hidden, put the marker on all the modifiers so that the
                 // user can bring up the fix anywhere in the modifier list.
                 context.ReportDiagnostic(
-                    Diagnostic.Create(Descriptor, context.Tree.GetLocation(
-                        TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End))));
+                    DiagnosticHelper.Create(
+                        Descriptor,
+                        context.Tree.GetLocation(TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End)),
+                        notificationOption,
+                        context.Options,
+                        additionalLocations: null,
+                        properties: null));
             }
             else
             {

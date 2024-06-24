@@ -28,7 +28,7 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function TestSimpleCaseForEqualsFalse_NoDiagnostics() As Task
+        Public Async Function TestSimpleCaseForEqualsFalse() As Task
             Await VerifyVB.VerifyCodeFixAsync("
 Public Module Module1
     Public Function M1(x As Boolean) As Boolean

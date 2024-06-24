@@ -2764,6 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
+            // https://github.com/dotnet/roslyn/issues/73772: is this actually used/meaningful?
             methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
 
             var methodParameters = methodSymbol.Parameters;
@@ -10724,7 +10725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This is case 4. We need to look for the IEnumerable<T> that this reinferred expression implements,
                     // so that we pick up any nested type substitutions that could have occurred.
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref discardedUseSiteInfo, out bool foundMultiple));
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref discardedUseSiteInfo, out bool foundMultiple, needSupportForRefStructInterfaces: out _));
                     Debug.Assert(!foundMultiple);
                     Debug.Assert(targetTypeWithAnnotations.HasType);
                 }

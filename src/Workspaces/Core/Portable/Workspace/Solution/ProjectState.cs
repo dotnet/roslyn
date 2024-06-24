@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -54,6 +52,8 @@ internal partial class ProjectState
     // Checksums for this solution state
     private readonly AsyncLazy<ProjectStateChecksums> _lazyChecksums;
 
+    private readonly AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> _lazyContentHashToDocumentId;
+
     /// <summary>
     /// Analyzer config options to be used for specific trees.
     /// </summary>
@@ -85,6 +85,7 @@ internal partial class ProjectState
         _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
 
         _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
+        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
     }
 
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo)
@@ -125,6 +126,20 @@ internal partial class ProjectState
         _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
 
         _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
+        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
+    }
+
+    private async Task<Dictionary<ImmutableArray<byte>, DocumentId>> ComputeContentHashToDocumentIdAsync(CancellationToken cancellationToken)
+    {
+        var result = new Dictionary<ImmutableArray<byte>, DocumentId>(ImmutableArrayComparer<byte>.Instance);
+        foreach (var (documentId, documentState) in this.DocumentStates.States)
+        {
+            var text = await documentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var contentHash = text.GetContentHash();
+            result[contentHash] = documentId;
+        }
+
+        return result;
     }
 
     private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
@@ -133,6 +148,12 @@ internal partial class ProjectState
             .WithDocuments([])
             .WithAdditionalDocuments([])
             .WithAnalyzerConfigDocuments([]);
+    }
+
+    public async ValueTask<DocumentId?> GetDocumentIdAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
+    {
+        var map = await _lazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return map.TryGetValue(contentHash, out var documentId) ? documentId : null;
     }
 
     private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)
@@ -336,18 +357,9 @@ internal partial class ProjectState
             }
 
             var filePath = GetEffectiveFilePath(documentState);
-            if (filePath == null)
-            {
-                return StructuredAnalyzerConfigOptions.Empty;
-            }
-
-            var legacyDocumentOptionsProvider = services.GetService<ILegacyDocumentOptionsProvider>();
-            if (legacyDocumentOptionsProvider != null)
-            {
-                return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(projectState.Id, filePath));
-            }
-
-            return GetOptionsForSourcePath(cache, filePath);
+            return filePath == null
+                ? StructuredAnalyzerConfigOptions.Empty
+                : GetOptionsForSourcePath(cache, filePath);
         }
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
@@ -492,7 +504,7 @@ internal partial class ProjectState
     {
         private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = [];
         private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
-        private readonly Lazy<AnalyzerConfigData> _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
+        private readonly Lazy<AnalyzerConfigData> _global = new(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
 
         public AnalyzerConfigData GlobalConfigOptions
             => _global.Value;

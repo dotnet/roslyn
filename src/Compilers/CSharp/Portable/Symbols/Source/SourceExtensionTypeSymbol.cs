@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // are handled by the caller.
                 baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-                baseBinder = baseBinder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+                baseBinder = baseBinder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
                 return baseBinder;
             }
         }

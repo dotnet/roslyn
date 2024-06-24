@@ -11918,6 +11918,112 @@ public sealed partial class DefaultConstraintSyntax : TypeParameterConstraintSyn
     public DefaultConstraintSyntax WithDefaultKeyword(SyntaxToken defaultKeyword) => Update(defaultKeyword);
 }
 
+/// <summary>The allows type parameter constraint clause.</summary>
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.AllowsConstraintClause"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class AllowsConstraintClauseSyntax : TypeParameterConstraintSyntax
+{
+    private SyntaxNode? constraints;
+
+    internal AllowsConstraintClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken AllowsKeyword => new SyntaxToken(this, ((InternalSyntax.AllowsConstraintClauseSyntax)this.Green).allowsKeyword, Position, 0);
+
+    /// <summary>Gets the constraints list.</summary>
+    public SeparatedSyntaxList<AllowsConstraintSyntax> Constraints
+    {
+        get
+        {
+            var red = GetRed(ref this.constraints, 1);
+            return red != null ? new SeparatedSyntaxList<AllowsConstraintSyntax>(red, GetChildIndex(1)) : default;
+        }
+    }
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.constraints, 1)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.constraints : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAllowsConstraintClause(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAllowsConstraintClause(this);
+
+    public AllowsConstraintClauseSyntax Update(SyntaxToken allowsKeyword, SeparatedSyntaxList<AllowsConstraintSyntax> constraints)
+    {
+        if (allowsKeyword != this.AllowsKeyword || constraints != this.Constraints)
+        {
+            var newNode = SyntaxFactory.AllowsConstraintClause(allowsKeyword, constraints);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public AllowsConstraintClauseSyntax WithAllowsKeyword(SyntaxToken allowsKeyword) => Update(allowsKeyword, this.Constraints);
+    public AllowsConstraintClauseSyntax WithConstraints(SeparatedSyntaxList<AllowsConstraintSyntax> constraints) => Update(this.AllowsKeyword, constraints);
+
+    public AllowsConstraintClauseSyntax AddConstraints(params AllowsConstraintSyntax[] items) => WithConstraints(this.Constraints.AddRange(items));
+}
+
+/// <summary>Base type for allow constraint syntax.</summary>
+public abstract partial class AllowsConstraintSyntax : CSharpSyntaxNode
+{
+    internal AllowsConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+}
+
+/// <summary>Ref struct constraint syntax.</summary>
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.RefStructConstraint"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class RefStructConstraintSyntax : AllowsConstraintSyntax
+{
+
+    internal RefStructConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    /// <summary>Gets the "ref" keyword.</summary>
+    public SyntaxToken RefKeyword => new SyntaxToken(this, ((InternalSyntax.RefStructConstraintSyntax)this.Green).refKeyword, Position, 0);
+
+    /// <summary>Gets the "struct" keyword.</summary>
+    public SyntaxToken StructKeyword => new SyntaxToken(this, ((InternalSyntax.RefStructConstraintSyntax)this.Green).structKeyword, GetChildPosition(1), GetChildIndex(1));
+
+    internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefStructConstraint(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefStructConstraint(this);
+
+    public RefStructConstraintSyntax Update(SyntaxToken refKeyword, SyntaxToken structKeyword)
+    {
+        if (refKeyword != this.RefKeyword || structKeyword != this.StructKeyword)
+        {
+            var newNode = SyntaxFactory.RefStructConstraint(refKeyword, structKeyword);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public RefStructConstraintSyntax WithRefKeyword(SyntaxToken refKeyword) => Update(refKeyword, this.StructKeyword);
+    public RefStructConstraintSyntax WithStructKeyword(SyntaxToken structKeyword) => Update(this.RefKeyword, structKeyword);
+}
+
 public abstract partial class BaseFieldDeclarationSyntax : MemberDeclarationSyntax
 {
     internal BaseFieldDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)

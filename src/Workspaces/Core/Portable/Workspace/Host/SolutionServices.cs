@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -43,6 +44,9 @@ public sealed class SolutionServices
     public IEnumerable<string> SupportedLanguages
         => _services.SupportedLanguages;
 
+    internal ImmutableArray<string> SupportedLanguagesArray
+        => _services.SupportedLanguagesArray;
+
     /// <inheritdoc cref="HostWorkspaceServices.IsSupported"/>
     public bool IsSupported(string languageName)
         => _services.IsSupported(languageName);
@@ -56,6 +60,9 @@ public sealed class SolutionServices
 
     public TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
         => this.GetLanguageServices(language).GetRequiredService<TLanguageService>();
+
+    internal HostLanguageServices GetExtendedLanguageServices(string language)
+        => _services.GetLanguageServices(language);
 
     internal IEnumerable<T> FindLanguageServices<T>(HostWorkspaceServices.MetadataFilter filter)
         => _services.FindLanguageServices<T>(filter);

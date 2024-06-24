@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
                         refEscapeScope >= GetRefEscape(initializer, _localScopeDepth));
 
-                    if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true)
+                    if (node.DeclaredTypeOpt?.Type.IsRefLikeOrAllowsRefLikeType() == true)
                     {
                         ValidateEscape(initializer, valEscapeScope, isByRef: false, _diagnostics);
                     }
@@ -578,7 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
             {
-                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                // https://github.com/dotnet/roslyn/issues/73551:
+                // We do not have a test that demonstrates the statement below makes a difference
+                // for ref like types. If 'CallingMethodScope' is always returned, not a single test fails.
+                return typeExpression.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -603,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol is null
                     ? valEscape
-                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope;
+                    : symbol.GetTypeOrReturnType().IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -616,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member is null) return valEscape;
                 valEscape = getMemberValEscape(member.Receiver, valEscape);
-                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                return member.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 

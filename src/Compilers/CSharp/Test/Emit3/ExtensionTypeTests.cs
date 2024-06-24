@@ -1265,12 +1265,9 @@ partial explicit extension R for UnderlyingClass
             // (4,15): error CS0106: The modifier 'async' is not valid for this item
             //     async int Async => 0; // 1
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Async").WithArguments("async").WithLocation(4, 15),
-            // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'implicit/explicit extension', or a method return type.
+            // (5,17): error CS9248: Partial property 'R.Partial' must have an implementation part.
             //     partial int Partial { get; } // 2, 3
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-            // (5,17): error CS9313: 'R.Partial': cannot declare instance members with state in extension types.
-            //     partial int Partial { get; } // 2, 3
-            Diagnostic(ErrorCode.ERR_StateInExtension, "Partial").WithArguments("R.Partial").WithLocation(5, 17),
+            Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "Partial").WithArguments("R.Partial").WithLocation(5, 17),
             // (6,29): error CS0106: The modifier 'scoped' is not valid for this item
             //     scoped System.Span<int> Scoped => throw null; // 4
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Scoped").WithArguments("scoped").WithLocation(6, 29),

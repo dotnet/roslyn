@@ -10,11 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
-internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
+internal sealed class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
 {
     protected override bool CanFind(INamespaceSymbol symbol)
         => true;
@@ -51,7 +50,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         INamespaceSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -73,16 +72,10 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
                 symbol, namespaceName, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
 
             foreach (var globalAlias in state.GlobalAliases)
-            {
-                // ignore the cases where the global alias might match the namespace name (i.e.
-                // global alias Collections = System.Collections).  We'll already find those references
-                // above.
-                if (state.SyntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
-                    continue;
+                FindReferenceToAlias(symbol, state, initialReferences, namespaceName, globalAlias, cancellationToken);
 
-                AddNamedReferences(
-                    symbol, globalAlias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
-            }
+            foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(symbol.Name, arity: 0))
+                FindReferenceToAlias(symbol, state, initialReferences, namespaceName, localAlias, cancellationToken);
 
             // The items in initialReferences need to be both reported and used later to calculate additional results.
             foreach (var location in initialReferences)
@@ -94,8 +87,19 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
             FindReferencesInDocumentInsideGlobalSuppressions(
                 symbol, state, processResult, processResultData, cancellationToken);
         }
+    }
 
-        return ValueTaskFactory.CompletedTask;
+    private static void FindReferenceToAlias(
+        INamespaceSymbol symbol, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> initialReferences, string namespaceName, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the namespace name (i.e.
+        // global alias Collections = System.Collections).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(namespaceName, alias))
+            return;
+
+        AddNamedReferences(
+            symbol, alias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
     }
 
     /// <summary>

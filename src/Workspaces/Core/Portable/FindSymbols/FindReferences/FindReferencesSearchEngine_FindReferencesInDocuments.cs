@@ -7,11 +7,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -110,20 +113,51 @@ internal partial class FindReferencesSearchEngine
 
         async ValueTask DirectSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
-            foreach (var finder in _finders)
+            await ProducerConsumer<FinderLocation>.RunAsync(
+                ProducerConsumerOptions.SingleReaderWriterOptions,
+                static (callback, args, cancellationToken) =>
+                {
+                    var (@this, symbol, state) = args;
+
+                    // We don't bother calling into the finders in parallel as there's only ever one that applies for a
+                    // particular symbol kind.  All the rest bail out immediately after a quick type-check.  So there's
+                    // no benefit in forking out to have only one of them end up actually doing work.
+                    foreach (var finder in @this._finders)
+                    {
+                        finder.FindReferencesInDocument(
+                            symbol, state,
+                            static (finderLocation, callback) => callback(finderLocation),
+                            callback, @this._options, cancellationToken);
+                    }
+
+                    return Task.CompletedTask;
+                },
+                consumeItems: static async (values, args, cancellationToken) =>
+                {
+                    var (@this, symbol, state) = args;
+                    var converted = await ConvertLocationsAndReportGroupsAsync(@this, values, symbol, cancellationToken).ConfigureAwait(false);
+                    await @this._progress.OnReferencesFoundAsync(converted, cancellationToken).ConfigureAwait(false);
+                },
+                args: (@this: this, symbol, state),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        static async Task<ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>> ConvertLocationsAndReportGroupsAsync(
+            FindReferencesSearchEngine @this, IAsyncEnumerable<FinderLocation> locations, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            SymbolGroup? group = null;
+
+            using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var result);
+
+            // Transform the individual finder-location objects to "group/symbol/location" tuples.
+            await foreach (var location in locations)
             {
-                await finder.FindReferencesInDocumentAsync(
-                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken).ConfigureAwait(false);
+                // The first time we see the location for a symbol, report its group.
+                group ??= await @this.ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                result.Add((group, symbol, location.Location));
             }
 
-            if (referencesForFinder.Count > 0)
-            {
-                var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                var references = referencesForFinder.SelectAsArray(r => (group, symbol, r.Location));
-
-                await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
-            }
+            return result.ToImmutableAndClear();
         }
 
         async ValueTask InheritanceSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)

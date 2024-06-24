@@ -283,6 +283,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureParamsCollections = MessageBase + 12842,
 
+        IDS_FeatureRefUnsafeInIteratorAsync = MessageBase + 12843,
+
+        IDS_FeatureRefStructInterfaces = MessageBase + 12844,
+
+        IDS_FeaturePartialProperties = MessageBase + 12845,
+        IDS_FeatureFieldAndValueKeywords = MessageBase + 12846,
+
+        IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
+
         IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE consolidate feature identifier
         IDS_FeatureBaseExtensions = MessageBase + 12851, // PROTOTYPE remove this temporary feature flag
     }
@@ -469,6 +478,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureImplicitIndexerInitializer:
                 case MessageID.IDS_FeatureLockObject:
                 case MessageID.IDS_FeatureParamsCollections:
+                case MessageID.IDS_FeatureRefUnsafeInIteratorAsync:
+                case MessageID.IDS_FeatureRefStructInterfaces:
+                case MessageID.IDS_FeatureAllowsRefStructConstraint:
+                case MessageID.IDS_FeaturePartialProperties:
+                case MessageID.IDS_FeatureFieldAndValueKeywords:
                 case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 

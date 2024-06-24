@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
@@ -85,7 +87,35 @@ internal sealed class RefKeywordRecommender : AbstractSyntacticSingleKeywordReco
             syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
             context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
             context.TargetToken.IsXmlCrefParameterModifierContext() ||
-            IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
+            IsValidNewByRefContext(syntaxTree, position, context, cancellationToken) ||
+            IsAllowsRefStructConstraintContext(context);
+    }
+
+    private static bool IsAllowsRefStructConstraintContext(CSharpSyntaxContext context)
+    {
+        // cases:
+        //    where T : allows |
+        //    where T : struct, allows |
+        //    where T : new(), allows |
+        //    where T : Goo, allows |
+        // note: 'allows ref struct' can't come after a 'class' constraint.
+
+        var token = context.TargetToken;
+
+        if (token.Kind() == SyntaxKind.IdentifierToken && SyntaxFacts.GetContextualKeywordKind((string)token.Value!) == SyntaxKind.AllowsKeyword &&
+            token.Parent is IdentifierNameSyntax identifier && identifier.Identifier == token &&
+            identifier.Parent is TypeConstraintSyntax typeConstraint && typeConstraint.Type == identifier &&
+            typeConstraint.Parent is TypeParameterConstraintClauseSyntax constraintClause)
+        {
+            if (!constraintClause.Constraints
+                    .OfType<ClassOrStructConstraintSyntax>()
+                    .Any(c => c.ClassOrStructKeyword.Kind() == SyntaxKind.ClassKeyword))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsRefParameterModifierContext(int position, CSharpSyntaxContext context)

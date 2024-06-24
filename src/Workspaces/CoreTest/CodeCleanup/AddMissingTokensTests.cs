@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;

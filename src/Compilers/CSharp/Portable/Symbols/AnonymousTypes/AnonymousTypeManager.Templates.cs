@@ -190,7 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If all parameter types and return type are valid type arguments, construct
             // the delegate type from a generic template. Otherwise, use a non-generic template.
             bool useUpdatedEscapeRules = Compilation.SourceModule.UseUpdatedEscapeRules;
-            if (allValidTypeArguments(useUpdatedEscapeRules, typeDescr, out var needsIndexedName))
+            bool runtimeSupportsByRefLikeGenerics = Compilation.SourceAssembly.RuntimeSupportsByRefLikeGenerics;
+
+            if (allValidTypeArguments(useUpdatedEscapeRules, runtimeSupportsByRefLikeGenerics, typeDescr, out var needsIndexedName))
             {
                 var fields = typeDescr.Fields;
                 Debug.Assert(fields.All(f => hasDefaultScope(useUpdatedEscapeRules, f)));
@@ -294,20 +296,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     template.Construct(typeParameters);
             }
 
-            static bool allValidTypeArguments(bool useUpdatedEscapeRules, AnonymousTypeDescriptor typeDescr, out bool needsIndexedName)
+            static bool allValidTypeArguments(bool useUpdatedEscapeRules, bool runtimeSupportsByRefLikeGenerics, AnonymousTypeDescriptor typeDescr, out bool needsIndexedName)
             {
                 needsIndexedName = false;
                 var fields = typeDescr.Fields;
                 int n = fields.Length;
                 for (int i = 0; i < n - 1; i++)
                 {
-                    if (!isValidTypeArgument(useUpdatedEscapeRules, fields[i], ref needsIndexedName))
+                    if (!isValidTypeArgument(useUpdatedEscapeRules, runtimeSupportsByRefLikeGenerics, fields[i], ref needsIndexedName))
                     {
                         return false;
                     }
                 }
                 var returnParameter = fields[n - 1];
-                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, returnParameter, ref needsIndexedName);
+                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, runtimeSupportsByRefLikeGenerics, returnParameter, ref needsIndexedName);
             }
 
             static bool hasDefaultScope(bool useUpdatedEscapeRules, AnonymousTypeField field)
@@ -324,13 +326,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 };
             }
 
-            static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field, ref bool needsIndexedName)
+            static bool isValidTypeArgument(bool useUpdatedEscapeRules, bool runtimeSupportsByRefLikeGenerics, AnonymousTypeField field, ref bool needsIndexedName)
             {
                 needsIndexedName = needsIndexedName || field.IsParams || field.DefaultValue is not null;
                 return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
-                    !type.IsRestrictedType() &&
+                    (type.IsTypeParameter() || !type.IsRestrictedType(ignoreSpanLikeTypes: runtimeSupportsByRefLikeGenerics)) &&
                     (!field.IsParams || field.Type.IsSZArray()); // [params T collection] is not recognized as a valid params parameter definition
             }
 

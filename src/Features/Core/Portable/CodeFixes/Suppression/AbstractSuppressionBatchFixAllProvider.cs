@@ -96,11 +96,12 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
                 source,
                 produceItems: static async (tuple, callback, args, cancellationToken) =>
                 {
-                    using var _ = args.progressTracker.ItemCompletedScope();
+                    var (@this, fixAllState, progressTracker) = args;
+                    using var _ = progressTracker.ItemCompletedScope();
 
                     var (document, diagnosticsToFix) = tuple;
-                    await args.@this.AddDocumentFixesAsync(
-                        document, diagnosticsToFix, callback, args.fixAllState, cancellationToken).ConfigureAwait(false);
+                    await @this.AddDocumentFixesAsync(
+                        document, diagnosticsToFix, callback, fixAllState, cancellationToken).ConfigureAwait(false);
                 },
                 args: (@this: this, fixAllState, progressTracker),
                 cancellationToken).ConfigureAwait(false);

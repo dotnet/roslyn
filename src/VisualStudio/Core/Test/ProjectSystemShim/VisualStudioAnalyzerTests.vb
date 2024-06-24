@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
@@ -26,7 +27,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact>
         Public Sub GetReferenceCalledMultipleTimes()
             Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-                Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, HostDiagnosticUpdateSource.Instance, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
+                Dim provider = workspace.Services.GetRequiredService(Of IAnalyzerAssemblyLoaderProvider)
+                Dim service = provider.GetLoader(shadowCopy:=True)
+                Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, service, HostDiagnosticUpdateSource.Instance, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
 

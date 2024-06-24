@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
@@ -27,12 +28,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
     /// tagging infrastructure. It is the coordinator between <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>s,
     /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="TagSource"/> is the type that actually owns the
-    /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
-    /// the tag source starts the computation and calls <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> to build
-    /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
-    /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
-    /// <see cref="CachedTagTrees"/></para>
+    /// <para>The <see cref="TagSource"/> is the type that actually owns the list of cached tags. When an <see
+    /// cref="ITaggerEventSource"/> says tags need to be  recomputed, the tag source starts the computation and calls
+    /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> to build the new list of tags. When
+    /// that's done, the tags are stored in <see cref="_cachedTagTrees_mayChangeFromAnyThread"/>. The tagger, when asked
+    /// for tags from the editor, then returns the tags that are stored in <see
+    /// cref="_cachedTagTrees_mayChangeFromAnyThread"/></para>
     /// 
     /// <para>There is a one-to-many relationship between <see cref="TagSource"/>s
     /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
@@ -48,14 +49,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </summary>
         private const int CoalesceDifferenceCount = 10;
 
+        private readonly ObjectPool<HashSet<TagSpan<TTag>>> _tagSpanSetPool;
+
         #region Fields that can be accessed from either thread
 
         private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
-
-        /// <summary>
-        /// async operation notifier
-        /// </summary>
-        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
         /// Information about what workspace the buffer we're tagging is associated with.
@@ -86,6 +84,20 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </summary>
         private readonly CancellationSeries _nonFrozenComputationCancellationSeries;
 
+        /// <summary>
+        /// The last tag trees that we computed per buffer.  Note: this can be read/written from any thread.  Because of
+        /// that, we have to use safe operations to actually read or write it.  This includes using looping "compare and
+        /// swap" algorithms to make sure that it is consistently moved forward no matter which thread is trying to
+        /// mutate it.
+        /// </summary>
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_mayChangeFromAnyThread = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+
+        #endregion
+
+        #region Mutable state.  Only accessed from _eventChangeQueue
+
+        private object? _state_accessOnlyFromEventChangeQueueCallback;
+
         #endregion
 
         #region Fields that can only be accessed from the foreground thread
@@ -97,16 +109,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         private readonly ITextView? _textView;
         private readonly ITextBuffer _subjectBuffer;
-
-        /// <summary>
-        /// Used to keep track of if this <see cref="_subjectBuffer"/> is visible or not (e.g. is in some <see
-        /// cref="ITextView"/> that has some part visible or not.  This is used so we can <see
-        /// cref="PauseIfNotVisible"/> tagging when not visible to avoid wasting machine resources. Note: we do not
-        /// examine <see cref="_textView"/> for this as that is only available for "view taggers" (taggers which
-        /// only tag portions of the view) whereas we want this for all taggers (including just buffer taggers which
-        /// tag the entire document).
-        /// </summary>
-        private readonly ITextBufferVisibilityTracker? _visibilityTracker;
 
         /// <summary>
         /// Callback to us when the visibility of our <see cref="_subjectBuffer"/> changes.
@@ -122,13 +124,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         #region Mutable state.  Can only be accessed from the foreground thread
 
         /// <summary>
-        /// accumulated text changes since last tag calculation
-        /// </summary>
-        private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
-        private object? _state_doNotAccessDirecty;
-
-        /// <summary>
         /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
         /// <see langword="true"/> for <see cref="AbstractAsynchronousTaggerProvider{TTag}.ComputeInitialTagsSynchronously"/>,
         /// then we'll want to synchronously block then and only then for tags.
@@ -137,7 +132,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         /// <summary>
         /// Whether or not tag generation is paused.  We pause producing tags when documents become non-visible.
-        /// See <see cref="_visibilityTracker"/>.
+        /// See <see cref="ITextBufferVisibilityTracker"/>.
         /// </summary>
         private bool _paused = false;
 
@@ -148,9 +143,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         public TagSource(
             ITextView? textView,
             ITextBuffer subjectBuffer,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            AbstractAsynchronousTaggerProvider<TTag> dataSource,
-            IAsynchronousOperationListener asyncListener)
+            AbstractAsynchronousTaggerProvider<TTag> dataSource)
         {
             dataSource.ThreadingContext.ThrowIfNotOnUIThread();
             if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
@@ -158,10 +151,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             _textView = textView;
             _subjectBuffer = subjectBuffer;
-            _visibilityTracker = visibilityTracker;
             _dataSource = dataSource;
-            _asyncListener = asyncListener;
             _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
+            _tagSpanSetPool = new ObjectPool<HashSet<TagSpan<TTag>>>(() => new HashSet<TagSpan<TTag>>(this), trimOnFree: false);
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
@@ -171,14 +163,14 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 dataSource.EventChangeDelay.ComputeTimeDelay(),
                 ProcessEventChangeAsync,
                 EqualityComparer<TagSourceQueueItem>.Default,
-                asyncListener,
+                dataSource.AsyncListener,
                 _disposalTokenSource.Token);
 
             _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                 TaggerDelay.NearImmediate.ComputeTimeDelay(),
                 ProcessTagsChangedAsync,
                 equalityComparer: null,
-                asyncListener,
+                dataSource.AsyncListener,
                 _disposalTokenSource.Token);
 
             if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
@@ -193,7 +185,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
-                    asyncListener,
+                    dataSource.AsyncListener,
                     _disposalTokenSource.Token);
             }
 
@@ -202,9 +194,13 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Create the tagger-specific events that will cause the tagger to refresh.
             _eventSource = CreateEventSource();
 
-            // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
-            // themselves immediately afterwards.
-            _onVisibilityChanged = () => ResumeIfVisible();
+            // Any time visibility changes try to pause us if we're not visible, or resume us if we are.
+            _onVisibilityChanged = () =>
+            {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                PauseIfNotVisible();
+                ResumeIfVisible();
+            };
 
             // Now hook up this tagger to all interesting events.
             Connect();
@@ -221,12 +217,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Register to hear about visibility changes so we can pause/resume this tagger.
-                _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
+                _dataSource.VisibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
 
                 _eventSource.Changed += OnEventSourceChanged;
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
+                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                {
                     _subjectBuffer.Changed += OnSubjectBufferChanged;
+                }
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                 {
@@ -270,17 +269,20 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _textView.Caret.PositionChanged -= OnCaretPositionChanged;
                 }
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
+                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                {
                     _subjectBuffer.Changed -= OnSubjectBufferChanged;
+                }
 
                 _eventSource.Changed -= OnEventSourceChanged;
 
-                _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
+                _dataSource.VisibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
             }
         }
 
         private bool IsVisible()
-            => _visibilityTracker == null || _visibilityTracker.IsVisible(_subjectBuffer);
+            => _dataSource.VisibilityTracker == null || _dataSource.VisibilityTracker.IsVisible(_subjectBuffer);
 
         private void PauseIfNotVisible()
         {
@@ -322,63 +324,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             // If there are any options specified for this tagger, then also hook up event
             // notifications for when those options change.
-            var optionChangedEventSources = _dataSource.Options.Concat(_dataSource.FeatureOptions)
-                .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption))
-                .ToList();
-
-            if (optionChangedEventSources.Count == 0)
+            if (_dataSource.Options.IsEmpty && _dataSource.FeatureOptions.IsEmpty)
             {
-                // No options specified for this tagger.  So just keep the event source as is.
                 return eventSource;
             }
 
-            optionChangedEventSources.Add(eventSource);
-            return TaggerEventSources.Compose(optionChangedEventSources);
-        }
-
-        private TextChangeRange? AccumulatedTextChanges
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _accumulatedTextChanges_doNotAccessDirectly;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _accumulatedTextChanges_doNotAccessDirectly = value;
-            }
-        }
-
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _cachedTagTrees_doNotAccessDirectly;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _cachedTagTrees_doNotAccessDirectly = value;
-            }
-        }
-
-        private object? State
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _state_doNotAccessDirecty;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _state_doNotAccessDirecty = value;
-            }
+            return TaggerEventSources.Compose(
+                eventSource,
+                TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, option =>
+                    _dataSource.Options.Contains(option) || _dataSource.FeatureOptions.Contains(option)));
         }
 
         private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)

@@ -7,14 +7,12 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType;
 

@@ -4071,4 +4071,33 @@ public partial class UsePrimaryConstructorTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73695")]
+    public async Task TestAttributeOnEmptyConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    [CLSCompliant(true)]
+                    public [|C|]()
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                [method: CLSCompliant(true)]
+                class C()
+                {
+                }
+                """,
+            CodeActionIndex = 0,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

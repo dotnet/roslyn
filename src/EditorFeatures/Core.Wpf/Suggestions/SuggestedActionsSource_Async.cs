@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 var allSets = GetCodeFixesAndRefactoringsAsync(
                                     state, requestedActionCategories, document,
                                     range, selection,
-                                    addOperationScope: _ => null,
                                     new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzers),
                                     currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
@@ -202,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 TextDocument document,
                 SnapshotSpan range,
                 TextSpan? selection,
-                Func<string, IDisposable?> addOperationScope,
                 ICodeActionRequestPriorityProvider priorityProvider,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                         workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
-                        priorityProvider, options, addOperationScope, cancellationToken).ConfigureAwait(false);
+                        priorityProvider, options, cancellationToken).ConfigureAwait(false);
                 }
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
@@ -276,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                         workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority, options,
-                        addOperationScope, filterOutsideSelection, cancellationToken).ConfigureAwait(false);
+                        filterOutsideSelection, cancellationToken).ConfigureAwait(false);
                 }
 
                 [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]

@@ -3781,6 +3781,47 @@
       <Kind Name="DefaultKeyword"/>
     </Field>
   </Node>
+
+  <Node Name="AllowsConstraintClauseSyntax" Base="TypeParameterConstraintSyntax">
+    <TypeComment>
+      <summary>The allows type parameter constraint clause.</summary>
+    </TypeComment>
+    <Kind Name="AllowsConstraintClause"/>
+    <Field Name="AllowsKeyword" Type="SyntaxToken">
+      <Kind Name="AllowsKeyword"/>
+    </Field>
+    <Field Name="Constraints" Type="SeparatedSyntaxList&lt;AllowsConstraintSyntax&gt;" MinCount="1">
+      <PropertyComment>
+        <summary>Gets the constraints list.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+
+  <AbstractNode Name="AllowsConstraintSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Base type for allow constraint syntax.</summary>
+    </TypeComment>
+  </AbstractNode>
+
+  <Node Name="RefStructConstraintSyntax" Base="AllowsConstraintSyntax">
+    <TypeComment>
+      <summary>Ref struct constraint syntax.</summary>
+    </TypeComment>
+    <Kind Name="RefStructConstraint"/>
+    <Field Name="RefKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "ref" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="RefKeyword"/>
+    </Field>
+    <Field Name="StructKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "struct" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="StructKeyword"/>
+    </Field>
+  </Node>
+
   <AbstractNode Name="BaseFieldDeclarationSyntax" Base="MemberDeclarationSyntax">
     <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">

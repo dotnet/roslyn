@@ -1234,6 +1234,10 @@ next:;
                 {
                     diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName(), "struct");
                 }
+                else if (IsRecordStruct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InlineArrayAttributeOnRecord, arguments.AttributeSyntaxOpt.Name.Location);
+                }
             }
             else
             {
@@ -1869,7 +1873,7 @@ next:;
                 }
             }
 
-            if (TypeKind == TypeKind.Struct && HasInlineArrayAttribute(out _))
+            if (TypeKind == TypeKind.Struct && !IsRecordStruct && HasInlineArrayAttribute(out _))
             {
                 if (Layout.Kind == LayoutKind.Explicit)
                 {

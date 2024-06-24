@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
                 var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
-                ReportMemberNotSupportedByDynamicDispatch(node, applicable, analyzedArguments.Arguments, diagnostics);
+                ReportMemberNotSupportedByDynamicDispatch(node, applicable, diagnostics);
 
                 result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
             }
@@ -671,23 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection<TMember>(ArrayBuilder<BoundExpression> arguments, ImmutableArray<MemberResolutionResult<TMember>> finalApplicableCandidates)
-            where TMember : Symbol
-        {
-            foreach (var candidate in finalApplicableCandidates)
-            {
-                if ((candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm ||
-                    IsAmbiguousDynamicParamsArgument(arguments, candidate, argumentSyntax: out _)) &&
-                    !candidate.Member.GetParameters().Last().Type.IsSZArray())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, ArrayBuilder<BoundExpression> arguments, BindingDiagnosticBag diagnostics)
+        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, BindingDiagnosticBag diagnostics)
             where TMember : Symbol
         {
             if (candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
@@ -696,15 +680,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics,
                     ErrorCode.ERR_DynamicDispatchToParamsCollection,
                     syntax, candidate.LeastOverriddenMember);
-            }
-            else if (IsAmbiguousDynamicParamsArgument(arguments, candidate, out SyntaxNode argumentSyntax) &&
-                     !candidate.LeastOverriddenMember.GetParameters().Last().Type.IsSZArray())
-            {
-                // We know that runtime binder might not be
-                // able to handle the disambiguation
-                Error(diagnostics,
-                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                    argumentSyntax, candidate.LeastOverriddenMember);
             }
         }
 
@@ -832,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (result is null && finalApplicableCandidates[0].LeastOverriddenMember.MethodKind != MethodKind.LocalFunction)
                             {
-                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], resolution.AnalyzedArguments.Arguments, diagnostics);
+                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], diagnostics);
                             }
                         }
 
@@ -857,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
+                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, finalApplicableCandidates);
 
                                 result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics, queryClause);
                             }
@@ -879,22 +854,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, MethodGroupResolution resolution, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
+        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
         {
             if (HasApplicableConditionalMethod(finalApplicableCandidates))
             {
                 // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
                 // because one or more applicable overloads are conditional methods
                 Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
-            }
-
-            if (finalApplicableCandidates.Length != 1 &&
-                Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(resolution.AnalyzedArguments.Arguments, finalApplicableCandidates))
-            {
-                Error(diagnostics,
-                    ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod,
-                    syntax, methodGroup.Name);
             }
         }
 
@@ -1092,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
                             // Case 1: receiver is a restricted type, and method called is defined on a parent type
-                            if (call.ReceiverOpt.Type.IsRestrictedType() && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
+                            if (call.ReceiverOpt.Type.IsRestrictedType() && !call.Method.ContainingType.IsInterface && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
@@ -1379,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
         {
-            if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type is null or { IsReferenceType: true })
             {
                 return ThreeState.False;
             }

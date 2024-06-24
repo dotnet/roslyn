@@ -61,6 +61,7 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     [DataMember] public bool WrappingPreserveSingleLine { get; init; } = true;
     [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_defaultNamespaceDeclarations;
     [DataMember] public CodeStyleOption2<bool> PreferTopLevelStatements { get; init; } = s_trueWithSilentEnforcement;
+    [DataMember] public int CollectionExpressionWrappingLength { get; init; } = 120;
 
     public CSharpSyntaxFormattingOptions()
     {
@@ -111,5 +112,6 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
         WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine, fallbackOptions.WrappingPreserveSingleLine);
         NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations);
         PreferTopLevelStatements = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, fallbackOptions.PreferTopLevelStatements);
+        CollectionExpressionWrappingLength = options.GetOption(CSharpFormattingOptions2.CollectionExpressionWrappingLength, fallbackOptions.CollectionExpressionWrappingLength);
     }
 }

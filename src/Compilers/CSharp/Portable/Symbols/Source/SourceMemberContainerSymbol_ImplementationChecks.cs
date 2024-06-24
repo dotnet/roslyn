@@ -1404,12 +1404,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
             // ...
             int nRefParametersRequired;
-            if (method.ReturnType.IsRefLikeType ||
+            if (method.ReturnType.IsRefLikeOrAllowsRefLikeType() ||
                 (method.RefKind is RefKind.Ref or RefKind.RefReadOnly))
             {
                 nRefParametersRequired = 1;
             }
-            else if (parameters.Any(p => (p.RefKind is RefKind.Ref or RefKind.Out) && p.Type.IsRefLikeType))
+            else if (parameters.Any(p => (p.RefKind is RefKind.Ref or RefKind.Out) && p.Type.IsRefLikeOrAllowsRefLikeType()))
             {
                 nRefParametersRequired = 2; // including the parameter found above
             }
@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            else if (parameters.Any(p => p.RefKind == RefKind.None && p.Type.IsRefLikeType))
+            else if (parameters.Any(p => p.RefKind == RefKind.None && p.Type.IsRefLikeOrAllowsRefLikeType()))
             {
                 return true;
             }

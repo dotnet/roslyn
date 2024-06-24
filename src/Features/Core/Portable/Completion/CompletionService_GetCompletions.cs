@@ -240,8 +240,9 @@ public abstract partial class CompletionService
             source: providers,
             produceItems: static async (provider, callback, args, cancellationToken) =>
             {
+                var (document, caretPosition, trigger, options, completionListSpan, sharedContext) = args;
                 var context = await GetContextAsync(
-                    provider, args.document, args.caretPosition, args.trigger, args.options, args.completionListSpan, args.sharedContext, cancellationToken).ConfigureAwait(false);
+                    provider, document, caretPosition, trigger, options, completionListSpan, sharedContext, cancellationToken).ConfigureAwait(false);
                 if (HasAnyItems(context))
                     callback(context);
             },

@@ -197,6 +197,16 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
+            // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
+            // continue emitting a List<X> for those target types.
+            var isWellKnownCollectionReadWriteInterface = IsWellKnownCollectionReadWriteInterface(convertedType);
+            if (isWellKnownCollectionReadWriteInterface &&
+                Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
+                type.AllInterfaces.Contains(convertedType))
+            {
+                return true;
+            }
+
             // Before this point are all the changes that we can detect that are always safe to make.
             if (!allowSemanticsChange)
                 return false;
@@ -208,7 +218,7 @@ internal static class UseCollectionExpressionHelpers
 
             // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
             // will replace the code with code that now always allocates.
-            if (isSingletonInstance && IsWellKnownCollectionReadWriteInterface(convertedType))
+            if (isSingletonInstance && isWellKnownCollectionReadWriteInterface)
                 return false;
 
             // Ok to convert in cases like:

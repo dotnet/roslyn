@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
 {
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         ITypeParameterSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -43,7 +42,7 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
             processResult,
             processResultData);
 
-        return ValueTaskFactory.CompletedTask;
+        return;
 
         static bool IsObjectCreationToken(SyntaxToken token, FindReferencesDocumentState state)
         {

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</RootNamespace>
+    <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
+
+    <!-- Used by Razor source generator which is included in source build. -->
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</PackageId>
+    <PackageDescription>
+      A supporting package for Razor source generator:
+      https://github.com/dotnet/razor
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
+
+    <!--
+      ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler.Tests" Key="$(RazorKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

@@ -31,7 +31,7 @@ internal sealed class SearchCompilationFailureDefinitionItem(QueryCompilationErr
         classifiedSpans: [],
         metadataLocations: [],
         properties: null,
-        displayableProperties: null,
+        displayableProperties: [],
         displayIfNoReferences: true)
 {
     internal override bool IsExternal => false;

@@ -5,13 +5,10 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -39,25 +36,17 @@ namespace AnalyzerRunner
                 return;
             }
 
-            var usePersistentStorage = _options.UsePersistentStorage;
-
             var exportProvider = _workspace.Services.SolutionServices.ExportProvider;
 
             var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
             globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope);
             globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope);
 
-            var workspaceConfigurationService = (AnalyzerRunnerWorkspaceConfigurationService)_workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
-            workspaceConfigurationService.Options = new(CacheStorage: usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None);
-
-            if (usePersistentStorage)
+            var persistentStorageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
+            var persistentStorage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), cancellationToken).ConfigureAwait(false);
+            if (persistentStorage is NoOpPersistentStorage)
             {
-                var persistentStorageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
-                var persistentStorage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), cancellationToken).ConfigureAwait(false);
-                if (persistentStorage is NoOpPersistentStorage)
-                {
-                    throw new InvalidOperationException("Benchmark is not configured to use persistent storage.");
-                }
+                throw new InvalidOperationException("Benchmark is not configured to use persistent storage.");
             }
         }
     }
