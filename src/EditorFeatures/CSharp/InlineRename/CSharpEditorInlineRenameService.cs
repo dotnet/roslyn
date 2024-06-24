@@ -26,15 +26,23 @@ internal sealed class CSharpEditorInlineRenameService(
     [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
     IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
 {
+    /// <summary>
+    /// Uses semantic information of renamed symbol to produce a map containing contextual information for use in Copilot rename feature
+    /// </summary>
+    /// <param name="inlineRenameInfo">Instance of <see cref="IInlineRenameInfo"/> pertinent to the rename session.</param>
+    /// <param name="inlineRenameLocationSet"><see cref="IInlineRenameLocationSet"/> of references discovered for the rename session.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Map where key indicates the kind of semantic information, and value is an array of relevant code snippets.</returns>
     protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
-        var seen = PooledHashSet<TextSpan>.GetInstance();
-        var definitions = ArrayBuilder<string>.GetInstance();
-        var references = ArrayBuilder<string>.GetInstance();
-        var docComments = ArrayBuilder<string>.GetInstance();
+        using var _1 = PooledHashSet<TextSpan>.GetInstance(out var seen);
+        using var _2 = ArrayBuilder<string>.GetInstance(out var definitions);
+        using var _3 = ArrayBuilder<string>.GetInstance(out var references);
+        using var _4 = ArrayBuilder<string>.GetInstance(out var docComments);
 
         foreach (var renameDefinition in inlineRenameInfo.DefinitionLocations)
         {
+            // Find largest snippet of code that represents the definition
             var containingStatementOrDeclarationSpan =
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false) ??
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false);
@@ -45,6 +53,7 @@ internal sealed class CSharpEditorInlineRenameService(
                 continue;
             }
 
+            // Find documentation comments using optional service
             var symbolService = renameDefinition.Document.GetLanguageService<IGoToDefinitionSymbolService>();
             if (symbolService is not null)
             {
@@ -64,6 +73,7 @@ internal sealed class CSharpEditorInlineRenameService(
 
         foreach (var renameLocation in inlineRenameLocationSet.Locations)
         {
+            // Find largest snippet of code that represents the reference
             var containingStatementOrDeclarationSpan =
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<BaseMethodDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
@@ -78,20 +88,21 @@ internal sealed class CSharpEditorInlineRenameService(
             AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
         }
 
-        var context = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
+        var contextBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>();
         if (!definitions.IsEmpty)
         {
-            context = context.Add("definition", definitions.ToImmutableAndFree());
+            contextBuilder.Add("definition", definitions.ToImmutableAndFree());
         }
         if (!references.IsEmpty)
         {
-            context = context.Add("reference", references.ToImmutableAndFree());
+            contextBuilder.Add("reference", references.ToImmutableAndFree());
         }
         if (!docComments.IsEmpty)
         {
-            context = context.Add("documentation", docComments.ToImmutableAndFree());
+            contextBuilder.Add("documentation", docComments.ToImmutableAndFree());
         }
-        return context;
+
+        return contextBuilder.ToImmutableDictionary();
 
         void AddSpanOfInterest(SourceText documentText, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<string> resultBuilder)
         {

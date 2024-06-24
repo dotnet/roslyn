@@ -164,7 +164,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private async Task GetSuggestionsTaskAsync(CancellationToken cancellationToken)
     {
         var document = this.BaseViewModel.Session.TriggerDocument;
-        _ = document.GetLanguageService<IGoToDefinitionSymbolService>();
         var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
         var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
             .ConfigureAwait(true);
