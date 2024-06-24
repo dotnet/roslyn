@@ -3841,22 +3841,20 @@ parse_member_name:;
             ArrowExpressionClauseSyntax expressionBody = null;
             EqualsValueClauseSyntax initializer = null;
 
-            // PROTOTYPE: SyntaxKind.GetAccessorDeclaration does seem correct for an initializer.
-            // PROTOTYPE: Confirm that field should be a keyword, and bind to the backing field, in a property initializer: object P { get; } = field;
-            using (new FieldAndValueKeywordContext(this, GetFieldAndValueKeywordContext(AccessorDeclaringKind.Property, SyntaxKind.GetAccessorDeclaration)))
+            // Check for expression body
+            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
-                // Check for expression body
-                if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
+                using (new FieldAndValueKeywordContext(this, GetFieldAndValueKeywordContext(AccessorDeclaringKind.Property, SyntaxKind.GetAccessorDeclaration)))
                 {
                     expressionBody = this.ParseArrowExpressionClause();
                 }
-                // Check if we have an initializer
-                else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
-                {
-                    var equals = this.EatToken(SyntaxKind.EqualsToken);
-                    var value = this.ParseVariableInitializer();
-                    initializer = _syntaxFactory.EqualsValueClause(equals, value: value);
-                }
+            }
+            // Check if we have an initializer
+            else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+            {
+                var equals = this.EatToken(SyntaxKind.EqualsToken);
+                var value = this.ParseVariableInitializer();
+                initializer = _syntaxFactory.EqualsValueClause(equals, value: value);
             }
 
             SyntaxToken semicolon = null;

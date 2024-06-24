@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.FieldKeyword;
+            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {

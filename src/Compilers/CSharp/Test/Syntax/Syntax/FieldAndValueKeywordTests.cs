@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else if (languageVersion > LanguageVersion.CSharp12)
             {
-                // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
                 comp.VerifyEmitDiagnostics(
                     // (4,28): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     // class C1 : A { object P => field; }
@@ -52,13 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 40),
                     // (7,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     // class C4 : A { object P { set { field = 0; } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(7, 33),
-                    // (8,41): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C5 : A { object P { get; set; } = field; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(8, 41),
-                    // (8,41): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                    // class C5 : A { object P { get; set; } = field; }
-                    Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(8, 41));
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(7, 33));
             }
             else
             {
@@ -1972,18 +1965,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class C
                 {
-                    object P { get; } = field;
+                    object P { get; } = F(field);
+                    static object F(object value) => value;
                 }
                 """;
-            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,25): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P { get; } = field;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 25),
-                // (3,25): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                //     object P { get; } = field;
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(3, 25));
+                // (3,27): error CS0103: The name 'field' does not exist in the current context
+                //     object P { get; } = F(field);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 27));
         }
 
         [Fact]
@@ -1995,18 +1985,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object P { get => null; } = field;
                 }
                 """;
-            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS8050: Only auto-implemented properties can have initializers.
                 //     object P { get => null; } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
-                // (3,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                // (3,33): error CS0103: The name 'field' does not exist in the current context
                 //     object P { get => null; } = field;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 33),
-                // (3,33): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                //     object P { get => null; } = field;
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(3, 33));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 33));
         }
 
         [Fact]
@@ -2018,36 +2004,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object P { set { } } = field;
                 }
                 """;
-            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS8050: Only auto-implemented properties can have initializers.
                 //     object P { set { } } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
-                // (3,28): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                // (3,28): error CS0103: The name 'field' does not exist in the current context
                 //     object P { set { } } = field;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 28),
-                // (3,28): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                //     object P { set { } } = field;
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "field").WithLocation(3, 28));
-        }
-
-        [Fact]
-        public void FieldInInitializer_04()
-        {
-            string source = """
-                class C
-                {
-                    object P { get; } = F(field);
-                    static object F(object value) => value;
-                }
-                """;
-            // PROTOTYPE: Should report: CS0236: A field initializer cannot reference the non-static field, method, or property 'field'
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (3,27): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P { get; } = F(field);
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 27));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 28));
         }
 
         [Fact]
@@ -2148,25 +2112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         public void Field_NameOf_02()
-        {
-            string source = """
-                class C
-                {
-                    object P { get; set; } = nameof(field);
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (3,37): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P { get; set; } = nameof(field);
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 37),
-                // (3,37): error CS8081: Expression does not have a name.
-                //     object P { get; set; } = nameof(field);
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 37));
-        }
-
-        [Fact]
-        public void Field_NameOf_03()
         {
             string source = """
                 class C
