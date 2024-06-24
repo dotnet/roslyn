@@ -254,10 +254,23 @@ internal interface IInlineRenameInfo
 /// </summary>
 internal interface IEditorInlineRenameService : ILanguageService
 {
+    /// <summary>
+    /// Returns <see cref="IInlineRenameInfo"/> necessary to establish the inline rename session.
+    /// </summary>
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Returns whether this language service can return optional context from <see cref="GetRenameContextAsync(IInlineRenameInfo, IInlineRenameLocationSet, CancellationToken)"/>.
+    /// </summary>
     bool IsRenameContextSupported { get; }
 
+    /// <summary>
+    /// Returns optional context used in Copilot addition to inline rename feature.
+    /// </summary>
+    /// <param name="inlineRenameInfo"></param>
+    /// <param name="inlineRenameLocationSet"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(
         IInlineRenameInfo inlineRenameInfo,
         IInlineRenameLocationSet inlineRenameLocationSet,
