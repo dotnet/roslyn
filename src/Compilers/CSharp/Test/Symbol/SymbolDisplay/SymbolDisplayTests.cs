@@ -1093,6 +1093,39 @@ class @true {
                 SymbolDisplayPartKind.Punctuation);
         }
 
+        [WorkItem(74117, "https://github.com/dotnet/roslyn/issues/74117")]
+        [Fact]
+        public void TestBug74117()
+        {
+            var text = @"
+public record struct @decimal {
+    void M(@decimal p1) { return; } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("decimal", 0).Single().
+                GetMembers("M").Single();
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "void M(@decimal p1)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.RecordStructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //p1
+                SymbolDisplayPartKind.Punctuation);
+        }
+
         [Fact]
         public void TestNoEscapeKeywordIdentifiers()
         {
