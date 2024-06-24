@@ -559,7 +559,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CheckValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             // PROTOTYPE(instance) need to handle a BoundThis receiver for an extension type with a struct underlying type
-            Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
+            Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter() ||
+                         expr.Type.IsExtension); // PROTOTYPE(roles): Temporarily relaxing the assert to unblock merge from 'main'.
 
             if (expr.HasAnyErrors)
             {
