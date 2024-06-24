@@ -25,8 +25,8 @@ internal readonly struct InlineRenameLocation
 
     public InlineRenameLocation(Document document, TextSpan textSpan) : this()
     {
-        Document = document;
-        TextSpan = textSpan;
+        this.Document = document;
+        this.TextSpan = textSpan;
     }
 }
 
@@ -73,9 +73,9 @@ internal readonly struct InlineRenameReplacement
 
     public InlineRenameReplacement(InlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan) : this()
     {
-        Kind = kind;
-        OriginalSpan = originalSpan;
-        NewSpan = newSpan;
+        this.Kind = kind;
+        this.OriginalSpan = originalSpan;
+        this.NewSpan = newSpan;
     }
 
     internal InlineRenameReplacement(RelatedLocation location, TextSpan newSpan)
