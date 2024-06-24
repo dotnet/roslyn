@@ -59,8 +59,9 @@ internal sealed partial class SolutionAnalyzerConfigOptionsUpdater
                     return;
                 }
 
-                var newSolution = UpdateSolution(transformation: solution => InitializeLanguages(solution, _initializedLanguages));
-                _initializedLanguages = newSolution.SolutionState.ProjectCountByLanguage;
+                UpdateSolution(
+                    transformation: solution => InitializeLanguages(solution, _initializedLanguages),
+                    onAfterUpdate: solution => _initializedLanguages = solution.SolutionState.ProjectCountByLanguage);
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
             {
@@ -77,7 +78,9 @@ internal sealed partial class SolutionAnalyzerConfigOptionsUpdater
                     return;
                 }
 
-                _ = UpdateSolution(transformation: solution => UpdateOptions(solution, args, _initializedLanguages));
+                UpdateSolution(
+                    transformation: solution => UpdateOptions(solution, args, _initializedLanguages),
+                    onAfterUpdate: null);
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
             {
@@ -85,7 +88,7 @@ internal sealed partial class SolutionAnalyzerConfigOptionsUpdater
             }
         }
 
-        private Solution UpdateSolution(Func<Solution, Solution> transformation)
+        private void UpdateSolution(Func<Solution, Solution> transformation, Action<Solution>? onAfterUpdate)
         {
             var lockTaken = false;
             try
@@ -93,20 +96,22 @@ internal sealed partial class SolutionAnalyzerConfigOptionsUpdater
                 // If another update is in progress wait until it completes.
                 Monitor.Enter(_updateLock, ref lockTaken);
 
-                var (_, newSolution) = workspace.SetCurrentSolution(
+                workspace.SetCurrentSolution(
                     transformation,
-                    changeKind: (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
+                    changeKind: WorkspaceChangeKind.SolutionChanged,
                     onAfterUpdate: (_, newSolution) =>
                     {
-                        // unlock before workspace events are triggered:
+                        // called under workspace synchronization lock:
+                        onAfterUpdate?.Invoke(newSolution);
+
+                        // Unlock before workspace events are triggered, so that we don't re-enter
+                        // WorkspaceChanged handler while holding the lock.
                         if (lockTaken)
                         {
                             Monitor.Exit(_updateLock);
                             lockTaken = false;
                         }
                     });
-
-                return newSolution;
             }
             finally
             {
