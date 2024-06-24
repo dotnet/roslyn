@@ -2121,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DuplicateAnalyzerReference = 9067,
         ERR_FileTypeNonUniquePath = 9068,
         ERR_FilePathCannotBeConvertedToUtf8 = 9069,
-        ERR_RequiredMembersAttributeErrors = 9070,
+        //ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
         ERR_FileLocalDuplicateNameInNS = 9071,
         ERR_DeconstructVariableCannotBeByRef = 9072,
         WRN_ScopedMismatchInParameterOfTarget = 9073,
@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DynamicDispatchToParamsCollection = 9218,
         ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
-        // available 9220,
+        ERR_RequiredMembersAttributeErrors = 9220,
         // available 9221,
         // available 9222,
         ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,

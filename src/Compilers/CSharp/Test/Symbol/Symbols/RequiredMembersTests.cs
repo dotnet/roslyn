@@ -7191,7 +7191,7 @@ public class Derived : Base
             }
             """;
 
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CreateCompilation(source, targetFramework: TargetFramework.NetStandard20).VerifyEmitDiagnostics(
             // (7,6): warning CS0436: The type 'ConditionalAttribute' in '' conflicts with the imported type 'ConditionalAttribute' in 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. Using the type defined in ''.
             //     [Conditional("blah")]
             Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Conditional").WithArguments("", "System.Diagnostics.ConditionalAttribute", "netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51", "System.Diagnostics.ConditionalAttribute").WithLocation(7, 6),
