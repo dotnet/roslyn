@@ -2707,16 +2707,6 @@
         <target state="translated">Модификатор "ref" для аргумента, соответствующего параметру "in", эквивалентен "in". Попробуйте вместо этого использовать "in".</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">"yield return" не следует использовать в тексте оператора блокировки.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">"yield return" не следует использовать в тексте оператора блокировки.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
         <target state="translated">Должен быть указан параметр атрибута "SizeConst".</target>

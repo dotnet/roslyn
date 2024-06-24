@@ -2707,16 +2707,6 @@
         <target state="translated">Modifikátor ref pro argument odpovídající parametru in je ekvivalentem in. Místo toho zvažte použití in.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">Příkaz yield return by se neměl používat v těle výrazu lock.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">Příkaz yield return by se neměl používat v těle výrazu lock.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
         <target state="translated">Je nutné zadat parametr atributu SizeConst.</target>
