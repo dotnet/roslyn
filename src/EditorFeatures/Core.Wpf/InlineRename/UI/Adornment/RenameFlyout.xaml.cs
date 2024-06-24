@@ -209,8 +209,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             {
                                 // If smart rename can use automatic behavior, use the button to toggle it.
                                 _viewModel.SmartRenameViewModel.ToggleAutomaticSuggestions();
+                                if (_viewModel.SmartRenameViewModel.IsAutomaticSuggestionsEnabled)
+                                {
+                                    _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
+                                }
                             }
-                            _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
+                            else
+                            {
+                                _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
+                            }
                         }
                     }
                     break;
@@ -276,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         _viewModel.IdentifierText = newIdentifier;
                         // Place the cursor at the end of the input text box.
-                        RenameUserInput.SelectText(newIdentifier.Length, 0);
+                        RenameUserInput.SelectAllText();
                         e.Handled = true;
                     }
                 }

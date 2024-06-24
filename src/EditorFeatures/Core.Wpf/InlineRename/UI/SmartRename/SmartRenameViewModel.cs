@@ -89,6 +89,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public bool IsSuggestionsPanelExpanded => HasSuggestions;
 
+    public bool IsButtonHighlighted => IsInProgress || HasSuggestions || IsAutomaticSuggestionsEnabled;
+
     public string GetSuggestionsTooltip
         => SupportsAutomaticSuggestions
         ? EditorFeaturesWpfResources.Get_AI_suggestions
@@ -130,11 +132,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.SupportsAutomaticSuggestions && this.IsAutomaticSuggestionsEnabled)
         {
-            OnGetSuggestionsCommandExecute();
+            OnGetSuggestionsCommandExecute(true);
         }
     }
 
-    private void OnGetSuggestionsCommandExecute()
+    private void OnGetSuggestionsCommandExecute(object? parameter)
     {
         _threadingContext.ThrowIfNotOnUIThread();
         if (IsAutomaticSuggestionsEnabled && SuggestedNames.Count > 0)
@@ -148,13 +150,17 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
-            _getSuggestionsTask = GetSuggestionsTaskAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+            var isAutomatic = parameter is bool b && b;
+            _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomatic, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
     }
 
-    private async Task GetSuggestionsTaskAsync(CancellationToken cancellationToken)
+    private async Task GetSuggestionsTaskAsync(bool isAutomatic, CancellationToken cancellationToken)
     {
-        await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
+        if (isAutomatic)
+        {
+            await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
+        }
         if (cancellationToken.IsCancellationRequested)
         {
             return;
@@ -182,7 +188,12 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelCollapsed)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsButtonHighlighted)));
             return;
+        }
+        else if (e.PropertyName == nameof(_smartRenameSession.IsInProgress))
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsButtonHighlighted)));
         }
 
         // For the rest of the property, like HasSuggestions, IsAvailable and etc. Just forward it has changed to subscriber

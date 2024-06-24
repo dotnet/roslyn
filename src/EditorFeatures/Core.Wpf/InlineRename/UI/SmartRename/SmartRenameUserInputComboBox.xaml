@@ -76,7 +76,7 @@
                 <Setter Property="Cursor" Value="Arrow"/>
                 <Setter Property="ForceCursor" Value="True"/>
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsSuggestionsPanelExpanded}" Value="True">
+                    <DataTrigger Binding="{Binding IsButtonHighlighted}" Value="True">
                         <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonDefaultBrushKey}}"/>
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderPressedBrushKey}}"/>
                     </DataTrigger>
@@ -254,6 +254,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Template" Value="{StaticResource ComboBoxItemTemplate}" />
             <Setter Property="Margin" Value="2,0,2,0" />
+            <Setter Property="Padding" Value="4,1,24,1" /> <!-- Add 20px to the right over the default template to prevent popup from changing size -->
         </Style>
     </ComboBox.ItemContainerStyle>
 </ComboBox>
