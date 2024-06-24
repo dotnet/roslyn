@@ -36,12 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal bool IsInQuery;
 
         /// <summary>
-        /// If an accessor kind changes, "field" and "value" within the accessor may need to be reinterpreted.
+        /// If an accessor kind changes, "field" within the accessor may need to be reinterpreted,
+        /// to determine whether the token is a keyword or an identifier.
         /// </summary>
         internal bool IsInFieldKeywordContext;
 
         /// <summary>
-        /// If an accessor kind changes, "field" and "value" within the accessor may need to be reinterpreted.
+        /// If an accessor kind changes, "value" within the accessor may need to be reinterpreted,
+        /// to determine whether the token is a keyword or an identifier.
         /// </summary>
         internal bool IsInValueKeywordContext;
     }

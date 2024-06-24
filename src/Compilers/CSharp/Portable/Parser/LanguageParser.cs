@@ -3844,7 +3844,7 @@ parse_member_name:;
             // Check for expression body
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
-                using (new FieldAndValueKeywordContext(this, GetFieldAndValueKeywordContext(AccessorDeclaringKind.Property, SyntaxKind.GetAccessorDeclaration)))
+                using (new FieldAndValueKeywordContext(this, isInFieldKeywordContext: true, isInValueKeywordContext: false))
                 {
                     expressionBody = this.ParseArrowExpressionClause();
                 }
@@ -3882,18 +3882,22 @@ parse_member_name:;
         private readonly struct FieldAndValueKeywordContext : IDisposable
         {
             private readonly LanguageParser _parser;
-            private readonly (bool, bool) _isInFieldAndValueKeywordContext;
+            private readonly bool _previousInFieldKeywordContext;
+            private readonly bool _previousInValueKeywordContext;
 
-            public FieldAndValueKeywordContext(LanguageParser parser, (bool, bool) isInFieldAndValueKeywordContext)
+            public FieldAndValueKeywordContext(LanguageParser parser, bool isInFieldKeywordContext, bool isInValueKeywordContext)
             {
                 _parser = parser;
-                _isInFieldAndValueKeywordContext = (parser.IsInFieldKeywordContext, parser.IsInValueKeywordContext);
-                (parser.IsInFieldKeywordContext, parser.IsInValueKeywordContext) = isInFieldAndValueKeywordContext;
+                _previousInFieldKeywordContext = parser.IsInFieldKeywordContext;
+                _previousInValueKeywordContext = parser.IsInValueKeywordContext;
+                _parser.IsInFieldKeywordContext = isInFieldKeywordContext;
+                _parser.IsInValueKeywordContext = isInValueKeywordContext;
             }
 
             public void Dispose()
             {
-                (_parser.IsInFieldKeywordContext, _parser.IsInValueKeywordContext) = _isInFieldAndValueKeywordContext;
+                _parser.IsInFieldKeywordContext = _previousInFieldKeywordContext;
+                _parser.IsInValueKeywordContext = _previousInValueKeywordContext;
             }
         }
 
@@ -4220,7 +4224,9 @@ parse_member_name:;
             }
 
             // PROTOTYPE: How should ‘field’ and ‘value’ be interpreted in the attributes, modifiers? Those parts have already been parsed.
-            using var __ = new FieldAndValueKeywordContext(this, GetFieldAndValueKeywordContext(declaringKind, accessorKind));
+            bool isInFieldKeywordContext = declaringKind is AccessorDeclaringKind.Property;
+            bool isInValueKeywordContext = accessorKind is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration or SyntaxKind.AddAccessorDeclaration or SyntaxKind.RemoveAccessorDeclaration;
+            using var __ = new FieldAndValueKeywordContext(this, isInFieldKeywordContext, isInValueKeywordContext);
 
             BlockSyntax blockBody = null;
             ArrowExpressionClauseSyntax expressionBody = null;
@@ -4294,20 +4300,6 @@ parse_member_name:;
                 SyntaxKind.AddKeyword => SyntaxKind.AddAccessorDeclaration,
                 SyntaxKind.RemoveKeyword => SyntaxKind.RemoveAccessorDeclaration,
                 _ => SyntaxKind.UnknownAccessorDeclaration,
-            };
-        }
-
-        private static (bool, bool) GetFieldAndValueKeywordContext(AccessorDeclaringKind declaringKind, SyntaxKind accessorKind)
-        {
-            return accessorKind switch
-            {
-                SyntaxKind.GetAccessorDeclaration => (declaringKind == AccessorDeclaringKind.Property, false),
-                SyntaxKind.SetAccessorDeclaration => (declaringKind == AccessorDeclaringKind.Property, true),
-                SyntaxKind.InitAccessorDeclaration => (declaringKind == AccessorDeclaringKind.Property, true),
-                SyntaxKind.AddAccessorDeclaration => (false, true),
-                SyntaxKind.RemoveAccessorDeclaration => (false, true),
-                SyntaxKind.UnknownAccessorDeclaration => (false, false),
-                _ => throw ExceptionUtilities.UnexpectedValue(accessorKind),
             };
         }
 
@@ -5484,7 +5476,7 @@ parse_member_name:;
                 equalsValue = _syntaxFactory.EqualsValueClause(
                     this.EatToken(SyntaxKind.EqualsToken),
                     this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBraceToken
-                        ? this.ParseIdentifierName(null, ErrorCode.ERR_ConstantExpected)
+                        ? this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_ConstantExpected)
                         : this.ParseExpressionCore());
             }
 
@@ -9560,7 +9552,7 @@ done:;
                     {
                         label = _syntaxFactory.CaseSwitchLabel(
                             caseKeyword,
-                            ParseIdentifierName(null, ErrorCode.ERR_ConstantExpected),
+                            ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_ConstantExpected),
                             this.EatToken(SyntaxKind.ColonToken));
                     }
                     else
@@ -11716,11 +11708,11 @@ done:;
 
             if (isIndexer && this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken)
             {
-                expression = this.ParseIdentifierName(null, ErrorCode.ERR_ValueExpected);
+                expression = this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_ValueExpected);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                expression = this.ParseIdentifierName(null, ErrorCode.ERR_MissingArgument);
+                expression = this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_MissingArgument);
             }
             else
             {
