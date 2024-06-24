@@ -23,7 +23,6 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     private readonly SmartRenameViewModel _smartRenameViewModel;
     private readonly RenameFlyoutViewModel _baseViewModel;
     private readonly Lazy<TextBox> _innerTextBox;
-    private Popup? _dropDownPopup;
 
     internal SmartRenameUserInputComboBox(RenameFlyoutViewModel viewModel)
     {
