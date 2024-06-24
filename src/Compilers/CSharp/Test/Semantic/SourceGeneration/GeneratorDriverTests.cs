@@ -4234,5 +4234,101 @@ class C { }
 
             Assert.True(executeCalled);
         }
+
+        [Fact]
+        public void GeneratorDriver_CanFilter_GeneratorsToRun()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen1Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator1"); }); }).AsSourceGenerator();
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen2Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator2"); }); }).AsSourceGenerator();
+
+            var compilation = CreateCompilation("class Compilation1{}");
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator1, generator2);
+
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation1{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation1{} //generator2", result.GeneratedTrees[1].ToString());
+
+            // change the generated source, but only run generator 1
+            compilation = CreateCompilation("class Compilation2{}");
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == generator1);
+            result = driver.GetRunResult();
+
+            // only the first generator should have run, generator 2 hasn't been updated
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation2{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation1{} //generator2", result.GeneratedTrees[1].ToString());
+
+            // now only run generator 2
+            compilation = CreateCompilation("class Compilation3{}");
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == generator2);
+            result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation2{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation3{} //generator2", result.GeneratedTrees[1].ToString());
+
+            // run everything
+            compilation = CreateCompilation("class Compilation4{}");
+            driver = driver.RunGenerators(compilation);
+            result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation4{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation4{} //generator2", result.GeneratedTrees[1].ToString());
+        }
+
+        [Fact]
+        public void GeneratorDriver_ReturnsEmptyRunResult_IfFiltered_BeforeRunning()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen1Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator1"); }); }).AsSourceGenerator();
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen2Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator2"); }); }).AsSourceGenerator();
+
+            var compilation = CreateCompilation("class Compilation1{}");
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator1, generator2);
+
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == generator1);
+            var result = driver.GetRunResult();
+
+            // only a single tree is generated
+            Assert.Equal(1, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation1{} //generator1", result.GeneratedTrees[0].ToString());
+
+            // but both generators are represented in the run results
+            Assert.Equal(2, result.Results.Length);
+
+            Assert.Equal(generator1, result.Results[0].Generator);
+            Assert.Equal(1, result.Results[0].GeneratedSources.Length);
+
+            Assert.Equal(generator2, result.Results[1].Generator);
+            Assert.Empty(result.Results[1].GeneratedSources);
+        }
+
+        [Fact]
+        public void GeneratorDriver_GeneratorIsNotRun_IfAlreadyUpToDate_DueToFiltering()
+        {
+            bool stepRan = false;
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { stepRan = true; }); }).AsSourceGenerator();
+
+            var compilation = CreateCompilation("class Compilation1{}");
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator1);
+
+            // don't run
+            driver = driver.RunGenerators(compilation, ctx => false);
+            Assert.False(stepRan);
+
+            // run
+            driver = driver.RunGenerators(compilation, ctx => true);
+            Assert.True(stepRan);
+
+            // re-run everything
+            stepRan = false;
+            driver = driver.RunGenerators(compilation);
+
+            // step didn't run because the generator was already up to date
+            Assert.False(stepRan);
+        }
     }
 }

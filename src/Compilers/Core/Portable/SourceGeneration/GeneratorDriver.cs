@@ -42,16 +42,26 @@ namespace Microsoft.CodeAnalysis
             _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero, parseOptionsChanged: true);
         }
 
-        public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
+        // 4.9 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken) => RunGenerators(compilation, generatorFilter: null, cancellationToken);
+
+        /// <summary>
+        /// Run generators and produce an updated <see cref="GeneratorDriver"/> containing the results.
+        /// </summary>
+        /// <param name="compilation">The compilation to run generators against</param>
+        /// <param name="generatorFilter">An optional filter that specifies which generators to run. If <c>null</c> all generators will run.</param>
+        /// <param name="cancellationToken">Used to cancel an in progress operation.</param>
+        /// <returns>An updated driver that contains the results of the generators running.</returns>
+        public GeneratorDriver RunGenerators(Compilation compilation, Func<GeneratorFilterContext, bool>? generatorFilter = null, CancellationToken cancellationToken = default)
         {
-            var state = RunGeneratorsCore(compilation, diagnosticsBag: null, cancellationToken); //don't directly collect diagnostics on this path
+            var state = RunGeneratorsCore(compilation, diagnosticsBag: null, generatorFilter, cancellationToken);
             return FromState(state);
         }
 
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
             var diagnosticsBag = DiagnosticBag.GetInstance();
-            var state = RunGeneratorsCore(compilation, diagnosticsBag, cancellationToken);
+            var state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
 
             // build the output compilation
             diagnostics = diagnosticsBag.ToReadOnlyAndFree();
@@ -190,7 +200,7 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorDriverTimingInfo(_state.RunTime, generatorTimings);
         }
 
-        internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
+        internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, Func<GeneratorFilterContext, bool>? generatorFilter = null, CancellationToken cancellationToken = default)
         {
             // with no generators, there is no work to do
             if (_state.Generators.IsEmpty)
@@ -286,7 +296,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
-                if (generatorState.OutputNodes.Length == 0)
+                if (generatorState.OutputNodes.Length == 0 || generatorFilter?.Invoke(new GeneratorFilterContext(state.Generators[i], cancellationToken)) == false)
                 {
                     continue;
                 }
