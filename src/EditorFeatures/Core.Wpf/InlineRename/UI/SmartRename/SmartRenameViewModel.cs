@@ -223,7 +223,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         // The previous element of first element is the last one. And the next element of the last element is the first one.
         var currentIndex = SuggestedNames.IndexOf(currentIdentifier);
         currentIndex += down ? 1 : -1;
-        var count = SuggestedNames.Count;
+        var count = this.SuggestedNames.Count;
         currentIndex = (currentIndex + count) % count;
         return SuggestedNames[currentIndex];
     }
