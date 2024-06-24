@@ -14,8 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal static partial class BoundExpressionExtensions
     {
         /// <summary>
-        /// Returns the RefKind if the expression represents a symbol
-        /// that has a RefKind, or RefKind.None otherwise.
+        /// Returns the RefKind of an expression
+        /// if the expression represents a symbol, the RefKind of the symbol is returned
+        /// if the expression is a "by-ref" expression like conditional operator or InlineArrayAccess the RefKind is calculated and returned
+        /// otherwise this function returns RefKind.None 
         /// </summary>
         public static RefKind GetRefKind(this BoundExpression node)
         {
