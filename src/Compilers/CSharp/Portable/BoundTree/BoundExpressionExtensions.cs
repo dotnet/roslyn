@@ -44,22 +44,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ConditionalOperator:
                     {
-                        var cond = (BoundConditionalOperator)node;
-                        if (!cond.IsRef)
+                        var conditionalOperator = (BoundConditionalOperator)node;
+                        if (!conditionalOperator.IsRef)
                         {
                             return RefKind.None;
                         }
-                        var conseqRefKind = cond.Consequence.GetRefKind();
-                        if (conseqRefKind == RefKind.RefReadOnly)
                         {
-                            return RefKind.RefReadOnly;
+                            if (tryGetReadOnlyRefKind(conditionalOperator.Consequence) is { } r)
+                            {
+                                return r;
+                            }
                         }
-                        var altRefKind = cond.Alternative.GetRefKind();
-                        if (altRefKind == RefKind.RefReadOnly)
                         {
-                            return RefKind.RefReadOnly;
+                            if (tryGetReadOnlyRefKind(conditionalOperator.Alternative) is { } r)
+                            {
+                                return r;
+                            }
                         }
                         return RefKind.Ref;
+
+                        static RefKind? tryGetReadOnlyRefKind(BoundExpression expression)
+                        {
+                            switch (expression.GetRefKind())
+                            {
+                                case RefKind.Ref:
+                                case RefKind.Out:
+                                    return null;
+                                case RefKind.RefReadOnlyParameter:
+                                case RefKind.RefReadOnly:
+                                    return RefKind.RefReadOnly;
+                                case RefKind.None:
+                                    return null; //could be e.g. a throw expression
+                                default:
+                                    return RefKind.RefReadOnly;
+                            }
+                        }
                     }
 
                 case BoundKind.InlineArrayAccess:
