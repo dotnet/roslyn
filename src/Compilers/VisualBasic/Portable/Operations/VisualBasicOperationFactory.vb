@@ -1602,12 +1602,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New AnonymousObjectCreationOperation(initializers, _semanticModel, syntax, type, isImplicit)
         End Function
 
-        Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IOperation
+        Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceOperation
             Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
             Return CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess, [property])
         End Function
 
-        Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess, [property] As IPropertySymbol) As IOperation
+        Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess, [property] As IPropertySymbol) As IPropertyReferenceOperation
             Dim instance As IOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], boundAnonymousTypePropertyAccess.Syntax.FirstAncestorOrSelf(Of AnonymousObjectCreationExpressionSyntax))
             Dim arguments = ImmutableArray(Of IArgumentOperation).Empty
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
