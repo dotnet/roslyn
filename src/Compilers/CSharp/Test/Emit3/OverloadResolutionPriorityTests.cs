@@ -5,6 +5,8 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,44 +14,74 @@ namespace Microsoft.CodeAnalysis.CSharp.Test;
 
 public class OverloadResolutionPriorityTests : CSharpTestBase
 {
-    [Fact]
-    public void IncreasedPriorityWins_01()
+    [Theory, CombinatorialData]
+    public void IncreasedPriorityWins_01(bool useMetadataReference, bool i1First)
     {
-        var source = """
-            using System.Runtime.CompilerServices;
-
+        var executable = """
             I3 i3 = null;
             C.M(i3);
+            """;
 
-            interface I1 {}
-            interface I2 {}
-            interface I3 : I1, I2 {}
-
-            class C
-            {
+        var i1Source = """
                 [OverloadResolutionPriority(1)]
                 public static void M(I1 x) => System.Console.WriteLine(1);
+            """;
 
+        var i2Source = """
                 public static void M(I2 x) => throw null;
+            """;
+
+        var source = $$"""
+            using System.Runtime.CompilerServices;
+
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
+
+            public class C
+            {
+                {{(i1First ? i1Source : i2Source)}}
+                {{(i1First ? i2Source : i1Source)}}
             }
             """;
-        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1", symbolValidator: module =>
+        {
+            var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var ms = c.GetMembers("M").Cast<MethodSymbol>();
+            foreach (var m in ms)
+            {
+                if (m.Parameters[0].Type.Name == "I1")
+                {
+                    Assert.Equal(1, m.OverloadResolutionPriority);
+                }
+                else
+                {
+                    Assert.Equal(0, m.OverloadResolutionPriority);
+                }
+            }
+        }).VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [useMetadataReference ? comp.ToMetadataReference() : comp.EmitToImageReference()], expectedOutput: "1").VerifyDiagnostics();
     }
 
-    [Fact]
-    public void IncreasedPriorityWins_02()
+    [Theory, CombinatorialData]
+    public void IncreasedPriorityWins_02(bool useMetadataReference)
     {
+        var executable = """
+            I3 i3 = null;
+            C.M(i3);
+            """;
+
         var source = """
             using System.Runtime.CompilerServices;
 
-            I3 i3 = null;
-            C.M(i3);
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
 
-            interface I1 {}
-            interface I2 {}
-            interface I3 : I1, I2 {}
-
-            class C
+            public class C
             {
                 [OverloadResolutionPriority(2)]
                 public static void M(object o) => System.Console.WriteLine(1);
@@ -60,47 +92,65 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                 public static void M(I2 x) => throw null;
             }
             """;
-        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [useMetadataReference ? comp.ToMetadataReference() : comp.EmitToImageReference()], expectedOutput: "1").VerifyDiagnostics();
     }
 
-    [Fact]
-    public void DecreasedPriorityLoses()
+    [Theory, CombinatorialData]
+    public void DecreasedPriorityLoses(bool useMetadataReference, bool i1First)
     {
-        var source = """
-            using System.Runtime.CompilerServices;
-
+        var executable = """
             I3 i3 = null;
             C.M(i3);
+            """;
 
-            interface I1 {}
-            interface I2 {}
-            interface I3 : I1, I2 {}
-
-            class C
-            {
+        var i1Source = """
                 public static void M(I1 x) => System.Console.WriteLine(1);
+            """;
 
+        var i2Source = """
                 [OverloadResolutionPriority(-1)]
                 public static void M(I2 x) => throw null;
+            """;
+
+        var source = $$"""
+            using System.Runtime.CompilerServices;
+
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
+
+            public class C
+            {
+                {{(i1First ? i1Source : i2Source)}}
+                {{(i1First ? i2Source : i1Source)}}
             }
             """;
-        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [useMetadataReference ? comp.ToMetadataReference() : comp.EmitToImageReference()], expectedOutput: "1").VerifyDiagnostics();
     }
 
-    [Fact]
-    public void ZeroIsTreatedAsDefault()
+    [Theory, CombinatorialData]
+    public void ZeroIsTreatedAsDefault(bool useMetadataReference)
     {
+        var executable = """
+            I3 i3 = null;
+            C.M(i3);
+            """;
+
         var source = """
             using System.Runtime.CompilerServices;
 
-            I3 i3 = null;
-            C.M(i3);
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
 
-            interface I1 {}
-            interface I2 {}
-            interface I3 : I1, I2 {}
-
-            class C
+            public class C
             {
                 public static void M(I1 x) => System.Console.WriteLine(1);
 
@@ -108,10 +158,24 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                 public static void M(I2 x) => throw null;
             }
             """;
-        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
-            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1)' and 'C.M(I2)'
+        CreateCompilation([executable, source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1)' and 'C.M(I2)'
             // C.M(i3);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(I1)", "C.M(I2)").WithLocation(4, 3)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(I1)", "C.M(I2)").WithLocation(2, 3)
+        );
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: module =>
+        {
+            var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var ms = c.GetMembers("M").Cast<MethodSymbol>();
+            Assert.All(ms, m => Assert.Equal(0, m.OverloadResolutionPriority));
+        }).VerifyDiagnostics();
+
+        CreateCompilation(executable, references: [useMetadataReference ? comp.ToMetadataReference() : comp.EmitToImageReference()]).VerifyDiagnostics(
+            // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1)' and 'C.M(I2)'
+            // C.M(i3);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(I1)", "C.M(I2)").WithLocation(2, 3)
         );
     }
 
@@ -326,6 +390,24 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
                 public int Priority { get;}
             }
+
+            interface I1 {}
+            interface I2 {}
+            interface I3 : I1, I2 {}
+
+            static class C
+            {
+                [OverloadResolutionPriority(1)]
+                public static void M(this I1 x) => System.Console.WriteLine(1);
+
+                public static void M(this I2 x) => throw null;
+
+                static void Test()
+                {
+                    I3 i3 = null;
+                    i3.M();
+                }
+            }
             """;
 
         var verifier = CompileAndVerify(source).VerifyDiagnostics();
@@ -339,8 +421,18 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         var attrs = ctors.SelectAsArray(ctor => ctor.GetAttributes());
 
         Assert.Empty(attrs[0]);
-        AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Int32 priority)",
+        AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Object priority)",
             attrs[1].Single().AttributeConstructor.ToTestDisplayString());
+
+        verifier.VerifyIL("System.Runtime.CompilerServices.C.Test()", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldnull
+              IL_0001:  call       "void System.Runtime.CompilerServices.C.M(System.Runtime.CompilerServices.I1)"
+              IL_0006:  ret
+            }
+            """);
     }
 
     [Fact]

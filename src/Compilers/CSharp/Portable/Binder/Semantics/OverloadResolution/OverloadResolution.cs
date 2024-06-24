@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -98,20 +98,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Perform overload resolution on the given method group, with the given arguments and
         // names. The names can be null if no names were supplied to any arguments.
-        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, bool dynamicResolution, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, bool dynamicResolution, bool isEarlyAttributeBinding, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!dynamicResolution || arguments.HasDynamicArgument);
 
             var results = result.ResultsBuilder;
 
             // First, attempt overload resolution not getting complete results.
-            PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: false, dynamicResolution: dynamicResolution, ref useSiteInfo);
+            PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: false, dynamicResolution: dynamicResolution, isEarlyAttributeBinding, ref useSiteInfo);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: true, dynamicResolution: dynamicResolution, ref useSiteInfo);
+                PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: true, dynamicResolution: dynamicResolution, isEarlyAttributeBinding, ref useSiteInfo);
             }
         }
 
@@ -1605,6 +1605,7 @@ outerDefault:
             AnalyzedArguments arguments,
             bool completeResults,
             bool dynamicResolution,
+            bool isEarlyAttributeBinding,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: The instance constructor to invoke is determined using the overload resolution 
@@ -1622,7 +1623,15 @@ outerDefault:
 
             if (!dynamicResolution)
             {
-                RemoveLowerPriorityMembers(results);
+                if (!isEarlyAttributeBinding)
+                {
+                    // If we're still decoding early attributes, we can get into a cycle here where we attempt to decode early attributes,
+                    // which causes overload resolution, which causes us to attempt to decode early attributes, etc. Concretely, this means
+                    // that OverloadResolutionPriorityAttribute won't affect early bound attributes, so you can't use OverloadResolutionPriorityAttribute
+                    // to adjust what constructor of OverloadResolutionPriorityAttribute is chosen. See `CycleOnOverloadResolutionPriorityConstructor_02` for
+                    // an example.
+                    RemoveLowerPriorityMembers(results);
+                }
 
                 // The best method of the set of candidate methods is identified. If a single best
                 // method cannot be identified, the method invocation is ambiguous, and a binding-time
@@ -1717,8 +1726,6 @@ outerDefault:
                 // then there can be pruning of lower-priority candidates
                 return;
             }
-
-            // PROTOTYPE: There be cycles here accessing overload resolution priority through attribute binding. May need to avoid accessing then
 
             // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
             if (results.All(r => r.LeastOverriddenMember.GetOverloadResolutionPriority() == 0))
