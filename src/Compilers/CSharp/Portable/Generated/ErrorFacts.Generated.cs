@@ -338,7 +338,6 @@
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_BadYieldInLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
                     return true;
                 default:

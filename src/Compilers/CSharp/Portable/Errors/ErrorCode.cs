@@ -2312,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        WRN_BadYieldInLock = 9237,
+        // available 9237
         ERR_BadYieldInUnsafe = 9238,
         ERR_AddressOfInIterator = 9239,
 
