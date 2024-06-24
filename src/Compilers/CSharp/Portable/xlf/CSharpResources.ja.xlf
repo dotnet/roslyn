@@ -2707,16 +2707,6 @@
         <target state="translated">'in' パラメーターに対応する引数の 'ref' 修飾子は 'in' と同じです。代わりに 'in' を使用することを検討してください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return' は、lock ステートメント本体では使用できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return' は、lock ステートメント本体では使用できません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
         <target state="translated">属性パラメーター 'SizeConst' を指定する必要があります。</target>
