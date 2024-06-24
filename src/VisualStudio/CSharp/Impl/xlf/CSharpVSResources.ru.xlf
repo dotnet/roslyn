@@ -59,12 +59,12 @@
       </trans-unit>
       <trans-unit id="CancelQuery">
         <source>Cancel Query</source>
-        <target state="new">Cancel Query</target>
+        <target state="translated">Отменить запрос</target>
         <note />
       </trans-unit>
       <trans-unit id="CancelQueryCommandToolTip">
         <source>Cancel (Escape)</source>
-        <target state="new">Cancel (Escape)</target>
+        <target state="translated">Отмена (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -184,17 +184,17 @@
       </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
-        <target state="new">Run Query</target>
+        <target state="translated">Выполнить запрос</target>
         <note />
       </trans-unit>
       <trans-unit id="RunQueryCommandToolTip">
         <source>Run (Ctrl+Enter)</source>
-        <target state="new">Run (Ctrl+Enter)</target>
+        <target state="translated">Выполнить (CTRL+ВВОД)</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Семантический поиск</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">

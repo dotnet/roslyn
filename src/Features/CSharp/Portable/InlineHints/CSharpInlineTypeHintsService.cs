@@ -30,6 +30,7 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
         bool forImplicitVariableTypes,
         bool forLambdaParameterTypes,
         bool forImplicitObjectCreation,
+        bool forCollectionExpressions,
         CancellationToken cancellationToken)
     {
         if (forImplicitVariableTypes || displayAllOverride)
@@ -97,6 +98,19 @@ internal sealed class CSharpInlineTypeHintsService : AbstractInlineTypeHintsServ
                 {
                     var span = new TextSpan(implicitNew.NewKeyword.Span.End, 0);
                     return new(type, span, new TextChange(span, " " + type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
+                }
+            }
+        }
+
+        if (forCollectionExpressions || displayAllOverride)
+        {
+            if (node is CollectionExpressionSyntax collectionExpression)
+            {
+                var type = semanticModel.GetTypeInfo(collectionExpression, cancellationToken).ConvertedType;
+                if (IsValidType(type))
+                {
+                    var span = new TextSpan(collectionExpression.OpenBracketToken.SpanStart, 0);
+                    return new(type, span, new TextChange(span, type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
                 }
             }
         }

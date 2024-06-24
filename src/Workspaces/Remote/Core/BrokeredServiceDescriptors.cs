@@ -74,6 +74,7 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
     public static readonly ServiceRpcDescriptor HotReloadSessionNotificationService = CreateDebuggerServiceDescriptor("HotReloadSessionNotificationService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor ManagedHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("ManagedHotReloadAgentManagerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor GenericHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("GenericHotReloadAgentManagerService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor HotReloadOptionService = CreateDebuggerClientServiceDescriptor("HotReloadOptionService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor MauiLaunchCustomizerService = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
 

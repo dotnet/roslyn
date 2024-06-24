@@ -34,7 +34,11 @@ internal static partial class ProjectExtensions
     /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
     /// </summary>
     public static HostLanguageServices GetExtendedLanguageServices(this Project project)
+#if CODE_STYLE
         => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
+#else
+        => project.Solution.Services.GetExtendedLanguageServices(project.Language);
+#endif
 #pragma warning restore RS0030 // Do not used banned APIs
 
     public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
