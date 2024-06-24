@@ -20,14 +20,13 @@ internal enum WellKnownSynchronizationKind : byte
     DocumentAttributes = 6,
     SourceGeneratedDocumentIdentity = 7,
     SourceGeneratorExecutionVersionMap = 8,
+    FallbackAnalyzerOptions = 9,
 
-    CompilationOptions = 9,
-    ParseOptions = 10,
-    ProjectReference = 11,
-    MetadataReference = 12,
-    AnalyzerReference = 13,
+    CompilationOptions = 10,
+    ParseOptions = 11,
+    ProjectReference = 12,
+    MetadataReference = 13,
+    AnalyzerReference = 14,
 
-    SerializableSourceText = 14,
-    FallbackAnalyzerOptions = 15,
-
+    SerializableSourceText = 15,
 }

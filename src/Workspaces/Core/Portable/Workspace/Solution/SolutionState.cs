@@ -164,12 +164,12 @@ internal sealed partial class SolutionState
     }
 
     internal SolutionState Branch(
+        ImmutableDictionary<string, int>? projectCountByLanguage = null,
         SolutionInfo.SolutionAttributes? solutionAttributes = null,
         IReadOnlyList<ProjectId>? projectIds = null,
         SolutionOptionSet? options = null,
         IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions>? fallbackAnalyzerOptions = null,
-        ImmutableDictionary<string, int>? projectCountByLanguage = null,
         ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
         ProjectDependencyGraph? dependencyGraph = null)
     {

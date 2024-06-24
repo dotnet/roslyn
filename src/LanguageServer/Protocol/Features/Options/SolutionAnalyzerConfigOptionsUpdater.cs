@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Options;
 
 /// <summary>
 /// Keeps <see cref="SolutionState.FallbackAnalyzerOptions"/> up-to-date with global option values maintained by <see cref="IGlobalOptionService"/>.
+/// Whenever editorconfig options stored in <see cref="IGlobalOptionService"/> change we apply these changes to all registered workspaces of given kinds,
+/// such that the latest solution snapshot of each workspace includes the latest snapshot of editorconfig options for all languages present in the solution.
 /// </summary>
 [Export]
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.SemanticSearch), Shared]
@@ -73,9 +75,8 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(
                     return;
                 }
 
-                UpdateSolution(
-                    transformation: solution => InitializeLanguages(solution, _initializedLanguages),
-                    onAfterUpdate: solution => _initializedLanguages = solution.SolutionState.ProjectCountByLanguage);
+                var newSolution = UpdateSolution(transformation: solution => InitializeLanguages(solution, _initializedLanguages));
+                _initializedLanguages = newSolution.SolutionState.ProjectCountByLanguage;
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
             {
@@ -92,9 +93,7 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(
                     return;
                 }
 
-                UpdateSolution(
-                    transformation: solution => UpdateOptions(solution, args, _initializedLanguages),
-                    onAfterUpdate: null);
+                _ = UpdateSolution(transformation: solution => UpdateOptions(solution, args, _initializedLanguages));
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
             {
@@ -102,7 +101,7 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(
             }
         }
 
-        private void UpdateSolution(Func<Solution, Solution> transformation, Action<Solution>? onAfterUpdate)
+        private Solution UpdateSolution(Func<Solution, Solution> transformation)
         {
             var lockTaken = false;
             try
@@ -110,13 +109,11 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(
                 // If another update is in progress wait until it completes.
                 Monitor.Enter(_updateLock, ref lockTaken);
 
-                workspace.SetCurrentSolution(
+                var (_, newSolution) = workspace.SetCurrentSolution(
                     transformation,
-                    changeKind: WorkspaceChangeKind.SolutionChanged,
+                    changeKind: (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
                     onAfterUpdate: (_, newSolution) =>
                     {
-                        onAfterUpdate?.Invoke(newSolution);
-
                         // unlock before workspace events are triggered:
                         if (lockTaken)
                         {
@@ -124,6 +121,8 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(
                             lockTaken = false;
                         }
                     });
+
+                return newSolution;
             }
             finally
             {
