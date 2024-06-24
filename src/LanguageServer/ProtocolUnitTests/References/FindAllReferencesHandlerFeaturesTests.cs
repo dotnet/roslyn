@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,7 +18,7 @@ public class FindAllReferencesHandlerFeaturesTests : AbstractLanguageServerProto
     {
     }
 
-    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocol
+    protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
         .AddParts(typeof(TestDocumentTrackingService))
         .AddParts(typeof(TestWorkspaceRegistrationService));
 

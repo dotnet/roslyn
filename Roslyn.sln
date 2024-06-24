@@ -569,6 +569,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalAccess", "ExternalA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalAccess", "ExternalAccess", "{806F0C6F-3640-4C92-8D55-6767B1535467}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities", "src\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj", "{7465CE63-A7B7-475F-8C57-48D2F8BC665A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1399,6 +1401,10 @@ Global
 		{D817E3CE-F603-499B-B02A-7DECD017B170}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D817E3CE-F603-499B-B02A-7DECD017B170}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D817E3CE-F603-499B-B02A-7DECD017B170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1661,6 +1667,7 @@ Global
 		{58A2876A-618D-4AE6-A136-E44B42BBDE11} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{1AE9182D-B03E-4B00-B32E-37AE01715F57} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{806F0C6F-3640-4C92-8D55-6767B1535467} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
+		{7465CE63-A7B7-475F-8C57-48D2F8BC665A} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

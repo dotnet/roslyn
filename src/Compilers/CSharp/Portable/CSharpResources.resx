@@ -7857,9 +7857,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DynamicDispatchToParamsCollection" xml:space="preserve">
     <value>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</value>
   </data>
-  <data name="ERR_ParamsCollectionAmbiguousDynamicArgument" xml:space="preserve">
-    <value>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</value>
-  </data>
   <data name="ERR_ParamsCollectionInfiniteChainOfConstructorCalls" xml:space="preserve">
     <value>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</value>
   </data>
@@ -7973,5 +7970,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
+  </data>
+  <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
+    <value>allows ref struct constraint</value>
+  </data>
+  <data name="ERR_InlineArrayAttributeOnRecord" xml:space="preserve">
+    <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
   </data>
 </root>

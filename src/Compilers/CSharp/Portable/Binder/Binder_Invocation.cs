@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
                 var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
-                ReportMemberNotSupportedByDynamicDispatch(node, applicable, analyzedArguments.Arguments, diagnostics);
+                ReportMemberNotSupportedByDynamicDispatch(node, applicable, diagnostics);
 
                 result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
             }
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, ArrayBuilder<BoundExpression> arguments, BindingDiagnosticBag diagnostics)
+        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, BindingDiagnosticBag diagnostics)
             where TMember : Symbol
         {
             if (candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
@@ -677,15 +677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics,
                     ErrorCode.ERR_DynamicDispatchToParamsCollection,
                     syntax, candidate.LeastOverriddenMember);
-            }
-            else if (IsAmbiguousDynamicParamsArgument(arguments, candidate, out SyntaxNode argumentSyntax) &&
-                     !candidate.LeastOverriddenMember.GetParameters().Last().Type.IsSZArray())
-            {
-                // We know that runtime binder might not be
-                // able to handle the disambiguation
-                Error(diagnostics,
-                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                    argumentSyntax, candidate.LeastOverriddenMember);
             }
         }
 
@@ -798,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (result is null && finalApplicableCandidates[0].LeastOverriddenMember.MethodKind != MethodKind.LocalFunction)
                             {
-                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], resolution.AnalyzedArguments.Arguments, diagnostics);
+                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], diagnostics);
                             }
                         }
 

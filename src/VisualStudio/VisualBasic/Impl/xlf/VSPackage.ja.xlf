@@ -132,32 +132,32 @@ JSON 文字列のエディター機能の検出と提供;
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>Always add new line on enter</source>
-        <target state="new">Always add new line on enter</target>
+        <target state="translated">Enter を押すと常に新しい行を追加します</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="new">Always include snippets</target>
+        <target state="translated">常にスニペットを含める</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="new">Include snippets when ?-Tab is typed after an identifier</target>
+        <target state="translated">識別子の後に ? Tab を入力したときにスニペットを含める</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>Never add new line on enter</source>
-        <target state="new">Never add new line on enter</target>
+        <target state="translated">Enter 時に新しい行を追加しません</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="new">Never include snippets</target>
+        <target state="translated">スニペットを含めない</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
-        <target state="new">Only add new line on enter after end of fully typed word</target>
+        <target state="translated">単語を完全に入力した後 Enter キーで新しい行のみを追加する</target>
         <note />
       </trans-unit>
     </body>

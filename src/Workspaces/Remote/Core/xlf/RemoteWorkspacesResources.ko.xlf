@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SemanticSearch">
         <source>Semantic search</source>
-        <target state="new">Semantic search</target>
+        <target state="translated">의미 체계 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
