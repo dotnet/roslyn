@@ -436,9 +436,6 @@ class X
                         case ErrorCode.INF_TooManyBoundLambdas:
                         case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
                         case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
