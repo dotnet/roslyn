@@ -6495,42 +6495,6 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        public void OverloadResolution_CandidateOrdering_ParamsArray_Instance()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        var x1 = new Program().Test1;
-                        var x2 = new Program().Test2;
-
-                        x1();
-                        x2();
-                    }
-
-                    public void Test1(int x, long[] a) => Console.Write(a.Length);
-                    public void Test1(long x, params long[] a) => Console.Write(a.Length);
-
-                    public void Test2(int x, params long[] a) => Console.Write(a.Length);
-                    public void Test2(long x, long[] a) => Console.Write(a.Length);
-                }
-                """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
-            {
-                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                    // (7,18): error CS8917: The delegate type could not be inferred.
-                    //         var x1 = new Program().Test1;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                    // (8,18): error CS8917: The delegate type could not be inferred.
-                    //         var x2 = new Program().Test2;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
         public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter()
         {
             var source = """
@@ -6576,48 +6540,6 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter_Instance()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        var x1 = new Program().Test1;
-                        var x2 = new Program().Test2;
-
-                        x1();
-                        x2();
-                    }
-
-                    public void Test1(int x, long[] a, long[] b) => Console.Write(a.Length);
-                    public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
-
-                    public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
-                    public void Test2(long x, long[] a, long[] b) => Console.Write(a.Length);
-                }
-                """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
-            {
-                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                    // (7,18): error CS8917: The delegate type could not be inferred.
-                    //         var x1 = new Program().Test1;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                    // (8,18): error CS8917: The delegate type could not be inferred.
-                    //         var x2 = new Program().Test2;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
-                    // (15,31): error CS0231: A params parameter must be the last parameter in a parameter list
-                    //     public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
-                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(15, 31),
-                    // (17,30): error CS0231: A params parameter must be the last parameter in a parameter list
-                    //     public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
-                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(17, 30));
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
         public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter_02()
         {
             var source = """
@@ -6659,48 +6581,6 @@ class Program
                     // (20,45): error CS0231: A params parameter must be the last parameter in a parameter list
                     //     static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
                     Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(20, 45));
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter_02_Instance()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        var x1 = new Program().Test1;
-                        var x2 = new Program().Test2;
-
-                        x1();
-                        x2();
-                    }
-
-                    public void Test1(int x, long[] a, params long[] b) => Console.Write(a.Length);
-                    public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
-
-                    public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
-                    public void Test2(long x, long[] a, params long[] b) => Console.Write(a.Length);
-                }
-                """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
-            {
-                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                    // (7,18): error CS8917: The delegate type could not be inferred.
-                    //         var x1 = new Program().Test1;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                    // (8,18): error CS8917: The delegate type could not be inferred.
-                    //         var x2 = new Program().Test2;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
-                    // (15,31): error CS0231: A params parameter must be the last parameter in a parameter list
-                    //     public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
-                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(15, 31),
-                    // (17,30): error CS0231: A params parameter must be the last parameter in a parameter list
-                    //     public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
-                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(17, 30));
             }
         }
 
@@ -6791,42 +6671,6 @@ class Program
                     // (20,45): error CS0225: The params parameter must have a valid collection type
                     //     static public void Test2(this object p, params long a) => Console.Write(a);
                     Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(20, 45));
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        public void OverloadResolution_CandidateOrdering_ParamsArray_CustomDelegateType()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        D x1 = new Program().Test1;
-                        D x2 = new Program().Test2;
-
-                        x1();
-                        x2();
-                    }
-                }
-
-                static class E
-                {
-                    static public void Test1(this Program p, long[] a) => Console.Write(a.Length);
-                    static public void Test1(this object p, params long[] a) => Console.Write(a.Length);
-
-                    static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
-                    static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
-                }
-
-                delegate void D(params long[] a);
-                """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
-            {
-                CompileAndVerify(source, expectedOutput: "00",
-                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
             }
         }
 
@@ -6942,128 +6786,14 @@ class Program
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        D x1 = new Program().Test1;
-                        D x2 = new Program().Test2;
-
-                        x1();
-                        x2();
-                    }
-                }
-
-                static class E
-                {
-                    static public void Test1(this Program p, long a) => Console.Write(a);
-                    static public void Test1(this object p, long a = 1) => Console.Write(a);
-
-                    static public void Test2(this object p, long a = 2) => Console.Write(a);
-                    static public void Test2(this Program p, long a) => Console.Write(a);
-                }
-                
-                delegate void D(long a = 3);
-                """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
-            {
-                CompileAndVerify(source, expectedOutput: "33",
-                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_DifferentValues()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        D x1 = new Program().Test1;
-                        D x2 = new Program().Test2;
-
-                        x1();
-                        x2();
-                    }
-                }
-
-                static class E
-                {
-                    static public void Test1(this Program p, long a = 5) => Console.Write(a);
-                    static public void Test1(this object p, long a = 6) => Console.Write(a);
-
-                    static public void Test2(this object p, long a = 7) => Console.Write(a);
-                    static public void Test2(this Program p, long a = 8) => Console.Write(a);
-                }
-                
-                delegate void D(long a = 3);
-                """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
-            {
-                CompileAndVerify(source, expectedOutput: "33",
-                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_SameValues()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        D x1 = new Program().Test1;
-                        D x2 = new Program().Test2;
-
-                        x1();
-                        x2();
-                    }
-                }
-
-                static class E
-                {
-                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
-                    static public void Test1(this object p, long a = 1) => Console.Write(a);
-
-                    static public void Test2(this object p, long a = 2) => Console.Write(a);
-                    static public void Test2(this Program p, long a = 2) => Console.Write(a);
-                }
-                
-                delegate void D(long a = 3);
-                """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
-            {
-                CompileAndVerify(source, expectedOutput: "33",
-                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
-            }
-        }
-
         [Fact]
         public void OverloadResolution_DefaultValue_01()
         {
             var source1 = """
-                public class Z : Y<long>
+                public class Y<T> : X
                 {
-                    public override void M(int x = 3) => System.Console.WriteLine("I" + x);
-                    public override void M(long x = 4) => System.Console.WriteLine("L" + x);
-                }
-
-                public abstract class Y<T> : X
-                {
-                    public abstract void M(T x = default);
-                    public override void M(int x = 2) => System.Console.WriteLine("Y" + x);
+                    public void M(T x = default) { }
+                    public override void M(int x = 2) => System.Console.WriteLine(x);
                 }
 
                 public abstract class X
@@ -7073,33 +6803,36 @@ class Program
                 """;
 
             var source2 = """
-                var d1 = new Z().M;
+                var d1 = new Y<int>().M;
                 System.Console.WriteLine(d1.GetType());
                 d1();
+                """;
 
-                var d2 = ((Y<long>)(new Z())).M;
+            var expectedDiagnostics = new[]
+            {
+                // (1,10): error CS8917: The delegate type could not be inferred.
+                // var d1 = new Y<int>().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Y<int>().M").WithLocation(1, 10)
+            };
+
+            CreateCompilation([source1, source2], parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source1, source2], parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source1, source2]).VerifyDiagnostics(expectedDiagnostics);
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                1
+                """;
+
+            var source3 = """
+                var d2 = ((X)new Y<int>()).M;
                 System.Console.WriteLine(d2.GetType());
                 d2();
                 """;
 
-            CreateCompilation([source1, source2]).VerifyDiagnostics(
-                // (1,10): error CS8917: The delegate type could not be inferred.
-                // var d1 = new Z().M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Z().M").WithLocation(1, 10),
-                // (5,10): error CS8917: The delegate type could not be inferred.
-                // var d2 = ((Y<long>)(new Z())).M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "((Y<long>)(new Z())).M").WithLocation(5, 10));
-
-            var source3 = """
-                var d3 = ((X)(new Z())).M;
-                System.Console.WriteLine(d3.GetType());
-                d3();
-                """;
-
-            CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: """
-                <>f__AnonymousDelegate0`1[System.Int32]
-                I1
-                """).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
             {
@@ -7112,147 +6845,11 @@ class Program
         public void OverloadResolution_DefaultValue_02()
         {
             var source = """
-                public class Z : Y<int>
-                {
-                    public override void M(int x = default) { }
-                }
-
-                public abstract class Y<T> : X
-                {
-                    public abstract void M(T x = default);
-                    public override void M(int x) { }
-                }
-
-                public abstract class X
-                {
-                    public abstract void M(int x = 42);
-                }
-                """;
-
-            var expectedDiagnostics = new[]
-            {
-                // (3,26): error CS0462: The inherited members 'Y<T>.M(T)' and 'Y<T>.M(int)' have the same signature in type 'Z', so they cannot be overridden
-                //     public override void M(int x = default) { }
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Y<T>.M(T)", "Y<T>.M(int)", "Z").WithLocation(3, 26),
-                // (8,26): warning CS1957: Member 'Z.M(int)' overrides 'Y<int>.M(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                //     public abstract void M(T x = default);
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Y<int>.M(int)", "Z.M(int)").WithLocation(8, 26)
-            };
-
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact]
-        public void OverloadResolution_DefaultValue_03()
-        {
-            var source = """
-                D d = new Z().M;
-                d();
-
-                public class Z : Y<long>
-                {
-                    public override void M(int x = 3) { }
-                    public override void M(long x = 4) => System.Console.Write(x);
-                }
-
-                public abstract class Y<T> : X
-                {
-                    public abstract void M(T x = default);
-                    public override void M(int x = 2) { }
-                }
-
-                public abstract class X
-                {
-                    public abstract void M(int x = 1);
-                }
-
-                public delegate void D(long x = 5);
-                """;
-
-            var expectedOutput = "5";
-
-            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void OverloadResolution_DefaultValue_04()
-        {
-            var source = """
-                D d = new Z().M;
-                d();
-
-                public class Z : Y<long>
-                {
-                    public override void M(int x = 3) { }
-                }
-
-                public abstract class Y<T> : X
-                {
-                    public virtual void M(T x = default) => System.Console.Write(x);
-                    public override void M(int x = 2) { }
-                }
-
-                public abstract class X
-                {
-                    public abstract void M(int x = 1);
-                }
-
-                public delegate void D(long x = 5);
-                """;
-
-            var expectedOutput = "5";
-
-            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void OverloadResolution_DefaultValue_05()
-        {
-            var source = """
-                D d = new Z().M;
-                d();
-
-                public class Z : Y<long>
-                {
-                    public override void M(int x = 3) { }
-                }
-
-                public abstract class Y<T> : X
-                {
-                    public virtual void M(T x = default) => System.Console.Write(x);
-                    public override void M(int x = 2) { }
-                }
-
-                public abstract class X
-                {
-                    public abstract void M(int x = 1);
-                }
-
-                public delegate void D(long x = 5);
-                """;
-
-            var expectedOutput = "5";
-
-            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void OverloadResolution_DefaultValue_06()
-        {
-            var source = """
                 var d = new Z().M;
                 System.Console.WriteLine(d.GetType());
                 d();
 
-                public class Z : Y<long>
+                public class Z : Y<int>
                 {
                     public new void M(int x = 3) => System.Console.Write(x);
                 }
@@ -7268,14 +6865,25 @@ class Program
                     public abstract void M(int x = 1);
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,9): error CS8917: The delegate type could not be inferred.
-                // var d = new Z().M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Z().M").WithLocation(1, 9));
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                3
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 3])", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
-        public void OverloadResolution_DefaultValue_07()
+        public void OverloadResolution_DefaultValue_03()
         {
             var source = """
                 new B().M();
@@ -7316,7 +6924,7 @@ class Program
         }
 
         [Fact]
-        public void OverloadResolution_DefaultValue_08()
+        public void OverloadResolution_DefaultValue_04()
         {
             var source = """
                 new B().M();
