@@ -13,21 +13,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 
-internal abstract class AbstractLanguageDetector<TOptions>
+internal abstract class AbstractLanguageDetector<TOptions>(
+    EmbeddedLanguageInfo info,
+    ImmutableArray<string> languageIdentifiers,
+    EmbeddedLanguageCommentDetector commentDetector)
     where TOptions : struct, Enum
 {
-    protected readonly EmbeddedLanguageInfo Info;
-
-    private readonly EmbeddedLanguageDetector _detector;
-
-    protected AbstractLanguageDetector(
-        EmbeddedLanguageInfo info,
-        ImmutableArray<string> languageIdentifiers,
-        EmbeddedLanguageCommentDetector commentDetector)
-    {
-        Info = info;
-        _detector = new EmbeddedLanguageDetector(info, languageIdentifiers, commentDetector);
-    }
+    protected readonly EmbeddedLanguageInfo Info = info;
+    protected readonly EmbeddedLanguageDetector Detector = new EmbeddedLanguageDetector(info, languageIdentifiers, commentDetector);
 
     /// <summary>
     /// Whether or not this is an argument to a well known api for this language (like Regex.Match or JToken.Parse).
@@ -64,7 +57,7 @@ internal abstract class AbstractLanguageDetector<TOptions>
 
         // First check for the standard pattern of either a `// lang=...` comment or an API annotated with the
         // [StringSyntax] attribute.
-        if (_detector.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out _, out var stringOptions))
+        if (Detector.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out _, out var stringOptions))
         {
             // If we got string-options back, then we were on a comment string (e.g. `// lang=regex,option1,option2`).
             // Attempt to convert the string options to actual options requested.

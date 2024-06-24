@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfInIterator">
         <source>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</source>
-        <target state="new">The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</target>
+        <target state="translated">'&amp;' işleci, yineleyici metotlardaki parametrelerde veya yerel değişkenlerde kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_AllowsClauseMustBeLast">
         <source>The 'allows' constraint clause must be the last constraint specified</source>
-        <target state="new">The 'allows' constraint clause must be the last constraint specified</target>
+        <target state="translated">'İzin verilenler' kısıtlama yan tümcesi belirtilen son kısıtlama olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
         <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
-        <target state="new">foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</target>
+        <target state="translated">foreach deyimi, başvuru yapısına izin veren bir tür parametresi olduğundan ve derleme sırasında IDisposable uygulamak için bilinmediğinden '{0}' türündeki numaralandırıcılarda çalışamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike">
         <source>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</source>
-        <target state="new">A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</target>
+        <target state="translated">Başvuru yapısına izin veren bir tür parametresinde sanal olmayan bir örnek arabirim üyesine erişilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -289,12 +289,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
         <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="new">foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</target>
+        <target state="translated">foreach deyimi, '{0}' bir başvuru yapısı veya başvuru yapısına izin veren bir tür parametresi olduğundan, zaman uyumsuz veya yineleyici metotlarda '{0}' türündeki numaralandırıcılar üzerinde çalışamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>
+        <target state="translated">Zaman uyumsuz yöntemlerde veya zaman uyumsuz lambda ifadelerinde '{0}' türündeki parametreler bildirilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
-        <target state="new">Cannot use 'yield return' in an 'unsafe' block</target>
+        <target state="translated">'güvenli yield return' bloğunda 'yield return' kullanılamadı</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -354,7 +354,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
         <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
-        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <target state="translated">'{0}' türüne sahip bir ifadede dinamik çağrı yapılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
         <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
-        <target state="new">Cannot allow ref structs for a type parameter known from other constraints to be a class</target>
+        <target state="translated">Diğer kısıtlamalardan bilinen bir tür parametresi için başvuru yapıları bir sınıf olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="ERR_DynamicDispatchToParamsCollection">
         <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
-        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
+        <target state="translated">'{0}', yalnızca dinamik dağıtım sırasında desteklenmeyen, dizi olmayan parametre koleksiyonunun genişletilmiş biçimiyle uygulanabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -972,6 +972,11 @@
         <target state="translated">'init' erişimcileri 'readonly' olarak işaretlenemez. Bunun yerine '{0}' öğesini salt okunur olarak işaretleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">Satır içi dizi türünün öğelerine yalnızca örtük olarak 'int', 'System.Index' veya 'System.Range' olarak dönüştürülebilir tek bir bağımsız değişkenle erişilebilir.</target>
@@ -1134,27 +1139,27 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
         <source>The data argument to InterceptsLocationAttribute is not in the correct format.</source>
-        <target state="new">The data argument to InterceptsLocationAttribute is not in the correct format.</target>
+        <target state="translated">InterceptsLocationAttribute için veri bağımsız değişkeni doğru biçimde değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidPosition">
         <source>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</source>
-        <target state="new">The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</target>
+        <target state="translated">InterceptsLocationAttribute veri bağımsız değişkeni, '{0}' dosyasında geçersiz bir konuma başvuruyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDuplicateFile">
         <source>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</source>
-        <target state="new">Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</target>
+        <target state="translated">'{0}' dosyasındaki çağrı, derlemenin başka bir yerde yinelenmesi nedeniyle kesilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationFileNotFound">
         <source>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</source>
-        <target state="new">Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</target>
+        <target state="translated">Derlemede eşleşen bir dosya bulunamadığından '{0}' dosyasındaki çağrı kesilemedi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationUnsupportedVersion">
         <source>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</source>
-        <target state="new">Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</target>
+        <target state="translated">Engelleyicilerin '{0}' sürümü desteklenmiyor. Desteklenen en son sürüm:'1'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1529,7 +1534,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotRefStructConstraintNotSatisfied">
         <source>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="new">The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <target state="translated">'{2}' türü, genel türde veya '{0}' metodunda '{1}' parametresi olarak kullanmak için başvuru yapılarına izin veren bir başvuru yapısı veya tür parametresi olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1600,11 +1605,6 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">'Parametre null denetimi' özelliği desteklenmiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">'{0}' parametresinin dizi olmayan params koleksiyonu parametresinin genişletilmiş ve normal biçimleri arasında belirsizlik var, karşılık gelen tek bağımsız değişken 'dynamic' türüne sahip. Dinamik bağımsız değişkenin türünü dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
@@ -1849,7 +1849,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalAcrossAwait">
         <source>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="new">A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</target>
+        <target state="translated">'ref' yereli 'await' veya 'yield' çerçevesi boyunca korunamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
@@ -1914,12 +1914,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
         <source>'ref struct' is already specified.</source>
-        <target state="new">'ref struct' is already specified.</target>
+        <target state="translated">'başvuru yapısı' zaten belirtilmiş.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</target>
+        <target state="translated">'{0}', '{2}' başvuru yapısı için '{1}' arabirim üyesini yürütümez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
@@ -1969,7 +1969,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
-        <target state="new">Target runtime doesn't support by-ref-like generics.</target>
+        <target state="translated">Hedef çalışma zamanı başvuru benzeri genel türleri desteklemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -2249,12 +2249,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</target>
+        <target state="translated">Uygulanan '{0}' üyesi bu özniteliğe sahip olmadığından UnscopedRefAttribute bir arabirim uygulamasına uygulanamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute yalnızca örnek metodları ve özellikleri yapılandırmak için uygulanabilir ve oluşturuculara veya yalnızca init üyelerine uygulanamaz.</target>
+        <target state="translated">UnscopedRefAttribute yalnızca yapılandırmak için veya sanal arabirim örnek metodlarına uygulanabilir ve oluşturuculara veya yalnızca init üyelerine uygulanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -2340,6 +2340,11 @@
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">zaman uyumsuz yöntem oluşturucusunu geçersiz kılma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
+        <source>allows ref struct constraint</source>
+        <target state="new">allows ref struct constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
@@ -2509,12 +2514,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefStructInterfaces">
         <source>ref struct interfaces</source>
-        <target state="new">ref struct interfaces</target>
+        <target state="translated">başvuru yapısı arabirimleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
         <source>ref and unsafe in async and iterator methods</source>
-        <target state="new">ref and unsafe in async and iterator methods</target>
+        <target state="translated">zaman uyumsuz ve yineleyici metotlarda başvuru ve güvenli olmayan</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2608,8 +2613,8 @@
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</source>
-        <target state="new">'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</target>
+        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
+        <target state="new">'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
@@ -2619,12 +2624,12 @@
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
         <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
-        <target state="new">Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
+        <target state="translated">Derleme için lambda ifadesinin en az {0} kez bağlanması gerekir. Lambda ifadesini açık parametre türleriyle bildirin veya kapsayan metot çağrısı genelse açık genel tür bağımsız değişkenlerini kullanmayı göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas_Title">
         <source>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
-        <target state="new">Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
+        <target state="translated">Derleme işlemi, lambda ifadesinin birçok kez bağlamasını gerektirir. Lambda ifadesini açık parametre türleriyle bildirin veya kapsayan metot çağrısı genelse açık genel tür bağımsız değişkenlerini kullanmayı göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2700,16 +2705,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">'in' parametresine karşılık gelen bir bağımsız değişken için 'ref' değiştiricisi 'in' ile eşdeğerdir. Bunun yerine 'in' kullanmayı düşünün.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="new">'yield return' should not be used in the body of a lock statement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="new">'yield return' should not be used in the body of a lock statement</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
@@ -2870,36 +2865,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Çözümleyici referansı birden çok kez belirtildi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Dizi olmayan parametreler koleksiyonu parametresine sahip bir veya daha fazla oluşturucu aşırı yükleme yalnızca genişletilmiş formda uygulanıyor olabilir. Bu, dinamik dağıtım sırasında desteklenmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Dizi olmayan parametreler koleksiyonu parametresine sahip bir veya daha fazla oluşturucu aşırı yükleme yalnızca genişletilmiş formda uygulanıyor olabilir. Bu, dinamik dağıtım sırasında desteklenmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Dizi olmayan parametreler koleksiyonu parametresine sahip bir veya daha fazla dizin oluşturucu aşırı yükleme yalnızca genişletilmiş formda uygulanıyor olabilir. Bu, dinamik dağıtım sırasında desteklenmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Dizi olmayan parametreler koleksiyonu parametresine sahip bir veya daha fazla dizin oluşturucu aşırı yükleme yalnızca genişletilmiş formda uygulanıyor olabilir. Bu, dinamik dağıtım sırasında desteklenmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
-        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Dizi olmayan parametreler koleksiyonu parametresine sahip '{0}' metodunun bir veya daha fazla aşırı yüklemesi yalnızca genişletilmiş formda uygulanıyor olabilir. Bu, dinamik dağıtım sırasında desteklenmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
-        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Dizi olmayan parametreler koleksiyonu parametresine sahip metodun bir veya daha fazla aşırı yüklemesi yalnızca genişletilmiş formda uygulanıyor olabilir. Bu, dinamik dağıtım sırasında desteklenmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -5290,12 +5255,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. {0} alanını null atanabilir olarak bildirmeyi düşünün.</target>
+        <target state="translated">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'Gerekli' değiştiricisini ekleyin veya {0} değerini null atanabilir olarak bildirmeyi göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="needs-review-translation">Null atanamaz alan, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. Alanı null atanabilir olarak bildirmeyi düşünün.</target>
+        <target state="translated">Null atanamaz alan, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'Gerekli' değiştiricisini ekleyin veya null atanabilir olarak bildirmeyi göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6780,7 +6745,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
         <source>The new() constraint must be the last restrictive constraint specified</source>
-        <target state="needs-review-translation">new() kısıtlaması belirtilen son kısıtlama olmalıdır</target>
+        <target state="translated">Yeni() kısıtlaması belirtilen son kısıtlama olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -10706,7 +10671,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
         <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'await', '{0}' türünü içeren bir ifadede kullanılamaz</target>
+        <target state="translated">'{0}' türünde örnek, 'await' veya 'yield' çerçevesi boyunca korunamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11293,7 +11258,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <target state="translated">'{0}' türünün örneği iç içe geçmiş bir işlevde, sorgu ifadesinde, yineleyici bloğunda veya zaman uyumsuz bir metotta kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">

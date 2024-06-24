@@ -196,12 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
-                                                       ? diagnostics
-                                                       : BindingDiagnosticBag.Discarded;
+                    BindingDiagnosticBag patternDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
                     if (disposeMethod is object)
                     {
+                        diagnostics.AddRangeAndFree(patternDiagnostics);
                         MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
@@ -220,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             out BitVector defaultArguments,
                             expanded,
                             enableCallerInfo: true,
-                            patternDiagnostics);
+                            diagnostics);
 
                         Debug.Assert(argsToParams.IsDefault);
                         patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
@@ -228,8 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             awaitableType = disposeMethod.ReturnType;
                         }
+
                         return true;
                     }
+
+                    patternDiagnostics.Free();
                 }
 
                 // Interface binding

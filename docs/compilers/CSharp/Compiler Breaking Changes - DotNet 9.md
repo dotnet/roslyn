@@ -1,5 +1,24 @@
 # This document lists known breaking changes in Roslyn after .NET 8 all the way to .NET 9.
 
+
+## InlineArray attribute on a record struct type is no longer allowed.
+
+***Introduced in Visual Studio 2022 version 17.11***
+
+```cs
+[System.Runtime.CompilerServices.InlineArray(10)] // error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+record struct Buffer1()
+{
+    private int _element0;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)] // error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+record struct Buffer2(int p1)
+{
+}
+```
+
+
 ## Iterators introduce safe context in C# 13 and newer
 
 ***Introduced in Visual Studio 2022 version 17.11***

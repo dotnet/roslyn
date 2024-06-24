@@ -3113,9 +3113,6 @@ struct A : System.IDisposable
             if (modifier == "ref")
             {
                 CreateCompilation(source).VerifyDiagnostics(
-                    // (2,8): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'S.Dispose(ref int)'
-                    // using (var s = new S())
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("x", "S.Dispose(ref int)").WithLocation(2, 8),
                     // (2,8): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                     // using (var s = new S())
                     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(2, 8),

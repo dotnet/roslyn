@@ -177,10 +177,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
         [Fact]
         public void IsEditorConfigOption()
         {
-            Assert.All(FormattingOptions2.Options, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(FormattingOptions2.EditorConfigOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(FormattingOptions2.UndocumentedOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+
             Assert.False(FormattingOptions2.SmartIndent.Definition.IsEditorConfigOption);
 
-            Assert.All(CSharpFormattingOptions2.AllOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(CSharpFormattingOptions2.EditorConfigOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(CSharpFormattingOptions2.UndocumentedOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
 
             Assert.True(NamingStyleOptions.NamingPreferences.Definition.IsEditorConfigOption);
             Assert.True(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.Definition.IsEditorConfigOption);

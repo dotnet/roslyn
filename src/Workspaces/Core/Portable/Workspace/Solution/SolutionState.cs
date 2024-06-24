@@ -33,11 +33,7 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
-    /// <summary>
-    /// Note: this insensitive comparer is busted on many systems.  But we do things this way for compat with the logic
-    /// we've had on windows since forever.
-    /// </summary>
-    public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+    public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
