@@ -1607,11 +1607,6 @@
         <target state="translated">'parameter null-checking' 기능은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">'{0}'의 배열 매개 변수가 아닌 params 컬렉션 매개 변수의 확장된 형식과 일반 형식 간의 모호성입니다. 해당 인수에는 'dynamic' 형식만 있습니다. 동적 인수를 캐스팅하는 것이 좋습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">생성자 '{0}'은(는) 필수 멤버 '{1}'을(를) 초기화되지 않은 상태로 둡니다.</target>
@@ -2715,16 +2710,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">'in' 매개 변수에 해당하는 인수의 'ref' 한정자는 'in'에 해당합니다. 대신 'in'을 사용하는 것이 좋습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return'은 lock 문의 본문에 사용해서는 안 됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return'은 lock 문의 본문에 사용해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">

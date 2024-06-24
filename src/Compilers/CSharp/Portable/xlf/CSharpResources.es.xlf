@@ -1607,11 +1607,6 @@
         <target state="translated">No se admite la característica "parameter null-checking".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Ambigüedad entre las formas expandidas y normales del parámetro de colección params no matriz de "{0}", el único argumento correspondiente tiene el tipo "dynamic". Considere la posibilidad de convertir el argumento dinámico.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">El constructor "{0}" deja el miembro requerido "{1}" sin inicializar.</target>
@@ -2715,16 +2710,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">El modificador "ref" de un argumento correspondiente al parámetro "in" es equivalente a "in". Considere la posibilidad de usar "in" en su lugar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">"yield return" no se debe usar en el cuerpo de una instrucción lock</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">"yield return" no se debe usar en el cuerpo de una instrucción lock</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">

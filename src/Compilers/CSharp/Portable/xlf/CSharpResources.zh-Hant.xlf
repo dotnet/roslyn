@@ -1607,11 +1607,6 @@
         <target state="translated">不支援 'parameter null-checking' 功能。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">非陣列參數集合參數 '{0}' 的展開形式和正常形式之間存在歧義，唯一對應的引數型別為 'dynamic'。請考慮轉換動態引數。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">建構函式 '{0}' 未初始化必要的成員 '{1}'。</target>
@@ -2715,16 +2710,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">對應至 'in' 參數之引數的 'ref' 修飾元相當於 'in'。請考慮改為使用 'in'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return' 不得用於鎖定陳述式的本文中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return' 不得用於鎖定陳述式的本文中</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">

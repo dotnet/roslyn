@@ -133,6 +133,7 @@ public class A { }";
                 "inlay_hints.csharp_enable_inlay_hints_for_implicit_variable_types",
                 "inlay_hints.csharp_enable_inlay_hints_for_lambda_parameter_types",
                 "inlay_hints.csharp_enable_inlay_hints_for_implicit_object_creation",
+                "inlay_hints.csharp_enable_inlay_hints_for_collection_expressions",
                 "code_style.formatting.indentation_and_spacing.tab_width",
                 "code_style.formatting.indentation_and_spacing.indent_size",
                 "code_style.formatting.indentation_and_spacing.indent_style",
