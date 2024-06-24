@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.MSBuild;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -15,12 +14,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             : base(loader, project, buildManager, log)
         {
         }
-
-        protected override SourceCodeKind GetSourceCodeKind(string documentFileName)
-            => SourceCodeKind.Regular;
-
-        public override string GetDocumentExtension(SourceCodeKind sourceCodeKind)
-            => ".cs";
 
         protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.CscCommandLineArgs);

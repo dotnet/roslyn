@@ -9,454 +9,453 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UseCoalesceExpression;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpression
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpression;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer,
+    UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+public class UseCoalesceExpressionForIfNullStatementCheckTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer,
-        UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider>;
-
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-    public class UseCoalesceExpressionForIfNullStatementCheckTests
+    [Fact]
+    public async Task TestLocalDeclaration_ThrowStatement()
     {
-        [Fact]
-        public async Task TestLocalDeclaration_ThrowStatement()
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            class C
             {
-                TestCode = """
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
+                    var item = FindItem() as C;
+                    [|if|] (item == null)
+                        throw new System.InvalidOperationException();
                 }
-                """,
-                FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? throw new System.InvalidOperationException();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
-            }.RunAsync();
-        }
 
-        [Fact]
-        public async Task TestLocalDeclaration_Block()
-        {
-            await new VerifyCS.Test
+                object FindItem() => null;
+            }
+            """,
+            FixedCode = """
+            class C
             {
-                TestCode = """
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                        {
-                            throw new System.InvalidOperationException();
-                        }
-                    }
-
-                    object FindItem() => null;
+                    var item = FindItem() as C ?? throw new System.InvalidOperationException();
                 }
-                """,
-                FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? throw new System.InvalidOperationException();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
-            }.RunAsync();
-        }
+            
+                object FindItem() => null;
+            }
+            """
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestLocalDeclaration_IsPattern()
+    [Fact]
+    public async Task TestLocalDeclaration_Block()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            class C
             {
-                TestCode = """
-                class C
+                void M()
                 {
-                    void M()
+                    var item = FindItem() as C;
+                    [|if|] (item == null)
                     {
-                        var item = FindItem() as C;
-                        [|if|] (item is null)
-                            throw new System.InvalidOperationException();
+                        throw new System.InvalidOperationException();
                     }
-
-                    object FindItem() => null;
                 }
-                """,
-                FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? throw new System.InvalidOperationException();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
-            }.RunAsync();
-        }
 
-        [Fact]
-        public async Task TestLocalDeclaration_Assignment1()
-        {
-            await new VerifyCS.Test
+                object FindItem() => null;
+            }
+            """,
+            FixedCode = """
+            class C
             {
-                TestCode = """
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                            item = new C();
-                    }
-
-                    object FindItem() => null;
+                    var item = FindItem() as C ?? throw new System.InvalidOperationException();
                 }
-                """,
-                FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? new C();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
-            }.RunAsync();
-        }
+            
+                object FindItem() => null;
+            }
+            """
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestLocalDeclaration_Assignment2()
+    [Fact]
+    public async Task TestLocalDeclaration_IsPattern()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            class C
             {
-                TestCode = """
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                            item = new();
-                    }
-
-                    object FindItem() => null;
+                    var item = FindItem() as C;
+                    [|if|] (item is null)
+                        throw new System.InvalidOperationException();
                 }
-                """,
-                FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? new();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
 
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithWrongItemChecked()
-        {
-            var text = """
-                class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item1 == null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
+                object FindItem() => null;
+            }
+            """,
+            FixedCode = """
+            class C
             {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithWrongCondition()
-        {
-            var text = """
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        if (item != null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
+                    var item = FindItem() as C ?? throw new System.InvalidOperationException();
                 }
-                """;
+            
+                object FindItem() => null;
+            }
+            """
+        }.RunAsync();
+    }
 
-            await new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithWrongPattern()
+    [Fact]
+    public async Task TestLocalDeclaration_Assignment1()
+    {
+        await new VerifyCS.Test
         {
-            var text = """
-                class C
+            TestCode = """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        if (item is not null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
+                    var item = FindItem() as C;
+                    [|if|] (item == null)
+                        item = new C();
                 }
-                """;
 
-            await new VerifyCS.Test
+                object FindItem() => null;
+            }
+            """,
+            FixedCode = """
+            class C
             {
-                TestCode = text,
-                FixedCode = text,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithWrongAssignment()
-        {
-            var text = """
-                class C
+                void M()
                 {
-                    void M(C item1)
+                    var item = FindItem() as C ?? new C();
+                }
+            
+                object FindItem() => null;
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_Assignment2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                void M()
+                {
+                    var item = FindItem() as C;
+                    [|if|] (item == null)
+                        item = new();
+                }
+
+                object FindItem() => null;
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                void M()
+                {
+                    var item = FindItem() as C ?? new();
+                }
+            
+                object FindItem() => null;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithWrongItemChecked()
+    {
+        var text = """
+            class C
+            {
+                void M(C item1)
+                {
+                    var item = FindItem() as C;
+                    if (item1 == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithWrongCondition()
+    {
+        var text = """
+            class C
+            {
+                void M()
+                {
+                    var item = FindItem() as C;
+                    if (item != null)
+                        throw new System.InvalidOperationException();
+                }
+
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithWrongPattern()
+    {
+        var text = """
+            class C
+            {
+                void M()
+                {
+                    var item = FindItem() as C;
+                    if (item is not null)
+                        throw new System.InvalidOperationException();
+                }
+
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = text,
+            FixedCode = text,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithWrongAssignment()
+    {
+        var text = """
+            class C
+            {
+                void M(C item1)
+                {
+                    var item = FindItem() as C;
+                    if (item == null)
+                        item1 = new C();
+                }
+
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithElseBlock()
+    {
+        var text = """
+            class C
+            {
+                void M(C item1)
+                {
+                    var item = FindItem() as C;
+                    if (item == null)
+                        item = new C();
+                    else
+                        item = null;
+                }
+
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithMultipleWhenTrueStatements()
+    {
+        var text = """
+            class C
+            {
+                void M(C item1)
+                {
+                    var item = FindItem() as C;
+                    if (item == null)
+                    {
+                        item = new C();
+                        item = null;
+                    }
+                }
+
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithNoWhenTrueStatements()
+    {
+        var text = """
+            class C
+            {
+                void M(C item1)
+                {
+                    var item = FindItem() as C;
+                    if (item == null)
+                    {
+                    }
+                }
+
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithThrowWithoutExpression()
+    {
+        var text = """
+            class C
+            {
+                void M()
+                {
+                    try
+                    {
+                    }
+                    catch
                     {
                         var item = FindItem() as C;
                         if (item == null)
-                            item1 = new C();
+                            throw;
                     }
-
-                    object FindItem() => null;
                 }
-                """;
 
-            await new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
+                object FindItem() => null;
+            }
+            """;
 
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithElseBlock()
+        await new VerifyCS.Test
         {
-            var text = """
-                class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item == null)
-                            item = new C();
-                        else
-                            item = null;
-                    }
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
 
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithLocalWithoutInitializer()
+    {
+        var text = """
+            class C
             {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
+                void M()
+                {
+                    C item;
+                    if ({|CS0165:item|} == null)
+                        throw new System.InvalidOperationException();
+                }
 
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithMultipleWhenTrueStatements()
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
         {
-            var text = """
-                class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item == null)
-                        {
-                            item = new C();
-                            item = null;
-                        }
-                    }
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
 
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithValueTypeInitializer()
+    {
+        var text = """
+            class C
             {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
+                void M()
+                {
+                    object item = 0;
+                    if (item == null)
+                        item = null;
+                }
 
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithNoWhenTrueStatements()
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
         {
-            var text = """
-                class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item == null)
-                        {
-                        }
-                    }
+            TestCode = text,
+            FixedCode = text,
+        }.RunAsync();
+    }
 
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
+    [Fact]
+    public async Task TestLocalDeclaration_NotWithReferenceToVariableInThrow()
+    {
+        var text = """
+            class C
             {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
+                void M()
+                {
+                    var item = FindItem() as C;
+                    if (item is null)
+                        throw new System.InvalidOperationException(nameof(item));
+                }
 
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithThrowWithoutExpression()
+                object FindItem() => null;
+            }
+            """;
+
+        await new VerifyCS.Test
         {
-            var text = """
-                class C
-                {
-                    void M()
-                    {
-                        try
-                        {
-                        }
-                        catch
-                        {
-                            var item = FindItem() as C;
-                            if (item == null)
-                                throw;
-                        }
-                    }
-
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithLocalWithoutInitializer()
-        {
-            var text = """
-                class C
-                {
-                    void M()
-                    {
-                        C item;
-                        if ({|CS0165:item|} == null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithValueTypeInitializer()
-        {
-            var text = """
-                class C
-                {
-                    void M()
-                    {
-                        object item = 0;
-                        if (item == null)
-                            item = null;
-                    }
-
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = text,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestLocalDeclaration_NotWithReferenceToVariableInThrow()
-        {
-            var text = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        if (item is null)
-                            throw new System.InvalidOperationException(nameof(item));
-                    }
-
-                    object FindItem() => null;
-                }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = text,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+            TestCode = text,
+            FixedCode = text,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
     }
 }

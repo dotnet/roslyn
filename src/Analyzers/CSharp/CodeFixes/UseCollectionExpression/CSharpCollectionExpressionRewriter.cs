@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
@@ -47,20 +48,15 @@ internal static class CSharpCollectionExpressionRewriter
         var document = await ParsedDocument.CreateAsync(workspaceDocument, cancellationToken).ConfigureAwait(false);
 
 #if CODE_STYLE
-        var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
+        var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 #else
-        var formattingOptions = await workspaceDocument.GetSyntaxFormattingOptionsAsync(
+        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(
             fallbackOptions, cancellationToken).ConfigureAwait(false);
 #endif
 
         var indentationOptions = new IndentationOptions(formattingOptions);
 
-        // the option is currently not an editorconfig option, so not available in code style layer
-#if CODE_STYLE
-        var wrappingLength = CodeActionOptions.DefaultCollectionExpressionWrappingLength;
-#else
-        var wrappingLength = fallbackOptions.GetOptions(document.LanguageServices).CollectionExpressionWrappingLength;
-#endif
+        var wrappingLength = formattingOptions.CollectionExpressionWrappingLength;
 
         var initializer = getInitializer(expressionToReplace);
         var endOfLine = DetermineEndOfLine(document, expressionToReplace, formattingOptions);

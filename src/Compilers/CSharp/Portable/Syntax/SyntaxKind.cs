@@ -419,8 +419,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ScopedKeyword = 8448,
         /// <summary>Represents <see langword="file"/>.</summary>
         FileKeyword = 8449,
+        /// <summary>Represents <see langword="allows"/>.</summary>
+        AllowsKeyword = 8450,
         /// <summary>Represents <see langword="extension"/>.</summary>
-        ExtensionKeyword = 8450,
+        ExtensionKeyword = 8451,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -813,6 +815,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperatorDeclaration = 8876,
         ConversionOperatorDeclaration = 8877,
         ConstructorDeclaration = 8878,
+        AllowsConstraintClause = 8879,
+        RefStructConstraint = 8880,
 
         BaseConstructorInitializer = 8889,
         ThisConstructorInitializer = 8890,

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;

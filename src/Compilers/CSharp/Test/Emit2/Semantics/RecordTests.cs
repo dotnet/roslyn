@@ -5282,7 +5282,7 @@ record C1(int I1)
     public int this[int i] => 0;
     public int PropertyWithoutGetter { set { } }
     public int P2 { get => 43; }
-    public ref int P3 { get => ref field; }
+    public ref int P3 { get => ref @field; }
     public event System.Action a;
 
     private int field1 = 100;
@@ -19236,9 +19236,6 @@ record D
                 // (10,27): error CS8879: Record member 'B.EqualityContract' must be private.
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(10, 27),
-                // (11,12): warning CS0628: 'B.EqualityContract.get': new protected member declared in sealed type
-                //         => throw null;
-                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("B.EqualityContract.get").WithLocation(11, 12),
                 // (16,35): warning CS0628: 'C.EqualityContract': new protected member declared in sealed type
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(16, 35),
@@ -19321,9 +19318,6 @@ sealed record H : A
                 // (13,27): warning CS0114: 'C.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("C.EqualityContract", "A.EqualityContract").WithLocation(13, 27),
-                // (14,12): warning CS0628: 'C.EqualityContract.get': new protected member declared in sealed type
-                //         => throw null;
-                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("C.EqualityContract.get").WithLocation(14, 12),
                 // (19,35): warning CS0628: 'D.EqualityContract': new protected member declared in sealed type
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("D.EqualityContract").WithLocation(19, 35),
@@ -19997,10 +19991,7 @@ public record G : B {
                 Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(3, 34),
                 // (3,34): error CS8877: Record member 'A.EqualityContract' may not be static.
                 //     protected static System.Type EqualityContract => throw null;
-                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(3, 34),
-                // (3,54): warning CS0628: 'A.EqualityContract.get': new protected member declared in sealed type
-                //     protected static System.Type EqualityContract => throw null;
-                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("A.EqualityContract.get").WithLocation(3, 54)
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(3, 34)
                 );
         }
 
@@ -26049,9 +26040,9 @@ static record R(int I)
     partial void M();
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,18): error CS0751: A partial method must be declared within a partial type
+                // (3,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(3, 18)
                 );
         }
 

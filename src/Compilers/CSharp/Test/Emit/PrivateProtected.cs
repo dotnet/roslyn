@@ -523,10 +523,7 @@ public class Container
                 Diagnostic(ErrorCode.ERR_BadMemberProtection, "V").WithLocation(10, 40),
                 // (12,24): error CS0107: More than one protection modifier
                 //     private public int this[int index] => 1;            // 9
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "this").WithLocation(12, 24),
-                // (12,43): error CS0107: More than one protection modifier
-                //     private public int this[int index] => 1;            // 9
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "1").WithLocation(12, 43)
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "this").WithLocation(12, 24)
                 );
         }
 

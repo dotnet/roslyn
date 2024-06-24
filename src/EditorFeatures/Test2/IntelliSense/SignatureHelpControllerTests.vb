@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -113,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(CreateWorkspace(), items:=CreateItems(2), waitForPresentation:=False)
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
-            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), Options, It.IsAny(Of CancellationToken))) _
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              mre.WaitOne()
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))

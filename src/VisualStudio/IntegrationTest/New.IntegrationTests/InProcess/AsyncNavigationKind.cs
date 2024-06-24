@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
+namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
+
+internal enum AsyncNavigationKind
 {
-    internal enum AsyncNavigationKind
-    {
-        Default,
+    Default,
 
-        Synchronous,
+    Synchronous,
 
-        Asynchronous,
-    }
+    Asynchronous,
 }

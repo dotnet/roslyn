@@ -58,6 +58,8 @@
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
 
+    <!-- TODO --> 
+    <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />

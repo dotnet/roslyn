@@ -325,6 +325,7 @@ class X
                         case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                         case ErrorCode.WRN_Experimental:
                         case ErrorCode.WRN_ConvertingLock:
+                        case ErrorCode.WRN_PartialPropertySignatureDifference:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -432,11 +433,12 @@ class X
                         case ErrorCode.WRN_UseDefViolationRefField:
                         case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                         case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                        case ErrorCode.INF_TooManyBoundLambdas:
+                        case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
                         case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
                         case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
                         case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                         case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
-                        case ErrorCode.INF_TooManyBoundLambdas:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -2982,6 +2984,7 @@ class Program
                     case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
+                    case ErrorCode.ERR_RefLocalAcrossAwait:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

@@ -528,9 +528,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        internal static bool IsErrorOrRefLikeOrAllowsRefLikeType(this TypeSymbol type)
         {
-            return type.IsErrorType() || type.IsRefLikeType;
+            return type.IsErrorType() || type.IsRefLikeOrAllowsRefLikeType();
+        }
+
+        internal static bool IsRefLikeOrAllowsRefLikeType(this TypeSymbol type)
+        {
+            return type is { IsRefLikeType: true } or TypeParameterSymbol { AllowsRefLikeType: true };
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
@@ -1391,9 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes ?
-                        false :
-                        type.IsRefLikeType;
+            return ignoreSpanLikeTypes ? false : type.IsRefLikeOrAllowsRefLikeType();
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)

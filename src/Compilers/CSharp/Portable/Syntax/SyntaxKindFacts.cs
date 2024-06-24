@@ -1230,6 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RequiredKeyword:
                 case SyntaxKind.ScopedKeyword:
                 case SyntaxKind.FileKeyword:
+                case SyntaxKind.AllowsKeyword:
                 case SyntaxKind.ExtensionKeyword:
                     return true;
                 default:
@@ -1356,6 +1357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ScopedKeyword;
                 case "file":
                     return SyntaxKind.FileKeyword;
+                case "allows":
+                    return SyntaxKind.AllowsKeyword;
                 case "extension":
                     return SyntaxKind.ExtensionKeyword;
                 default:
@@ -1803,6 +1806,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "scoped";
                 case SyntaxKind.FileKeyword:
                     return "file";
+                case SyntaxKind.AllowsKeyword:
+                    return "allows";
                 case SyntaxKind.ExtensionKeyword:
                     return "extension";
                 default:

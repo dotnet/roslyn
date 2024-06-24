@@ -2196,9 +2196,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (9,9): error CS0411: The type arguments for method 'Program.AsArray<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         AsArray([]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsArray").WithArguments("Program.AsArray<T>(T[])").WithLocation(9, 9),
-                // (10,17): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'int[]'
+                // (10,21): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         AsArray([1, null]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, null]").WithArguments("1", "collection expressions", "int[]").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(10, 21));
         }
 
         [Fact]
@@ -2741,9 +2741,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,9): error CS0411: The type arguments for method 'Program.F<T>(T[*,*])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F([]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T[*,*])").WithLocation(6, 9),
-                // (7,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'int[*,*]'
+                // (7,11): error CS9174: Cannot initialize type 'int[*,*]' with a collection expression because the type is not constructible.
                 //         F([null, default, 0]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[null, default, 0]").WithArguments("1", "collection expressions", "int[*,*]").WithLocation(7, 11));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[null, default, 0]").WithArguments("int[*,*]").WithLocation(7, 11));
         }
 
         [Fact]
@@ -2763,15 +2763,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (6,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F([], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "string").WithLocation(6, 11),
-                // (7,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(6, 11),
+                // (7,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F([default], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[default]").WithArguments("1", "collection expressions", "string").WithLocation(7, 11),
-                // (8,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[default]").WithArguments("string", "0").WithLocation(7, 11),
+                // (7,11): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F([default], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("string", "Add").WithLocation(7, 11),
+                // (8,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F(['A'], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "['A']").WithArguments("1", "collection expressions", "string").WithLocation(8, 11));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['A']").WithArguments("string", "0").WithLocation(8, 11),
+                // (8,11): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F(['A'], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['A']").WithArguments("string", "Add").WithLocation(8, 11));
         }
 
         [Fact]
@@ -2795,15 +2801,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,12): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'dynamic'
+                // (10,12): error CS9174: Cannot initialize type 'dynamic' with a collection expression because the type is not constructible.
                 //         F1([1], [2]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "dynamic").WithLocation(10, 12),
-                // (11,12): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'D'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("dynamic").WithLocation(10, 12),
+                // (11,12): error CS9174: Cannot initialize type 'D' with a collection expression because the type is not constructible.
                 //         F2([3], [4]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[3]").WithArguments("1", "collection expressions", "D").WithLocation(11, 12),
-                // (12,12): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'E'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("D").WithLocation(11, 12),
+                // (12,12): error CS9174: Cannot initialize type 'E' with a collection expression because the type is not constructible.
                 //         F3([5], [6]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[5]").WithArguments("1", "collection expressions", "E").WithLocation(12, 12));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[5]").WithArguments("E").WithLocation(12, 12));
         }
 
         [Fact]
@@ -7647,15 +7653,15 @@ static class Program
                 """;
             comp = CreateCompilation(new[] { sourceA, sourceB2 });
             comp.VerifyEmitDiagnostics(
-                // 1.cs(5,32): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<object, string>'
+                // 1.cs(5,32): error CS9213: Collection expression target 'MyCollection<object, string>' has no element type.
                 //         Create<object, string>([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "MyCollection<object, string>").WithLocation(5, 32),
-                // 1.cs(6,29): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<int, string>'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[]").WithArguments("MyCollection<object, string>").WithLocation(5, 32),
+                // 1.cs(6,29): error CS9213: Collection expression target 'MyCollection<int, string>' has no element type.
                 //         Create<int, string>([2]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[2]").WithArguments("1", "collection expressions", "MyCollection<int, string>").WithLocation(6, 29),
-                // 1.cs(10,22): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<T, U>'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[2]").WithArguments("MyCollection<int, string>").WithLocation(6, 29),
+                // 1.cs(10,22): error CS9213: Collection expression target 'MyCollection<T, U>' has no element type.
                 //         Create<T, U>([t]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[t]").WithArguments("1", "collection expressions", "MyCollection<T, U>").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[t]").WithArguments("MyCollection<T, U>").WithLocation(10, 22));
 
             string sourceB3 = """
                 class Program
@@ -8824,9 +8830,9 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'System.Collections.IEnumerable'
+                // (6,11): error CS9174: Cannot initialize type 'IEnumerable' with a collection expression because the type is not constructible.
                 //         F([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "collection expressions", "System.Collections.IEnumerable").WithLocation(6, 11),
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.IEnumerable").WithLocation(6, 11),
                 // (8,41): error CS0029: Cannot implicitly convert type 'object' to 'int'
                 //     static int[] F(IEnumerable s) => [..s];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("object", "int").WithLocation(8, 41));
@@ -17740,9 +17746,9 @@ partial class Program
                 // (7,24): error CS0416: 'Container<T>.MyCollectionBuilder': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(MyCollectionBuilder)").WithArguments("Container<T>.MyCollectionBuilder").WithLocation(7, 24),
-                // (24,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'Container<string>.MyCollection'
+                // (24,11): error CS1061: 'Container<string>.MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<string>.MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         F([null]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[null]").WithArguments("1", "collection expressions", "Container<string>.MyCollection").WithLocation(24, 11));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("Container<string>.MyCollection", "Add").WithLocation(24, 11));
 
             var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").Parameters[0].Type;
             Assert.Equal("Container<System.String>.MyCollection", collectionType.ToTestDisplayString());
@@ -18579,9 +18585,12 @@ partial class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,49): error CS1503: Argument 2: cannot convert from 'collection expressions' to 'string'
+                // (6,49): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
-                Diagnostic(ErrorCode.ERR_BadArgType, "['h', 'i']").WithArguments("2", "collection expressions", "string").WithLocation(6, 49));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['h', 'i']").WithArguments("string", "0").WithLocation(6, 49),
+                // (6,49): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['h', 'i']").WithArguments("string", "Add").WithLocation(6, 49));
         }
 
         [Fact]
@@ -20557,10 +20566,7 @@ partial class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,7): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // S s = [d];
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7),
-                // (7,16): error CS8343: 'S': ref structs cannot implement interfaces
-                // ref struct S : IEnumerable<int>
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<int>").WithArguments("S").WithLocation(7, 16)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7)
             );
         }
 
@@ -25937,6 +25943,94 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73297")]
+        [Theory]
+        [InlineData("A[]")]
+        [InlineData("System.Collections.Generic.List<A>")]
+        [InlineData("System.Collections.Generic.IEnumerable<A>")]
+        public void OverloadResolutionArgumentErrors_01(string collectionType)
+        {
+            string source = $$"""
+                {{collectionType}} values = [
+                    new A(),
+                    new B() // 1
+                ];
+
+                M([
+                    new A(),
+                    new B() // 2
+                ]);
+
+                void M({{collectionType}} values) { }
+
+                class A { }
+                class B { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0029: Cannot implicitly convert type 'B' to 'A'
+                //     new B() // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new B()").WithArguments("B", "A").WithLocation(3, 5),
+                // (8,5): error CS0029: Cannot implicitly convert type 'B' to 'A'
+                //     new B() // 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new B()").WithArguments("B", "A").WithLocation(8, 5));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73297")]
+        [Fact]
+        public void OverloadResolutionArgumentErrors_02()
+        {
+            string source = """
+                B b = [new A()];
+                M([new A()]);
+
+                void M(B b) { }
+
+                class A { }
+                class B { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS9174: Cannot initialize type 'B' with a collection expression because the type is not constructible.
+                // B b = [new A()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new A()]").WithArguments("B").WithLocation(1, 7),
+                // (2,3): error CS9174: Cannot initialize type 'B' with a collection expression because the type is not constructible.
+                // M([new A()]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new A()]").WithArguments("B").WithLocation(2, 3));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73297")]
+        [Fact]
+        public void OverloadResolutionArgumentErrors_03()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                B b = [new A()];
+                M([new A()]);
+
+                void M(B b) { }
+
+                class A { }
+                class B : IEnumerable<A>
+                {
+                    private B() { }
+                    public void Add(A a) { }
+                    IEnumerator<A> IEnumerable<A>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,7): error CS0122: 'B.B()' is inaccessible due to its protection level
+                // B b = [new A()];
+                Diagnostic(ErrorCode.ERR_BadAccess, "[new A()]").WithArguments("B.B()").WithLocation(4, 7),
+                // (5,3): error CS0122: 'B.B()' is inaccessible due to its protection level
+                // M([new A()]);
+                Diagnostic(ErrorCode.ERR_BadAccess, "[new A()]").WithArguments("B.B()").WithLocation(5, 3));
+        }
+
         [Fact]
         public void Async_01()
         {
@@ -26037,7 +26131,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,17): error CS9503: There is no target type for the collection expression.
+                // (7,17): error CS9176: There is no target type for the collection expression.
                 //         var v = []->Count;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 17));
         }
@@ -26100,7 +26194,7 @@ partial class Program
                 }
                 """;
             CreateCompilationWithIndexAndRangeAndSpan(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9500: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
+                // (7,9): error CS9174: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
                 //         []..;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("System.Index").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26123,7 +26217,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] switch
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26146,7 +26240,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] with { Count = 1, };
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26169,7 +26263,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] is object;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26192,7 +26286,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] as List<int>;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26477,13 +26571,23 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (1,4): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'ERROR[]'
-                // [X([1])]
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "ERROR[]").WithLocation(1, 4),
                 // (8,23): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public XAttribute(ERROR[] values) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(8, 23)
                 );
+        }
+
+        [Fact]
+        public void InAssignment_BadArrayType()
+        {
+            string source = """
+                ERROR[] values = [1];
+                values = [2];
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (1,1): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                // ERROR[] values = [1];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(1, 1));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
@@ -26502,9 +26606,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (1,4): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'int'
+                // (1,4): error CS9174: Cannot initialize type 'int' with a collection expression because the type is not constructible.
                 // [X([1])]
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "int").WithLocation(1, 4)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("int").WithLocation(1, 4)
                 );
         }
 
@@ -27238,9 +27342,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (17,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'AbstractCollection'
+                // (17,11): error CS0144: Cannot create an instance of the abstract type or interface 'AbstractCollection'
                 //         F([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "AbstractCollection").WithLocation(17, 11));
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "[]").WithArguments("AbstractCollection").WithLocation(17, 11));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -27280,9 +27384,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (20,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+                // (20,11): error CS0122: 'NoConstructorCollection.NoConstructorCollection()' is inaccessible due to its protection level
                 //         F([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(20, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "[]").WithArguments("NoConstructorCollection.NoConstructorCollection()").WithLocation(20, 11)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -27327,9 +27431,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (19,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+                // (19,11): error CS0122: 'NoConstructorCollection.NoConstructorCollection()' is inaccessible due to its protection level
                 //         F([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(19, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "[1, 2, 3]").WithArguments("NoConstructorCollection.NoConstructorCollection()").WithLocation(19, 11)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -28831,9 +28935,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,16): error CS8343: 'S': ref structs cannot implement interfaces
-                // ref struct S : IEnumerable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable").WithArguments("S").WithLocation(2, 16),
                 // (4,28): error CS0611: Array elements cannot be of type 'S'
                 //     public void Add(params S[] x) => throw null;
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
@@ -28862,9 +28963,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,19): error CS8343: 'S<T>': ref structs cannot implement interfaces
-                // ref struct S<T> : IEnumerable<T>
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<T>").WithArguments("S<T>").WithLocation(3, 19),
                 // (11,26): error CS9203: A collection expression of type 'S<int>' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static S<int> F() => [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("S<int>").WithLocation(11, 26));

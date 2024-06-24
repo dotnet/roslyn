@@ -237,6 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool HasValueTypeConstraint => false;
 
+            public override bool AllowsRefLikeType => false; // Span types do not support ref like type parameters for now
+
             public override bool IsValueTypeFromConstraintTypes => false;
 
             public override bool HasUnmanagedTypeConstraint => false;

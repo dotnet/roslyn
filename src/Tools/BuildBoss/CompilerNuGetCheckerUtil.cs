@@ -178,7 +178,9 @@ namespace BuildBoss
             allGood &= VerifyPackageCore(
                 textWriter,
                 FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
-                excludeFunc: relativeFileName => relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.DiaSymReader.Native", PathComparison),
+                excludeFunc: relativeFileName =>
+                    relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.DiaSymReader.Native", PathComparison) ||
+                    relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll", PathComparison),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),

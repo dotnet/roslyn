@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -67,8 +66,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             ISearchCallback searchCallback,
             CancellationToken cancellationToken)
         {
-            // Ensure we yield immedaitely so our caller can proceed with other work.
-            await Task.Yield().ConfigureAwait(false);
+            // Ensure we yield immediately so our caller can proceed with other work.
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
             var searchValue = searchQuery.QueryString.Trim();
             if (string.IsNullOrWhiteSpace(searchValue))

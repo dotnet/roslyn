@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -12,9 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -26,7 +23,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -63,13 +59,10 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Language != _languageService.RoslynLanguageName ||
-                e.Option != NavigationBarViewOptionsStorage.ShowNavigationBar)
+            if (e.ChangedOptions.Any(item => item.key.Language == _languageService.RoslynLanguageName && item.key.Option.Equals(NavigationBarViewOptionsStorage.ShowNavigationBar)))
             {
-                return;
+                AddOrRemoveDropdown();
             }
-
-            AddOrRemoveDropdown();
         }
 
         private void AddOrRemoveDropdown()

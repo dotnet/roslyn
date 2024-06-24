@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;

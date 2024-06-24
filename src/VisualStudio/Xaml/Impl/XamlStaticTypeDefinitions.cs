@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Xaml
