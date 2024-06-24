@@ -76,7 +76,7 @@
                 <Setter Property="Cursor" Value="Arrow"/>
                 <Setter Property="ForceCursor" Value="True"/>
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsButtonHighlighted}" Value="True">
+                    <DataTrigger Binding="{Binding IsAutomaticSuggestionsEnabled}" Value="True">
                         <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonDefaultBrushKey}}"/>
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderPressedBrushKey}}"/>
                     </DataTrigger>

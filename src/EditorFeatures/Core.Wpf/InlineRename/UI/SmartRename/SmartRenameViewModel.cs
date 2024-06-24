@@ -89,8 +89,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public bool IsSuggestionsPanelExpanded => HasSuggestions;
 
-    public bool IsButtonHighlighted => IsInProgress || HasSuggestions || IsAutomaticSuggestionsEnabled;
-
     public string GetSuggestionsTooltip
         => SupportsAutomaticSuggestions
         ? EditorFeaturesWpfResources.Toggle_AI_suggestions
@@ -128,7 +126,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         SetupTelemetry();
 
-        this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        this.SupportsAutomaticSuggestions = !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.SupportsAutomaticSuggestions && this.IsAutomaticSuggestionsEnabled)
         {
@@ -188,12 +186,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelCollapsed)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsButtonHighlighted)));
             return;
-        }
-        else if (e.PropertyName == nameof(_smartRenameSession.IsInProgress))
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsButtonHighlighted)));
         }
 
         // For the rest of the property, like HasSuggestions, IsAvailable and etc. Just forward it has changed to subscriber
