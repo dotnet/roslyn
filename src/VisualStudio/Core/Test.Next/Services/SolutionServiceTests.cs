@@ -178,9 +178,16 @@ public class SolutionServiceTests
                     .Add("fs_optionB", $"fsB{version}")))));
         }
 
-        static void ValidateProperties(Solution solution, int version)
+        static void ValidateProperties(Solution solution, int version, bool isRecovered)
         {
-            AssertEx.SetEqual(
+            // F# options are serialized because F# projects are not available OOP.
+
+            AssertEx.SetEqual(isRecovered
+                ? [
+                    $"C#: [cs_optionA = csA{version}, cs_optionB = csB{version}]",
+                    $"Visual Basic: [vb_optionA = vbA{version}, vb_optionB = vbB{version}]",
+                ]
+                :
                 [
                     $"F#: [fs_optionA = fsA{version}, fs_optionB = fsB{version}]",
                     $"C#: [cs_optionA = csA{version}, cs_optionB = csB{version}]",
@@ -195,8 +202,9 @@ public class SolutionServiceTests
 
         await VerifySolutionUpdate(workspace,
             newSolutionGetter: s => SetSolutionProperties(s, version: 1),
-            oldSolutionValidator: s => ValidateProperties(s, version: 0),
-            newSolutionValidator: s => ValidateProperties(s, version: 1)).ConfigureAwait(false);
+            oldSolutionValidator: s => ValidateProperties(s, version: 0, isRecovered: false),
+            oldRecoveredSolutionValidator: s => ValidateProperties(s, version: 0, isRecovered: true),
+            newRecoveredSolutionValidator: s => ValidateProperties(s, version: 1, isRecovered: true)).ConfigureAwait(false);
     }
 
     [Fact]
@@ -1224,11 +1232,20 @@ public class SolutionServiceTests
         await VerifySolutionUpdate(workspace, newSolutionGetter);
     }
 
+#nullable enable
+    private static Task VerifySolutionUpdate(
+        TestWorkspace workspace,
+        Func<Solution, Solution> newSolutionGetter,
+        Action<Solution>? oldSolutionValidator = null,
+        Action<Solution>? newSolutionValidator = null)
+        => VerifySolutionUpdate(workspace, newSolutionGetter, oldSolutionValidator, oldSolutionValidator, newSolutionValidator);
+
     private static async Task VerifySolutionUpdate(
         TestWorkspace workspace,
         Func<Solution, Solution> newSolutionGetter,
-        Action<Solution> oldSolutionValidator = null,
-        Action<Solution> newSolutionValidator = null)
+        Action<Solution>? oldSolutionValidator,
+        Action<Solution>? oldRecoveredSolutionValidator,
+        Action<Solution>? newRecoveredSolutionValidator)
     {
         var solution = workspace.CurrentSolution;
         oldSolutionValidator?.Invoke(solution);
@@ -1242,7 +1259,7 @@ public class SolutionServiceTests
         // update primary workspace
         await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, CancellationToken.None);
         var recoveredSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, CancellationToken.None);
-        oldSolutionValidator?.Invoke(recoveredSolution);
+        oldRecoveredSolutionValidator?.Invoke(recoveredSolution);
 
         Assert.Equal(WorkspaceKind.RemoteWorkspace, recoveredSolution.WorkspaceKind);
         Assert.Equal(solutionChecksum, await recoveredSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
@@ -1263,10 +1280,10 @@ public class SolutionServiceTests
 
         Assert.Equal(newSolutionChecksum, await third.CompilationState.GetChecksumAsync(CancellationToken.None));
 
-        newSolutionValidator?.Invoke(recoveredNewSolution);
+        newRecoveredSolutionValidator?.Invoke(recoveredNewSolution);
     }
 
-    private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
+    private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object>? map = null)
     {
         // make sure checksum is calculated
         await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
@@ -1276,8 +1293,8 @@ public class SolutionServiceTests
 
         var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
         var storage = new SolutionAssetCache();
-        var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+        var assetSource = new SimpleAssetSource(workspace.Services.GetRequiredService<ISerializerService>(), map);
 
-        return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+        return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetRequiredService<ISerializerService>());
     }
 }

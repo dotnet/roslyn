@@ -185,22 +185,35 @@ internal partial class SerializerService : ISerializerService
 
     private static void Write(ObjectWriter writer, ImmutableDictionary<string, StructuredAnalyzerConfigOptions> optionsByLanguage)
     {
-        writer.WriteCompressedUInt((uint)optionsByLanguage.Count);
-        foreach (var (language, options) in optionsByLanguage)
+        // Only serialize options for C#/VB since other languages are not OOP.
+
+        var csOptions = ImmutableDictionary.GetValueOrDefault(optionsByLanguage, LanguageNames.CSharp);
+        var vbOptions = ImmutableDictionary.GetValueOrDefault(optionsByLanguage, LanguageNames.VisualBasic);
+
+        writer.WriteCompressedUInt((uint)((csOptions != null ? 1 : 0) + (vbOptions != null ? 1 : 0)));
+
+        Serialize(LanguageNames.CSharp, csOptions);
+        Serialize(LanguageNames.VisualBasic, vbOptions);
+
+        void Serialize(string language, StructuredAnalyzerConfigOptions? options)
         {
-            writer.WriteString(language);
-
-            foreach (var key in options.Keys)
+            if (options != null)
             {
-                if (options.TryGetValue(key, out var value))
-                {
-                    writer.WriteString(key);
-                    writer.WriteString(value);
-                }
-            }
+                writer.WriteString(language);
 
-            // terminator:
-            writer.WriteString(null);
+                // order for deterministic checksums
+                foreach (var key in options.Keys.Order())
+                {
+                    if (options.TryGetValue(key, out var value))
+                    {
+                        writer.WriteString(key);
+                        writer.WriteString(value);
+                    }
+                }
+
+                // terminator:
+                writer.WriteString(null);
+            }
         }
     }
 

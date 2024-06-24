@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -939,7 +938,6 @@ internal sealed partial class SolutionState
         return Branch(
             fallbackAnalyzerOptions: options,
             idToProjectStateMap: newProjectStatesMap);
-
     }
 
     /// <summary>
