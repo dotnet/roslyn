@@ -84,8 +84,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
     }
 
-    public bool IsSuggestionsPanelCollapsed => !HasSuggestions;
-
     public bool IsSuggestionsPanelExpanded => HasSuggestions;
 
     public string GetSuggestionsTooltip
@@ -163,6 +161,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             return;
         }
         _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken);
+        return;
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -183,7 +182,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             // Changing the list may have changed the text in the text box. We need to restore it.
             BaseViewModel.IdentifierText = textInputBackup;
 
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelCollapsed)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
             return;
         }
