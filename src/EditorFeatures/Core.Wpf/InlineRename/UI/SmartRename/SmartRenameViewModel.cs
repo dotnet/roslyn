@@ -121,6 +121,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         SetupTelemetry();
 
         this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.IsAutomaticSuggestionsEnabled)
         {
@@ -136,6 +137,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             // Don't get suggestions again
             return;
         }
+
         if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
         {
             var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
@@ -245,7 +247,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             }
 
             NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
-            // Use existing option (true if user does not wish to get suggestions automatically) to honor user's choice from before the refactoring.
+            // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
             _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);
         }
         else
