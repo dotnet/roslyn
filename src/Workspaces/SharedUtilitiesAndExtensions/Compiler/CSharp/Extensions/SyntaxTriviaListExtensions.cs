@@ -39,9 +39,6 @@ internal static class SyntaxTriviaListExtensions
             .LastOrNull();
     }
 
-    public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
-        => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
-
     public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this IEnumerable<SyntaxTrivia> triviaList)
         => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
 
