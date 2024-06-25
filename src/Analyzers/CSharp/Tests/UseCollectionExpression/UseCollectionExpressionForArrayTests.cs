@@ -5349,7 +5349,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer1()
     {
         await new VerifyCS.Test
@@ -5373,7 +5373,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer2()
     {
         await new VerifyCS.Test
@@ -5396,7 +5396,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer3()
     {
         await new VerifyCS.Test
@@ -5437,7 +5437,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer4()
     {
         await new VerifyCS.Test
@@ -5460,7 +5460,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer5()
     {
         await new VerifyCS.Test
@@ -5483,7 +5483,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer6()
     {
         await new VerifyCS.Test
@@ -5506,7 +5506,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer7()
     {
         await new VerifyCS.Test
@@ -5529,7 +5529,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer8()
     {
         await new VerifyCS.Test
@@ -5553,7 +5553,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer9()
     {
         await new VerifyCS.Test
@@ -5576,7 +5576,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer10()
     {
         await new VerifyCS.Test
@@ -5617,7 +5617,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer11()
     {
         await new VerifyCS.Test
@@ -5640,7 +5640,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer12()
     {
         await new VerifyCS.Test
@@ -5663,7 +5663,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
     public async Task PreservesTrailingTriviaAfterInitializer14()
     {
         await new VerifyCS.Test
