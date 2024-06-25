@@ -51,17 +51,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return RefKind.None;
                         }
+                        //the ref kind of the entire expression is ref readonly if the ref kind of the consequence
+                        //or the alternative is ref readonly otherwise it just by ref (not readonly)
+                        //
+                        //without this check we loose the readonly specifier
+                        //See Binder.CheckValueKind
+                        if (tryGetReadOnlyRefKind(conditionalOperator.Consequence) is { } readOnlyRefKindOfConsequence)
                         {
-                            if (tryGetReadOnlyRefKind(conditionalOperator.Consequence) is { } r)
-                            {
-                                return r;
-                            }
+                            return readOnlyRefKindOfConsequence;
                         }
+                        if (tryGetReadOnlyRefKind(conditionalOperator.Alternative) is { } readOnlyRefKindOfAlternative)
                         {
-                            if (tryGetReadOnlyRefKind(conditionalOperator.Alternative) is { } r)
-                            {
-                                return r;
-                            }
+                            return readOnlyRefKindOfAlternative;
                         }
                         return RefKind.Ref;
 
@@ -73,11 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case RefKind.Out:
                                     return null;
                                 case RefKind.RefReadOnlyParameter:
-                                case RefKind.RefReadOnly:
+                                case RefKind.RefReadOnly: //same as RefKind.In
+                                case RefKindExtensions.StrictIn:
                                     return RefKind.RefReadOnly;
                                 case RefKind.None:
                                     return null; //could be e.g. a throw expression
-                                default:
+                                case var unhandled:
+                                    Debug.Assert(false, $"unhandled refKind: {unhandled}");
                                     return RefKind.RefReadOnly;
                             }
                         }
