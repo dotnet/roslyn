@@ -487,4 +487,101 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         CompileAndVerify(source).VerifyDiagnostics();
     }
+
+    [Theory, CombinatorialData]
+    public void OverloadResolutionAppliedToIndexers(bool useMetadataReference, bool i1First)
+    {
+        var executable = """
+            var c = new C();
+            I3 i3 = null;
+            _ = c[i3];
+            c[i3] = 0;
+            """;
+
+        var i1Source = """
+                [OverloadResolutionPriority(1)]
+                public int this[I1 x]
+                {
+                    get { System.Console.Write(1); return 0; }
+                    set => System.Console.Write(2);
+                }
+            """;
+
+        var i2Source = """
+                public int this[I2 x]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+            """;
+
+        var source = $$"""
+            using System.Runtime.CompilerServices;
+
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
+
+            public class C
+            {
+                {{(i1First ? i1Source : i2Source)}}
+                {{(i1First ? i2Source : i1Source)}}
+            }
+            """;
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "12").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [useMetadataReference ? comp.ToMetadataReference() : comp.EmitToImageReference()], expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AppliedToRegularProperty()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                public int P { get; set; }
+            }
+            """;
+
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (5,6): error CS9501: Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToNonIndexer, "OverloadResolutionPriority(1)").WithLocation(5, 6)
+        );
+    }
+
+    [Fact]
+    public void AppliedToIndexerOverride()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class Base
+            {
+                public virtual int this[int x] => throw null;
+            }
+
+            class Derived : Base
+            {
+                [OverloadResolutionPriority(1)]
+                public override int this[int x] => throw null;
+            }
+            """;
+
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (10,6): error CS9500: Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, "OverloadResolutionPriority(1)").WithLocation(10, 6)
+        );
+    }
+
+    // PROTOTYPE: applied to getter/setter? Different from the indexer? Email LDM, assume invalid
+    // PROTOTYPE: confirm that restating the same priority as the overridden member is invalid
+    // PROTOTYPE: through retargeting, for ctors, methods, and indexers
+    // PROTOTYPE: more inheritance tests; when overridden with a new attribute in metadata, consumption when overridden with a new attribute in source (and via ToMetadataReference)
 }

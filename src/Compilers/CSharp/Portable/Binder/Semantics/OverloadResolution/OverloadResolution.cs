@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1719,12 +1719,14 @@ outerDefault:
             //     - All members that have a lower *overload_resolution_priority* than the highest found within its declaring type group are removed.
             // - The reduced groups are then recombined into the final set of applicable candidate function members.
 
-            // PROTOTYPE: Properties
-            if (results is not [{ Member: MethodSymbol }, { }, ..])
+            switch (results)
             {
-                // We only look at methods and properties, so if this isn't one of those scenarios, we don't need to do anything. Likewise, if there's only 1 candidate,
-                // then there can be pruning of lower-priority candidates
-                return;
+                // Can't prune anything unless there's at least 2 candidates
+                case []:
+                case [_]:
+                // We only look at methods and indexers, so if this isn't one of those scenarios, we don't need to do anything.
+                case [{ Member: not (MethodSymbol or PropertySymbol { IsIndexer: true }) }, _]:
+                    return;
             }
 
             // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.

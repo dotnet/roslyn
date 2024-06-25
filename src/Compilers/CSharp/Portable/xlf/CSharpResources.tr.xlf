@@ -332,6 +332,11 @@
         <target state="translated">Açık dönüş türü olmadan, anonim yöntemlerde AsyncMethodBuilder özniteliğine izin verilmez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer">
+        <source>Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</source>
+        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
         <source>Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
         <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.</target>

@@ -102,12 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        // PROTOTYPE: Needed?
-        internal sealed override int? TryGetOverloadResolutionPriority()
-        {
-            return null;
-        }
-
         #region Not used by MethodSignatureComparer
 
         internal override bool GenerateDebugInfo { get { throw ExceptionUtilities.Unreachable(); } }
@@ -189,6 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => true;
+
+        internal sealed override int? TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
         #endregion
     }
