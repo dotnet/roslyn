@@ -2396,7 +2396,7 @@ class [|C|]
                                     public static void Test()
                                     {
                                         var record = new MyRecord("HelloWorld");
-                                        var c = r.[|MyProperty|];
+                                        var c = record.[|MyProperty|];
                                     }
                                 }
                             </Document>
@@ -2418,7 +2418,7 @@ class [|C|]
                                     public static void Test()
                                     {
                                         var record = new MyRecord("HelloWorld");
-                                        var c = r.[|$$MyProperty|];
+                                        var c = record.[|$$MyProperty|];
                                     }
                                 }
                             </Document>
