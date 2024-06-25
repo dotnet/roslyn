@@ -716,7 +716,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _flags.SetCustomAttributesPopulated();
                 _flags.SetHasRequiredMemberAttribute(!required.IsNil);
             }
-            return _uncommonFields?._lazyCustomAttributes ?? ImmutableArray<CSharpAttributeData>.Empty;
+
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields == null)
+            {
+                return ImmutableArray<CSharpAttributeData>.Empty;
+            }
+            else
+            {
+                var result = uncommonFields._lazyCustomAttributes;
+                if (result.IsDefault)
+                {
+                    result = ImmutableArray<CSharpAttributeData>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref uncommonFields._lazyCustomAttributes, result);
+                }
+
+                return result;
+            }
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
@@ -895,14 +911,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var diag = deriveCompilerFeatureRequiredUseSiteInfo();
                 MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
                 result = result.AdjustDiagnosticInfo(diag);
-                if (!result.IsEmpty)
+
+                if (result.DiagnosticInfo is not null || !result.SecondaryDependencies.IsNullOrEmpty())
                 {
-                    AccessUncommonFields()._lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+                    AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, result);
                 }
+
                 _flags.SetUseSiteDiagnosticPopulated();
             }
 
-            return (_uncommonFields?._lazyCachedUseSiteInfo ?? default).ToUseSiteInfo(primaryDependency);
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields == null)
+            {
+                return new UseSiteInfo<AssemblySymbol>(primaryDependency);
+            }
+            else
+            {
+                var result = uncommonFields._lazyCachedUseSiteInfo;
+                if (!result.IsInitialized)
+                {
+                    uncommonFields._lazyCachedUseSiteInfo.InterlockedInitialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency));
+                    result = uncommonFields._lazyCachedUseSiteInfo;
+                }
+
+                return result.ToUseSiteInfo(primaryDependency);
+            }
 
             DiagnosticInfo deriveCompilerFeatureRequiredUseSiteInfo()
             {
@@ -948,7 +981,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     _flags.SetObsoleteAttributePopulated();
                     return result;
-
                 }
 
                 var uncommonFields = _uncommonFields;
