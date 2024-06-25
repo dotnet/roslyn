@@ -470,10 +470,6 @@ class X
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
                             Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
                             break;
-                        case ErrorCode.WRN_BadYieldInLock:
-                            // These are the warnings introduced with the warning "wave" shipped with dotnet 9 and C# 13.
-                            Assert.Equal(9, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.
