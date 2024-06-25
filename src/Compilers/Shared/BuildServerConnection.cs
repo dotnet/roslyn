@@ -619,65 +619,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             return $"{GlobalMutexPrefix}{pipeName}.client";
         }
-
-        /// <summary>
-        /// Gets the value of the temporary path for the provided environment settings. This behavior
-        /// is OS specific.
-        ///   - On Windows it seeks to emulate Path.GetTempPath as closely as possible with 
-        ///     provided working directory.
-        /// </summary>
-        internal static string? GetTempPath(string? workingDir)
-        {
-            return PlatformInformation.IsUnix
-                ? getTempPathLinux()
-                : getTempPathWindows(workingDir);
-
-            static string? getTempPathLinux()
-            {
-                // Unix temp path is fine: it does not use the working directory
-                // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
-                //
-                // https://github.com/dotnet/roslyn/issues/65415 tracks moving to a directory 
-                // to a per user location.
-                return Path.GetTempPath();
-            }
-
-            static string? getTempPathWindows(string? workingDir)
-            {
-                var tmp = Environment.GetEnvironmentVariable("TMP");
-                if (Path.IsPathRooted(tmp))
-                {
-                    return tmp;
-                }
-
-                var temp = Environment.GetEnvironmentVariable("TEMP");
-                if (Path.IsPathRooted(temp))
-                {
-                    return temp;
-                }
-
-                if (!string.IsNullOrEmpty(workingDir))
-                {
-                    if (!string.IsNullOrEmpty(tmp))
-                    {
-                        return Path.Combine(workingDir, tmp);
-                    }
-
-                    if (!string.IsNullOrEmpty(temp))
-                    {
-                        return Path.Combine(workingDir, temp);
-                    }
-                }
-
-                var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-                if (Path.IsPathRooted(userProfile))
-                {
-                    return userProfile;
-                }
-
-                return Environment.GetEnvironmentVariable("SYSTEMROOT");
-            }
-        }
     }
 
     internal interface IServerMutex : IDisposable
@@ -706,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
-            var tempPath = BuildServerConnection.GetTempPath(null);
+            var tempPath = Path.GetTempPath();
             var result = Path.Combine(tempPath!, ".roslyn");
             Directory.CreateDirectory(result);
             return result;
