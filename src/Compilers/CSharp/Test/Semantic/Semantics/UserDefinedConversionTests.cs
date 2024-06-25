@@ -2016,8 +2016,8 @@ public struct S
                 }
                 """;
 
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: "string");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
