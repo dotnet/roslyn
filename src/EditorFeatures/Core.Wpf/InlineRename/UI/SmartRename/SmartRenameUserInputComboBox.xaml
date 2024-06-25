@@ -191,7 +191,7 @@
                         Grid.Column="0"
                         Grid.ColumnSpan="2"
                         Margin="1 0"
-                        Height="65"
+                        Height="62"
                         Visibility="{Binding IsSuggestionsPanelExpanded, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
                         BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
                         BorderThickness="1">
