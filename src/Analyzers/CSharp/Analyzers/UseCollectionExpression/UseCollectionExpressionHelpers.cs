@@ -733,18 +733,12 @@ internal static class UseCollectionExpressionHelpers
                 .WithPrependedLeadingTrivia(ElasticMarker);
     }
 
-    private static bool HasStructuredTriviaBetweenCloseTokenAndInitializer(InitializerExpressionSyntax initializer)
-    {
-        static bool IsComment(SyntaxTrivia trivia) => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
-        return initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(IsComment);
-    }
-
     private static bool ShouldReplaceExistingExpressionEntirely(
         SourceText sourceText,
         InitializerExpressionSyntax initializer,
         bool newCollectionIsSingleLine)
     {
-        if (HasStructuredTriviaBetweenCloseTokenAndInitializer(initializer))
+        if (initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(x => x.IsSingleOrMultiLineComment()))
             return false;
 
         // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
