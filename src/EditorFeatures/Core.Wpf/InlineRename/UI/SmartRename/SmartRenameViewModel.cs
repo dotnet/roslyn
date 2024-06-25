@@ -120,7 +120,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         SetupTelemetry();
 
-        this.SupportsAutomaticSuggestions = !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.IsAutomaticSuggestionsEnabled)
         {
@@ -150,6 +150,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         if (isAutomaticOnInitialization)
         {
+            // ConfigureAwait(true) to stay on the UI thread;
+            // WPF view is bound to _smartRenameSession properties and so they must be updated on the UI thread.
             await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
         }
 
