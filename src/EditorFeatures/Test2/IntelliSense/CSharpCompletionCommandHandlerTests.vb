@@ -6976,6 +6976,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 Dim completionService = document.GetLanguageService(Of CompletionService)()
+                completionService.GetTestAccessor().SuppressPartialSemantics()
 
                 Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
