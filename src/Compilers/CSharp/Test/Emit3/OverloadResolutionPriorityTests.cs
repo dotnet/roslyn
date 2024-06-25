@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -296,6 +299,343 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     }
 
     [Fact]
+    public void Overrides_NoPriorityChangeFromBase_Methods()
+    {
+        var code = """
+            using System.Runtime.CompilerServices;
+
+            var d = new Derived();
+            d.M("test");
+
+            public class Base
+            {
+                [OverloadResolutionPriority(1)]
+                public virtual void M(object o) => throw null;
+                public virtual void M(string s) => throw null;
+            }
+
+            public class Derived : Base
+            {
+                public override void M(object o) => System.Console.WriteLine("1");
+                public override void M(string s) => throw null;
+            }
+            """;
+
+        CompileAndVerify([code, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Overrides_ChangePriorityInSource_Methods()
+    {
+        var executable = """
+            var d = new Derived();
+            d.M("test");
+            """;
+
+        var code = """
+            using System.Runtime.CompilerServices;
+
+            public class Base
+            {
+                [OverloadResolutionPriority(1)]
+                public virtual void M(object o) => System.Console.WriteLine("1");
+                public virtual void M(string s) => throw null;
+            }
+
+            public class Derived : Base
+            {
+                [OverloadResolutionPriority(0)]
+                public override void M(object o) => System.Console.WriteLine("1");
+                [OverloadResolutionPriority(2)]
+                public override void M(string s) => throw null;
+            }
+            """;
+
+        var comp = CreateCompilation([executable, code, OverloadResolutionPriorityAttributeDefinition]);
+
+        var expectedErrors = new[] {
+            // (12,6): error CS9500: Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.
+            //     [OverloadResolutionPriority(0)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, "OverloadResolutionPriority(0)").WithLocation(12, 6),
+            // (14,6): error CS9500: Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.
+            //     [OverloadResolutionPriority(2)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, "OverloadResolutionPriority(2)").WithLocation(14, 6)
+        };
+
+        comp.VerifyDiagnostics(expectedErrors);
+        verify(comp);
+
+        var comp2 = CreateCompilation([code, OverloadResolutionPriorityAttributeDefinition]);
+        comp2.VerifyDiagnostics(expectedErrors);
+        comp = CreateCompilation(executable, references: [comp2.ToMetadataReference()]);
+        comp.VerifyDiagnostics();
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var method = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+            Assert.Equal("void Derived.M(System.Object o)", method.ToTestDisplayString());
+        }
+    }
+
+    [Fact]
+    public void Overrides_ChangePriorityInMetadata()
+    {
+        var source1 = """
+            using System.Runtime.CompilerServices;
+
+            public class Base
+            {
+                [OverloadResolutionPriority(1)]
+                public virtual void M(object o) => System.Console.WriteLine("1");
+                public virtual void M(string s) => throw null;
+            }
+            """;
+
+        var comp1 = CreateCompilation([source1, OverloadResolutionPriorityAttributeDefinition], assemblyName: "assembly1");
+        var assembly1 = comp1.EmitToImageReference();
+
+        // Equivalent to:
+        //
+        // public class Derived : Base
+        // {
+        //     [OverloadResolutionPriority(0)]
+        //     public override void M(object o) => System.Console.WriteLine("1");
+        //     [OverloadResolutionPriority(2)]
+        //     public override void M(string s) => throw null;
+        // }
+        var il2 = """
+            .assembly extern assembly1 {}
+
+            .class public auto ansi beforefieldinit Derived
+                extends [assembly1]Base
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 00 00 00
+                )
+                // Methods
+                .method public hidebysig virtual 
+                    instance void M (
+                        object o
+                    ) cil managed 
+                {
+                    .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 00 00 00 00 00 00
+                    )
+                    // Method begins at RVA 0x2050
+                    // Code size 11 (0xb)
+                    .maxstack 8
+
+                    IL_0000: ldstr "1"
+                    IL_0005: call void [mscorlib]System.Console::WriteLine(string)
+                    IL_000a: ret
+                } // end of method Derived::M
+
+                .method public hidebysig virtual 
+                    instance void M (
+                        string s
+                    ) cil managed 
+                {
+                    .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 02 00 00 00 00 00
+                    )
+                    // Method begins at RVA 0x205c
+                    // Code size 2 (0x2)
+                    .maxstack 8
+
+                    IL_0000: ldnull
+                    IL_0001: throw
+                } // end of method Derived::M
+
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    // Method begins at RVA 0x2067
+                    // Code size 7 (0x7)
+                    .maxstack 8
+
+                    IL_0000: ldarg.0
+                    IL_0001: call instance void [assembly1]Base::.ctor()
+                    IL_0006: ret
+                } // end of method Derived::.ctor
+
+            }
+            """;
+        var assembly2 = CompileIL(il2);
+
+        var code = """
+            var d = new Derived();
+            d.M("test");
+            """;
+
+        CompileAndVerify(code, references: [assembly1, assembly2], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    // PROTOTYPE: Duplicate above tests for indexers and constructors
+
+    [Fact]
+    public void ThroughRetargeting_Methods()
+    {
+        var source1 = """
+            public class RetValue {}
+            """;
+
+        var comp1_1 = CreateCompilation(new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true), source1, TargetFrameworkUtil.StandardReferences);
+        var comp1_2 = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), source1, TargetFrameworkUtil.StandardReferences);
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                public RetValue M(object o)
+                {
+                    System.Console.WriteLine("1");
+                    return new();
+                }
+                public RetValue M(string s) => throw null;
+            }
+            """;
+
+        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()]);
+        comp2.VerifyDiagnostics();
+
+        var source3 = """
+            var c = new C();
+            c.M("test");
+            """;
+
+        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()]);
+        CompileAndVerify(comp3).VerifyDiagnostics();
+
+        var c = comp3.GetTypeByMetadataName("C")!;
+        var ms = c.GetMembers("M");
+        Assert.Equal(2, ms.Length);
+        Assert.All(ms, m => Assert.IsType<RetargetingMethodSymbol>(m));
+
+        var tree = comp3.SyntaxTrees[0];
+        var model = comp3.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var method = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+        Assert.Equal("RetValue C.M(System.Object o)", method.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ThroughRetargeting_Indexers()
+    {
+        var source1 = """
+            public class RetValue {}
+            """;
+
+        var comp1_1 = CreateCompilation(new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true), source1, TargetFrameworkUtil.StandardReferences);
+        var comp1_2 = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), source1, TargetFrameworkUtil.StandardReferences);
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                public RetValue this[object o]
+                {
+                    get
+                    {
+                        System.Console.WriteLine("1");
+                        return new();
+                    }
+                    set
+                    {
+                        System.Console.WriteLine("2");
+                    }
+                }
+                public RetValue this[string s]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+            }
+            """;
+
+        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()]);
+        comp2.VerifyDiagnostics();
+
+        var source3 = """
+            var c = new C();
+            c["test"] = new();
+            _ = c["test"];
+            """;
+
+        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()]);
+        comp3.VerifyDiagnostics();
+
+        var c = comp3.GetTypeByMetadataName("C")!;
+        var indexers = c.Indexers;
+        Assert.Equal(2, indexers.Length);
+        Assert.All(indexers, m => Assert.IsType<RetargetingPropertySymbol>(m));
+
+        var tree = comp3.SyntaxTrees[0];
+        var model = comp3.GetSemanticModel(tree);
+        var accesses = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
+        Assert.Equal(2, accesses.Length);
+        AssertEx.Equal("RetValue C.this[System.Object o] { get; set; }", model.GetSymbolInfo(accesses[0]).Symbol!.ToTestDisplayString());
+        AssertEx.Equal("RetValue C.this[System.Object o] { get; set; }", model.GetSymbolInfo(accesses[1]).Symbol!.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ThroughRetargeting_Constructors()
+    {
+        var source1 = """
+            public class Base {}
+            """;
+
+        var comp1_1 = CreateCompilation(new AssemblyIdentity("Base", new Version(1, 0, 0, 0), isRetargetable: true), source1, TargetFrameworkUtil.StandardReferences);
+        var comp1_2 = CreateCompilation(new AssemblyIdentity("Base", new Version(2, 0, 0, 0), isRetargetable: true), source1, TargetFrameworkUtil.StandardReferences);
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+
+            public class Derived : Base
+            {
+                [OverloadResolutionPriority(1)]
+                public Derived(object o)
+                {
+                }
+                public Derived(string s)
+                {
+                }
+            }
+            """;
+
+        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()]);
+        comp2.VerifyDiagnostics();
+
+        var source3 = """
+            var c = new Derived("test");
+            """;
+
+        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()]);
+        comp3.VerifyDiagnostics();
+
+        var derived = comp3.GetTypeByMetadataName("Derived")!;
+        var constructors = derived.Constructors;
+        Assert.Equal(2, constructors.Length);
+        Assert.All(constructors, m => Assert.IsType<RetargetingMethodSymbol>(m));
+
+        var tree = comp3.SyntaxTrees[0];
+        var model = comp3.GetSemanticModel(tree);
+        var creation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+        AssertEx.Equal("Derived..ctor(System.Object o)", model.GetSymbolInfo(creation).Symbol!.ToTestDisplayString());
+    }
+
+    [Fact]
     public void LangVersion()
     {
         var source = """
@@ -580,8 +920,29 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         );
     }
 
+    [Fact]
+    public void NoImpactToFunctionType()
+    {
+        var source = """
+            var m = C.M;
+
+            class C
+            {
+                [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+                public static void M(string s) {}
+
+                public static void M(int i) {}
+            }
+            """;
+
+        // PROTOTYPE: Confirm with LDM that there is no impact on this?
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var m = C.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(1, 9)
+        );
+    }
+
     // PROTOTYPE: applied to getter/setter? Different from the indexer? Email LDM, assume invalid
     // PROTOTYPE: confirm that restating the same priority as the overridden member is invalid
-    // PROTOTYPE: through retargeting, for ctors, methods, and indexers
-    // PROTOTYPE: more inheritance tests; when overridden with a new attribute in metadata, consumption when overridden with a new attribute in source (and via ToMetadataReference)
 }
