@@ -570,6 +570,12 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                     var statementsAfterIf = statements.Skip(index + 1);
                     var ifBody = GetIfBody(ifNode);
 
+                    var currentParentClosingBrace = currentParent.ChildTokens().Last();
+                    var updatedLastStatement = statementsAfterIf.Last().WithTrailingTrivia(currentParentClosingBrace.LeadingTrivia);
+
+                    statementsAfterIf = statementsAfterIf.Take(statementsAfterIf.Count() - 1);
+                    statementsAfterIf = statementsAfterIf.Append(updatedLastStatement);
+
                     var updatedIf = UpdateIf(
                         text,
                         ifNode: ifNode,
@@ -579,6 +585,9 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                     var updatedParent = WithStatements(
                         currentParent,
                         statementsBeforeIf.Concat(updatedIf));
+
+                    var updatedParentClosingBrace = updatedParent.ChildTokens().Last();
+                    updatedParent = updatedParent.ReplaceToken(updatedParentClosingBrace, updatedParentClosingBrace.WithoutLeadingTrivia());
 
                     return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
                 }

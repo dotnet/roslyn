@@ -483,6 +483,38 @@ public partial class InvertIfTests
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73917")]
+    public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody4()
+    {
+        await TestAsync("""
+            public void SomeMethod()
+            {
+                object something = null;
+
+                [||]if (something == null)
+                {
+                    return;
+                }
+
+                #region A region
+                something = new object();
+                #endregion
+            }
+            """, """
+            public void SomeMethod()
+            {
+                object something = null;
+
+                if (something != null)
+                {
+                    #region A region
+                    something = new object();
+                    #endregion
+                }
+            }
+            """);
+    }
+
     [Fact]
     public async Task IfWithoutElse_SwapIfBodyWithSubsequentStatements1()
     {
