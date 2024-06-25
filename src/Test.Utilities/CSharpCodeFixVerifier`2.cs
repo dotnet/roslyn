@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -22,7 +23,7 @@ namespace Test.Utilities
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(descriptor);
 
-        public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        public static async Task VerifyAnalyzerAsync([StringSyntax("C#-test")] string source, params DiagnosticResult[] expected)
         {
             var test = new Test
             {
@@ -33,13 +34,13 @@ namespace Test.Utilities
             await test.RunAsync();
         }
 
-        public static async Task VerifyCodeFixAsync(string source, string fixedSource)
+        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, string fixedSource)
             => await VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
-        public static async Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
+        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, DiagnosticResult expected, string fixedSource)
             => await VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
 
-        public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
+        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, DiagnosticResult[] expected, string fixedSource)
         {
             var test = new Test
             {
