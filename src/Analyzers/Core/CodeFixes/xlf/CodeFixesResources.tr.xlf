@@ -57,6 +57,11 @@
         <target state="translated">Diğer ad belirsiz '{0}' türünde</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_interpolated_string">
+        <source>Use interpolated string</source>
+        <target state="new">Use interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">Türü '{0}' olarak dönüştür</target>

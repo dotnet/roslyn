@@ -154,6 +154,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseImplicitType = nameof(UseImplicitType);
     public const string UseIndexOperator = nameof(UseIndexOperator);
     public const string UseInferredMemberName = nameof(UseInferredMemberName);
+    public const string UseInterpolatedString = nameof(UseInterpolatedString);
     public const string UseInterpolatedVerbatimString = nameof(UseInterpolatedVerbatimString);
     public const string UseIsNotExpression = nameof(UseIsNotExpression);
     public const string UseIsNullCheck = nameof(UseIsNullCheck);

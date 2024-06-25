@@ -46,6 +46,7 @@ internal record class IdeCodeStyleOptions
     [DataMember] public CodeStyleOption2<bool> PreferConditionalExpressionOverAssignment { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferConditionalExpressionOverReturn { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferCompoundAssignment { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferInterpolatedString { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferSimplifiedInterpolation { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<UnusedParametersPreference> UnusedParameters { get; init; } = s_preferAllMethodsUnusedParametersPreference;
     [DataMember] public CodeStyleOption2<AccessibilityModifiersRequired> AccessibilityModifiersRequired { get; init; } = s_accessibilityModifiersRequiredDefault;

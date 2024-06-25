@@ -162,6 +162,11 @@ internal static class CodeStyleOptions2
         "dotnet_style_prefer_compound_assignment",
         IdeCodeStyleOptions.CommonDefaults.PreferCompoundAssignment);
 
+    internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferInterpolatedString = CreatePerLanguageOption(
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
+        "dotnet_style_prefer_interpolated_string",
+        IdeCodeStyleOptions.CommonDefaults.PreferInterpolatedString);
+
     internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedInterpolation = CreatePerLanguageOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "dotnet_style_prefer_simplified_interpolation",

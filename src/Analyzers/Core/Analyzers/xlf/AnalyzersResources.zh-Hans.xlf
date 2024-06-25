@@ -121,6 +121,16 @@
         <target state="translated">转换为条件表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="String_can_be_converted_to_interpolated_string">
+        <source>String can be converted to interpolated string</source>
+        <target state="new">String can be converted to interpolated string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_string">
+        <source>Use interpolated string</source>
+        <target state="new">Use interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">永远不会使用表达式值</target>

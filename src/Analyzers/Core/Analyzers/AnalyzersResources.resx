@@ -241,6 +241,12 @@
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
+  <data name="Use_interpolated_string" xml:space="preserve">
+    <value>Use interpolated string</value>
+  </data>
+  <data name="String_can_be_converted_to_interpolated_string" xml:space="preserve">
+    <value>String can be converted to interpolated string</value>
+  </data>
   <data name="Use_coalesce_expression" xml:space="preserve">
     <value>Use coalesce expression</value>
   </data>
