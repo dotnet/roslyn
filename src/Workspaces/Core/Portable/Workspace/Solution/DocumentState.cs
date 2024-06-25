@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -32,6 +33,8 @@ internal partial class DocumentState : TextDocumentState
 
     // null if the document doesn't support syntax trees:
     private readonly ITreeAndVersionSource? _treeSource;
+
+    private ImmutableArray<byte> _contentHash;
 
     protected DocumentState(
         LanguageServices languageServices,
@@ -96,6 +99,17 @@ internal partial class DocumentState : TextDocumentState
 
     public bool IsGenerated
         => Attributes.IsGenerated;
+
+    public async ValueTask<ImmutableArray<byte>> GetContentHashAsync(CancellationToken cancellationToken)
+    {
+        if (_contentHash.IsDefault)
+        {
+            var text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            ImmutableInterlocked.InterlockedCompareExchange(ref _contentHash, text.GetContentHash(), default);
+        }
+
+        return _contentHash;
+    }
 
     protected static ITreeAndVersionSource CreateLazyFullyParsedTree(
         ITextAndVersionSource newTextSource,

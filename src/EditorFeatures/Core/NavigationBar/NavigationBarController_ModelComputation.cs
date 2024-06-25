@@ -8,12 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
@@ -24,7 +22,58 @@ internal partial class NavigationBarController
     /// <summary>
     /// Starts a new task to compute the model based on the current text.
     /// </summary>
-    private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableSegmentedList<VoidResult> _, CancellationToken cancellationToken)
+    private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(
+        ImmutableSegmentedList<NavigationBarQueueItem> queueItems, CancellationToken cancellationToken)
+    {
+        // If any of the requests are for frozen partial, then we do compute with frozen partial semantics.  We
+        // always want these "fast but inaccurate" passes to happen first.  That pass will then enqueue the work
+        // to do the slow-but-accurate pass.
+        var frozenPartialSemantics = queueItems.Any(t => t.FrozenPartialSemantics);
+
+        if (!frozenPartialSemantics)
+        {
+            // We're asking for the expensive nav-bar-pass, Kick off the work to do that, but attach ourselves to the
+            // requested cancellation token so this expensive work can be canceled if new requests for frozen partial
+            // work come in.
+
+            // Since we're not frozen-partial, all requests must have an associated cancellation token.  And all but
+            // the last *must* be already canceled (since each is canceled as new work is added).
+            Contract.ThrowIfFalse(queueItems.All(t => !t.FrozenPartialSemantics));
+            Contract.ThrowIfFalse(queueItems.All(t => t.NonFrozenComputationToken != null));
+            Contract.ThrowIfFalse(queueItems.Take(queueItems.Count - 1).All(t => t.NonFrozenComputationToken!.Value.IsCancellationRequested));
+
+            var lastNonFrozenComputationToken = queueItems[^1].NonFrozenComputationToken!.Value;
+
+            // Need a dedicated try/catch here since we're operating on a different token than the queue's token.
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lastNonFrozenComputationToken, cancellationToken);
+            try
+            {
+                return await ComputeModelAndSelectItemAsync(frozenPartialSemantics: false, linkedTokenSource.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException ex) when (ExceptionUtilities.IsCurrentOperationBeingCancelled(ex, linkedTokenSource.Token))
+            {
+                return null;
+            }
+        }
+        else
+        {
+            // Normal request to either compute nav-bar items using frozen partial semantics.
+            var model = await ComputeModelAndSelectItemAsync(frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false);
+
+            // After that completes, enqueue work to compute *without* frozen partial snapshots so we move to accurate
+            // results shortly. Create and pass along a new cancellation token for this expensive work so that it can be
+            // canceled by future lightweight work.
+            _computeModelQueue.AddWork(new NavigationBarQueueItem(FrozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default)));
+
+            return model;
+        }
+    }
+
+    /// <summary>
+    /// Starts a new task to compute the model based on the current text.
+    /// </summary>
+    private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(
+        bool frozenPartialSemantics, CancellationToken cancellationToken)
     {
         // Jump back to the UI thread to determine what snapshot the user is processing.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
@@ -53,19 +102,13 @@ internal partial class NavigationBarController
 
         async Task<NavigationBarModel?> ComputeModelAsync()
         {
-            // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
-            // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
-            // event the other files aren't available, then partial-type information won't be correct.  That's ok though
-            // as this is just something that happens during solution load and will pass once that is over.  By using
-            // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
-            // compilation data (like skeleton assemblies).
-            var forceFrozenPartialSemanticsForCrossProcessOperations = true;
-
             var workspace = textSnapshot.TextBuffer.GetWorkspace();
             if (workspace is null)
                 return null;
 
-            var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+            var document = frozenPartialSemantics
+                ? textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
+                : textSnapshot.AsText().GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return null;
 
@@ -90,7 +133,7 @@ internal partial class NavigationBarController
                 var items = await itemService.GetItemsAsync(
                     document,
                     workspace.CanApplyChange(ApplyChangesKind.ChangeDocument),
-                    forceFrozenPartialSemanticsForCrossProcessOperations,
+                    frozenPartialSemantics,
                     textSnapshot.Version,
                     cancellationToken).ConfigureAwait(false);
                 return new NavigationBarModel(itemService, items);

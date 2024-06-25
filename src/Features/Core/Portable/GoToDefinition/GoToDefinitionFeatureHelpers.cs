@@ -45,10 +45,9 @@ internal static class GoToDefinitionFeatureHelpers
 
         symbol = definition ?? symbol;
 
-        // If it is a partial method declaration with no body, choose to go to the implementation
-        // that has a method body.
-        if (symbol is IMethodSymbol method)
-            symbol = method.PartialImplementationPart ?? symbol;
+        // If symbol has a partial implementation part, prefer to go to it, since that is where the body is.
+        symbol = (symbol as IMethodSymbol)?.PartialImplementationPart ?? symbol;
+        symbol = (symbol as IPropertySymbol)?.PartialImplementationPart ?? symbol;
 
         return symbol;
     }

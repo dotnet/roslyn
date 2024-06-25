@@ -42,9 +42,7 @@ internal abstract class ImportAdderService : ILanguageService
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         // Create a simple interval tree for simplification spans.
-        var spansTree = new TextSpanIntervalTree(spans);
-
-        Func<SyntaxNode, bool> overlapsWithSpan = n => spansTree.HasIntervalThatOverlapsWith(n.FullSpan.Start, n.FullSpan.Length);
+        var spansTree = new TextSpanMutableIntervalTree(spans);
 
         // Only dive deeper into nodes that actually overlap with the span we care about.  And also only include
         // those child nodes that themselves overlap with the span.  i.e. if we have:
@@ -55,7 +53,7 @@ internal abstract class ImportAdderService : ILanguageService
         //
         // We'll dive under the parent because it overlaps with the span.  But we only want to include (and dive
         // into) B and C not A and D.
-        var nodes = root.DescendantNodesAndSelf(overlapsWithSpan).Where(overlapsWithSpan);
+        var nodes = root.DescendantNodesAndSelf(OverlapsWithSpan).Where(OverlapsWithSpan);
 
         if (strategy == Strategy.AddImportsFromSymbolAnnotations)
             return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
@@ -64,19 +62,21 @@ internal abstract class ImportAdderService : ILanguageService
             return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
 
         throw ExceptionUtilities.UnexpectedValue(strategy);
+
+        bool OverlapsWithSpan(SyntaxNode n) => spansTree.HasIntervalThatOverlapsWith(n.FullSpan.Start, n.FullSpan.Length);
     }
 
     protected abstract INamespaceSymbol? GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
 
-    private ISet<INamespaceSymbol> GetSafeToAddImports(
+    private async Task<ISet<INamespaceSymbol>> GetSafeToAddImportsAsync(
         ImmutableArray<INamespaceSymbol> namespaceSymbols,
         SyntaxNode container,
         SemanticModel model,
         CancellationToken cancellationToken)
     {
         using var _ = PooledHashSet<INamespaceSymbol>.GetInstance(out var conflicts);
-        AddPotentiallyConflictingImports(
-            model, container, namespaceSymbols, conflicts, cancellationToken);
+        await AddPotentiallyConflictingImportsAsync(
+            model, container, namespaceSymbols, conflicts, cancellationToken).ConfigureAwait(false);
         return namespaceSymbols.Except(conflicts).ToSet();
     }
 
@@ -86,7 +86,7 @@ internal abstract class ImportAdderService : ILanguageService
     /// <paramref name="container"/> is the node that the import will be added to.  This will either be the
     /// compilation-unit node, or one of the namespace-blocks in the file.
     /// </summary>
-    protected abstract void AddPotentiallyConflictingImports(
+    protected abstract Task AddPotentiallyConflictingImportsAsync(
         SemanticModel model,
         SyntaxNode container,
         ImmutableArray<INamespaceSymbol> namespaceSymbols,
@@ -174,7 +174,7 @@ internal abstract class ImportAdderService : ILanguageService
         using var _ = PooledDictionary<INamespaceSymbol, SyntaxNode>.GetInstance(out var importToSyntax);
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         SyntaxNode? first = null, last = null;
         var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
@@ -183,7 +183,7 @@ internal abstract class ImportAdderService : ILanguageService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (annotatedNode.GetAnnotations(DoNotAddImportsAnnotation.Kind).Any())
+            if (annotatedNode.HasAnnotations(DoNotAddImportsAnnotation.Kind))
                 continue;
 
             var annotations = annotatedNode.GetAnnotations(SymbolAnnotation.Kind);
@@ -228,7 +228,11 @@ internal abstract class ImportAdderService : ILanguageService
         var importContainer = addImportsService.GetImportContainer(root, context, importToSyntax.First().Value, options);
 
         // Now remove any imports we think can cause conflicts in that container.
-        var safeImportsToAdd = GetSafeToAddImports([.. importToSyntax.Keys], importContainer, model, cancellationToken);
+        var safeImportsToAdd = await GetSafeToAddImportsAsync(
+            [.. importToSyntax.Keys],
+            importContainer,
+            model,
+            cancellationToken).ConfigureAwait(false);
 
         var importsToAdd = importToSyntax.Where(kvp => safeImportsToAdd.Contains(kvp.Key)).Select(kvp => kvp.Value).ToImmutableArray();
         if (importsToAdd.Length == 0)

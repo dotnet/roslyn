@@ -72,16 +72,10 @@ internal sealed class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<I
                 symbol, namespaceName, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
 
             foreach (var globalAlias in state.GlobalAliases)
-            {
-                // ignore the cases where the global alias might match the namespace name (i.e.
-                // global alias Collections = System.Collections).  We'll already find those references
-                // above.
-                if (state.SyntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
-                    continue;
+                FindReferenceToAlias(symbol, state, initialReferences, namespaceName, globalAlias, cancellationToken);
 
-                AddNamedReferences(
-                    symbol, globalAlias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
-            }
+            foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(symbol.Name, arity: 0))
+                FindReferenceToAlias(symbol, state, initialReferences, namespaceName, localAlias, cancellationToken);
 
             // The items in initialReferences need to be both reported and used later to calculate additional results.
             foreach (var location in initialReferences)
@@ -93,6 +87,19 @@ internal sealed class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<I
             FindReferencesInDocumentInsideGlobalSuppressions(
                 symbol, state, processResult, processResultData, cancellationToken);
         }
+    }
+
+    private static void FindReferenceToAlias(
+        INamespaceSymbol symbol, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> initialReferences, string namespaceName, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the namespace name (i.e.
+        // global alias Collections = System.Collections).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(namespaceName, alias))
+            return;
+
+        AddNamedReferences(
+            symbol, alias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
     }
 
     /// <summary>

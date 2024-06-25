@@ -11,13 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -30,12 +28,8 @@ namespace Microsoft.CodeAnalysis.BraceMatching;
 [TagType(typeof(BraceHighlightTag))]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class BraceHighlightingViewTaggerProvider(
-    IThreadingContext threadingContext,
-    IBraceMatchingService braceMatcherService,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<BraceHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
+internal sealed class BraceHighlightingViewTaggerProvider(TaggerHost taggerHost, IBraceMatchingService braceMatcherService)
+    : AsynchronousViewTaggerProvider<BraceHighlightTag>(taggerHost, FeatureAttribute.BraceHighlighting)
 {
     private readonly IBraceMatchingService _braceMatcherService = braceMatcherService;
 

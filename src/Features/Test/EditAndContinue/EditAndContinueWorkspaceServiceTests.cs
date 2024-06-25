@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -76,9 +77,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // prepare workspace as if it was loaded from project files:
         using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
-        var projectPId = ProjectId.CreateNewId();
         solution = solution
-            .AddProject(projectPId, "P", "P", LanguageNames.CSharp)
+            .AddTestProject("P", LanguageNames.CSharp, out var projectPId).Solution
             .WithProjectChecksumAlgorithm(projectPId, SourceHashAlgorithm.Sha1);
 
         var documentIdA = DocumentId.CreateNewId(projectPId, debugName: "A");
@@ -121,7 +121,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             AddDocument(CreateDesignTimeOnlyDocument(projectPId, name: "dt2.cs", path: "dt2.cs"));
 
         // project that does not support EnC - the contents of documents in this project shouldn't be loaded:
-        var projectQ = solution.AddProject("Q", "Q", NoCompilationConstants.LanguageName);
+        var projectQ = solution.AddTestProject("Q", NoCompilationConstants.LanguageName);
         solution = projectQ.Solution;
 
         solution = solution.AddDocument(DocumentInfo.Create(
@@ -153,7 +153,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal(new[] { $"{projectPId}: Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"P.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -477,7 +477,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal(new[] { $"{document2.Project.Id}: Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}"], InspectDiagnostics(emitDiagnostics));
 
         // correct the error:
         EmitLibrary(source2);
@@ -500,7 +500,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=3",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={00000000-AAAA-AAAA-AAAA-111111111111}",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
             }, _telemetryLog);
         }
@@ -509,7 +509,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={00000000-AAAA-AAAA-AAAA-111111111111}",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
             }, _telemetryLog);
         }
@@ -525,9 +525,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         using var _ = CreateWorkspace(out var solution, out var service);
 
-        var document1 = solution.
-            AddProject("test", "test", LanguageNames.CSharp).
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+        var document1 = AddEmptyTestProject(solution).
             AddDocument("a.cs", CreateText(source1), filePath: sourceFile.Path);
 
         var project = document1.Project;
@@ -558,7 +556,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal(new[] { $"{project.Id}: Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
@@ -579,7 +577,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         using var _ = CreateWorkspace(out var solution, out var service);
 
         var document1 = solution.
-            AddProject("test", "test", LanguageNames.CSharp).
+            AddTestProject("test").
             AddMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
             AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
 
@@ -605,7 +603,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal(new[] { $"{project.Id}: Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         fileLock.Dispose();
 
@@ -637,7 +635,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         using var _ = CreateWorkspace(out var solution, out var service);
 
         var documentA = solution.
-            AddProject("test", "test", LanguageNames.CSharp).
+            AddTestProject("test").
             AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
             AddDocument("test.cs", CreateText(sourceA), filePath: sourceFileA.Path);
 
@@ -965,7 +963,7 @@ class C1
             {
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
             }, _telemetryLog);
         }
         else
@@ -974,7 +972,7 @@ class C1
             {
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
             }, _telemetryLog);
         }
     }
@@ -1131,7 +1129,7 @@ class C { int Y => 2; }
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal(new[] { $"{project.Id}: Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         // update the file to match the build:
         sourceFile.WriteAllText(source0, Encoding.UTF8);
@@ -1177,7 +1175,7 @@ class C { int Y => 2; }
             {
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
             }, _telemetryLog);
         }
         else
@@ -1186,7 +1184,7 @@ class C { int Y => 2; }
             {
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
             }, _telemetryLog);
         }
     }
@@ -1202,8 +1200,7 @@ class C { int Y => 2; }
 
         // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
         var document1 = solution.
-            AddProject("test", "test", LanguageNames.CSharp).
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+            AddTestProject("test").
             AddDocument("test.cs", CreateText(source1), filePath: sourceFile.Path);
 
         var project = document1.Project;
@@ -1246,8 +1243,7 @@ class C { int Y => 2; }
 
         // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
         var document1 = solution.
-            AddProject("test", "test", LanguageNames.CSharp).
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+            AddTestProject("test").
             AddDocument("test.cs", CreateText(source1), filePath: sourceFile.Path);
 
         var project = document1.Project;
@@ -1392,12 +1388,12 @@ class C { int Y => 2; }
         var pathCommon = Path.Combine(TempRoot.Root, "Common.cs");
 
         solution = solution.
-            AddProject("A", "A", "C#").
+            AddTestProject("A").
             AddDocument("A.cs", "class Program { void Main() { System.Console.WriteLine(1); } }", filePath: pathA).Project.Solution.
-            AddProject("B", "B", "C#").
+            AddTestProject("B").
             AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
             AddDocument("B.cs", "class B {}", filePath: pathB).Project.Solution.
-            AddProject("C", "C", "C#").
+            AddTestProject("C").
             AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
             AddDocument("C.cs", "class C {}", filePath: pathC).Project.Solution;
 
@@ -1879,7 +1875,7 @@ class G
 
         // They are reported as emit diagnostics
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal(new[] { $"{document2.Project.Id}: Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal(new[] { $"proj.csproj: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}" }, InspectDiagnostics(emitDiagnostics));
 
         // no emitted delta:
         Assert.Empty(updates.Updates);
@@ -1967,7 +1963,7 @@ class G
 
         // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
         var document1 = solution.
-            AddProject("test", "test", LanguageNames.CSharp).
+            AddTestProject("test").
             AddMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
             AddDocument("test.cs", CreateText("class C1 { void M() { System.Console.WriteLine(0); } }"), filePath: sourceFile.Path);
 
@@ -2055,7 +2051,7 @@ class G
 
         // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
         var document2 = solution.
-            AddProject("test", "test", LanguageNames.CSharp).
+            AddTestProject("test").
             AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
             AddDocument("test.cs", CreateText(source2), filePath: sourceFile.Path);
 
@@ -2083,7 +2079,7 @@ class G
         // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
-        AssertEx.Equal(new[] { $"{project.Id}: Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         // undo:
         solution = solution.WithDocumentText(documentId, CreateText(source1));
@@ -2338,7 +2334,7 @@ class G
             AssertEx.Equal(new[]
             {
                 $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 3 : 2)}",
-                $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={(commitUpdate ? "{00000000-AAAA-AAAA-AAAA-111111111111}" : "")}",
+                $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={(commitUpdate ? "{6A6F7270-0000-4000-8000-000000000000}" : "")}",
             }, _telemetryLog);
         }
         else
@@ -2346,7 +2342,7 @@ class G
             AssertEx.Equal(new[]
             {
                 $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount={(commitUpdate ? 1 : 0)}",
-                $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={(commitUpdate ? "{00000000-AAAA-AAAA-AAAA-111111111111}" : "")}"
+                $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={(commitUpdate ? "{6A6F7270-0000-4000-8000-000000000000}" : "")}"
             }, _telemetryLog);
         }
     }
@@ -2521,8 +2517,9 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
         EndDebuggingSession(debuggingSession);
     }
 
-    [Fact]
-    public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate()
+    [Theory]
+    [CombinatorialData]
+    internal async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate(SourceGeneratorExecutionPreference executionPreference)
     {
         var sourceV1 = @"
 /* GENERATE: class G { int X => 1; } */
@@ -2537,11 +2534,20 @@ class C { int Y => 2; }
 
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
-        using var _ = CreateWorkspace(out var solution, out var service);
+        using var workspace = CreateWorkspace(out var solution, out var service);
+        var workspaceConfig = Assert.IsType<TestWorkspaceConfigurationService>(workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        workspaceConfig.Options = new WorkspaceConfigurationOptions(executionPreference);
+
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
         var moduleId = EmitLibrary(sourceV1, generator: generator);
         LoadLibraryToDebuggee(moduleId);
+
+        // Trigger initial source generation before debugging session starts.
+        // Causes source generator to run on the solution for the first time.
+        // Futher compilation access won't automatically trigger source generators,
+        // the EnC service has to do so.
+        _ = await solution.Projects.Single().GetCompilationAsync(CancellationToken.None);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
@@ -2839,7 +2845,7 @@ class C { int Y => 1; }
 
         // They are reported as emit diagnostics
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal(new[] { $"{document2.Project.Id}: Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}"], InspectDiagnostics(emitDiagnostics));
 
         // no emitted delta:
         Assert.Empty(updates.Updates);
@@ -2878,7 +2884,7 @@ class C { int Y => 1; }
         (solution, var documentA) = AddDefaultTestProject(solution, source1);
         var projectA = documentA.Project;
 
-        var projectB = solution.AddProject("B", "A", "C#").
+        var projectB = solution.AddTestProject("B").WithAssemblyName("A").
             AddMetadataReferences(projectA.MetadataReferences).
             AddDocument("DocB", source1, filePath: Path.Combine(TempRoot.Root, "DocB.cs")).Project;
 
@@ -3023,7 +3029,7 @@ class C { int Y => 1; }
         solution = solution.WithDocumentText(document1.Id, CreateText("class C1 { void M() { System.Console.WriteLine(2); } }"));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal(new[] { $"{document1.Project.Id}: Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-pdb", new FileNotFoundException().Message)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-pdb", new FileNotFoundException().Message)}"], InspectDiagnostics(emitDiagnostics));
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
     }
 
@@ -3056,7 +3062,7 @@ class C { int Y => 1; }
         solution = solution.WithDocumentText(document1.Id, CreateText("class C1 { void M() { System.Console.WriteLine(2); } }"));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal(new[] { $"{document.Project.Id}: Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-assembly", "*message*")}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-assembly", "*message*")}"], InspectDiagnostics(emitDiagnostics));
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
 
         EndDebuggingSession(debuggingSession);
@@ -3956,7 +3962,7 @@ class C
         using var _ = CreateWorkspace(out var solution, out var encService);
 
         var projectP = solution.
-            AddProject("P", "P", LanguageNames.CSharp).
+            AddTestProject("P").
             WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
         solution = projectP.Solution;

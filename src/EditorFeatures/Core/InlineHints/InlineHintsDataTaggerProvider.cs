@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,12 +12,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -37,13 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 [method: ImportingConstructor]
 internal partial class InlineHintsDataTaggerProvider(
-    IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<InlineHintDataTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
+    TaggerHost taggerHost,
+    [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor)
+    : AsynchronousViewTaggerProvider<InlineHintDataTag>(taggerHost, FeatureAttribute.InlineHints)
 {
-    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
     private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;
 
     protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
@@ -62,20 +56,22 @@ internal partial class InlineHintsDataTaggerProvider(
     {
         return TaggerEventSources.Compose(
             TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
-            TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
+            TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
             new InlineHintKeyProcessorEventSource(_inlineHintKeyProcessor),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLiteralParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForIndexerParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForObjectCreationParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForOtherParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitVariableTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLambdaParameterTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitObjectCreation));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForLiteralParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForIndexerParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForObjectCreationParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForOtherParameters) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName) ||
+                option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation) ||
+                option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)));
     }
 
     protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)

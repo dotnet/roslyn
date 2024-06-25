@@ -285,7 +285,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
             return new ManagedHotReloadUpdates(moduleUpdates.Updates, diagnostics);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

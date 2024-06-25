@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            <ImportMany(LanguageNames.VisualBasic)> braceCompletionServices As IEnumerable(Of IBraceCompletionService))
-            MyBase.New(braceCompletionServices)
+            <ImportMany> braceCompletionServices As IEnumerable(Of Lazy(Of IBraceCompletionService, LanguageMetadata)))
+            MyBase.New(braceCompletionServices, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

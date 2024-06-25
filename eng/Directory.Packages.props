@@ -121,8 +121,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.UI.Interfaces" Version="17.9.0-beta.24072.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.9.0-beta.24072.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.11.0-beta.24274.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 
@@ -145,7 +144,7 @@
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="7.0.0-preview.24266.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24316.1" />
 
     <!--
       Analyzers
@@ -184,16 +183,17 @@
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net451" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net20" Version="1.0.3" />
     <PackageVersion Include="System.Buffers" Version="4.5.1" />
     <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
-    <PackageVersion Include="System.ComponentModel.Composition" Version="8.0.0" />
+    <PackageVersion Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="$(SystemDiagnosticsDiagnosticSourceVersion)" />
     <PackageVersion Include="System.Diagnostics.EventLog" Version="$(SystemDiagnosticsEventLogVersion)" />
-    <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
+    <PackageVersion Include="System.IO.Hashing" Version="$(SystemIOHashingVersion)" />
     <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />

@@ -270,11 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
             }
-            // NOTE: Error conditions should be checked above this point; only warning conditions below.
-            else if (this.Flags.Includes(BinderFlags.InLockBody))
-            {
-                Error(diagnostics, ErrorCode.WRN_BadYieldInLock, node.YieldKeyword);
-            }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldReturnStatement(node, argument);
@@ -479,6 +474,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement
             // In this case we create new label symbol on the fly, and an error is reported by parser
             var symbol = result.Symbols.Count > 0 && result.IsMultiViable ?
@@ -558,6 +555,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node.Identifier);
+
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
@@ -779,13 +778,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                if (this.IsAccessible(disposeMethod, ref useSiteInfo))
-                {
-                    diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
-                }
-
-                diagnostics.Add(syntaxNode, useSiteInfo);
                 disposeMethod = null;
             }
 
@@ -968,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarator != null);
 
-            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind),
+            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind, diagnostics),
                                            kind,
                                            isVar,
                                            declarator,
@@ -1202,8 +1194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind)
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind, BindingDiagnosticBag diagnostics)
         {
+            ReportFieldOrValueContextualKeywordConflictIfAny(declarator, declarator.Identifier, diagnostics);
+
             LocalDeclarationKind kind = outerKind == LocalDeclarationKind.UsingVariable ? LocalDeclarationKind.UsingVariable : LocalDeclarationKind.RegularVariable;
             return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer, kind);
         }
@@ -3158,6 +3152,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaration = node.Declaration;
             if (declaration != null)
             {
+                ReportFieldOrValueContextualKeywordConflictIfAny(declaration, declaration.Identifier, diagnostics);
+
                 // Note: The type is being bound twice: here and in LocalSymbol.Type. Currently,
                 // LocalSymbol.Type ignores diagnostics so it seems cleaner to bind the type here
                 // as well. However, if LocalSymbol.Type is changed to report diagnostics, we'll

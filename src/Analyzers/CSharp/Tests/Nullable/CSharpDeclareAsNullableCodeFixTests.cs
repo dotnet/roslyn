@@ -15,13 +15,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNullable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsDeclareAsNullable)]
-public class CSharpDeclareAsNullableCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpDeclareAsNullableCodeFixProvider());
 

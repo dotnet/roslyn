@@ -183,6 +183,7 @@ internal static partial class Extensions
         => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
             static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor)?.PartialAsImplementation();
 
+    // https://github.com/dotnet/roslyn/issues/73772: does this helper need to be updated to use IPropertySymbol.PartialImplementationPart?
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
         => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
 

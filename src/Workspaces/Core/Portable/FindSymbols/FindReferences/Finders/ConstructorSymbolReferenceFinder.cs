@@ -98,22 +98,17 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         CancellationToken cancellationToken)
     {
         // First just look for this normal constructor references using the name of it's containing type.
-        var name = methodSymbol.ContainingType.Name;
+        var containingType = methodSymbol.ContainingType;
+        var containingTypeName = containingType.Name;
         AddReferencesInDocumentWorker(
-            methodSymbol, name, state, processResult, processResultData, cancellationToken);
+            methodSymbol, containingTypeName, state, processResult, processResultData, cancellationToken);
 
         // Next, look for constructor references through a global alias to our containing type.
         foreach (var globalAlias in state.GlobalAliases)
-        {
-            // ignore the cases where the global alias might match the type name (i.e.
-            // global alias Console = System.Console).  We'll already find those references
-            // above.
-            if (state.SyntaxFacts.StringComparer.Equals(name, globalAlias))
-                continue;
+            FindReferenceToAlias(methodSymbol, state, processResult, processResultData, containingTypeName, globalAlias, cancellationToken);
 
-            AddReferencesInDocumentWorker(
-                methodSymbol, globalAlias, state, processResult, processResultData, cancellationToken);
-        }
+        foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(containingTypeName, containingType.Arity))
+            FindReferenceToAlias(methodSymbol, state, processResult, processResultData, containingTypeName, localAlias, cancellationToken);
 
         // Finally, look for constructor references to predefined types (like `new int()`),
         // implicit object references, and inside global suppression attributes.
@@ -125,6 +120,19 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             methodSymbol, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindReferenceToAlias<TData>(
+        IMethodSymbol methodSymbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, string name, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the type name (i.e.
+        // global alias Console = System.Console).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(name, alias))
+            return;
+
+        AddReferencesInDocumentWorker(
+            methodSymbol, alias, state, processResult, processResultData, cancellationToken);
     }
 
     /// <summary>

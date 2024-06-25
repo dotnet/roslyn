@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -39,27 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 /// persist them to the SUO file to persist this data across sessions.
 /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
-internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTaggerProvider<IContainerStructureTag>
+internal abstract partial class AbstractStructureTaggerProvider(
+    TaggerHost taggerHost,
+    EditorOptionsService editorOptionsService,
+    IProjectionBufferFactoryService projectionBufferFactoryService)
+    : AsynchronousTaggerProvider<IContainerStructureTag>(taggerHost, FeatureAttribute.Outlining)
 {
     private const string RegionDirective = "#region";
     private const string UsingDirective = "using";
     private const string ExternDeclaration = "extern";
     private const string ImportsStatement = "Imports";
 
-    protected readonly EditorOptionsService EditorOptionsService;
-    protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
-
-    protected AbstractStructureTaggerProvider(
-        IThreadingContext threadingContext,
-        EditorOptionsService editorOptionsService,
-        IProjectionBufferFactoryService projectionBufferFactoryService,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider)
-        : base(threadingContext, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
-    {
-        EditorOptionsService = editorOptionsService;
-        ProjectionBufferFactoryService = projectionBufferFactoryService;
-    }
+    protected readonly EditorOptionsService EditorOptionsService = editorOptionsService;
+    protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService = projectionBufferFactoryService;
 
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
@@ -167,14 +157,15 @@ internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTa
             TaggerEventSources.OnTextChanged(subjectBuffer),
             TaggerEventSources.OnParseOptionChanged(subjectBuffer),
             TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions)));
     }
 
     protected sealed override async Task ProduceTagsAsync(

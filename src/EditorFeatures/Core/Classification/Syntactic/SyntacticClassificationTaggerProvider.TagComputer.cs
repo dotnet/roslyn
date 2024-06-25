@@ -105,7 +105,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 taggerProvider._listener,
                 _disposalCancellationSource.Token);
 
-            _lineCache = new ClassifiedLineCache(taggerProvider._threadingContext);
+            _lineCache = new ClassifiedLineCache(taggerProvider.ThreadingContext);
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
             _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
@@ -119,7 +119,7 @@ internal partial class SyntacticClassificationTaggerProvider
         public static TagComputer GetOrCreate(
             SyntacticClassificationTaggerProvider taggerProvider, ITextBuffer2 subjectBuffer)
         {
-            taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             var tagComputer = subjectBuffer.Properties.GetOrCreateSingletonProperty(
                 s_uniqueKey, () => new TagComputer(taggerProvider, subjectBuffer, TaggerDelay.NearImmediate.ComputeTimeDelay()));
@@ -169,7 +169,7 @@ internal partial class SyntacticClassificationTaggerProvider
         {
             try
             {
-                await _taggerProvider._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_disposalCancellationSource.Token);
+                await _taggerProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_disposalCancellationSource.Token);
 
                 // We both try to connect synchronously, and register for workspace registration events.
                 // It's possible (particularly in tests), to connect in the startup path, but then get a
@@ -197,13 +197,13 @@ internal partial class SyntacticClassificationTaggerProvider
 
         internal void IncrementReferenceCount()
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             _taggerReferenceCount++;
         }
 
         internal void DecrementReferenceCount()
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             _taggerReferenceCount--;
 
             if (_taggerReferenceCount == 0)
@@ -221,7 +221,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private void ConnectToWorkspace(Workspace workspace)
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             _workspace = workspace;
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
@@ -233,7 +233,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         public void DisconnectFromWorkspace()
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             _lastCachedServices = null;
 
             lock (_gate)
@@ -401,7 +401,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         public void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<IClassificationTag>> tags)
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
                 AddTagsWorker(spans, tags);
@@ -409,7 +409,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private void AddTagsWorker(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<IClassificationTag>> tags)
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             if (spans.Count == 0 || _workspace == null)
                 return;
 
@@ -431,7 +431,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
             void AddClassifications(SnapshotSpan span)
             {
-                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+                _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // First, get the tree and snapshot that we'll be operating over.
                 if (GetLastProcessedData() is not (var lastProcessedSnapshot, var lastProcessedDocument, var lastProcessedRoot))
@@ -459,7 +459,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, SegmentedList<ClassifiedSpan> classifiedSpans)
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             classificationService.AddLexicalClassifications(
                 span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
@@ -473,7 +473,7 @@ internal partial class SyntacticClassificationTaggerProvider
             SyntaxNode? lastProcessedRoot,
             SegmentedList<ClassifiedSpan> classifiedSpans)
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             var cancellationToken = CancellationToken.None;
 
             // Pass in the doc-id and parse options so that if those change between the last cached values and now, we
@@ -513,7 +513,7 @@ internal partial class SyntacticClassificationTaggerProvider
             SyntaxNode? lastProcessedRoot,
             SegmentedList<ClassifiedSpan> classifiedSpans)
         {
-            _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             // Slightly more complicated case.  They're asking for the classifications for a
             // different snapshot than what we have a parse tree for.  So we first translate the span

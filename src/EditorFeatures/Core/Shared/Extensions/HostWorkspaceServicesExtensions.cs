@@ -25,12 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
             this SolutionServices workspaceServices, IContentType contentType)
         {
-            foreach (var language in workspaceServices.SupportedLanguages)
+            foreach (var language in workspaceServices.SupportedLanguagesArray)
             {
                 if (LanguageMatches(language, contentType, workspaceServices))
-                {
                     return workspaceServices.GetLanguageServices(language);
-                }
             }
 
             return null;

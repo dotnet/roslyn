@@ -36336,9 +36336,9 @@ public class MyAttribute : System.Attribute
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,16): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                // (6,41): error CS1002: ; expected
                 //         [My(() => { [My(M2(out var x))] static string M2(out int x) => throw null; })]
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(6, 41),
                 // (7,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local(int parameter) { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14));
@@ -36350,7 +36350,7 @@ public class MyAttribute : System.Attribute
             var method = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
             Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(method.Body.SpanStart, method, out var speculativeModel));
 
-            var invocation = tree2.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var invocation = tree2.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Skip(1).First();
             Assert.Equal("M2(out var x)", invocation.ToString());
             var symbolInfo = speculativeModel.GetSymbolInfo(invocation);
             Assert.Equal("System.String M2(out System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -197,6 +198,9 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
                 {
                     return;
                 }
+
+                // Make sure the solution snapshot has all source-generated documents in the affected projects up-to-date:
+                solution = solution.WithUpToDateSourceGeneratorDocuments(openDocumentIds.Select(static d => d.ProjectId));
 
                 var baseActiveStatementSpans = await _spanProvider.GetBaseActiveStatementSpansAsync(solution, openDocumentIds, cancellationToken).ConfigureAwait(false);
                 if (baseActiveStatementSpans.IsDefault)

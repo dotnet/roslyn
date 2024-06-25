@@ -7,11 +7,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -29,10 +26,8 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
     private sealed class SingleViewportTaggerProvider(
         AsynchronousViewportTaggerProvider<TTag> callback,
         ViewPortToTag viewPortToTag,
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener) : AsynchronousViewTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, asyncListener)
+        string featureName)
+        : AsynchronousViewTaggerProvider<TTag>(callback._taggerHost, featureName)
     {
         private readonly AsynchronousViewportTaggerProvider<TTag> _callback = callback;
 
@@ -58,6 +53,14 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // view, tag at the slowest cadence to reduce the amount of resources used for things that may never even be
             // looked at.
             => _viewPortToTag == ViewPortToTag.InView ? _callback.EventChangeDelay : TaggerDelay.NonFocus;
+
+        protected override bool CancelOnNewWork
+            // For what's in view, we don't want to cancel work when changes come in.  That way we still finish
+            // computing whatever was in progress, which we can map forward to the latest snapshot.  This helps ensure
+            // that colors come in quickly, even as the user is typing fast.  For what's above/below, we don't want to
+            // do the same.  We can just cancel that work entirely, pushing things out until the next lull in typing. 
+            // This can save a lot of CPU time for things that may never even be looked at.
+            => _viewPortToTag != ViewPortToTag.InView;
 
         protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
         {

@@ -397,11 +397,6 @@
         <target state="translated">元素無效。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">從來源產生器中，啟用已開啟檔案中的所有功能 (實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">啟用文件大綱 (實驗性，需要重新開機)</target>
@@ -1365,6 +1360,11 @@
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
         <source>Show guides for comments and preprocessor regions</source>
         <target state="translated">顯示註解及前置處理器區域的指南</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_collection_expressions">
+        <source>Show hints for collection expressions</source>
+        <target state="new">Show hints for collection expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">

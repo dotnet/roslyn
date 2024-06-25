@@ -47,7 +47,7 @@ internal sealed class CodeStyleSetting<T> : CodeStyleSetting
     public override string GetCurrentValueDescription()
         => _valueDescriptions[_possibleValues.IndexOf(_value.Value)];
 
-    public override ICodeStyleOption GetCodeStyle()
+    public override ICodeStyleOption2 GetCodeStyle()
         => _value;
 
     protected override object GetPossibleValue(int valueIndex)
