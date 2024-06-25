@@ -2,7 +2,7 @@
   "profiles": {
     "Visual Studio Extension": {
       "commandName": "Executable",
-      "executablePath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\main\\Common7\\IDE\\devenv.exe",
+      "executablePath": "$(DevEnvDir)devenv.exe",
       "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log"
     },
     "Visual Studio Extension (with ServiceHub Debugging)": {

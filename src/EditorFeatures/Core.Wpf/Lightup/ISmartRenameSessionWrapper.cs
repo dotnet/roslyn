@@ -38,7 +38,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     {
         s_wrappedType = typeof(AggregateFocusInterceptor).Assembly.GetType(WrappedTypeName, throwOnError: false, ignoreCase: false);
 
-        s_automaticFetchDelayAccessor = LightupHelpers.CreatePropertyAccessor<object, TimeSpan>(s_wrappedType, nameof(AutomaticFetchDelay), TimeSpan.FromSeconds(2));
+        s_automaticFetchDelayAccessor = LightupHelpers.CreatePropertyAccessor<object, TimeSpan>(s_wrappedType, nameof(AutomaticFetchDelay), TimeSpan.Zero);
         s_isAvailableAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsAvailable), false);
         s_hasSuggestionsAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(HasSuggestions), false);
         s_isInProgressAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsInProgress), false);
