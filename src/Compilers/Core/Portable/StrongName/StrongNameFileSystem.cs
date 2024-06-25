@@ -46,19 +46,15 @@ namespace Microsoft.CodeAnalysis
         => StringComparer.Ordinal.GetHashCode(_signingTempPath);
 
         public override bool Equals(object? obj)
+            => Equals(obj as StrongNameFileSystem);
+
+        private bool Equals(StringNameFileSystem? other)
         {
-            if (Object.ReferenceEquals(obj, this))
-            {
+            if (this == other)
                 return true;
-            }
-
-            if (GetType() != obj!.GetType())
-            {
-                return false;
-            }
-
-            var other = (StrongNameFileSystem)obj;
-            return string.Equals(_signingTempPath, other._signingTempPath, StringComparison.Ordinal);
+                
+            return this.GetType() == other?.GetType() && StringComparer.Ordinal.Equals(_signingTempPath, other?._signingTempPath);
+        }
         }
     }
 }
