@@ -136,7 +136,11 @@ internal partial class SolutionState
                 var serializer = this.Services.GetRequiredService<ISerializerService>();
 
                 var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
-                var fallbackAnalyzerOptionsChecksum = serializer.CreateChecksum(FallbackAnalyzerOptions, cancellationToken);
+
+                var fallbackAnalyzerOptionsChecksum = ChecksumCache.GetOrCreate(
+                    FallbackAnalyzerOptions,
+                    static (value, args) => args.serializer.CreateChecksum(value, args.cancellationToken),
+                    (serializer, cancellationToken));
 
                 var stateChecksums = new SolutionStateChecksums(
                     projectConeId,

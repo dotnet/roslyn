@@ -1637,12 +1637,15 @@ public partial class Solution
     public OptionSet Options => this.SolutionState.Options;
 
     /// <summary>
-    /// Analyzer references associated with the solution.
+    /// Analyzer references associated with the solution.n
     /// </summary>
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
 
     /// <summary>
-    /// Fallback analyzer config options by language. The set of languages does not need to match the set of langauges of projects included in the surrent solution snapshot.
+    /// Fallback analyzer config options by language. The set of languages does not need to match the set of languages of projects included in the current solution snapshot
+    /// since these options can be updated independently of the projects contained in the solution.
+    /// Generally, the host is responsible for keeping these options up-to-date with whatever option store it maintains
+    /// and for making sure fallback options are available in the solution for all languages the host supports.
     /// </summary>
     internal ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions => SolutionState.FallbackAnalyzerOptions;
 

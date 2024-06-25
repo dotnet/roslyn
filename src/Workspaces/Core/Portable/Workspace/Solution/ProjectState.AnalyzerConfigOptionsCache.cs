@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class ProjectState
 {
+    /// <summary>
+    /// Holds on a map from source path to <see cref="AnalyzerConfigData"/> calculated by the compiler and chained to <paramref name="fallbackOptions"/>.
+    /// This cache is stored on <see cref="ProjectState"/> and needs to be invalidated whenever <see cref="SolutionState.FallbackAnalyzerOptions"/> for the language of the project change,
+    /// editorconfig file is updated, etc.
+    /// </summary>
     private readonly struct AnalyzerConfigOptionsCache(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates, StructuredAnalyzerConfigOptions fallbackOptions)
     {
         public readonly struct Value(AnalyzerConfigSet configSet, StructuredAnalyzerConfigOptions fallbackOptions)
