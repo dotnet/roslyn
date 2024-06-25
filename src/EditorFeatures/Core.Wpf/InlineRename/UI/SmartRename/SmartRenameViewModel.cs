@@ -122,7 +122,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         this.SupportsAutomaticSuggestions = !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
-        if (this.SupportsAutomaticSuggestions && this.IsAutomaticSuggestionsEnabled)
+        if (this.IsAutomaticSuggestionsEnabled)
         {
             this.FetchSuggestions(isAutomaticOnInitialization: true);
         }
