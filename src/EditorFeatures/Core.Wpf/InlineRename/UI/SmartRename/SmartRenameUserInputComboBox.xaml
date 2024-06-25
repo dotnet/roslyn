@@ -130,8 +130,7 @@
                                 Grid.Column="1"
                                 Style="{StaticResource GetSuggestionsButtonStyle}"
                                 ToolTip="{Binding GetSuggestionsTooltip}"
-                                Click="GetSuggestionsButtonClick"
-                                Command="{Binding GetSuggestionsCommand}">
+                                Click="GetSuggestionsButtonClick">
                     <Button.Content>
                         <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <!-- TODO: Replace by KnownMoniker once available. -->

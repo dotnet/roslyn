@@ -58,25 +58,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     /// <summary>
     /// When smart rename is in automatic mode and <see cref="SupportsAutomaticSuggestions"/> is set,
-    /// developer gets to control whether the requests are made automatically.
-    /// Developer can toggle this option using the keyboard shortcut or button click.
+    /// developer gets to control whether the requests are made automatically on initialization.
+    /// Developer can toggle this option using the keyboard shortcut or button click,
+    /// both of which are handled in <see cref="ToggleOrTriggerSuggestions"/>."/>
     /// </summary>
     public bool IsAutomaticSuggestionsEnabled { get; private set; }
-
-    /// <summary>
-    /// Toggles <see cref="IsAutomaticSuggestionsEnabled"/> and persists the option across sessions.
-    /// </summary>
-    public void ToggleAutomaticSuggestions()
-    {
-        if (!SupportsAutomaticSuggestions)
-        {
-            return;
-        }
-        IsAutomaticSuggestionsEnabled = !IsAutomaticSuggestionsEnabled;
-        // Use existing option (true if user does not wish to get suggestions automatically) to honor user's choice from before the refactoring.
-        _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);
-        NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
-    }
 
     private string? _selectedSuggestedName;
 
@@ -113,8 +99,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public static string GeneratingSuggestionsLabel => EditorFeaturesWpfResources.Generating_suggestions;
 
-    public ICommand GetSuggestionsCommand { get; }
-
     public SmartRenameViewModel(
         IGlobalOptionService globalOptionService,
         IThreadingContext threadingContext,
@@ -134,24 +118,22 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         BaseViewModel.PropertyChanged += IdentifierTextPropertyChanged;
         this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
-        GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
-
         SetupTelemetry();
 
         this.SupportsAutomaticSuggestions = !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.SupportsAutomaticSuggestions && this.IsAutomaticSuggestionsEnabled)
         {
-            OnGetSuggestionsCommandExecute(true);
+            this.FetchSuggestions(isAutomaticOnInitialization: true);
         }
     }
 
-    private void OnGetSuggestionsCommandExecute(object? parameter)
+    private void FetchSuggestions(bool isAutomaticOnInitialization)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (IsAutomaticSuggestionsEnabled && SuggestedNames.Count > 0)
+        if (this.SuggestedNames.Count > 0)
         {
-            // Don't get suggestions again in the automatic scenario
+            // Don't get suggestions again
             return;
         }
         if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
@@ -160,18 +142,18 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
-            var isAutomatic = parameter is bool b && b;
-            _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomatic, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+            _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
     }
 
-    private async Task GetSuggestionsTaskAsync(bool isAutomatic, CancellationToken cancellationToken)
+    private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
     {
-        if (isAutomatic)
+        if (isAutomaticOnInitialization)
         {
             await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
         }
-        if (cancellationToken.IsCancellationRequested)
+
+        if (cancellationToken.IsCancellationRequested || _cancellationTokenSource is null)
         {
             return;
         }
@@ -243,6 +225,31 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         BaseViewModel.PropertyChanged -= IdentifierTextPropertyChanged;
         _smartRenameSession.Dispose();
         _cancellationTokenSource?.Dispose();
+    }
+
+    /// <summary>
+    /// When smart rename operates in explicit mode, this method gets the suggestions.
+    /// When smart rename operates in automatic mode, this method toggles the automatic suggestions, 
+    /// and gets the suggestions if it was just enabled.
+    /// </summary>
+    public void ToggleOrTriggerSuggestions()
+    {
+        if (this.SupportsAutomaticSuggestions)
+        {
+            this.IsAutomaticSuggestionsEnabled = !this.IsAutomaticSuggestionsEnabled;
+            if (this.IsAutomaticSuggestionsEnabled)
+            {
+                this.FetchSuggestions(isAutomaticOnInitialization: false);
+            }
+
+            NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
+            // Use existing option (true if user does not wish to get suggestions automatically) to honor user's choice from before the refactoring.
+            _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);
+        }
+        else
+        {
+            this.FetchSuggestions(isAutomaticOnInitialization: false);
+        }
     }
 
     private void NotifyPropertyChanged([CallerMemberName] string? name = null)

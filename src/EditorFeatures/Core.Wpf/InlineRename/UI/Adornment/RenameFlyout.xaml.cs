@@ -201,26 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 case Key.Space:
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                     {
-                        e.Handled = true;
-                        // If smart rename is available, trigger it.
-                        if (_viewModel.SmartRenameViewModel is not null && _viewModel.SmartRenameViewModel.GetSuggestionsCommand.CanExecute(null))
+                        // If smart rename is available, trigger or toggle it.
+                        if (_viewModel.SmartRenameViewModel is not null)
                         {
-                            if (_viewModel.SmartRenameViewModel.SupportsAutomaticSuggestions)
-                            {
-                                // When smart rename operates in automatic mode (based on feature flag)
-                                // Developer gets to enable/disable getting suggestions automatically.
-                                _viewModel.SmartRenameViewModel.ToggleAutomaticSuggestions();
-                                if (_viewModel.SmartRenameViewModel.IsAutomaticSuggestionsEnabled)
-                                {
-                                    // And getting suggestions just got enabled, get the suggestions now.
-                                    _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
-                                }
-                            }
-                            else
-                            {
-                                // When smart rename operates in explicit mode, get the suggestions now.
-                                _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
-                            }
+                            _viewModel.SmartRenameViewModel.ToggleOrTriggerSuggestions();
+                            e.Handled = true;
                         }
                     }
                     break;

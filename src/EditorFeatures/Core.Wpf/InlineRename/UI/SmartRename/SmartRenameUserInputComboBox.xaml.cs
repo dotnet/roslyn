@@ -106,18 +106,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void GetSuggestionsButtonClick(object sender, RoutedEventArgs e)
     {
-        if (_smartRenameViewModel.SupportsAutomaticSuggestions)
-        {
-            _smartRenameViewModel.ToggleAutomaticSuggestions();
-            if (_smartRenameViewModel.IsAutomaticSuggestionsEnabled)
-            {
-                _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
-            }
-        }
-        else
-        {
-            _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
-        }
+        _smartRenameViewModel.ToggleOrTriggerSuggestions();
     }
 
     private void ComboBox_Unloaded(object sender, RoutedEventArgs e)
