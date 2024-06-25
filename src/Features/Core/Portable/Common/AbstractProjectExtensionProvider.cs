@@ -112,7 +112,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
             return true;
         }
 
-        static ExtensionInfo? GetOrCreateExtensionInfo(TExtension extension, Func< TExportAttribute, ExtensionInfo> getExtensionInfoForFiltering)
+        static ExtensionInfo? GetOrCreateExtensionInfo(TExtension extension, Func<TExportAttribute, ExtensionInfo> getExtensionInfoForFiltering)
         {
             return s_extensionInfoMap.GetValue(extension,
                 new ConditionalWeakTable<TExtension, ExtensionInfo?>.CreateValueCallback(ComputeExtensionInfo));
