@@ -31,6 +31,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
     private CancellationTokenSource? _cancellationTokenSource;
+    private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private Task _getSuggestionsTask = Task.CompletedTask;
 
@@ -132,7 +133,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private void FetchSuggestions(bool isAutomaticOnInitialization)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (this.SuggestedNames.Count > 0)
+        if (this.SuggestedNames.Count > 0 || _isDisposed)
         {
             // Don't get suggestions again
             return;
@@ -157,11 +158,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
         }
 
-        if (cancellationToken.IsCancellationRequested || _cancellationTokenSource is null)
+        if (cancellationToken.IsCancellationRequested || _isDisposed)
         {
             return;
         }
-        _ = await _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
+        _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken);
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -225,9 +226,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Dispose()
     {
+        _isDisposed = true;
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
         BaseViewModel.PropertyChanged -= IdentifierTextPropertyChanged;
         _smartRenameSession.Dispose();
+        _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
     }
 
