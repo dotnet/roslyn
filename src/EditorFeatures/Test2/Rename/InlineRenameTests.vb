@@ -2385,7 +2385,7 @@ class [|C|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameRecordProperty(host As RenameTestHost)
+        Public Sub RenameRecordParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -2397,6 +2397,28 @@ class [|C|]
                                     {
                                         var record = new MyRecord("HelloWorld");
                                         var c = r.[|MyProperty|];
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="MyNewProperty")
+            End Using
+        End Sub
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameRecordProperty(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                public record MyRecord(string [|MyProperty|]);
+                                public class ReferenceClass
+                                {
+                                    public static void Test()
+                                    {
+                                        var record = new MyRecord("HelloWorld");
+                                        var c = r.[|$$MyProperty|];
                                     }
                                 }
                             </Document>
