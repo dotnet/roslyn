@@ -231,7 +231,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
 
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                change = await completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).ConfigureAwait(false);
+                change = await completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).ConfigureAwait(true);
             });
         }
         catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportAndCatch(e))
@@ -325,7 +325,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
                 var changes = ImmutableArray<TextChange>.Empty;
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    changes = await formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                    changes = await formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).ConfigureAwait(true);
                 });
                 subjectBuffer.ApplyChanges(changes);
             }

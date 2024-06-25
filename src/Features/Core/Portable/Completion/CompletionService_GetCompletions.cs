@@ -68,7 +68,7 @@ public abstract partial class CompletionService
          ImmutableHashSet<string>? roles = null,
          CancellationToken cancellationToken = default)
     {
-        document = document.WithFrozenPartialSemantics(cancellationToken);
+        document = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
@@ -166,6 +166,23 @@ public abstract partial class CompletionService
 
             return additionalAugmentingProviders.ToImmutableAndFree();
         }
+    }
+
+    /// <summary>
+    /// Returns a document with frozen partial semantic model unless caller is test code require full semantics.
+    /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
+    /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
+    /// we get into this transient state.
+    /// </summary>
+    private async Task<Document> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+    {
+        if (_suppressPartialSemantics)
+        {
+            var _ = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return document;
+        }
+
+        return document.WithFrozenPartialSemantics(cancellationToken);
     }
 
     private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
