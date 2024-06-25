@@ -50,10 +50,22 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
 
+    /// <summary>
+    /// Determines whether smart rename is in automatic mode (if <c>true</c>) or explicit mode (if <c>false</c>).
+    /// The mode is assigned based on feature flag / options.
+    /// </summary>
     public bool SupportsAutomaticSuggestions { get; }
 
+    /// <summary>
+    /// When smart rename is in automatic mode and <see cref="SupportsAutomaticSuggestions"/> is set,
+    /// developer gets to control whether the requests are made automatically.
+    /// Developer can toggle this option using the keyboard shortcut or button click.
+    /// </summary>
     public bool IsAutomaticSuggestionsEnabled { get; private set; }
 
+    /// <summary>
+    /// Toggles <see cref="IsAutomaticSuggestionsEnabled"/> and persists the option across sessions.
+    /// </summary>
     public void ToggleAutomaticSuggestions()
     {
         if (!SupportsAutomaticSuggestions)
