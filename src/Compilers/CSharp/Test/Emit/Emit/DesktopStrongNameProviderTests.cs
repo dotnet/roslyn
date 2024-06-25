@@ -72,6 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void InequalityUsingKeyFileSearchPathsDueToCaseSensitivity()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\test"]);
+            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\Test"]);
+
+            Assert.NotEqual(provider1, provider2);
+        }
+
+        [Fact]
         public void EmitWithCustomTempPath()
         {
             string src = @"

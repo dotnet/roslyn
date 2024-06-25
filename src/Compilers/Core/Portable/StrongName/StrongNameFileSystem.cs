@@ -43,18 +43,17 @@ namespace Microsoft.CodeAnalysis
         internal string? GetSigningTempPath() => _signingTempPath;
 
         public override int GetHashCode()
-        => StringComparer.Ordinal.GetHashCode(_signingTempPath);
+            => _signingTempPath != null ? StringComparer.Ordinal.GetHashCode(_signingTempPath) : 0;
 
         public override bool Equals(object? obj)
             => Equals(obj as StrongNameFileSystem);
 
-        private bool Equals(StringNameFileSystem? other)
+        private bool Equals(StrongNameFileSystem? other)
         {
             if (this == other)
                 return true;
-                
+
             return this.GetType() == other?.GetType() && StringComparer.Ordinal.Equals(_signingTempPath, other?._signingTempPath);
-        }
         }
     }
 }
