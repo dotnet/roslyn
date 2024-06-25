@@ -25,6 +25,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
         bool forImplicitVariableTypes,
         bool forLambdaParameterTypes,
         bool forImplicitObjectCreation,
+        bool forCollectionExpressions,
         CancellationToken cancellationToken);
 
     public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
@@ -42,7 +43,8 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
         var forImplicitVariableTypes = enabledForTypes && options.ForImplicitVariableTypes;
         var forLambdaParameterTypes = enabledForTypes && options.ForLambdaParameterTypes;
         var forImplicitObjectCreation = enabledForTypes && options.ForImplicitObjectCreation;
-        if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
+        var forCollectionExpressions = enabledForTypes && options.ForCollectionExpressions;
+        if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !forCollectionExpressions && !displayAllOverride)
             return [];
 
         var anonymousTypeService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
@@ -59,6 +61,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
                 forImplicitVariableTypes,
                 forLambdaParameterTypes,
                 forImplicitObjectCreation,
+                forCollectionExpressions,
                 cancellationToken);
             if (hintOpt == null)
                 continue;

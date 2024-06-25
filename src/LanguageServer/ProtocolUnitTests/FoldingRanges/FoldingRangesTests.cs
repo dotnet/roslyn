@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,43 +25,58 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
         public async Task TestGetFoldingRangeAsync_Imports(bool mutatingLspWorkspace)
         {
             var markup =
-@"using {|foldingRange:System;
-using System.Linq;|}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var expected = testLspServer.GetLocations("foldingRange")
-                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range, "..."))
-                .ToArray();
-
-            var results = await RunGetFoldingRangeAsync(testLspServer);
-            AssertJsonEquals(expected, results);
+                """
+                using {|imports:System;
+                using System.Linq;|}
+                """;
+            await AssertFoldingRanges(mutatingLspWorkspace, markup);
         }
 
         [Theory(Skip = "GetFoldingRangeAsync does not yet support comments."), CombinatorialData]
         public async Task TestGetFoldingRangeAsync_Comments(bool mutatingLspWorkspace)
         {
             var markup =
-@"{|foldingRange:// A comment|}
-{|foldingRange:/* A multiline
-comment */|}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var expected = testLspServer.GetLocations("foldingRange")
-                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range, ""))
-                .ToArray();
-
-            var results = await RunGetFoldingRangeAsync(testLspServer);
-            AssertJsonEquals(expected, results);
+                """
+                {|foldingRange:// A comment|}
+                {|foldingRange:/* A multiline
+                comment */|}
+                """;
+            await AssertFoldingRanges(mutatingLspWorkspace, markup);
         }
 
         [Theory, CombinatorialData]
         public async Task TestGetFoldingRangeAsync_Regions(bool mutatingLspWorkspace)
         {
             var markup =
-@"{|foldingRange:#region ARegion
-#endregion|}
-}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var expected = testLspServer.GetLocations("foldingRange")
-                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range, "ARegion"))
+                """
+                {|region:#region ARegion
+                #endregion|}
+                """;
+            await AssertFoldingRanges(mutatingLspWorkspace, markup, "ARegion");
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetFoldingRangeAsync_Members(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                class C{|foldingRange:
+                {
+                    public void M(){|implementation:
+                    {
+                    }|}
+                }|}
+                """;
+
+            await AssertFoldingRanges(mutatingLspWorkspace, markup);
+        }
+
+        private async Task AssertFoldingRanges(bool mutatingLspWorkspace, string markup, string collapsedText = null)
+        {
+            var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var expected = testLspServer.GetLocations()
+                .SelectMany(kvp => kvp.Value.Select(location => CreateFoldingRange(kvp.Key, location.Range, collapsedText ?? "...")))
+                .OrderByDescending(range => range.StartLine)
                 .ToArray();
 
             var results = await RunGetFoldingRangeAsync(testLspServer);
@@ -79,10 +95,15 @@ comment */|}";
                 request, CancellationToken.None);
         }
 
-        private static LSP.FoldingRange CreateFoldingRange(LSP.FoldingRangeKind kind, LSP.Range range, string collapsedText)
+        private static LSP.FoldingRange CreateFoldingRange(string kind, LSP.Range range, string collapsedText)
             => new LSP.FoldingRange()
             {
-                Kind = kind,
+                Kind = kind switch
+                {
+                    "foldingRange" => null,
+                    null => null,
+                    _ => new(kind)
+                },
                 StartCharacter = range.Start.Character,
                 EndCharacter = range.End.Character,
                 StartLine = range.Start.Line,

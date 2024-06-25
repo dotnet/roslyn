@@ -207,10 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
-                case ErrorCode.WRN_BadYieldInLock:
-                    // Warning level 9 is exclusively for warnings introduced in the compiler
-                    // shipped with dotnet 9 (C# 13) and that can be reported for pre-existing code.
-                    return 9;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -2419,7 +2415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
-                or ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument
                 or ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls
                 or ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember
                 or ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember
@@ -2434,7 +2429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterceptsLocationFileNotFound
                 or ErrorCode.ERR_InterceptsLocationDataInvalidPosition
                 or ErrorCode.INF_TooManyBoundLambdas
-                or ErrorCode.WRN_BadYieldInLock
                 or ErrorCode.ERR_BadYieldInUnsafe
                 or ErrorCode.ERR_AddressOfInIterator
                 or ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics
@@ -2456,6 +2450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
                 or ErrorCode.INF_IdentifierConflictWithContextualKeyword
+                or ErrorCode.ERR_InlineArrayAttributeOnRecord
                 or ErrorCode.ERR_ContextualKeywordAsIdentifier
                     => false,
             };

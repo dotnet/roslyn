@@ -330,6 +330,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_inlay_hints_for_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints")},
         {"csharp_enable_inlay_hints_for_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints")},
         {"csharp_enable_inlay_hints_for_implicit_object_creation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation")},
+        {"csharp_enable_inlay_hints_for_collection_expressions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForCollectionExpressions")},
         {"csharp_enable_inlay_hints_for_implicit_variable_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitVariableTypes")},
         {"dotnet_enable_inlay_hints_for_indexer_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForArrayIndexers")},
         {"csharp_enable_inlay_hints_for_lambda_parameter_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForLambdaParameterTypes")},
@@ -411,8 +412,8 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning restore
         {"dotnet_compute_task_list_items_for_closed_files", new RoamingProfileStorage("TextEditor.Specific.ComputeTaskListItemsForClosedFiles")},
         {"dotnet_task_list_storage_descriptors", new RoamingProfileStorage("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens")},
-        {"dotnet_conditional_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
-        {"dotnet_collection_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollectionExpressionWrappingLength")},
+        {"dotnet_unsupported_conditional_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
+        {"csharp_unsupported_collection_expression_wrapping_length", new RoamingProfileStorage("TextEditor.CSharp.Specific.CollectionExpressionWrappingLength")},
         {"dotnet_report_invalid_placeholders_in_string_dot_format_calls", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls")},
         {"visual_basic_preferred_modifier_order", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferredModifierOrder")},
         {"visual_basic_style_prefer_isnot_expression", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferIsNotExpression")},

@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1711,6 +1710,128 @@ public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticPro
                         true => "true",
                         false => "false",
                         _ => throw new System.NotImplementedException(),
+                    };
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueArms1(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(int? x)
+                {
+                    return x [||]switch
+                    {
+                        null => -1,
+                        {{underlyingTypePattern}} => 0,
+                    };
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueArms2(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(int? x)
+                {
+                    return x [||]switch
+                    {
+                        {{underlyingTypePattern}} => 0,
+                        null => -1,
+                    };
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueArms3(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(int? x)
+                {
+                    return x [||]switch
+                    {
+                        null => -1,
+                        0 => 0,
+                        {{underlyingTypePattern}} => 1,
+                    };
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueArms1(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(string? x)
+                {
+                    return x [||]switch
+                    {
+                        null => -1,
+                        {{underlyingTypePattern}} => 0,
+                    };
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueArms2(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(string? x)
+                {
+                    return x [||]switch
+                    {
+                        {{underlyingTypePattern}} => 0,
+                        null => -1,
+                    };
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueArms3(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(string? x)
+                {
+                    return x [||]switch
+                    {
+                        null => -1,
+                        "" => 0,
+                        {{underlyingTypePattern}} => 1,
                     };
                 }
             }

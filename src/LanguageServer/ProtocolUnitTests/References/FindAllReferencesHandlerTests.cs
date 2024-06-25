@@ -46,15 +46,13 @@ class B
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
-            // Results are returned in a non-deterministic order, so we order them by location
-            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
-            Assert.Equal("A", orderedResults[0].ContainingType);
-            Assert.Equal("B", orderedResults[2].ContainingType);
-            Assert.Equal("M", orderedResults[1].ContainingMember);
-            Assert.Equal("M2", orderedResults[3].ContainingMember);
+            Assert.Equal("A", results[0].ContainingType);
+            Assert.Equal("B", results[2].ContainingType);
+            Assert.Equal("M", results[1].ContainingMember);
+            Assert.Equal("M2", results[3].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
@@ -84,7 +82,7 @@ class B
 
             using var progress = BufferedProgress.Create<object>(null);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First(), progress);
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First(), progress);
 
             Assert.Null(results);
 
@@ -99,12 +97,10 @@ class B
 
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
-            // Results are returned in a non-deterministic order, so we order them by location
-            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
-            Assert.Equal("A", orderedResults[0].ContainingType);
-            Assert.Equal("B", orderedResults[2].ContainingType);
-            Assert.Equal("M", orderedResults[1].ContainingMember);
-            Assert.Equal("M2", orderedResults[3].ContainingMember);
+            Assert.Equal("A", results[0].ContainingType);
+            Assert.Equal("B", results[2].ContainingType);
+            Assert.Equal("M", results[1].ContainingMember);
+            Assert.Equal("M2", results[3].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
@@ -132,7 +128,7 @@ class B
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             var textElement = results[0].Text as ClassifiedTextElement;
@@ -141,11 +137,9 @@ class B
 
             Assert.Equal("class A", actualText);
 
-            // Results are returned in a non-deterministic order, so we order them by location
-            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
-            Assert.Equal("B", orderedResults[1].ContainingType);
-            Assert.Equal("B", orderedResults[2].ContainingType);
-            Assert.Equal("M2", orderedResults[2].ContainingMember);
+            Assert.Equal("B", results[1].ContainingType);
+            Assert.Equal("B", results[2].ContainingType);
+            Assert.Equal("M2", results[2].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.ClassInternal);
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 2);
@@ -175,15 +169,13 @@ class B
 
             await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
-            // Results are returned in a non-deterministic order, so we order them by location
-            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
-            Assert.Equal("A", orderedResults[0].ContainingType);
-            Assert.Equal("B", orderedResults[2].ContainingType);
-            Assert.Equal("M", orderedResults[1].ContainingMember);
-            Assert.Equal("M2", orderedResults[3].ContainingMember);
+            Assert.Equal("A", results[0].ContainingType);
+            Assert.Equal("B", results[2].ContainingType);
+            Assert.Equal("M", results[1].ContainingMember);
+            Assert.Equal("M2", results[3].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
@@ -199,7 +191,7 @@ class B
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.Empty(results);
         }
 
@@ -218,7 +210,7 @@ class A
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.NotNull(results[0].Location.Uri);
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
         }
@@ -240,7 +232,7 @@ class A
 ";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Namespace source definitions and references should have locations:
             Assert.True(results.All(r => r.Location != null));
@@ -267,7 +259,7 @@ class C
 ";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 1, expectedReferenceCount: 1);
         }
 
@@ -279,7 +271,7 @@ class C
 ";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Ensure static definitions and references are only classified once
             var textRuns = ((ClassifiedTextElement)results.First().Text).Runs;
@@ -295,11 +287,22 @@ class C
                 PartialResultToken = progress
             };
 
-        internal static async Task<T[]> RunFindAllReferencesAsync<T>(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
         {
-            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, T[]>(LSP.Methods.TextDocumentReferencesName,
+            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), CancellationToken.None);
-            return results?.Cast<T>()?.ToArray();
+            // Results are returned in a non-deterministic order, so we order them by location
+            var orderedResults = results?.OrderBy(r => r.Location, new OrderLocations()).ToArray();
+            return orderedResults;
+        }
+
+        internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        {
+            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.Location[]>(LSP.Methods.TextDocumentReferencesName,
+                CreateReferenceParams(caret, progress), CancellationToken.None);
+            // Results are returned in a non-deterministic order, so we order them by location
+            var orderedResults = results.OrderBy(r => r, new OrderLocations()).ToArray();
+            return orderedResults;
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSInternalReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)

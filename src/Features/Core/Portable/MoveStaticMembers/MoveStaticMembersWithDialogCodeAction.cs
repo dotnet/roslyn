@@ -52,36 +52,40 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
         var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        // add annotations to the symbols that we selected so we can find them later to pull up
+        // Get member nodes that we will need to annotate so we can find them later to pull up
         // These symbols should all have (singular) definitions, but in the case that we can't find
         // any location, we just won't move that particular symbol
         var memberNodes = moveOptions.SelectedMembers
             .Select(symbol => symbol.Locations.FirstOrDefault())
             .WhereNotNull()
             .SelectAsArray(loc => loc.FindNode(cancellationToken));
-        root = root.TrackNodes(memberNodes);
-        var sourceDoc = _document.WithSyntaxRoot(root);
 
         if (!moveOptions.IsNewType)
         {
             // we already have our destination type, but we need to find the document it is in
             // When it is an existing type, "FileName" points to a full path rather than just the name
             // There should be no two docs that have the same file path
-            var destinationDocId = sourceDoc.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
+            var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
+
             var fixedSolution = await RefactorAndMoveAsync(
                 moveOptions.SelectedMembers,
                 memberNodes,
-                sourceDoc.Project.Solution,
+                _document.Project.Solution,
                 moveOptions.Destination!,
                 // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
                 typeArgIndices: [],
-                sourceDoc.Id,
+                _document.Id,
                 destinationDocId,
                 cancellationToken).ConfigureAwait(false);
             return [new ApplyChangesOperation(fixedSolution)];
         }
 
         // otherwise, we need to create a destination ourselves
+
+        // annotate the members so we can find them later
+        root = root.TrackNodes(memberNodes);
+        var sourceDoc = _document.WithSyntaxRoot(root);
+
         var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, moveOptions.SelectedMembers);
         // which indices of the old type params should we keep for a new class reference, used for refactoring usages
         var typeArgIndices = Enumerable.Range(0, _selectedType.TypeParameters.Length)
@@ -165,14 +169,27 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         DocumentId newTypeDocId,
         CancellationToken cancellationToken)
     {
-        // annotate our new type, in case our refactoring changes it
+        // get our new type before we annotate members to ensure the original symbol gives us back the correct node.
         var newTypeDoc = await oldSolution.GetRequiredDocumentAsync(newTypeDocId, cancellationToken: cancellationToken).ConfigureAwait(false);
         var newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newTypeNode = newType.DeclaringSyntaxReferences
             .SelectAsArray(sRef => sRef.GetSyntax(cancellationToken))
             .First(node => newTypeRoot.Contains(node));
-        newTypeRoot = newTypeRoot.TrackNodes(newTypeNode);
-        oldSolution = newTypeDoc.WithSyntaxRoot(newTypeRoot).Project.Solution;
+
+        var oldSourceRoot = await oldSolution.GetRequiredDocument(sourceDocId).GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (sourceDocId == newTypeDocId)
+        {
+            // the members and destination are in the same tree, annotate them all together to avoid missing nodes due to tree changes.
+            oldSourceRoot = oldSourceRoot.TrackNodes(oldMemberNodes.Concat(newTypeNode));
+            oldSolution = oldSolution.WithDocumentSyntaxRoot(sourceDocId, oldSourceRoot);
+        }
+        else
+        {
+            // members and destination are in different documents, annotate each root.
+            oldSourceRoot = oldSourceRoot.TrackNodes(oldMemberNodes);
+            newTypeRoot = newTypeRoot.TrackNodes(newTypeNode);
+            oldSolution = oldSolution.WithDocumentSyntaxRoots([(sourceDocId, oldSourceRoot), (newTypeDocId, newTypeRoot)]);
+        }
 
         // refactor references across the entire solution
         var memberReferenceLocations = await FindMemberReferencesAsync(

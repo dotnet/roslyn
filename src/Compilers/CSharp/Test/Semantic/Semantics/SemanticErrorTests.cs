@@ -4046,7 +4046,7 @@ class Test
                 // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int y = 0; // CS0136
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
-                // (24,17): error CS9259: 'value' cannot be used as an identifier in this context; use '@value' instead.
+                // (24,17): error CS9500: 'value' cannot be used as an identifier in this context; use '@value' instead.
                 //             int value = 0; // CS0136
                 Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, "value").WithArguments("value").WithLocation(24, 17),
                 // (24,17): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.

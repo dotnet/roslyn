@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -20,24 +21,20 @@ namespace Microsoft.CodeAnalysis.Options;
 internal sealed class EditorConfigOptionsEnumerator(
     [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsEnumerator, LanguageMetadata>> optionEnumerators)
 {
-    public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetOptions(string language)
-    {
-        var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
+    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(string language, bool includeUnsupported = false)
+        => optionEnumerators
+            .Where(e => e.Metadata.Language == language)
+            .SelectMany(e => e.Value.GetOptions(includeUnsupported));
 
-        foreach (var generator in optionEnumerators)
+    internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions(bool includeUnsupported)
+    {
+        yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.EditorConfigOptions);
+
+        if (includeUnsupported)
         {
-            if (generator.Metadata.Language == language)
-            {
-                builder.AddRange(generator.Value.GetOptions());
-            }
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.UndocumentedOptions);
         }
 
-        return builder.ToImmutableAndFree();
-    }
-
-    internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
-    {
-        yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-        yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
+        yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.EditorConfigOptions.AddRange(CodeStyleOptions2.EditorConfigOptions));
     }
 }
