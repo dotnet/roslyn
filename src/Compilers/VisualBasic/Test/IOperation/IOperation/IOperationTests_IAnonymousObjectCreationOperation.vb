@@ -2002,6 +2002,13 @@ Block[B2] - Exit
 ]]>.Value
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+
+            Dim comp = CreateCompilation(source)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of NamedFieldInitializerSyntax).Single()
+            Dim symbolInfo = model.GetSymbolInfo(node.Name)
+            Assert.Null(symbolInfo.Symbol)
         End Sub
 
         <Fact()>
@@ -2101,6 +2108,15 @@ Block[B2] - Exit
 ]]>.Value
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+
+            Dim comp = CreateCompilation(source)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of NamedFieldInitializerSyntax).ToArray()
+            Dim symbolInfo = model.GetSymbolInfo(nodes(0).Name)
+            Assert.Equal("Property <anonymous type: a As System.Int32, b As ?>.a As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+            symbolInfo = model.GetSymbolInfo(nodes(1).Name)
+            Assert.Equal("Property <anonymous type: a As System.Int32, b As ?>.b As ?", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
     End Class
 End Namespace
