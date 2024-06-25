@@ -159,11 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations() => OneOrMany.Create(this.AttributeDeclarationSyntaxList);
-
-        public IAttributeTargetSymbol AttributesOwner => this;
-
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => AttributesOwner;
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
+        {
+            get { return this; }
+        }
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
         {
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             if ((_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed) &&
-                LoadAndValidateAttributes(GetAttributeDeclarations(), ref _lazyCustomAttributesBag))
+                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
                 var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);
