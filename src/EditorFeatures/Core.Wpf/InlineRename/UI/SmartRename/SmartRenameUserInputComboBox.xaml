@@ -8,6 +8,7 @@
           xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
           xmlns:sr="clr-namespace:Microsoft.CodeAnalysis.InlineRename.UI.SmartRename"
           mc:Ignorable="d"
+          x:Name="SmartRenameUserInputComboBox"
           Unloaded="ComboBox_Unloaded"
           SelectionChanged="ComboBox_SelectionChanged"
           Text="{Binding BaseViewModel.IdentifierText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
