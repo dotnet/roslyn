@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     /// <summary>
     /// Track diagnostic performance 
     /// </summary>
-    [ExportWorkspaceService(typeof(IPerformanceTrackerService), [WorkspaceKind.RemoteWorkspace]), Shared]
+    [ExportWorkspaceService(typeof(IPerformanceTrackerService), WorkspaceKinds.RemoteWorkspace), Shared]
     internal class PerformanceTrackerService : IPerformanceTrackerService
     {
         // We require at least 100 samples for background document analysis result to be stable.

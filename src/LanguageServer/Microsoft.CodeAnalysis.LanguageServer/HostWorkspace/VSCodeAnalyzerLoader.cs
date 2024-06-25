@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
+[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), WorkspaceKinds.Host), Shared]
 internal class VSCodeAnalyzerLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
 {
     private readonly ExtensionAssemblyManager _extensionAssemblyManager;

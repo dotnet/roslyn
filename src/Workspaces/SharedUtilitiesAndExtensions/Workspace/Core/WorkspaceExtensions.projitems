@@ -140,6 +140,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LanguageMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LanguageServiceMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LayeredServiceUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefConstruction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefLanguageServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefWorkspaceServices.cs" />
