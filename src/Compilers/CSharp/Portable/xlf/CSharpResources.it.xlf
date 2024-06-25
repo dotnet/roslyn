@@ -1674,12 +1674,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">Entrambe le dichiarazioni di metodo parziale devono contenere combinazioni identiche di modificatori 'virtual', 'override', 'sealed' e 'new'.</target>
+        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="translated">Le dichiarazioni di metodo parziale devono contenere valori restituiti di riferimento corrispondenti.</target>
+        <target state="new">Partial member declarations must have matching ref return values.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2024,7 +2024,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="needs-review-translation">Il modificatore 'scoped' del parametro '{0}' non corrisponde alla dichiarazione di metodo parziale.</target>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -4825,12 +4825,12 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Il supporto dei valori Null dei tipi riferimento nel tipo di parametro '{0}' non corrisponde alla dichiarazione di metodo parziale.</target>
+        <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo di parametro '{0}' non corrisponde alla dichiarazione di metodo parziale.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Il supporto dei valori Null dei tipi riferimento nel tipo di parametro non corrisponde alla dichiarazione di metodo parziale.</target>
+        <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo di parametro non corrisponde alla dichiarazione di metodo parziale.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4875,12 +4875,12 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Il supporto dei valori Null dei tipi riferimento nel tipo restituito non corrisponde alla dichiarazione di metodo parziale.</target>
+        <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo restituito non corrisponde alla dichiarazione di metodo parziale.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Il supporto dei valori Null dei tipi riferimento nel tipo restituito non corrisponde alla dichiarazione di metodo parziale.</target>
+        <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo restituito non corrisponde alla dichiarazione di metodo parziale.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6585,7 +6585,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="needs-review-translation">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface' o il tipo restituito di un metodo.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8194,7 +8194,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="translated">Un metodo parziale non può implementare in modo esplicito un metodo di interfaccia</target>
+        <target state="new">A partial member may not explicitly implement an interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8229,7 +8229,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="translated">Entrambe le dichiarazioni di metodo parziale devono essere statiche, altrimenti nessuna delle due potrà esserlo</target>
+        <target state="new">Both partial member declarations must be static or neither may be static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
