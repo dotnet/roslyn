@@ -43,9 +43,7 @@ namespace Microsoft.CodeAnalysis
         internal string? GetSigningTempPath() => _signingTempPath;
 
         public override int GetHashCode()
-        {
-            return _signingTempPath?.GetHashCode() ?? 0;
-        }
+        => StringComparer.Ordinal.GetHashCode(_signingTempPath);
 
         public override bool Equals(object? obj)
         {
