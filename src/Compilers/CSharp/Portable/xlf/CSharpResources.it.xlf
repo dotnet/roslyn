@@ -1947,11 +1947,6 @@
         <target state="translated">Il membro obbligatorio '{0}' deve essere impostabile.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiredMembersAttributeErrors">
-        <source>Attribute application had required members errors.</source>
-        <target state="new">Attribute application had required members errors.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
         <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
         <target state="translated">L'elenco dei membri obbligatori per il tipo di base '{0}' non è valido e non può essere interpretato. Per utilizzare questo costruttore, applicare l'attributo 'SetsRequiredMembers'.</target>

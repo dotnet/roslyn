@@ -1947,11 +1947,6 @@
         <target state="translated">Gerekli '{0}' üyesi ayarlanabilir olmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiredMembersAttributeErrors">
-        <source>Attribute application had required members errors.</source>
-        <target state="new">Attribute application had required members errors.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
         <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
         <target state="translated">'{0}' temel türü için gerekli üye listesi hatalı biçimlendirilmiş ve yorumlanamıyor. Bu oluşturucuyu kullanmak için 'SetsRequiredMembers' özniteliğini uygulayın.</target>

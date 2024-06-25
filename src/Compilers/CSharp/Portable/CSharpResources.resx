@@ -7347,9 +7347,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RequiredMembersMustBeAssignedValue" xml:space="preserve">
     <value>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</value>
   </data>
-  <data name="ERR_RequiredMembersAttributeErrors" xml:space="preserve">
-    <value>Attribute application had required members errors.</value>
-  </data>
   <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
     <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
   </data>

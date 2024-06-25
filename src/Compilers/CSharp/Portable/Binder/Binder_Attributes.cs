@@ -258,21 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundConstructorArguments.All(a => !a.NeedsToBeConverted()));
 
             ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
+            // We delay reporting required member errors because:
+            // 1. If we didn't do it lazily during early attribute binding, we'd cause a cycle.
+            // 2. If we do it lazily during early attribute binding, we force every early-bound attribute to rebind later because the lazy diagnostic can't be computed yet.
+            // So instead, we report the error in `LoadAndValidateAttributes` after all attributes have been bound.
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
-
-            if (attributeConstructor is not null)
-            {
-                if (IsEarlyAttributeBinder)
-                {
-                    diagnostics.Add(new LazyRequiredMembersDiagnosticsInfo(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node), node.GetLocation());
-                }
-                else
-                {
-                    CheckRequiredMembersInObjectInitializer(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node, diagnostics);
-                }
-            }
-
             analyzedArguments.ConstructorArguments.Free();
 
             return new BoundAttribute(

@@ -2289,7 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefLocalAcrossAwait = 9217,
 
         ERR_DynamicDispatchToParamsCollection = 9218,
-        ERR_RequiredMembersAttributeErrors = 9219,
+        // available 9219,
         // available 9220,
         // available 9221,
         // available 9222,

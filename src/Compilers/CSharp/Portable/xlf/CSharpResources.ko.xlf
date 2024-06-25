@@ -1947,11 +1947,6 @@
         <target state="translated">필수 구성원 '{0}'은(는) 설정 가능해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiredMembersAttributeErrors">
-        <source>Attribute application had required members errors.</source>
-        <target state="new">Attribute application had required members errors.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
         <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
         <target state="translated">기본 유형 '{0}'의 필수 구성원 목록 형식이 잘못되어 해석할 수 없습니다. 이 생성자를 사용하려면 'SetsRequiredMembers' 특성을 적용하세요.</target>

@@ -1947,11 +1947,6 @@
         <target state="translated">Wymagana składowa „{0}” musi być konfigurowalna.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiredMembersAttributeErrors">
-        <source>Attribute application had required members errors.</source>
-        <target state="new">Attribute application had required members errors.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
         <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
         <target state="translated">Lista wymaganych składowych dla typu podstawowego „{0}” jest źle sformułowana i nie można jej zinterpretować. Aby użyć tego konstruktora, zastosuj atrybut „SetsRequiredMembers”.</target>
