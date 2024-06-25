@@ -167,20 +167,43 @@ internal static class CSharpCollectionExpressionRewriter
                 if (nodesAndTokens.Count > 0)
                     nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
 
-                var shouldIncludeAdditionalLeadingTrivia = initializer is not null &&
-                    initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment() || x.IsEndOfLine());
-
-                var trivia = shouldIncludeAdditionalLeadingTrivia
-                    ? initializer!.OpenBraceToken.GetPreviousToken().TrailingTrivia.SkipInitialWhitespace()
-                        .Concat(initializer.OpenBraceToken.LeadingTrivia)
-                        .Concat(expressionToReplace.GetLeadingTrivia().SkipInitialWhitespace())
-                    : [];
-
                 var collectionExpression = CollectionExpression(
                     OpenBracketToken.WithoutTrivia(),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
                     CloseBracketToken.WithoutTrivia());
-                return collectionExpression.WithLeadingTrivia(trivia);
+
+                // Even though the collection expression itself fits on a single line, there could be
+                // additional trivia between the array creation expression and the initializer list.
+                // We should include this additional trivia in the final collection expression.
+                //
+                // int[][] = new int[]
+                // {
+                //     new int[] // some identifying comment
+                //     { 1, 2, 3 }
+                // }
+                //
+                //  ...
+                //
+                // int[][] =
+                // [
+                //    // some identifying comment
+                //    [1, 2, 3]
+                // ]
+                var shouldIncludeAdditionalLeadingTrivia = initializer is not null &&
+                   initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment() || x.IsEndOfLine());
+
+                if (shouldIncludeAdditionalLeadingTrivia)
+                {
+                    var additionalLeadingTrivia = initializer!.OpenBraceToken.GetPreviousToken().TrailingTrivia
+                        .SkipInitialWhitespace()
+                        .Concat(initializer.OpenBraceToken.LeadingTrivia)
+                        .Concat(expressionToReplace
+                            .GetLeadingTrivia()
+                            .SkipInitialWhitespace());
+                    collectionExpression = collectionExpression.WithLeadingTrivia(additionalLeadingTrivia);
+                }
+
+                return collectionExpression;
             }
         }
 
