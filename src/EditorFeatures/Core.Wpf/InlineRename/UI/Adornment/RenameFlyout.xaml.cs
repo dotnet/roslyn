@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         _viewModel.IdentifierText = newIdentifier;
                         // Place the cursor at the end of the input text box.
-                        RenameUserInput.SelectAllText();
+                        RenameUserInput.SelectText(newIdentifier.Length, 0);
                         e.Handled = true;
                     }
                 }
