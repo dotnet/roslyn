@@ -613,6 +613,9 @@ Do you want to proceed?</value>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
   </data>
+  <data name="_0_declarations_and_interceptors" xml:space="preserve">
+    <value>'{0}' declarations and interceptors</value>
+  </data>
   <data name="_0_intercepted_locations" xml:space="preserve">
     <value>'{0}' intercepted locations</value>
   </data>
