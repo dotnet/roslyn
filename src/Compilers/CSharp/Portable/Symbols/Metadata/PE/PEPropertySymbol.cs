@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (result.DiagnosticInfo is not null || !result.SecondaryDependencies.IsNullOrEmpty())
                 {
-                    AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, result);
+                    AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitializeFromSentinel(PrimaryDependency, result);
                 }
 
                 _flags.SetUseSiteDiagnosticPopulated();
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var result = uncommonFields._lazyCachedUseSiteInfo;
                 if (!result.IsInitialized)
                 {
-                    uncommonFields._lazyCachedUseSiteInfo.InterlockedInitialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency));
+                    uncommonFields._lazyCachedUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency));
                     result = uncommonFields._lazyCachedUseSiteInfo;
                 }
 
