@@ -53,7 +53,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     /// <summary>
     /// Determines if Copilot is active and the user is signed in and entitled to use Copilot.
     /// </summary>
-    private static bool IsGithubCopilotLoadedAndSignedIn
+    public bool IsCopilotLoadedAndSignedIn()
         => s_copilotHasLoadedUIContext.IsActive
         && s_gitHubAccountStatusDeterminedContext.IsActive
         && s_gitHubAccountStatusSignedInUIContext.IsActive
@@ -70,7 +70,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
 
     public async Task<bool> IsCopilotOptionEnabledAsync(string optionName)
     {
-        if (!IsGithubCopilotLoadedAndSignedIn)
+        if (!IsCopilotLoadedAndSignedIn())
             return false;
 
         var settingManager = await _settingsManagerTask.ConfigureAwait(false);

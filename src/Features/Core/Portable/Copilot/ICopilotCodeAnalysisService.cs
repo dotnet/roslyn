@@ -18,7 +18,7 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <summary>
     /// Returns true if the Copilot service is available for making Copilot code analysis requests.
     /// </summary>
-    public bool IsCopilotAvailable { get; }
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Method to start a Copilot refinement session on top of the changes between the given

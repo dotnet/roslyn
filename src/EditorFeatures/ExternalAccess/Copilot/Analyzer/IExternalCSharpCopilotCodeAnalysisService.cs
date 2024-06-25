@@ -16,9 +16,8 @@ internal interface IExternalCSharpCopilotCodeAnalysisService
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
     Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken);
-
-    [Obsolete]
     Task<bool> IsAvailableAsync(CancellationToken cancellation);
+
     [Obsolete]
     Task<ImmutableArray<string>> GetAvailablePromptTitlesAsync(Document document, CancellationToken cancellationToken);
     [Obsolete]
