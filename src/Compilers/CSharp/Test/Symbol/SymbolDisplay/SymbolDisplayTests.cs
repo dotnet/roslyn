@@ -1093,8 +1093,7 @@ class @true {
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [WorkItem(74117, "https://github.com/dotnet/roslyn/issues/74117")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74117")]
         public void TestBug74117()
         {
             var text = @"
