@@ -6,11 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -18,47 +23,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <see cref="AnalyzerConfigOptions"/> that memoize structured (parsed) form of certain complex options to avoid parsing them multiple times.
 /// Storages of these complex options may directly call the specialized getters to reuse the cached values.
 /// </summary>
-internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions, IOptionsReader
+internal abstract partial class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions, IOptionsReader
 {
-    internal sealed class Implementation : StructuredAnalyzerConfigOptions
-    {
-        private readonly AnalyzerConfigOptions _options;
-        private readonly Lazy<NamingStylePreferences> _lazyNamingStylePreferences;
-
-        public Implementation(AnalyzerConfigOptions options)
-        {
-            _options = options;
-            _lazyNamingStylePreferences = new Lazy<NamingStylePreferences>(() => EditorConfigNamingStyleParser.ParseDictionary(_options));
-        }
-
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            => _options.TryGetValue(key, out value);
-
-        public override IEnumerable<string> Keys
-            => _options.Keys;
-
-        public override NamingStylePreferences GetNamingStylePreferences()
-            => _lazyNamingStylePreferences.Value;
-    }
-
-    private sealed class EmptyImplementation : StructuredAnalyzerConfigOptions
-    {
-        public override NamingStylePreferences GetNamingStylePreferences()
-            => NamingStylePreferences.Empty;
-
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-        {
-            value = null;
-            return false;
-        }
-
-        public override IEnumerable<string> Keys
-            => [];
-    }
-
     public static readonly StructuredAnalyzerConfigOptions Empty = new EmptyImplementation();
 
     public abstract NamingStylePreferences GetNamingStylePreferences();
+
+#if !CODE_STYLE
+    public abstract CodeGenerationOptions GetCodeGenerationOptions(LanguageServices languageServices, CodeGenerationOptions? fallbackOptions);
+#endif
 
     public static StructuredAnalyzerConfigOptions Create(ImmutableDictionary<string, string> options)
     {

@@ -11,11 +11,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -116,6 +118,17 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             if (preferences.IsEmpty && _projectDirectoryConfigData.HasValue)
             {
                 preferences = _projectDirectoryConfigData.Value.ConfigOptions.GetNamingStylePreferences();
+            }
+
+            return preferences;
+        }
+
+        public override CodeGenerationOptions GetCodeGenerationOptions(LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
+        {
+            var preferences = _fileDirectoryConfigData.ConfigOptions.GetCodeGenerationOptions(languageServices, fallbackOptions);
+            if (preferences == CodeGenerationOptions.CommonDefaults && _projectDirectoryConfigData.HasValue)
+            {
+                preferences = _projectDirectoryConfigData.Value.ConfigOptions.GetCodeGenerationOptions(languageServices, fallbackOptions);
             }
 
             return preferences;
