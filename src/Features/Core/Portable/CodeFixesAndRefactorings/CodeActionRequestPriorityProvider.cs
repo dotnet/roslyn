@@ -92,16 +92,17 @@ internal static class ICodeActionRequestPriorityProviderExtensions
             return true;
         }
 
-        if (provider.Priority == CodeActionRequestPriority.Low && provider.HasDeprioritizedAnalyzerSupportingDiagnosticId(codeFixProvider.FixableDiagnosticIds))
+        if (provider.Priority == CodeActionRequestPriority.Low
+            && provider.HasDeprioritizedAnalyzerSupportingDiagnosticId(codeFixProvider.FixableDiagnosticIds)
+            && codeFixProvider.RequestPriority > CodeActionRequestPriority.Low)
         {
             // 'Low' priority can be used for two types of code fixers:
             //  1. Those which explicitly set their 'RequestPriority' to 'Low' and
             //  2. Those which can fix diagnostics for expensive analyzers which were de-prioritized
             //     to 'Low' priority bucket to improve lightbulb population performance.
-            // Hence, when processing the 'Low' Priority bucket and the priority provider indicates
-            // there was a de-prioritized analyzer supporting one of our fixable diagnostic ids, we accept
-            // fixers with any RequestPriority, as long as they can fix a diagnostic from an analyzer that
-            // was executed in the 'Low' bucket.
+            // The first case is handled by the earlier check against matching priorities. For the second
+            // case, we accept fixers with any RequestPriority, as long as they can fix a diagnostic from
+            // an analyzer that was executed in the 'Low' bucket.
             return true;
         }
 

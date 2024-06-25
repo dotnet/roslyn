@@ -1080,11 +1080,10 @@ class C
             includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
         await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
-        var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-        var lowPriorityAnalyzerSupportedDiagnosticIds = new ConcurrentSet<string>();
-        var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzers, lowPriorityAnalyzerSupportedDiagnosticIds);
+        var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
+        var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzerData);
         var normalPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, CancellationToken.None);
-        priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzers, lowPriorityAnalyzerSupportedDiagnosticIds);
+        priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzerData);
         var lowPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, CancellationToken.None);
 
         if (expectedNoFixes)
@@ -1099,14 +1098,16 @@ class C
         {
             Assert.Empty(normalPriFixes);
             expectedFixCollection = Assert.Single(lowPriFixes);
-            var lowPriorityAnalyzer = Assert.Single(lowPriorityAnalyzers);
+            var lowPriorityAnalyzer = Assert.Single(lowPriorityAnalyzerData.Analyzers);
             Assert.Same(analyzer, lowPriorityAnalyzer);
+            Assert.Equal(analyzer.SupportedDiagnostics.Select(d => d.Id), lowPriorityAnalyzerData.SupportedDiagnosticIds);
         }
         else
         {
             expectedFixCollection = Assert.Single(normalPriFixes);
             Assert.Empty(lowPriFixes);
-            Assert.Empty(lowPriorityAnalyzers);
+            Assert.Empty(lowPriorityAnalyzerData.Analyzers);
+            Assert.Empty(lowPriorityAnalyzerData.SupportedDiagnosticIds);
         }
 
         var fix = expectedFixCollection.Fixes.Single();

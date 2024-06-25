@@ -111,8 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
                         // keep track of this *across* calls to each priority. So we create this set outside of the loop and
                         // then pass it continuously from one priority group to the next.
-                        var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-                        var lowPriorityAnalyzerSupportedDiagnosticIds = new ConcurrentSet<string>();
+                        var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
 
                         using var _2 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total");
 
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 var allSets = GetCodeFixesAndRefactoringsAsync(
                                     state, requestedActionCategories, document,
                                     range, selection,
-                                    new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzers, lowPriorityAnalyzerSupportedDiagnosticIds),
+                                    new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzerData),
                                     currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                                 await foreach (var set in allSets)
