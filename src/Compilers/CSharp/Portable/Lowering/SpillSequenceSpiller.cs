@@ -1133,13 +1133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax,
-                    refKind: node.GetRefKind());
+                    refKind: node.GetRefKind()
+                );
 
                 conditionBuilder.AddLocal(tmp);
                 conditionBuilder.AddStatement(
                     _F.If(condition,
-                        UpdateStatement(consequenceBuilder, _F.Assignment(_F.Local(tmp), consequence)),
-                        UpdateStatement(alternativeBuilder, _F.Assignment(_F.Local(tmp), alternative))));
+                        UpdateStatement(consequenceBuilder, _F.Assignment(_F.Local(tmp), consequence, isRef: node.IsRef)),
+                        UpdateStatement(alternativeBuilder, _F.Assignment(_F.Local(tmp), alternative, isRef: node.IsRef))));
 
                 return conditionBuilder.Update(_F.Local(tmp));
             }
