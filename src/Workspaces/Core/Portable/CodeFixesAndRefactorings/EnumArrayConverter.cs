@@ -3,23 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 internal static class EnumArrayConverter
 {
-    public static TEnum[] FromStringArray<TEnum>(string[] strings) where TEnum : struct, Enum
+    public static ImmutableArray<TEnum> FromStringArray<TEnum>(string[] strings) where TEnum : struct, Enum
     {
-        var enums = new TEnum[strings.Length];
-        for (var i = 0; i < enums.Length; i++)
+        var enums = new FixedSizeArrayBuilder<TEnum>(strings.Length);
+        for (var i = 0; i < strings.Length; i++)
         {
             var s = strings[i];
             if (!Enum.TryParse(s, out TEnum enumValue))
                 enumValue = default;
 
-            enums[i] = enumValue;
+            enums.Add(enumValue);
         }
 
-        return enums;
+        return enums.MoveToImmutable();
     }
 }

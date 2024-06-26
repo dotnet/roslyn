@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -19,7 +18,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
     where TExportAttribute : Attribute
     where TExtension : class
 {
-    public record class ExtensionInfo(TextDocumentKind[] DocumentKinds, string[]? DocumentExtensions);
+    public record class ExtensionInfo(ImmutableArray<TextDocumentKind> DocumentKinds, string[]? DocumentExtensions);
 
     // Following CWTs are used to cache completion providers from projects' references,
     // so we can avoid the slow path unless there's any change to the references.
@@ -99,7 +98,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
             if (extensionInfo == null)
                 return true;
 
-            if (Array.IndexOf(extensionInfo.DocumentKinds, document.Kind) < 0)
+            if (extensionInfo.DocumentKinds.IndexOf(document.Kind) < 0)
                 return false;
 
             if (document.FilePath != null &&
