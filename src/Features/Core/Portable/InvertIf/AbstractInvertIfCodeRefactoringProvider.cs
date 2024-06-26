@@ -570,9 +570,9 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                     var statementsAfterIf = statements.Skip(index + 1);
                     var ifBody = GetIfBody(ifNode);
 
+                    //Get any final structured trivia on the closing brace and move it with the statements
                     var currentParentClosingBrace = currentParent.ChildTokens().Last();
                     var updatedLastStatement = statementsAfterIf.Last().WithTrailingTrivia(currentParentClosingBrace.LeadingTrivia);
-
                     statementsAfterIf = statementsAfterIf.Take(statementsAfterIf.Count() - 1);
                     statementsAfterIf = statementsAfterIf.Append(updatedLastStatement);
 
