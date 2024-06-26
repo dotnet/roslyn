@@ -1016,6 +1016,243 @@ class C
         }
 
         [Fact]
+        public void TestRefConditionalWithSpilling()
+        {
+            var source = """
+                class C
+                {
+                    public static void Main()
+                    {
+                        string str = "a2";
+                        int x = 1;
+                        int y = 2;
+                        int z = 777;
+
+                        ref int r =
+                              ref str is "whatever" ? ref x
+                            : ref str is { Length: >= 2 and <= 10 or 22 } ? ref y
+                            : ref z;
+
+                        r++;
+                        r++;
+                        r++;
+                        int xxx = r;
+                        System.Console.WriteLine(xxx); //5
+                        System.Console.WriteLine(x); //1
+                        System.Console.WriteLine(y); //expected 5 - but we get 2
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source,
+                targetFramework: TargetFramework.NetLatest,
+                verify: Verification.Skipped,
+                expectedOutput: """
+                5
+                1
+                5
+                """);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      122 (0x7a)
+  .maxstack  4
+  .locals init (string V_0, //str
+                int V_1, //x
+                int V_2, //y
+                int V_3, //z
+                int& V_4,
+                int V_5,
+                bool V_6)
+  IL_0000:  ldstr      ""a2""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.1
+  IL_0008:  ldc.i4.2
+  IL_0009:  stloc.2
+  IL_000a:  ldc.i4     0x309
+  IL_000f:  stloc.3
+  IL_0010:  ldloc.0
+  IL_0011:  ldstr      ""whatever""
+  IL_0016:  call       ""bool string.op_Equality(string, string)""
+  IL_001b:  brfalse.s  IL_0023
+  IL_001d:  ldloca.s   V_1
+  IL_001f:  stloc.s    V_4
+  IL_0021:  br.s       IL_0053
+  IL_0023:  ldloc.0
+  IL_0024:  brfalse.s  IL_0044
+  IL_0026:  ldloc.0
+  IL_0027:  callvirt   ""int string.Length.get""
+  IL_002c:  stloc.s    V_5
+  IL_002e:  ldloc.s    V_5
+  IL_0030:  ldc.i4.2
+  IL_0031:  blt.s      IL_0044
+  IL_0033:  ldloc.s    V_5
+  IL_0035:  ldc.i4.s   10
+  IL_0037:  ble.s      IL_003f
+  IL_0039:  ldloc.s    V_5
+  IL_003b:  ldc.i4.s   22
+  IL_003d:  bne.un.s   IL_0044
+  IL_003f:  ldc.i4.1
+  IL_0040:  stloc.s    V_6
+  IL_0042:  br.s       IL_0047
+  IL_0044:  ldc.i4.0
+  IL_0045:  stloc.s    V_6
+  IL_0047:  ldloc.s    V_6
+  IL_0049:  brtrue.s   IL_004f
+  IL_004b:  ldloca.s   V_3
+  IL_004d:  br.s       IL_0051
+  IL_004f:  ldloca.s   V_2
+  IL_0051:  stloc.s    V_4
+  IL_0053:  ldloc.s    V_4
+  IL_0055:  dup
+  IL_0056:  dup
+  IL_0057:  ldind.i4
+  IL_0058:  ldc.i4.1
+  IL_0059:  add
+  IL_005a:  stind.i4
+  IL_005b:  dup
+  IL_005c:  dup
+  IL_005d:  ldind.i4
+  IL_005e:  ldc.i4.1
+  IL_005f:  add
+  IL_0060:  stind.i4
+  IL_0061:  dup
+  IL_0062:  dup
+  IL_0063:  ldind.i4
+  IL_0064:  ldc.i4.1
+  IL_0065:  add
+  IL_0066:  stind.i4
+  IL_0067:  ldind.i4
+  IL_0068:  call       ""void System.Console.WriteLine(int)""
+  IL_006d:  ldloc.1
+  IL_006e:  call       ""void System.Console.WriteLine(int)""
+  IL_0073:  ldloc.2
+  IL_0074:  call       ""void System.Console.WriteLine(int)""
+  IL_0079:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestReadonlyRefConditionalWithSpilling()
+        {
+            var source = """
+                string str = "a2";
+                int x = 1;
+                int y = 2;
+
+                ref readonly int roy = ref x;
+
+                ref readonly int r =
+                      ref str is "whatever" ? ref roy
+                    : ref str is { Length: >= 2 and <= 10 or 22 } ? ref y
+                    : ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+
+                ref var castedRef = ref System.Runtime.CompilerServices.Unsafe.AsRef(in r);
+
+                castedRef++;
+                castedRef++;
+                castedRef++;
+                int xxx = r;
+                System.Console.WriteLine(xxx); //5
+                System.Console.WriteLine(x); //1
+                System.Console.WriteLine(y); //expected 5 - but we get 2
+                """;
+
+            var comp = CompileAndVerify(source,
+                targetFramework: TargetFramework.NetLatest,
+                expectedOutput: """
+                5
+                1
+                5
+                """);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("<top-level-statements-entry-point>", @"
+            {
+  // Code size      126 (0x7e)
+  .maxstack  5
+  .locals init (string V_0, //str
+                int V_1, //x
+                int V_2, //y
+                int& V_3, //roy
+                int& V_4,
+                int V_5,
+                bool V_6)
+  IL_0000:  ldstr      ""a2""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.1
+  IL_0008:  ldc.i4.2
+  IL_0009:  stloc.2
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  stloc.3
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""whatever""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brfalse.s  IL_001f
+  IL_001a:  ldloc.3
+  IL_001b:  stloc.s    V_4
+  IL_001d:  br.s       IL_0052
+  IL_001f:  ldloc.0
+  IL_0020:  brfalse.s  IL_0040
+  IL_0022:  ldloc.0
+  IL_0023:  callvirt   ""int string.Length.get""
+  IL_0028:  stloc.s    V_5
+  IL_002a:  ldloc.s    V_5
+  IL_002c:  ldc.i4.2
+  IL_002d:  blt.s      IL_0040
+  IL_002f:  ldloc.s    V_5
+  IL_0031:  ldc.i4.s   10
+  IL_0033:  ble.s      IL_003b
+  IL_0035:  ldloc.s    V_5
+  IL_0037:  ldc.i4.s   22
+  IL_0039:  bne.un.s   IL_0040
+  IL_003b:  ldc.i4.1
+  IL_003c:  stloc.s    V_6
+  IL_003e:  br.s       IL_0043
+  IL_0040:  ldc.i4.0
+  IL_0041:  stloc.s    V_6
+  IL_0043:  ldloc.s    V_6
+  IL_0045:  brtrue.s   IL_004e
+  IL_0047:  call       ""ref int System.Runtime.CompilerServices.Unsafe.NullRef<int>()""
+  IL_004c:  br.s       IL_0050
+  IL_004e:  ldloca.s   V_2
+  IL_0050:  stloc.s    V_4
+  IL_0052:  ldloc.s    V_4
+  IL_0054:  dup
+  IL_0055:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped in int)""
+  IL_005a:  dup
+  IL_005b:  dup
+  IL_005c:  ldind.i4
+  IL_005d:  ldc.i4.1
+  IL_005e:  add
+  IL_005f:  stind.i4
+  IL_0060:  dup
+  IL_0061:  dup
+  IL_0062:  ldind.i4
+  IL_0063:  ldc.i4.1
+  IL_0064:  add
+  IL_0065:  stind.i4
+  IL_0066:  dup
+  IL_0067:  ldind.i4
+  IL_0068:  ldc.i4.1
+  IL_0069:  add
+  IL_006a:  stind.i4
+  IL_006b:  ldind.i4
+  IL_006c:  call       ""void System.Console.WriteLine(int)""
+  IL_0071:  ldloc.1
+  IL_0072:  call       ""void System.Console.WriteLine(int)""
+  IL_0077:  ldloc.2
+  IL_0078:  call       ""void System.Console.WriteLine(int)""
+  IL_007d:  ret
+}
+            ");
+        }
+
+        [Fact]
         public void TestRefConditionalHomelessBranches()
         {
             var source = @"
