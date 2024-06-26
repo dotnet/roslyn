@@ -479,26 +479,11 @@ public class SolutionServiceTests
     public async Task TestAddingProjectsWithExplicitOptions(bool useDefaultOptionValue)
     {
         using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");
-        using var remoteWorkspace = CreateRemoteWorkspace();
 
-        // Initial empty solution
         var solution = workspace.CurrentSolution;
-        solution = solution.RemoveProject(solution.ProjectIds.Single());
-        var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-        var synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, CancellationToken.None);
-        Assert.Equal(solutionChecksum, await synched.CompilationState.GetChecksumAsync(CancellationToken.None));
+        var solutionChecksum1 = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
-        // Add a C# project and a VB project, set some options, and check again
-        var csharpDocument = new TestHostDocument("public class C { }");
-        var csharpProject = new TestHostProject(workspace, csharpDocument, language: LanguageNames.CSharp, name: "project2");
-        var csharpProjectInfo = csharpProject.ToProjectInfo();
-
-        var vbDocument = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
-        var vbProject = new TestHostProject(workspace, vbDocument, language: LanguageNames.VisualBasic, name: "project3");
-        var vbProjectInfo = vbProject.ToProjectInfo();
-
-        solution = solution.AddProject(csharpProjectInfo).AddProject(vbProjectInfo);
+        // legacy options are not serialized and have no effect on checksum:
         var newOptionValue = useDefaultOptionValue
             ? FormattingOptions2.NewLine.DefaultValue
             : FormattingOptions2.NewLine.DefaultValue + FormattingOptions2.NewLine.DefaultValue;
@@ -506,12 +491,9 @@ public class SolutionServiceTests
             .WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, newOptionValue)
             .WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, newOptionValue));
 
-        assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-        solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-        synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, CancellationToken.None);
-        Assert.Equal(solutionChecksum, await synched.CompilationState.GetChecksumAsync(CancellationToken.None));
+        var solutionChecksum2 = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        Assert.Equal(solutionChecksum1, solutionChecksum2);
     }
-
     [Fact]
     public async Task TestFrozenSourceGeneratedDocument()
     {
