@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Roslyn.Utilities;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis;
+
+internal delegate void WeakEventHandler<TEventArgs>(object sender, object target, TEventArgs args);
 
 /// <summary>
 /// Implements an event that can be subscribed to without keeping the subscriber alive for the lifespan of 
 /// the object that declares <see cref="WeakEvent{TEventArgs}"/>.
 /// 
-/// Unlike <see cref="WeakEventHandler{TArgs}"/> the handlers may capture state, which makes the subscribers simpler
+/// Unlike handler created via <see cref="EventHandlerFactory{TArgs}.CreateWeakHandler{TTarget}(TTarget, Action{TTarget, object?, TArgs})"/> the handlers may capture state, which makes the subscribers simpler
 /// and doesn't risk accidental leaks.
 /// </summary>
 internal readonly struct WeakEvent<TEventArgs>()
@@ -19,9 +22,9 @@ internal readonly struct WeakEvent<TEventArgs>()
     /// Each registered event handler has the lifetime of an associated owning object. This table ensures the weak
     /// references to the event handlers are not cleaned up while the owning object is still alive.
     /// </summary>
-    private readonly EnumerableConditionalWeakTable<object, EventHandler<TEventArgs>> _handlers = new();
+    private readonly EnumerableConditionalWeakTable<object, WeakEventHandler<TEventArgs>> _handlers = new();
 
-    public void AddHandler(object target, EventHandler<TEventArgs> handler)
+    public void AddHandler(object target, WeakEventHandler<TEventArgs> handler)
     {
         lock (_handlers.WriteLock)
         {
@@ -36,7 +39,7 @@ internal readonly struct WeakEvent<TEventArgs>()
         }
     }
 
-    public void RemoveHandler(object target, EventHandler<TEventArgs> handler)
+    public void RemoveHandler(object target, WeakEventHandler<TEventArgs> handler)
     {
         lock (_handlers.WriteLock)
         {
@@ -55,11 +58,11 @@ internal readonly struct WeakEvent<TEventArgs>()
         }
     }
 
-    public void RaiseEvent(TEventArgs e)
+    public void RaiseEvent(object sender, TEventArgs e)
     {
         foreach (var (target, handler) in _handlers)
         {
-            handler(target, e);
+            handler(sender, target, e);
         }
     }
 }

@@ -254,12 +254,12 @@ internal sealed class GlobalOptionService(
         return true;
     }
 
-    public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.AddHandler(target, handler);
     }
 
-    public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.RemoveHandler(target, handler);
     }
@@ -267,7 +267,7 @@ internal sealed class GlobalOptionService(
     private void RaiseOptionChangedEvent(ImmutableArray<(OptionKey2, object?)> changedOptions)
     {
         Debug.Assert(!changedOptions.IsEmpty);
-        _optionChanged.RaiseEvent(new OptionChangedEventArgs(changedOptions));
+        _optionChanged.RaiseEvent(this, new OptionChangedEventArgs(changedOptions));
     }
 
     internal TestAccessor GetTestAccessor()
