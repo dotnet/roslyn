@@ -49,7 +49,8 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
         {
             var compilation = compilationContext.Compilation;
 
-            // The new 'Lock' feature is only supported in C# 13 and above.
+            // The new 'Lock' feature is only supported in C# 13 and above, and only if we actually have a definition of
+            // System.Threading.Lock available.
             if (!compilation.LanguageVersion().IsCSharp13OrAbove())
                 return;
 
@@ -81,7 +82,8 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
         if (!option.Value || ShouldSkipAnalysis(syntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
             return;
 
-        // Needs to have a private field that is exactly typed as 'object'
+        // Needs to have a private field that is exactly typed as 'object'.  This way we can analyze all usages of it to
+        // be sure it's completely safe to move to the new lock type.
         using var fieldsArray = TemporaryArray<IFieldSymbol>.Empty;
 
         foreach (var member in namedType.GetMembers())
