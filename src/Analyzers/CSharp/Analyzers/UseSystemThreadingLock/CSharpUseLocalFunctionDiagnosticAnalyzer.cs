@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,8 +14,12 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLock;
 
@@ -57,71 +62,103 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             if (lockType is null)
                 return;
 
-            context.RegisterSymbolStartAction(AnalyzeNamedType, SymbolKind.NamedType);
+            context.RegisterSymbolStartAction(context => AnalyzeNamedType(context, lockType), SymbolKind.NamedType);
         });
     }
 
-    private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
+    private void AnalyzeNamedType(SymbolStartAnalysisContext context, INamedTypeSymbol lockType)
     {
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
+        var cancellationToken = context.CancellationToken;
+        if (lockType is not
+            {
+                TypeKind: TypeKind.Class or TypeKind.Struct,
+                DeclaringSyntaxReferences: [var reference, ..]
+            })
+        {
+            return;
+        }
+
+        var syntaxTree = reference.GetSyntax(cancellationToken).SyntaxTree;
+        var option = context.GetCSharpAnalyzerOptions(syntaxTree).PreferSystemThreadingLock;
+
         // Bail immediately if the user has disabled this feature.
-        if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
+        if (!option.Value || ShouldSkipAnalysis(syntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
             return;
 
-        var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;
+        // Needs to have a private field that is exactly typed as 'object'
+        using var fieldsArray = TemporaryArray<IFieldSymbol>.Empty;
 
-        var semanticModel = syntaxContext.SemanticModel;
-        if (!CheckForPattern(anonymousFunction, out var localDeclaration))
-            return;
-
-        if (localDeclaration.Declaration.Variables.Count != 1)
-            return;
-
-        if (localDeclaration.Parent is not BlockSyntax block)
-            return;
-
-        // If there are compiler error on the declaration we can't reliably
-        // tell that the refactoring will be accurate, so don't provide any
-        // code diagnostics
-        if (localDeclaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-            return;
-
-        // Bail out if none of possible diagnostic locations are within the analysis span
-        var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
-        var shouldReportOnAnonymousFunctionStatement = anonymousFunctionStatement != null
-            && localDeclaration != anonymousFunctionStatement;
-        if (!IsInAnalysisSpan(syntaxContext, localDeclaration, anonymousFunctionStatement, shouldReportOnAnonymousFunctionStatement))
-            return;
-
-        var cancellationToken = syntaxContext.CancellationToken;
-        var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
-        if (local == null)
-            return;
-
-        var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
-        if (!delegateType.IsDelegateType() ||
-            delegateType.DelegateInvokeMethod == null ||
-            !CanReplaceDelegateWithLocalFunction(delegateType, localDeclaration, semanticModel, cancellationToken))
+        foreach (var member in lockType.GetMembers())
         {
-            return;
+            if (member is not IFieldSymbol
+                {
+                    Type.SpecialType: SpecialType.System_Object,
+                    DeclaredAccessibility: Accessibility.Private,
+                    DeclaringSyntaxReferences: [var fieldSyntaxReference],
+                } field)
+            {
+                continue;
+            }
+
+            // If we have a private-object field, it needs to be initialized with either `new object()` or `new()`.
+            if (fieldSyntaxReference.GetSyntax(cancellationToken) is not VariableDeclaratorSyntax fieldSyntax)
+                continue;
+
+            if (fieldSyntax.Initializer != null)
+            {
+                if (fieldSyntax.Initializer.Value
+                        is not ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 }
+                        and not ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.ObjectKeyword } })
+                {
+                    continue;
+                }
+            }
+
+            // Looks like something that could be converted to a lock if we see that this is used as a lock.
+            fieldsArray.Add(field);
         }
 
-        if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionType, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
+        if (fieldsArray.Count == 0)
             return;
 
-        if (localDeclaration.Declaration.Type.IsVar)
+        var potentialLockFields = new ConcurrentSet<IFieldSymbol>();
+        var wasLockedSet = new ConcurrentSet<IFieldSymbol>();
+        foreach (var field in fieldsArray)
+            potentialLockFields.Add(field);
+
+        context.RegisterOperationAction(context =>
         {
-            var options = semanticModel.SyntaxTree.Options;
-            if (options.LanguageVersion() < LanguageVersion.CSharp10)
+            var cancellationToken = context.CancellationToken;
+            var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
+            var fieldReference = fieldReferenceOperation.Field.OriginalDefinition;
+
+            if (!potentialLockFields.Contains(fieldReference))
                 return;
-        }
 
-        // Looks good!
-        var additionalLocations = ImmutableArray.Create(
-            localDeclaration.GetLocation(),
-            anonymousFunction.GetLocation());
+            if (fieldReferenceOperation.Parent is ILockOperation lockOperation)
+            {
+                // We did lock on this field, mark as such as its now something we'd def like to convert to a Lock if possible.
+                wasLockedSet.Add(fieldReference);
+                return;
+            }
 
-        additionalLocations = additionalLocations.AddRange(referenceLocations);
+            // it's ok to assign to the field, as long as we're assigning a new lock object to it.
+            if (fieldReferenceOperation.Parent is IAssignmentOperation
+                {
+                    Value: IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object },
+                } assignment &&
+                assignment.Target == fieldReferenceOperation)
+            {
+                return;
+            }
+
+            // Add more supported patterns here as needed.
+
+            // This wasn't a supported case.
+            potentialLockFields.Remove(fieldReference);
+        }, OperationKind.FieldReference);
+
+        context.RegisterSymbolEndAction()
 
         if (styleOption.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
         {
