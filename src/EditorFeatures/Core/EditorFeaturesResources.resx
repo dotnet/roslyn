@@ -932,9 +932,6 @@ Do you want to proceed?</value>
   <data name="Obsolete_symbol" xml:space="preserve">
     <value>Obsolete symbol</value>
   </data>
-  <data name="AI_generated_content_may_be_inaccurate" xml:space="preserve">
-    <value>AI-generated content may be inaccurate</value>
-  </data>
   <data name="Copilot" xml:space="preserve">
     <value>Copilot</value>
   </data>
