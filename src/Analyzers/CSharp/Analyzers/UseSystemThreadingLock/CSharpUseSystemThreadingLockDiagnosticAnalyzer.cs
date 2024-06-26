@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -65,6 +66,7 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
     private void AnalyzeNamedType(SymbolStartAnalysisContext context)
     {
         var cancellationToken = context.CancellationToken;
+
         var namedType = (INamedTypeSymbol)context.Symbol;
         if (namedType is not
             {
@@ -85,6 +87,7 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
         // Needs to have a private field that is exactly typed as 'object'.  This way we can analyze all usages of it to
         // be sure it's completely safe to move to the new lock type.
         using var fieldsArray = TemporaryArray<IFieldSymbol>.Empty;
+        using var _ = PooledHashSet<SemanticModel>.GetInstance(out var cachedSemanticModels);
 
         foreach (var member in namedType.GetMembers())
         {
@@ -166,7 +169,7 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
                     ? conversion.Operand
                     : assignment.Value;
 
-                if (assignment.Value is IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object })
+                if (operand is IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object })
                     return;
             }
 
@@ -202,12 +205,30 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
                     properties: null));
             }
         });
-    }
 
-    private static bool IsSystemObjectCreationExpression(ExpressionSyntax expression)
-    {
-        return expression
-            is ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 }
-            or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.ObjectKeyword } };
+        static bool IsSystemObjectCreationExpression(ExpressionSyntax expression)
+        {
+            // new()
+            if (expression is ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 })
+                return true;
+
+            // new ...()
+            if (expression is ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 } objectCreationExpression)
+            {
+                // new object();
+                if (objectCreationExpression.Type is PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.ObjectKeyword })
+                    return true;
+
+                // new Object(), new System.Object(), etc. Almost certain the right type as it would be pathological to
+                // actually have a user type named Object (especially used as a lock).
+                if (objectCreationExpression.Type is IdentifierNameSyntax { Identifier.ValueText: nameof(System.Object) })
+                    return true;
+
+                if (objectCreationExpression.Type is QualifiedNameSyntax { Right.Identifier.ValueText: nameof(System.Object) })
+                    return true;
+            }
+
+            return false;
+        }
     }
 }
