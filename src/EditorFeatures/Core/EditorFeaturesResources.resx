@@ -941,8 +941,8 @@ Do you want to proceed?</value>
   <data name="Generate_summary_with_Copilot" xml:space="preserve">
     <value>Generate summary with Copilot (might be inaccurate)</value>
   </data>
-  <data name="Generate_Copilot_summary" xml:space="preserve">
-    <value>Generate Copilot summary</value>
+  <data name="Describe_with_Copilot" xml:space="preserve">
+    <value>Describe with Copilot</value>
   </data>
   <data name="On_the_fly_documentation" xml:space="preserve">
     <value>On-the-fly documentation</value>
