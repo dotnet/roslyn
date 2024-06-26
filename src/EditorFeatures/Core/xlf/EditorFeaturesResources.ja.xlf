@@ -32,6 +32,16 @@
         <target state="translated">'フィールドのカプセル化' 情報を計算中</target>
         <note />
       </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="new">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="new">Copilot thinking...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">'this.' または 'Me' を優先しない</target>
@@ -67,19 +77,19 @@
         <target state="translated">フィルター</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="Generate_Copilot_summary">
+        <source>Generate Copilot summary</source>
+        <target state="new">Generate Copilot summary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="new">Generate summary with Copilot (might be inaccurate)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">'{0}' のヘルプの表示</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot">
-        <source>GitHub Copilot</source>
-        <target state="translated">GitHub Copilot</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot_thinking">
-        <source>GitHub Copilot thinking...</source>
-        <target state="translated">GitHub Copilot は考え中です...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -327,11 +337,6 @@
         <target state="translated">実行</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_an_AI_generated_summary_of_this_code">
-        <source>Show an AI generated summary of this code</source>
-        <target state="translated">AI によって生成されたこのコードの概要を表示する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">コメントの分割</target>
@@ -350,11 +355,6 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">タブのサイズ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Tell_me_more">
-        <source>Tell me more</source>
-        <target state="translated">詳細の表示</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
