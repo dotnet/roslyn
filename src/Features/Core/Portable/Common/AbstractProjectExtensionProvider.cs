@@ -104,7 +104,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
 
             if (document.FilePath != null &&
                 extensionInfo.DocumentExtensions != null &&
-                -1 == Array.IndexOf(extensionInfo.DocumentExtensions, PathUtilities.GetExtension(document.FilePath)))
+                Array.IndexOf(extensionInfo.DocumentExtensions, PathUtilities.GetExtension(document.FilePath)) < 0)
             {
                 return false;
             }

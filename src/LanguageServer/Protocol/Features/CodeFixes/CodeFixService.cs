@@ -990,15 +990,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
         {
-            var kinds = new TextDocumentKind[attribute.DocumentKinds.Length];
-            for (var i = 0; i < kinds.Length; i++)
-            {
-                var kindString = attribute.DocumentKinds[i];
-                if (!Enum.TryParse(kindString, out TextDocumentKind kind))
-                    kind = 0;
-
-                kinds[i] = kind;
-            }
+            var kinds = EnumArrayConverter.FromStringArray<TextDocumentKind>(attribute.DocumentKinds);
 
             return new(kinds, attribute.DocumentExtensions);
         }
