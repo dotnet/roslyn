@@ -2,7 +2,7 @@
 
 ## Default and params parameters are considered in method group natural type
 
-***Introduced in Visual Studio 2022 version 17.11***
+***Introduced in Visual Studio 2022 version 17.12***
 
 Previously the compiler [unexpectedly](https://github.com/dotnet/roslyn/issues/71333)
 inferred different delegate type depending on the order of candidates in source
@@ -30,6 +30,23 @@ static class E
 
     static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
     static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
+}
+```
+
+Also in `LangVersion=12` or lower, `params` modifier must match across all methods to infer a unique delegate signature.
+Note that this does not affect `LangVersion=13` and later because of [a different delegate inference algorithm](https://github.com/dotnet/csharplang/issues/7429).
+
+```cs
+var d = new C().M; // previously inferred Action<int[]> - now error CS8917: the delegate type could not be inferred
+
+static class E
+{
+    public static void M(this C c, params int[] x) { }
+}
+
+class C
+{
+    public void M(int[] x) { }
 }
 ```
 

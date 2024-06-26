@@ -10394,6 +10394,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// have the same signature, ignoring parameter names and custom modifiers. The particular
         /// method returned is not important since the caller is interested in the signature only.
         /// </summary>
+        /// <param name="useParams">
+        /// Whether all candidates (instance methods and extension methods from all scopes) are applicable in expanded form.
+        /// </param>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node, out bool useParams)
         {
             MethodSymbol? method = null;
@@ -10421,6 +10424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            var seenAnyApplicableCandidates = methods.Count != 0;
+
             foreach (var m in methods)
             {
                 if (!isCandidateUnique(ref method, m))
@@ -10432,10 +10437,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.SearchExtensionMethods)
             {
-                methods.Clear();
                 var receiver = node.ReceiverOpt!;
                 foreach (var scope in new ExtensionMethodScopes(this))
                 {
+                    methods.Clear();
                     var methodGroup = MethodGroup.GetInstance();
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
                     foreach (var m in methodGroup.Methods)
@@ -10447,16 +10452,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     methodGroup.Free();
 
+                    if (methods.Count == 0)
+                    {
+                        continue;
+                    }
+
                     if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out bool useParamsForScope))
                     {
                         methods.Free();
                         return null;
                     }
 
-                    if (methods.Count != 0)
+                    Debug.Assert(methods.Count != 0);
+
+                    // If we had some candidates that differ in `params` from the current scope, we don't have a unique signature.
+                    if (seenAnyApplicableCandidates && useParamsForScope != useParams)
                     {
-                        useParams = useParamsForScope;
+                        methods.Free();
+                        return null;
                     }
+
+                    useParams = useParamsForScope;
+                    seenAnyApplicableCandidates = true;
 
                     foreach (var reduced in methods)
                     {
@@ -10507,6 +10524,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// in the nearest scope, have the same signature ignoring parameter names and custom modifiers.
         /// The particular method returned is not important since the caller is interested in the signature only.
         /// </summary>
+        /// <param name="useParams">
+        /// Whether the found candidates (either instance methods or extension methods in the nearest scope) are applicable in expanded form.
+        /// </param>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node, out bool useParams)
         {
             if (Compilation.LanguageVersion < LanguageVersionFacts.CSharpNext)
@@ -10608,16 +10628,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methods.Add(reduced);
                     }
 
-                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out bool useParamsForScope))
+                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out useParams))
                     {
                         methods.Free();
                         methodGroup.Free();
                         return null;
-                    }
-
-                    if (methods.Count != 0)
-                    {
-                        useParams = useParamsForScope;
                     }
 
                     foreach (var reduced in methods)

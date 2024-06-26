@@ -6965,6 +6965,91 @@ class Program
         }
 
         [Fact]
+        public void Params_ExtensionScopes_01()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, int[] x) => Console.Write(3);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, params int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public void M(params int[] x) => Console.Write(1);
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d();
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (20,21): error CS8917: The delegate type could not be inferred.
+                //             var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(20, 21));
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_02()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, params int[] x) => Console.Write(3);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, params int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public void M(params int[] x) => Console.Write(1);
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d();
+                        }
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
