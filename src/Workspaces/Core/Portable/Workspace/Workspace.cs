@@ -255,6 +255,8 @@ public abstract partial class Workspace : IDisposable
             {
                 var newSolution = data.transformation(oldSolution);
 
+                newSolution = data.@this.InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
+
                 // Attempt to unify the syntax trees in the new solution.
                 return UnifyLinkedDocumentContents(oldSolution, newSolution);
             },
@@ -389,6 +391,41 @@ public abstract partial class Workspace : IDisposable
 
             return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
         }
+    }
+
+    private Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+    {
+        var newFallbackOptions = newSolution.FallbackAnalyzerOptions;
+
+        // Clear out languages that are no longer present in the solution.
+        // If we didn't, the workspace might clear the solution (which removes the fallback options)
+        // and we would never re-initialize them from global options.
+        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (!newSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                newFallbackOptions = newFallbackOptions.Remove(language);
+            }
+        }
+
+        // Update solution snapshot to include options for newly added languages:
+        foreach (var (language, _) in newSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                continue;
+            }
+
+            if (newFallbackOptions.ContainsKey(language))
+            {
+                continue;
+            }
+
+            var provider = Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
+            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
+        }
+
+        return newSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
     }
 
     /// <summary>

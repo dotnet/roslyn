@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -16,26 +13,21 @@ namespace Microsoft.CodeAnalysis.Options.UnitTests;
 [UseExportProvider]
 public class SolutionAnalyzerConfigOptionsUpdaterTests
 {
-    private static TestWorkspace CreateWorkspace(
-        out SolutionAnalyzerConfigOptionsUpdater updater,
-        out IAsynchronousOperationWaiter workspaceOperations)
+    private static TestWorkspace CreateWorkspace()
     {
-        var workspace = new TestWorkspace(EditorTestCompositions.LanguageServerProtocol);
+        var workspace = new TestWorkspace(LspTestCompositions.LanguageServerProtocol);
 
-        updater = (SolutionAnalyzerConfigOptionsUpdater)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is SolutionAnalyzerConfigOptionsUpdater).Value;
+        var updater = (SolutionAnalyzerConfigOptionsUpdater)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is SolutionAnalyzerConfigOptionsUpdater).Value;
         var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
         listenerProvider.EventListeners = [updater];
-
-        Assert.NotNull(workspace.Services.GetService<IWorkspaceEventListenerService>());
-        workspaceOperations = workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace);
 
         return workspace;
     }
 
     [Fact]
-    public async Task FlowsGlobalOptionsToWorkspace()
+    public void FlowsGlobalOptionsToWorkspace()
     {
-        var workspace = CreateWorkspace(out var updater, out var workspaceOperations);
+        using var workspace = CreateWorkspace();
 
         var globalOptions = workspace.GetService<IGlobalOptionService>();
 
@@ -47,7 +39,6 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
 
         var project = new TestHostProject(workspace, "proj1", LanguageNames.CSharp);
         workspace.AddTestProject(project);
-        await workspaceOperations.ExpeditedWaitAsync();
 
         AssertOptionValue(LanguageNames.CSharp, "false");
 
@@ -57,13 +48,11 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
         AssertOptionValue(LanguageNames.CSharp, "true");
 
         workspace.OnProjectRemoved(project.Id);
-        await workspaceOperations.ExpeditedWaitAsync();
 
         // last C# project removed -> fallback options removed:
         Assert.Empty(workspace.CurrentSolution.FallbackAnalyzerOptions);
 
         workspace.AddTestProject(new TestHostProject(workspace, "proj2", LanguageNames.VisualBasic));
-        await workspaceOperations.ExpeditedWaitAsync();
 
         AssertOptionValue(LanguageNames.VisualBasic, "true");
 
@@ -72,7 +61,6 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
         // VB and C# projects added:
 
         workspace.AddTestProject(new TestHostProject(workspace, "proj3", LanguageNames.CSharp));
-        await workspaceOperations.ExpeditedWaitAsync();
 
         AssertOptionValue(LanguageNames.VisualBasic, "true");
         AssertOptionValue(LanguageNames.CSharp, "true");
@@ -81,11 +69,6 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
 
         AssertOptionValue(LanguageNames.VisualBasic, "false");
         AssertOptionValue(LanguageNames.CSharp, "false");
-
-        workspace.Dispose();
-
-        // updater should be removed on workspace disposal:
-        Assert.False(updater.GetTestAccessor().HasWorkspaceUpdaters);
 
         void AssertOptionValue(string language, string expectedValue)
         {
@@ -96,9 +79,9 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
     }
 
     [Fact]
-    public async Task IgnoresNonEditorConfigOptions()
+    public void IgnoresNonEditorConfigOptions()
     {
-        var workspace = CreateWorkspace(out var updater, out var workspaceOperations);
+        using var workspace = CreateWorkspace();
 
         var globalOptions = workspace.GetService<IGlobalOptionService>();
 
@@ -109,7 +92,6 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
 
         var project = new TestHostProject(workspace, "proj1", LanguageNames.CSharp);
         workspace.AddTestProject(project);
-        await workspaceOperations.ExpeditedWaitAsync();
 
         var optionsAfterProjectAdded = workspace.CurrentSolution.FallbackAnalyzerOptions;
 

@@ -21,41 +21,85 @@ namespace Microsoft.CodeAnalysis.Options;
 
 /// <summary>
 /// Keeps <see cref="SolutionState.FallbackAnalyzerOptions"/> up-to-date with global option values maintained by <see cref="IGlobalOptionService"/>.
-/// Whenever editorconfig options stored in <see cref="IGlobalOptionService"/> change we apply these changes to all registered workspaces of given kinds,
-/// such that the latest solution snapshot of each workspace includes the latest snapshot of editorconfig options for all languages present in the solution.
 /// </summary>
 [Export]
-[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.SemanticSearch), Shared]
+[ExportEventListener(WellKnownEventListeners.Workspace,
+    [WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.SemanticSearch, WorkspaceKind.MetadataAsSource, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.Debugger, WorkspaceKind.Preview]), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class SolutionAnalyzerConfigOptionsUpdater(
-    EditorConfigOptionsEnumerator optionsEnumerator,
-    IGlobalOptionService globalOptions) : IEventListener<object>, IEventListenerStoppable
+internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService globalOptions) : IEventListener<object>, IEventListenerStoppable
 {
-    private ImmutableDictionary<Workspace, WorkspaceUpdater> _workspaceUpdaters = ImmutableDictionary<Workspace, WorkspaceUpdater>.Empty;
-
     public void StartListening(Workspace workspace, object serviceOpt)
-    {
-        var updater = new WorkspaceUpdater(workspace, optionsEnumerator, globalOptions);
-        Contract.ThrowIfFalse(ImmutableInterlocked.TryAdd(ref _workspaceUpdaters, workspace, updater));
-
-        globalOptions.AddOptionChangedHandler(workspace, updater.GlobalOptionsChanged);
-        workspace.WorkspaceChanged += updater.WorkspaceChanged;
-    }
+        => globalOptions.AddOptionChangedHandler(workspace, GlobalOptionsChanged);
 
     public void StopListening(Workspace workspace)
+        => globalOptions.RemoveOptionChangedHandler(workspace, GlobalOptionsChanged);
+
+    private void GlobalOptionsChanged(object sender, object target, OptionChangedEventArgs args)
     {
-        Contract.ThrowIfFalse(ImmutableInterlocked.TryRemove(ref _workspaceUpdaters, workspace, out var updater));
+        Debug.Assert(target is Workspace);
 
-        globalOptions.RemoveOptionChangedHandler(workspace, updater.GlobalOptionsChanged);
-        workspace.WorkspaceChanged -= updater.WorkspaceChanged;
-    }
+        try
+        {
+            if (!args.ChangedOptions.Any(static o => o.key.Option.Definition.IsEditorConfigOption))
+            {
+                return;
+            }
 
-    internal TestAccessor GetTestAccessor()
-        => new(this);
+            _ = ((Workspace)target).SetCurrentSolution(UpdateOptions, changeKind: WorkspaceChangeKind.SolutionChanged);
 
-    internal readonly struct TestAccessor(SolutionAnalyzerConfigOptionsUpdater instance)
-    {
-        internal bool HasWorkspaceUpdaters => !instance._workspaceUpdaters.IsEmpty;
+            Solution UpdateOptions(Solution oldSolution)
+            {
+                var oldFallbackOptions = oldSolution.FallbackAnalyzerOptions;
+                var newFallbackOptions = oldFallbackOptions;
+
+                foreach (var (language, languageOptions) in oldFallbackOptions)
+                {
+                    ImmutableDictionary<string, string>.Builder? lazyBuilder = null;
+
+                    foreach (var (key, value) in args.ChangedOptions)
+                    {
+                        if (!key.Option.Definition.IsEditorConfigOption)
+                        {
+                            continue;
+                        }
+
+                        if (key.Language != null && key.Language != language)
+                        {
+                            continue;
+                        }
+
+                        lazyBuilder ??= ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
+
+                        // copy existing option values:
+                        foreach (var oldKey in languageOptions.Keys)
+                        {
+                            if (languageOptions.TryGetValue(oldKey, out var oldValue))
+                            {
+                                lazyBuilder.Add(oldKey, oldValue);
+                            }
+                        }
+
+                        // update changed values:
+                        var configName = key.Option.Definition.ConfigName;
+                        var configValue = key.Option.Definition.Serializer.Serialize(value);
+                        lazyBuilder[configName] = configValue;
+                    }
+
+                    if (lazyBuilder != null)
+                    {
+                        newFallbackOptions = newFallbackOptions.SetItem(
+                            language,
+                            StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(lazyBuilder.ToImmutable())));
+                    }
+                }
+
+                return oldSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
+            }
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }
