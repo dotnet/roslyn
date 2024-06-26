@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 
@@ -93,7 +94,9 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
 
         var editor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
         var generator = editor.Generator;
-        var lockTypeExpression = generator.TypeExpression(lockType, addImport: true);
+        var lockTypeExpression = generator
+            .TypeExpression(lockType, addImport: true)
+            .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
         // Replace the return type, and initializer type in the field declaration itself.
         editor.ReplaceNode(
