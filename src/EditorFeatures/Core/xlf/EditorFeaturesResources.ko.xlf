@@ -37,6 +37,11 @@
         <target state="new">Copilot thinking...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="new">Describe with Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">'this.' 또는 'Me.'를 기본으로 사용하지 마세요.</target>
@@ -71,11 +76,6 @@
         <source>Filter</source>
         <target state="translated">필터</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
-      </trans-unit>
-      <trans-unit id="Generate_Copilot_summary">
-        <source>Generate Copilot summary</source>
-        <target state="new">Generate Copilot summary</target>
-        <note />
       </trans-unit>
       <trans-unit id="Generate_summary_with_Copilot">
         <source>Generate summary with Copilot (might be inaccurate)</source>

@@ -76,7 +76,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 new object[]
                 {
                     sparkle,
-                    ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Generate_Copilot_summary, EditorFeaturesResources.Generate_summary_with_Copilot, () =>
+                    ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe_with_Copilot, EditorFeaturesResources.Generate_summary_with_Copilot, () =>
                     RequestResults()),
                 }));
 
