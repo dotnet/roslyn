@@ -8,7 +8,7 @@
           xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
           xmlns:sr="clr-namespace:Microsoft.CodeAnalysis.InlineRename.UI.SmartRename"
           mc:Ignorable="d"
-          x:Name="SmartRenameUserInputComboBox"
+          Name="SmartRenameInputControl"
           Unloaded="ComboBox_Unloaded"
           SelectionChanged="ComboBox_SelectionChanged"
           Text="{Binding BaseViewModel.IdentifierText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
@@ -126,12 +126,12 @@
                                  Style="{StaticResource ComboBoxEditableTextBox}" />
                 </Border>
                 <Button x:Name="GetSuggestionsButton"
-                                x:Uid="GetSuggestionsButton"
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Style="{StaticResource GetSuggestionsButtonStyle}"
-                                ToolTip="{Binding GetSuggestionsTooltip}"
-                                Click="GetSuggestionsButtonClick">
+                        x:Uid="GetSuggestionsButton"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Style="{StaticResource GetSuggestionsButtonStyle}"
+                        ToolTip="{Binding GetSuggestionsTooltip}"
+                        Click="GetSuggestionsButtonClick">
                     <Button.Content>
                         <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <!-- TODO: Replace by KnownMoniker once available. -->
