@@ -110,6 +110,13 @@ internal sealed partial class SymbolicRenameLocations
                 return true;
             }
 
+            // When a parameter in primary constructor get renamed, we also want to rename its generated property. And vice versa.
+            if (IsPropertyGeneratedFromPrimaryConstructorParameter(originalSymbol, referencedSymbol, cancellationToken)
+                || IsPropertyGeneratedFromPrimaryConstructorParameter(referencedSymbol, originalSymbol, cancellationToken))
+            {
+                return true;
+            }
+
             return false;
 
             // Local functions
@@ -119,6 +126,18 @@ internal sealed partial class SymbolicRenameLocations
                     && possibleType is INamedTypeSymbol namedType
                     && Equals(possibleConstructor.ContainingType.ConstructedFrom, namedType.ConstructedFrom);
             }
+        }
+
+        private static bool IsPropertyGeneratedFromPrimaryConstructorParameter(
+            ISymbol propertySymbol, ISymbol parameterSymbol, CancellationToken cancellationToken)
+        {
+            if (parameterSymbol is IParameterSymbol parameter)
+            {
+                var generatedPropertySymbol = parameter.GetAssociatedSynthesizedRecordProperty(cancellationToken);
+                return propertySymbol.Equals(generatedPropertySymbol);
+            }
+
+            return false;
         }
 
         private static async Task<bool> IsPropertyAccessorOrAnOverrideAsync(
