@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal static partial class BoundExpressionExtensions
     {
         /// <summary>
-        /// Returns the RefKind of an expression
-        /// if the expression represents a symbol, the RefKind of the symbol is returned
-        /// if the expression is a "by-ref" expression like conditional operator or InlineArrayAccess the RefKind is calculated and returned
-        /// otherwise this function returns RefKind.None 
+        /// Returns the RefKind if the expression represents a symbol
+        /// that has a RefKind, or RefKind.None otherwise.
         /// </summary>
         public static RefKind GetRefKind(this BoundExpression node)
         {
@@ -44,6 +42,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+
+                        if (!elementAccess.IsValue)
+                        {
+                            switch (elementAccess.GetItemOrSliceHelper)
+                            {
+                                case WellKnownMember.System_Span_T__get_Item:
+                                    return RefKind.Ref;
+                                case WellKnownMember.System_ReadOnlySpan_T__get_Item:
+                                    return RefKind.RefReadOnly;
+                            }
+                        }
+
+                        return RefKind.None;
+                    }
+
+                case BoundKind.ObjectInitializerMember:
+                    var member = (BoundObjectInitializerMember)node;
+                    if (member.HasErrors)
+                        return RefKind.None;
+
+                    return member.MemberSymbol switch
+                    {
+                        FieldSymbol f => f.RefKind,
+                        PropertySymbol f => f.RefKind,
+                        EventSymbol => RefKind.None,
+                        var s => throw ExceptionUtilities.UnexpectedValue(s?.Kind)
+                    };
+
+                default:
+                    return RefKind.None;
+            }
+        }
+
+        /// <summary>
+        /// Returns the RefKind of an expression
+        /// if the expression represents a symbol, the RefKind of the symbol is returned
+        /// if the expression is a "by-ref" expression like conditional operator or InlineArrayAccess the RefKind is calculated and returned
+        /// otherwise this function returns RefKind.None 
+        /// </summary>
+        public static RefKind GetRefKindEx(this BoundExpression node)
+        {
+            switch (node.Kind)
+            {
                 case BoundKind.ConditionalOperator:
                     {
                         var conditionalOperator = (BoundConditionalOperator)node;
@@ -85,40 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
-
-                case BoundKind.InlineArrayAccess:
-                    {
-                        var elementAccess = (BoundInlineArrayAccess)node;
-
-                        if (!elementAccess.IsValue)
-                        {
-                            switch (elementAccess.GetItemOrSliceHelper)
-                            {
-                                case WellKnownMember.System_Span_T__get_Item:
-                                    return RefKind.Ref;
-                                case WellKnownMember.System_ReadOnlySpan_T__get_Item:
-                                    return RefKind.RefReadOnly;
-                            }
-                        }
-
-                        return RefKind.None;
-                    }
-
-                case BoundKind.ObjectInitializerMember:
-                    var member = (BoundObjectInitializerMember)node;
-                    if (member.HasErrors)
-                        return RefKind.None;
-
-                    return member.MemberSymbol switch
-                    {
-                        FieldSymbol f => f.RefKind,
-                        PropertySymbol f => f.RefKind,
-                        EventSymbol => RefKind.None,
-                        var s => throw ExceptionUtilities.UnexpectedValue(s?.Kind)
-                    };
-
                 default:
-                    return RefKind.None;
+                    return GetRefKind(node);
             }
         }
 
