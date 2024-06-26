@@ -118,11 +118,17 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
         if (fieldsArray.Count == 0)
             return;
 
+        // The set of fields we think could be converted to `System.Threading.Lock` from `object`.
         var potentialLockFields = new ConcurrentSet<IFieldSymbol>();
+
+        // Whether or not we saw this field used in a `lock (obj)` statement.  If not, we do not want to convert this as
+        // the user wasn't using this as a lock.  Note: we can consider expanding the set of patterns we detect (like
+        // Monitor.Enter + Monitor.Exit) if we think it's worthwhile.
         var wasLockedSet = new ConcurrentSet<IFieldSymbol>();
         foreach (var field in fieldsArray)
             potentialLockFields.Add(field);
 
+        // Now go see how the code within this named type actually uses any fields within.
         context.RegisterOperationAction(context =>
         {
             var cancellationToken = context.CancellationToken;
