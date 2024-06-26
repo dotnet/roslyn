@@ -143,13 +143,15 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             }
 
             // it's ok to assign to the field, as long as we're assigning a new lock object to it.
-            if (fieldReferenceOperation.Parent is IAssignmentOperation
-                {
-                    Value: IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object },
-                } assignment &&
+            if (fieldReferenceOperation.Parent is IAssignmentOperation assignment &&
                 assignment.Target == fieldReferenceOperation)
             {
-                return;
+                var operand = assignment.Value is IConversionOperation { Conversion: { Exists: true, IsImplicit: true } } conversion
+                    ? conversion.Operand
+                    : assignment.Value;
+
+                if (operand is IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object })
+                    return;
             }
 
             // Fine to use `nameof(someLock)` as that's not actually using the lock.

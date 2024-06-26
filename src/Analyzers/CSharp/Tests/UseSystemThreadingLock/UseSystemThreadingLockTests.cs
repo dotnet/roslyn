@@ -82,4 +82,744 @@ public sealed class UseSystemThreadingLockTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotInCSharp12()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithoutLock()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithUnsupportedOperation1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+
+                        Goo(_gate);
+                    }
+
+                    void Goo(object o) { }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithUnsupportedOperation2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+
+                        var v = _gate.GetType();
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithoutSystemThreadingLock()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPublicGate()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonObjectInitializerValue1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public object _gate = "";
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonObjectInitializerValue_InField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public object _gate = new int();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonObjectInitializerValue_InConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public object _gate;
+
+                    public C()
+                    {
+                        _gate = new int();
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonObjectAssignment()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public object _gate;
+
+                    public C()
+                    {
+                        _gate = "";
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithMultipleDeclarators()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public object _gate1, _gate2;
+
+                    void M()
+                    {
+                        lock (_gate1)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonObjectType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public string _gate;
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithinStruct1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct C
+                {
+                    private object [|_gate|] = new object();
+
+                    public C()
+                    {
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                struct C
+                {
+                    private Lock _gate = new Lock();
+                
+                    public C()
+                    {
+                    }
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithinStruct2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct C
+                {
+                    private object [|_gate|];
+
+                    public C()
+                    {
+                        _gate = new object();
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                struct C
+                {
+                    private Lock _gate;
+                
+                    public C()
+                    {
+                        _gate = new Lock();
+                    }
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithMemberAccess1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+
+                    void M()
+                    {
+                        lock (this._gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                
+                    void M()
+                    {
+                        lock (this._gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithMemberAccess2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+
+                    void M(C c)
+                    {
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                
+                    void M(C c)
+                    {
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithImplicitObjectCreation_InField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new();
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithImplicitObjectCreation_InConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct C
+                {
+                    private object [|_gate|];
+
+                    public C()
+                    {
+                        _gate = new();
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                struct C
+                {
+                    private Lock _gate;
+                
+                    public C()
+                    {
+                        _gate = new();
+                    }
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithObjectCreation_InConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|];
+
+                    public C()
+                    {
+                        _gate = new object();
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate;
+                
+                    public C()
+                    {
+                        _gate = new Lock();
+                    }
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithNameOf()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+                    private string s = nameof(_gate);
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                    private string s = nameof(_gate);
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithMultipleFieldsNoneLocked()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate1 = new object();
+                    private object _gate2 = new object();
+
+                    void M()
+                    {
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithMultipleFieldsOneLocked()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate1|] = new object();
+                    private object _gate2 = new object();
+
+                    void M()
+                    {
+                        lock (_gate1)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate1 = new Lock();
+                    private object _gate2 = new object();
+                
+                    void M()
+                    {
+                        lock (_gate1)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithMultipleFieldsBothLocked()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate1|] = new object();
+                    private object [|_gate2|] = new object();
+
+                    void M()
+                    {
+                        lock (_gate1)
+                        {
+                        }
+                        lock (_gate2)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate1 = new Lock();
+                    private Lock _gate2 = new Lock();
+                
+                    void M()
+                    {
+                        lock (_gate1)
+                        {
+                        }
+                        lock (_gate2)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
