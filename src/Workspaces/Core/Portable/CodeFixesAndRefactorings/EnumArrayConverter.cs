@@ -6,13 +6,10 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-internal class EnumArrayConverter
+internal static class EnumArrayConverter
 {
-    public static TEnum[] FromStringArray<TEnum>(string[] strings) where TEnum : struct
+    public static TEnum[] FromStringArray<TEnum>(string[] strings) where TEnum : struct, Enum
     {
-        if (!typeof(TEnum).IsEnum)
-            throw new ArgumentException("T must be an enumerated type");
-
         var enums = new TEnum[strings.Length];
         for (var i = 0; i < enums.Length; i++)
         {
