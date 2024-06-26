@@ -267,7 +267,7 @@ internal sealed class GlobalOptionService(
     private void RaiseOptionChangedEvent(ImmutableArray<(OptionKey2, object?)> changedOptions)
     {
         Debug.Assert(!changedOptions.IsEmpty);
-        _optionChanged.RaiseEvent(this, new OptionChangedEventArgs(changedOptions));
+        _optionChanged.RaiseEvent(new OptionChangedEventArgs(changedOptions));
     }
 
     internal TestAccessor GetTestAccessor()

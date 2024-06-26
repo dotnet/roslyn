@@ -12,11 +12,15 @@ using System.Runtime.CompilerServices;
 namespace Roslyn.Utilities;
 
 #if NET
+// Can't use global alias due to generic parameters. Extension types would do.
+
 internal readonly struct EnumerableConditionalWeakTable<TKey, TValue>() : IEnumerable<KeyValuePair<TKey, TValue>>
     where TKey : class
     where TValue : class
 {
     private readonly ConditionalWeakTable<TKey, TValue> _table = new();
+
+    public object WriteLock => _table;
 
     public bool TryGetValue(TKey key, [NotNullWhen(true)] out TValue? value)
         => _table.TryGetValue(key, out value);
@@ -34,7 +38,7 @@ internal readonly struct EnumerableConditionalWeakTable<TKey, TValue>() : IEnume
         => ((IEnumerable<KeyValuePair<TKey, TValue>>)_table).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
-        => ((IEnumerable)_table).GetEnumerator();
+        => GetEnumerator();
 }
 #else
 internal sealed class EnumerableConditionalWeakTable<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
@@ -47,11 +51,10 @@ internal sealed class EnumerableConditionalWeakTable<TKey, TValue> : IEnumerable
         public readonly TValue Value = value;
     }
 
-    // lock when updating both _table and _items
-    private readonly object _guard = new();
-
     private readonly ConditionalWeakTable<TKey, Box> _table = new();
     private ImmutableList<WeakReference<Box>> _items = [];
+
+    public object WriteLock => _table;
 
     public bool TryGetValue(TKey key, [NotNullWhen(true)] out TValue? value)
     {
@@ -67,7 +70,7 @@ internal sealed class EnumerableConditionalWeakTable<TKey, TValue> : IEnumerable
 
     public void Add(TKey key, TValue value)
     {
-        lock (_guard)
+        lock (WriteLock)
         {
             AddNoLock(key, value);
 
@@ -78,7 +81,7 @@ internal sealed class EnumerableConditionalWeakTable<TKey, TValue> : IEnumerable
 
     public void AddOrUpdate(TKey key, TValue value)
     {
-        lock (_guard)
+        lock (WriteLock)
         {
             _ = RemoveNoLock(key);
             AddNoLock(key, value);
@@ -87,7 +90,7 @@ internal sealed class EnumerableConditionalWeakTable<TKey, TValue> : IEnumerable
 
     public bool Remove(TKey key)
     {
-        lock (_guard)
+        lock (WriteLock)
         {
             return RemoveNoLock(key);
         }

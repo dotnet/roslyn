@@ -6,10 +6,15 @@ using System;
 
 namespace Roslyn.Utilities;
 
-internal sealed class WeakEvent<TEventArgs>
+/// <summary>
+/// Implements an event that can be subscribed to without keeping the subscriber alive for the lifespan of 
+/// the object that declares <see cref="WeakEvent{TEventArgs}"/>.
+/// 
+/// Unlike <see cref="WeakEventHandler{TArgs}"/> the handlers may capture state, which makes the subscribers simpler
+/// and doesn't risk accidental leaks.
+/// </summary>
+internal readonly struct WeakEvent<TEventArgs>()
 {
-    private readonly object _guard = new();
-
     /// <summary>
     /// Each registered event handler has the lifetime of an associated owning object. This table ensures the weak
     /// references to the event handlers are not cleaned up while the owning object is still alive.
@@ -18,7 +23,7 @@ internal sealed class WeakEvent<TEventArgs>
 
     public void AddHandler(object target, EventHandler<TEventArgs> handler)
     {
-        lock (_guard)
+        lock (_handlers.WriteLock)
         {
             if (_handlers.TryGetValue(target, out var existingHandler))
             {
@@ -33,11 +38,12 @@ internal sealed class WeakEvent<TEventArgs>
 
     public void RemoveHandler(object target, EventHandler<TEventArgs> handler)
     {
-        lock (_guard)
+        lock (_handlers.WriteLock)
         {
             if (_handlers.TryGetValue(target, out var existingHandler))
             {
-                if (existingHandler - handler is { } newHandler)
+                var newHandler = existingHandler - handler;
+                if (newHandler != null)
                 {
                     _handlers.AddOrUpdate(target, newHandler);
                 }
