@@ -1045,8 +1045,6 @@ class C
                 """;
 
             var comp = CompileAndVerify(source,
-                targetFramework: TargetFramework.NetLatest,
-                verify: Verification.Skipped,
                 expectedOutput: """
                 5
                 1
