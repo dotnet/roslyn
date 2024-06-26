@@ -57,14 +57,15 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             if (lockType is null)
                 return;
 
-            context.RegisterSymbolStartAction(context => AnalyzeNamedType(context, lockType), SymbolKind.NamedType);
+            context.RegisterSymbolStartAction(AnalyzeNamedType, SymbolKind.NamedType);
         });
     }
 
-    private void AnalyzeNamedType(SymbolStartAnalysisContext context, INamedTypeSymbol lockType)
+    private void AnalyzeNamedType(SymbolStartAnalysisContext context)
     {
         var cancellationToken = context.CancellationToken;
-        if (lockType is not
+        var namedType = (INamedTypeSymbol)context.Symbol;
+        if (namedType is not
             {
                 TypeKind: TypeKind.Class or TypeKind.Struct,
                 DeclaringSyntaxReferences: [var reference, ..]
@@ -83,7 +84,7 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
         // Needs to have a private field that is exactly typed as 'object'
         using var fieldsArray = TemporaryArray<IFieldSymbol>.Empty;
 
-        foreach (var member in lockType.GetMembers())
+        foreach (var member in namedType.GetMembers())
         {
             if (member is not IFieldSymbol
                 {
