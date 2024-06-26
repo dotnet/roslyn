@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseSystemThreadingLockDiagnosticAnalyzer,
     CSharpUseSystemThreadingLockCodeFixProvider>;
 
-[Trait(Traits.Feature, Traits.Features.CodeActionsUsePrimaryConstructor)]
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemThreadingLock)]
 public sealed class UseSystemThreadingLockTests
 {
     private const string SystemThreadingLockType = """
