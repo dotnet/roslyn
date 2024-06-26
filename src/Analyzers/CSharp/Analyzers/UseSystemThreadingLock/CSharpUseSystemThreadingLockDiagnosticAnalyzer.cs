@@ -135,6 +135,7 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
             var fieldReference = fieldReferenceOperation.Field.OriginalDefinition;
 
+            // We only care about examining field references to the fields we're considering converting to System.Threading.Lock.
             if (!potentialLockFields.Contains(fieldReference))
                 return;
 
@@ -148,12 +149,15 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
                     return;
                 }
 
-                // We did lock on this field, mark as such as its now something we'd def like to convert to a Lock if possible.
+                // We did lock on this field, mark as such as its now something we'd def like to convert to a
+                // System.Threading.Lock if possible.
                 wasLockedSet.Add(fieldReference);
                 return;
             }
 
-            // it's ok to assign to the field, as long as we're assigning a new lock object to it.
+            // It's ok to assign to the field, as long as we're assigning a new lock object to it. e.g.  `_gate = new
+            // object()` is fine to continue converting over to System.Threading.Lock.  But an assignment of something
+            // else is not.
             if (fieldReferenceOperation.Parent is IAssignmentOperation { Syntax: AssignmentExpressionSyntax assignmentSyntax } assignment &&
                 assignment.Target == fieldReferenceOperation &&
                 IsSystemObjectCreationExpression(assignmentSyntax.Right))
@@ -162,7 +166,7 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
                     ? conversion.Operand
                     : assignment.Value;
 
-                if (operand is IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object })
+                if (assignment.Value is IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object })
                     return;
             }
 
@@ -170,9 +174,9 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             if (fieldReferenceOperation.Parent is INameOfOperation)
                 return;
 
-            // Add more supported patterns here as needed.
+            // Note: More patterns can be added here as needed.
 
-            // This wasn't a supported case.
+            // This wasn't a supported case.  Immediately disallow conversion of this field.
             potentialLockFields.Remove(fieldReference);
         }, OperationKind.FieldReference);
 
