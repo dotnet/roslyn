@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Preview;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -32,6 +33,11 @@ internal class FileChange : AbstractChange
     public readonly DocumentId Id;
     private readonly ITextBuffer _buffer;
     private readonly IVsImageService2 _imageService;
+
+    private static readonly StringDifferenceOptions s_differenceOptions = new()
+    {
+        DifferenceType = StringDifferenceTypes.Line,
+    };
 
     public FileChange(TextDocument left,
         TextDocument right,
@@ -236,22 +242,9 @@ internal class FileChange : AbstractChange
         //       current way of just using text differ has its own issue, and using syntax differ in compiler that are for incremental parser
         //       has its own drawbacks.
 
-        var differenceOptions = new StringDifferenceOptions()
-        {
-            DifferenceType = StringDifferenceTypes.Line,
-        };
-
         var oldText = left.GetTextSynchronously(cancellationToken);
         var newText = right.GetTextSynchronously(cancellationToken);
 
-        var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
-        var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
-        var useSnapshots = oldTextSnapshot != null && newTextSnapshot != null;
-
-        var diffResult = useSnapshots
-            ? diffService.DiffSnapshotSpans(oldTextSnapshot!.GetFullSpan(), newTextSnapshot!.GetFullSpan(), differenceOptions)
-            : diffService.DiffStrings(oldText.ToString(), newText.ToString(), differenceOptions);
-
-        return diffResult;
+        return diffService.DiffSourceTexts(oldText, newText, s_differenceOptions);
     }
 }

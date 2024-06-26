@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Preview;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -55,6 +56,11 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
     private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
     private readonly IDifferenceBufferFactoryService _differenceBufferService = differenceBufferService;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService = textDocumentFactoryService;
+
+    private static readonly StringDifferenceOptions s_differenceOptions = new()
+    {
+        DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
+    };
 
     protected readonly IThreadingContext ThreadingContext = threadingContext;
 
@@ -779,20 +785,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
 
-        var differenceOptions = new StringDifferenceOptions()
-        {
-            DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
-        };
-
-        var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
-        var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
-        var useSnapshots = oldTextSnapshot != null && newTextSnapshot != null;
-
-        var diffResult = useSnapshots
-            ? diffService.DiffSnapshotSpans(oldTextSnapshot!.GetFullSpan(), newTextSnapshot!.GetFullSpan(), differenceOptions)
-            : diffService.DiffStrings(oldText.ToString(), newText.ToString(), differenceOptions);
-
-        return diffResult;
+        return diffService.GetSourceTextDifferences(oldText, newText, s_differenceOptions);
     }
 
     private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
