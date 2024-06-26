@@ -105,7 +105,8 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             if (fieldSyntax.Parent is not VariableDeclarationSyntax { Parent: FieldDeclarationSyntax, Variables.Count: 1 })
                 return;
 
-            // If we have a private-object field, it needs to be initialized with either `new object()` or `new()`.
+            // If we have an initializer at the declaration site, it needs to be initialized with either `new object()`
+            // or `new()`.
             if (fieldSyntax.Initializer != null && !IsSystemObjectCreationExpression(fieldSyntax.Initializer.Value))
                 continue;
 
