@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Differencing;
 
-namespace Microsoft.CodeAnalysis.Preview;
+namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 
 internal static class TextDifferencingServiceExtensions
 {
