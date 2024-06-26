@@ -104,15 +104,8 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
                 return;
 
             // If we have a private-object field, it needs to be initialized with either `new object()` or `new()`.
-            if (fieldSyntax.Initializer != null)
-            {
-                if (fieldSyntax.Initializer.Value
-                        is not ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 }
-                        and not ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.ObjectKeyword } })
-                {
-                    continue;
-                }
-            }
+            if (fieldSyntax.Initializer != null && !IsSystemObjectCreationExpression(fieldSyntax.Initializer.Value))
+                continue;
 
             // Looks like something that could be converted to a lock if we see that this is used as a lock.
             fieldsArray.Add(field);
@@ -151,8 +144,9 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             }
 
             // it's ok to assign to the field, as long as we're assigning a new lock object to it.
-            if (fieldReferenceOperation.Parent is IAssignmentOperation assignment &&
-                assignment.Target == fieldReferenceOperation)
+            if (fieldReferenceOperation.Parent is IAssignmentOperation { Syntax: AssignmentExpressionSyntax assignmentSyntax } assignment &&
+                assignment.Target == fieldReferenceOperation &&
+                IsSystemObjectCreationExpression(assignmentSyntax.Right))
             {
                 var operand = assignment.Value is IConversionOperation { Conversion: { Exists: true, IsImplicit: true } } conversion
                     ? conversion.Operand
@@ -194,5 +188,12 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
                     properties: null));
             }
         });
+    }
+
+    private static bool IsSystemObjectCreationExpression(ExpressionSyntax expression)
+    {
+        return expression
+            is ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 }
+            or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.ObjectKeyword } };
     }
 }

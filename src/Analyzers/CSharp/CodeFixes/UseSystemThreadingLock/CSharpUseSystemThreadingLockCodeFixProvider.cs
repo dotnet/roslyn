@@ -138,7 +138,7 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
 
                 ExpressionSyntax expression = node;
                 if (expression.Parent is MemberAccessExpressionSyntax memberAccess &&
-                    memberAccess.Name != expression)
+                    memberAccess.Name == expression)
                 {
                     expression = memberAccess;
                 }
