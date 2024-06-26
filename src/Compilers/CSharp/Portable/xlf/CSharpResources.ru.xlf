@@ -332,6 +332,11 @@
         <target state="translated">Атрибут AsyncMethodBuilder запрещен для анонимных методов без явного типа возвращаемого значения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor">
+        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</source>
+        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer">
         <source>Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</source>
         <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</target>

@@ -332,6 +332,11 @@
         <target state="translated">没有显式返回类型的匿名方法不允许使用 AsyncMethodBuilder 属性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor">
+        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</source>
+        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer">
         <source>Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</source>
         <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</target>

@@ -216,31 +216,92 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         );
     }
 
-    [Fact]
-    public void MethodDiscoveryStopsAtFirstApplicableMethod()
+    [Theory, CombinatorialData]
+    public void MethodDiscoveryStopsAtFirstApplicableMethod(bool useMetadataReference)
     {
-        var source = """
+        var @base = """
             using System.Runtime.CompilerServices;
 
-            I3 i3 = null;
-            Derived.M(i3);
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
 
-            interface I1 {}
-            interface I2 {}
-            interface I3 : I1, I2 {}
-
-            class Base
+            public class Base
             {
                 [OverloadResolutionPriority(1)]
                 public static void M(I2 x) => throw null;
             }
+            """;
 
-            class Derived : Base
+        var derived = """
+            public class Derived : Base
             {
                 public static void M(I1 x) => System.Console.WriteLine(1);
             }
             """;
-        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        var executable = """
+            I3 i3 = null;
+            Derived.M(i3);
+            """;
+        CompileAndVerify([executable, @base, derived, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        var baseComp = CreateCompilation([@base, OverloadResolutionPriorityAttributeDefinition]);
+        var baseReference = useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference();
+
+        var derivedComp = CreateCompilation(derived, references: [baseReference]);
+        var derivedReference = useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference();
+
+        CompileAndVerify(executable, references: [baseReference, derivedReference], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void MethodDiscoveryStopsAtFirstApplicableIndexer(bool useMetadataReference)
+    {
+        var @base = """
+            using System.Runtime.CompilerServices;
+
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
+
+            public class Base
+            {
+                [OverloadResolutionPriority(1)]
+                public int this[I2 x]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+            }
+            """;
+
+        var derived = """
+            public class Derived : Base
+            {
+                public int this[I1 x]
+                {
+                    get { System.Console.Write(1); return 1; }
+                    set => System.Console.Write(2);
+                }
+            }
+            """;
+
+        var executable = """
+            I3 i3 = null;
+            var d = new Derived();
+            _ = d[i3];
+            d[i3] = 0;
+            """;
+        CompileAndVerify([executable, @base, derived, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "12").VerifyDiagnostics();
+
+        var baseComp = CreateCompilation([@base, OverloadResolutionPriorityAttributeDefinition]);
+        var baseReference = useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference();
+
+        var derivedComp = CreateCompilation(derived, references: [baseReference]);
+        var derivedReference = useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference();
+
+        CompileAndVerify(executable, references: [baseReference, derivedReference], expectedOutput: "12").VerifyDiagnostics();
     }
 
     [Fact]
@@ -383,7 +444,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     }
 
     [Fact]
-    public void Overrides_ChangePriorityInMetadata()
+    public void Overrides_ChangePriorityInMetadata_Methods()
     {
         var source1 = """
             using System.Runtime.CompilerServices;
@@ -478,7 +539,162 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         CompileAndVerify(code, references: [assembly1, assembly2], expectedOutput: "1").VerifyDiagnostics();
     }
 
-    // PROTOTYPE: Duplicate above tests for indexers and constructors
+    [Fact]
+    public void Overrides_ChangePriorityInMetadata_Indexers()
+    {
+        var source1 = """
+            using System.Runtime.CompilerServices;
+
+            public class Base
+            {
+                [OverloadResolutionPriority(1)]
+                public virtual int this[object o]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+                public virtual int this[string s]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+            }
+            """;
+
+        var comp1 = CreateCompilation([source1, OverloadResolutionPriorityAttributeDefinition], assemblyName: "assembly1");
+        var assembly1 = comp1.EmitToImageReference();
+
+        // Equivalent to:
+        //
+        // public class Derived: Base
+        // {
+        //     public override int this[object o]
+        //     {
+        //         get { System.Console.Write(1); return 1; }
+        //         set => System.Console.Write(2);
+        //     }
+        //     [OverloadResolutionPriority(2)]
+        //     public override int this[string s]
+        //     {
+        //         get => throw null;
+        //         set => throw null;
+        //     }
+        // }
+        var il2 = """
+            .assembly extern assembly1 {}
+
+            .class public auto ansi beforefieldinit Derived
+                extends [assembly1]Base
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 00 00 00
+                )
+                .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+                    01 00 04 49 74 65 6d 00 00
+                )
+                // Methods
+                .method public hidebysig specialname virtual 
+                    instance int32 get_Item (
+                        object o
+                    ) cil managed 
+                {
+                    // Method begins at RVA 0x205b
+                    // Code size 8 (0x8)
+                    .maxstack 8
+
+                    IL_0000: ldc.i4.1
+                    IL_0001: call void [mscorlib]System.Console::Write(int32)
+                    IL_0006: ldc.i4.1
+                    IL_0007: ret
+                } // end of method Derived::get_Item
+
+                .method public hidebysig specialname virtual 
+                    instance void set_Item (
+                        object o,
+                        int32 'value'
+                    ) cil managed 
+                {
+                    // Method begins at RVA 0x2064
+                    // Code size 7 (0x7)
+                    .maxstack 8
+
+                    IL_0000: ldc.i4.2
+                    IL_0001: call void [mscorlib]System.Console::Write(int32)
+                    IL_0006: ret
+                } // end of method Derived::set_Item
+
+                .method public hidebysig specialname virtual 
+                    instance int32 get_Item (
+                        string s
+                    ) cil managed 
+                {
+                    // Method begins at RVA 0x2050
+                    // Code size 2 (0x2)
+                    .maxstack 8
+
+                    IL_0000: ldnull
+                    IL_0001: throw
+                } // end of method Derived::get_Item
+
+                .method public hidebysig specialname virtual 
+                    instance void set_Item (
+                        string s,
+                        int32 'value'
+                    ) cil managed 
+                {
+                    // Method begins at RVA 0x2050
+                    // Code size 2 (0x2)
+                    .maxstack 8
+
+                    IL_0000: ldnull
+                    IL_0001: throw
+                } // end of method Derived::set_Item
+
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    // Method begins at RVA 0x206c
+                    // Code size 7 (0x7)
+                    .maxstack 8
+
+                    IL_0000: ldarg.0
+                    IL_0001: call instance void [assembly1]Base::.ctor()
+                    IL_0006: ret
+                } // end of method Derived::.ctor
+
+                // Properties
+                .property instance int32 Item(
+                    object o
+                )
+                {
+                    .get instance int32 Derived::get_Item(object)
+                    .set instance void Derived::set_Item(object, int32)
+                }
+                .property instance int32 Item(
+                    string s
+                )
+                {
+                    .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 02 00 00 00 00 00
+                    )
+                    .get instance int32 Derived::get_Item(string)
+                    .set instance void Derived::set_Item(string, int32)
+                }
+            }
+            """;
+        var assembly2 = CompileIL(il2);
+
+        var code = """
+            var d = new Derived();
+            _ = d["test"];
+            d["test"] = 0;
+            """;
+
+        CompileAndVerify(code, references: [assembly1, assembly2], expectedOutput: "12").VerifyDiagnostics();
+    }
 
     [Fact]
     public void ThroughRetargeting_Methods()
@@ -505,7 +721,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()]);
+        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()], targetFramework: TargetFramework.Standard);
         comp2.VerifyDiagnostics();
 
         var source3 = """
@@ -513,8 +729,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             c.M("test");
             """;
 
-        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()]);
-        CompileAndVerify(comp3).VerifyDiagnostics();
+        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()], targetFramework: TargetFramework.Standard);
+        comp3.VerifyDiagnostics();
 
         var c = comp3.GetTypeByMetadataName("C")!;
         var ms = c.GetMembers("M");
@@ -564,7 +780,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()]);
+        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()], targetFramework: TargetFramework.Standard);
         comp2.VerifyDiagnostics();
 
         var source3 = """
@@ -573,7 +789,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             _ = c["test"];
             """;
 
-        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()]);
+        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()], targetFramework: TargetFramework.Standard);
         comp3.VerifyDiagnostics();
 
         var c = comp3.GetTypeByMetadataName("C")!;
@@ -943,6 +1159,314 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         );
     }
 
-    // PROTOTYPE: applied to getter/setter? Different from the indexer? Email LDM, assume invalid
-    // PROTOTYPE: confirm that restating the same priority as the overridden member is invalid
+    [Theory, CombinatorialData]
+    public void RestateOverriddenPriority_Method(bool useMetadataReference)
+    {
+        var @base = """
+            using System.Runtime.CompilerServices;
+
+            public class Base
+            {
+                [OverloadResolutionPriority(1)]
+                public virtual void M(object o) => throw null;
+                public virtual void M(string s) => throw null;
+            }
+            """;
+
+        var derived = """
+            using System.Runtime.CompilerServices;
+            public class Derived : Base
+            {
+                [OverloadResolutionPriority(1)]
+                public override void M(object o) => throw null;
+                public override void M(string s) => throw null;
+            }
+            """;
+
+        // PROTOTYPE: Confirm with LDM that we want this diagnostic
+        var expectedDiagnostics = new[]
+        {
+            // (4,6): error CS9500: Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, "OverloadResolutionPriority(1)").WithLocation(4, 6)
+        };
+
+        CreateCompilation([derived, @base, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilation([@base, OverloadResolutionPriorityAttributeDefinition]);
+        CreateCompilation(derived, references: [useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference()]).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, CombinatorialData]
+    public void Interface_DifferentPriorities_Methods(bool useMetadataReference)
+    {
+        var executable = """
+            var c = new C();
+            I3 i3 = null;
+            c.M(i3);
+            ((I)c).M(i3);
+            """;
+
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
+
+            public interface I
+            {
+                [OverloadResolutionPriority(1)]
+                void M(I1 i1);
+                void M(I2 i2);
+            }
+            public class C : I
+            {
+                public void M(I1 i1) => System.Console.Write(1);
+                [OverloadResolutionPriority(2)]
+                public void M(I2 i2) => System.Console.Write(2);
+            }
+            """;
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "21").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [useMetadataReference ? comp.ToMetadataReference() : comp.EmitToImageReference()], expectedOutput: "21").VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Interface_DifferentPriorities_Indexers(bool useMetadataReference)
+    {
+        var executable = """
+            var c = new C();
+            I3 i3 = null;
+            c[i3] = 1;
+            _ = c[i3];
+            ((I)c)[i3] = 1;
+            _ = ((I)c)[i3];
+            """;
+
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
+
+            public interface I
+            {
+                [OverloadResolutionPriority(1)]
+                int this[I1 i1] { get; set; }
+                int this[I2 i2] { get; set; }
+            }
+            public class C : I
+            {
+                public int this[I1 i1]
+                {
+                    get
+                    {
+                        System.Console.Write(1);
+                        return 1;
+                    }
+                    set => System.Console.Write(2);
+                }
+                [OverloadResolutionPriority(1)]
+                public int this[I2 i2]
+                {
+                    get
+                    {
+                        System.Console.Write(3);
+                        return 1;
+                    }
+                    set => System.Console.Write(4);
+                }
+            }
+            """;
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "4321").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [useMetadataReference ? comp.ToMetadataReference() : comp.EmitToImageReference()], expectedOutput: "4321").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AppliedToIndexerGetterSetter_Source()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            public class C
+            {
+                public int this[int x]
+                {
+                    [OverloadResolutionPriority(1)]
+                    get => throw null;
+                    [OverloadResolutionPriority(1)]
+                    set => throw null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (6,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.
+            //         [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
+            // (8,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.
+            //         [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
+        );
+
+        var c = comp.GetTypeByMetadataName("C")!;
+        var indexer = c.GetMember<PropertySymbol>("this[]");
+
+        Assert.Equal(0, indexer.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority);
+    }
+
+    [Fact]
+    public void AppliedToIndexerGetterSetter_Metadata()
+    {
+        // Equivalent to:
+        // public class C
+        // {
+        //     public int this[object x]
+        //     {
+        //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        //         get => throw null;
+        //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        //         set => throw null;
+        //     }
+        //     public int this[string x]
+        //     {
+        //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        //         get { System.Console.Write(1); return 1; }
+        //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        //         set => System.Console.Write(2);
+        //     }
+        // }
+        var il = """
+            .class public auto ansi beforefieldinit C
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 00 00 00
+                )
+                .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+                    01 00 04 49 74 65 6d 00 00
+                )
+                // Methods
+                .method public hidebysig specialname 
+                    instance int32 get_Item (
+                        object x
+                    ) cil managed 
+                {
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 01 00 00 00 00 00
+                    )
+                    // Method begins at RVA 0x2050
+                    // Code size 2 (0x2)
+                    .maxstack 8
+
+                    IL_0000: ldnull
+                    IL_0001: throw
+                } // end of method C::get_Item
+
+                .method public hidebysig specialname 
+                    instance void set_Item (
+                        object x,
+                        int32 'value'
+                    ) cil managed 
+                {
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 01 00 00 00 00 00
+                    )
+                    // Method begins at RVA 0x2050
+                    // Code size 2 (0x2)
+                    .maxstack 8
+
+                    IL_0000: ldnull
+                    IL_0001: throw
+                } // end of method C::set_Item
+
+                .method public hidebysig specialname 
+                    instance int32 get_Item (
+                        string x
+                    ) cil managed 
+                {
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 01 00 00 00 00 00
+                    )
+                    // Method begins at RVA 0x2053
+                    // Code size 8 (0x8)
+                    .maxstack 8
+
+                    IL_0000: ldc.i4.1
+                    IL_0001: call void [mscorlib]System.Console::Write(int32)
+                    IL_0006: ldc.i4.1
+                    IL_0007: ret
+                } // end of method C::get_Item
+
+                .method public hidebysig specialname 
+                    instance void set_Item (
+                        string x,
+                        int32 'value'
+                    ) cil managed 
+                {
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 01 00 00 00 00 00
+                    )
+                    // Method begins at RVA 0x205c
+                    // Code size 7 (0x7)
+                    .maxstack 8
+
+                    IL_0000: ldc.i4.2
+                    IL_0001: call void [mscorlib]System.Console::Write(int32)
+                    IL_0006: ret
+                } // end of method C::set_Item
+
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    // Method begins at RVA 0x2064
+                    // Code size 7 (0x7)
+                    .maxstack 8
+
+                    IL_0000: ldarg.0
+                    IL_0001: call instance void [mscorlib]System.Object::.ctor()
+                    IL_0006: ret
+                } // end of method C::.ctor
+
+                // Properties
+                .property instance int32 Item(
+                    object x
+                )
+                {
+                    .get instance int32 C::get_Item(object)
+                    .set instance void C::set_Item(object, int32)
+                }
+                .property instance int32 Item(
+                    string x
+                )
+                {
+                    .get instance int32 C::get_Item(string)
+                    .set instance void C::set_Item(string, int32)
+                }
+            }
+
+            """;
+
+        var ilRef = CompileIL(il + OverloadResolutionPriorityAttributeILDefinition);
+
+        var source = """
+            var c = new C();
+            _ = c["test"];
+            c["test"] = 0;
+            """;
+
+        CompileAndVerify(source, references: [ilRef], expectedOutput: "12").VerifyDiagnostics();
+    }
 }

@@ -371,6 +371,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
                 {
+                    if (this is SourcePropertyAccessorSymbol)
+                    {
+                        // Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.
+                        return (null, null);
+                    }
+
                     (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
 
                     if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
@@ -640,6 +646,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+
+                if (this is SourcePropertyAccessorSymbol)
+                {
+                    // Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor, arguments.AttributeSyntaxOpt);
+                }
             }
             else
             {

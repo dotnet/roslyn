@@ -2350,5 +2350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE: Condense
         ERR_CannotApplyOverloadResolutionPriorityToOverride = 9500,
         ERR_CannotApplyOverloadResolutionPriorityToNonIndexer = 9501,
+        ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor = 9502,
     }
 }
