@@ -144,21 +144,8 @@ class Test
                 }
                 """ + AsyncStreamsTypes;
 
-            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll.WithWarningLevel(8));
+            var comp = CreateCompilationWithTasksExtensions(source);
             CompileAndVerify(comp).VerifyDiagnostics();
-
-            var expectedDiagnostics = new[]
-            {
-                // (23,17): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //                 yield return i;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(23, 17)
-            };
-
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll.WithWarningLevel(9));
-            CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
-
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll);
-            CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
@@ -208,20 +195,8 @@ class Test
                 After: False
                 """;
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithWarningLevel(8),
+            CompileAndVerify(source, options: TestOptions.ReleaseExe,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
-
-            var expectedDiagnostics = new[]
-            {
-                // (24,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //             yield return i;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(24, 13)
-            };
-
-            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithWarningLevel(9),
-                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
-
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
@@ -259,13 +234,7 @@ class Test
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //             yield return 2;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(10, 13),
-                // (20,21): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //                     yield return 4;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(20, 21));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(546081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]

@@ -4,87 +4,87 @@
     <body>
       <trans-unit id="CannotDetermineSymbol">
         <source>Cannot determine the symbol under the caret</source>
-        <target state="translated">Das Symbol unter dem Caretzeichen kann nicht ermittelt werden.</target>
+        <target state="new">Cannot determine the symbol under the caret</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotNavigateUnknown">
         <source>Cannot navigate to the requested location</source>
-        <target state="translated">Zum angeforderten Speicherort kann nicht navigiert werden.</target>
+        <target state="new">Cannot navigate to the requested location</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpDisposablesClassificationType">
         <source>F# Disposable Types</source>
-        <target state="translated">Löschbare F#-Typen</target>
+        <target state="new">F# Disposable Types</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpFunctionsOrMethodsClassificationType">
         <source>F# Functions / Methods</source>
-        <target state="translated">F#-Funktionen/-Methoden</target>
+        <target state="new">F# Functions / Methods</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpMutableVarsClassificationType">
         <source>F# Mutable Variables / Reference Cells</source>
-        <target state="translated">Veränderbare Variablen/Verweiszellen in F#</target>
+        <target state="new">F# Mutable Variables / Reference Cells</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpPrintfFormatClassificationType">
         <source>F# Printf Format</source>
-        <target state="translated">F#-Printf-Format</target>
+        <target state="new">F# Printf Format</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpPropertiesClassificationType">
         <source>F# Properties</source>
-        <target state="translated">F#-Eigenschaften</target>
+        <target state="new">F# Properties</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementInterface">
         <source>Implement interface</source>
-        <target state="translated">Schnittstelle implementieren</target>
+        <target state="new">Implement interface</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementInterfaceWithoutTypeAnnotation">
         <source>Implement interface without type annotation</source>
-        <target state="translated">Schnittstelle ohne Typanmerkung implementieren</target>
+        <target state="new">Implement interface without type annotation</target>
         <note />
       </trans-unit>
       <trans-unit id="LocatingSymbol">
         <source>Locating the symbol under the caret...</source>
-        <target state="translated">Das Symbol unter dem Caretzeichen wird gesucht...</target>
+        <target state="new">Locating the symbol under the caret...</target>
         <note />
       </trans-unit>
       <trans-unit id="NameCanBeSimplified">
         <source>Name can be simplified.</source>
-        <target state="translated">Der Name kann vereinfacht werden.</target>
+        <target state="new">Name can be simplified.</target>
         <note />
       </trans-unit>
       <trans-unit id="NavigateToFailed">
         <source>Navigate to symbol failed: {0}</source>
-        <target state="translated">Fehler beim Navigieren zu Symbol: {0}</target>
+        <target state="new">Navigate to symbol failed: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="NavigatingTo">
         <source>Navigating to symbol...</source>
-        <target state="translated">Navigieren zu Symbol...</target>
+        <target state="new">Navigating to symbol...</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnusedOpens">
         <source>Remove unused open declarations</source>
-        <target state="translated">Nicht verwendete open-Deklarationen entfernen</target>
+        <target state="new">Remove unused open declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="SimplifyName">
         <source>Simplify name</source>
-        <target state="translated">Namen vereinfachen</target>
+        <target state="new">Simplify name</target>
         <note />
       </trans-unit>
       <trans-unit id="TheValueIsUnused">
         <source>The value is unused</source>
-        <target state="translated">Der Wert wird nicht verwendet.</target>
+        <target state="new">The value is unused</target>
         <note />
       </trans-unit>
       <trans-unit id="UnusedOpens">
         <source>Open declaration can be removed.</source>
-        <target state="translated">Die open-Deklaration kann entfernt werden.</target>
+        <target state="new">Open declaration can be removed.</target>
         <note />
       </trans-unit>
     </body>
