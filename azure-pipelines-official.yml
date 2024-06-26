@@ -92,6 +92,9 @@ extends:
         enabled: false
       suppression:
         suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+      tsa:
+        enabled: true
+        configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
       name: NetCore1ESPool-Svc-Internal
       image: windows.vs2022preview.amd64
