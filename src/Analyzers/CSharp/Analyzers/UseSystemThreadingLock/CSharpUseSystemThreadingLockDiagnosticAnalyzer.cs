@@ -110,7 +110,8 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
             if (fieldSyntax.Initializer != null && !IsSystemObjectCreationExpression(fieldSyntax.Initializer.Value))
                 continue;
 
-            // Looks like something that could be converted to a lock if we see that this is used as a lock.
+            // Looks like something that could be converted to a System.Threading.Lock if we see that this field is used
+            // in a compatible fashion.
             fieldsArray.Add(field);
         }
 
