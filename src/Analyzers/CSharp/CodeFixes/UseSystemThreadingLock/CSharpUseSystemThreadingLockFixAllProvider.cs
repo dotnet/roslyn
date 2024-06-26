@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 
-internal sealed partial class CSharpUseSystemThreadingLockFixProvider
+internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider
 {
 #if !CODE_STYLE
     private sealed class CSharpUseSystemThreadingLockFixAllProvider : FixAllProvider
