@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseLock;
+namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 
 /// <summary>
 /// Looks for code of the form:

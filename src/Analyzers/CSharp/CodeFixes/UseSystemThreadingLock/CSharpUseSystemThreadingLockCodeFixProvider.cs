@@ -10,24 +10,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSystemThreadingLock), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class CSharpUseSystemThreadingLockFixProvider() : CodeFixProvider
+internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseSystemThreadingLockDiagnosticId];
-
 
     public override FixAllProvider? GetFixAllProvider()
 #if CODE_STYLE
