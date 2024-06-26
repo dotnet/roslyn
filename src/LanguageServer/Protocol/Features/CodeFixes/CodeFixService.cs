@@ -472,22 +472,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out var projectFixers))
                     {
                         Debug.Assert(!isInteractive);
-                        AddAllFixers(projectFixers, range, diagnostics);
+                        AddAllFixers(projectFixers, range, diagnostics, currentFixers, fixerToRangesAndDiagnostics);
                     }
 
                     if (hasAnySharedFixer && fixerMap!.TryGetValue(diagnosticId, out var workspaceFixers))
                     {
                         if (isInteractive)
                         {
-                            AddAllFixers(workspaceFixers.WhereAsArray(IsInteractiveCodeFixProvider), range, diagnostics);
+                            AddAllFixers(workspaceFixers.WhereAsArray(IsInteractiveCodeFixProvider), range, diagnostics, currentFixers, fixerToRangesAndDiagnostics);
                         }
                         else
                         {
-                            AddAllFixers(workspaceFixers, range, diagnostics);
+                            AddAllFixers(workspaceFixers, range, diagnostics, currentFixers, fixerToRangesAndDiagnostics);
                         }
                     }
                 }
             }
+
+            if (fixerToRangesAndDiagnostics.Count == 0)
+                yield break;
 
             // Now, sort the fixers so that the ones that are ordered before others get their chance to run first.
             var allFixers = fixerToRangesAndDiagnostics.Keys.ToImmutableArray();
@@ -580,10 +583,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             yield break;
 
-            void AddAllFixers(
+            static void AddAllFixers(
                 ImmutableArray<CodeFixProvider> fixers,
                 TextSpan range,
-                List<DiagnosticData> diagnostics)
+                List<DiagnosticData> diagnostics,
+                PooledHashSet<CodeFixProvider> currentFixers,
+                PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>> fixerToRangesAndDiagnostics)
             {
                 foreach (var fixer in fixers)
                 {

@@ -233,13 +233,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state is null)
                     return null;
 
-                var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+                var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
 
                 foreach (var order in Orderings)
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
-                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
+                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzerData);
 
                     var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
