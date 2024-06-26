@@ -994,7 +994,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
-                => new(attribute.DocumentKinds, attribute.DocumentExtensions);
+        {
+            var kinds = EnumArrayConverter.FromStringArray<TextDocumentKind>(attribute.DocumentKinds);
+
+            return new(kinds, attribute.DocumentExtensions);
+        }
 
         private sealed class FixerComparer : IComparer<CodeFixProvider>
         {
