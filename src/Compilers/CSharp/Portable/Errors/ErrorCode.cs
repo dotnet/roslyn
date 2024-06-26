@@ -2289,7 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefLocalAcrossAwait = 9217,
 
         ERR_DynamicDispatchToParamsCollection = 9218,
-        ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
+        // available 9219,
         // available 9220,
         // available 9221,
         // available 9222,
@@ -2312,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        WRN_BadYieldInLock = 9237,
+        // available 9237
         ERR_BadYieldInUnsafe = 9238,
         ERR_AddressOfInIterator = 9239,
 

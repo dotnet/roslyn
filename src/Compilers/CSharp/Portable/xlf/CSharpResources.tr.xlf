@@ -1607,11 +1607,6 @@
         <target state="translated">'Parametre null denetimi' özelliği desteklenmiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">'{0}' parametresinin dizi olmayan params koleksiyonu parametresinin genişletilmiş ve normal biçimleri arasında belirsizlik var, karşılık gelen tek bağımsız değişken 'dynamic' türüne sahip. Dinamik bağımsız değişkenin türünü dönüştürmeyi düşünün.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Oluşturucu '{0}', gerekli '{1}' üyesinin başlatmasını geri alıyor.</target>
@@ -1679,12 +1674,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">Her iki kısmi metot bildirimi 'virtual', 'override', 'sealed' ve 'new' değiştiricilerinde oluşan aynı bileşimlere sahip olmalıdır.</target>
+        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="translated">Kısmi yöntem bildirimlerinin eşleşen başvuru dönüş değerleri olmalıdır.</target>
+        <target state="new">Partial member declarations must have matching ref return values.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2029,7 +2024,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="needs-review-translation">'{0}' parametresinin 'scoped' değiştiricisi, kısmi yöntem bildirimiyle eşleşmiyor.</target>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -2710,16 +2705,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">'in' parametresine karşılık gelen bir bağımsız değişken için 'ref' değiştiricisi 'in' ile eşdeğerdir. Bunun yerine 'in' kullanmayı düşünün.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return' bir kilit deyiminin gövdesinde kullanılamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return' bir kilit deyiminin gövdesinde kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
@@ -4840,12 +4825,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">'{0}' parametre türündeki başvuru türlerinin boş değer atanabilirliği kısmi metot bildirimi ile eşleşmiyor.</target>
+        <target state="translated">'{0}' parametre türündeki başvuru türlerinin boş değer atanabilirliği kısmi metot bildirimi ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Parametre türündeki başvuru türlerinin boş değer atanabilirliği kısmi metot bildirimi ile eşleşmiyor.</target>
+        <target state="translated">Parametre türündeki başvuru türlerinin boş değer atanabilirliği kısmi metot bildirimi ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4890,12 +4875,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Dönüş türündeki başvuru türlerinin null değer atanabilirliği kısmi metot bildirimiyle eşleşmiyor.</target>
+        <target state="translated">Dönüş türündeki başvuru türlerinin null değer atanabilirliği kısmi metot bildirimiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Dönüş türündeki başvuru türlerinin null değer atanabilirliği kısmi metot bildirimiyle eşleşmiyor.</target>
+        <target state="translated">Dönüş türündeki başvuru türlerinin null değer atanabilirliği kısmi metot bildirimiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6600,7 +6585,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="needs-review-translation">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' ifadelerinden veya metot dönüş türünden hemen önce gelebilir.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8209,7 +8194,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="translated">Kısmi bir yöntem bir arabirim yöntemini açık olarak uygulayamaz</target>
+        <target state="new">A partial member may not explicitly implement an interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8244,7 +8229,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="translated">İki kısmi yöntem bildiriminin de statik olması ya da hiçbirinin statik olmaması gerekir</target>
+        <target state="new">Both partial member declarations must be static or neither may be static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

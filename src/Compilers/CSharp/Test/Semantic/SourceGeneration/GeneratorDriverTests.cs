@@ -550,6 +550,28 @@ class C { }
             Assert.Empty(results.Results);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74033")]
+        public void RunResults_Are_Empty_Before_Generation_With_Generators()
+        {
+            var generator = new SingleFileTestGenerator("public class D {}", "source.cs");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: TestOptions.Regular);
+            var results = driver.GetRunResult();
+
+            Assert.Empty(results.GeneratedTrees);
+            Assert.Empty(results.Diagnostics);
+
+            var result = Assert.Single(results.Results);
+
+            Assert.Null(result.Exception);
+            Assert.True(result.Diagnostics.IsDefault);
+            Assert.True(result.GeneratedSources.IsDefault);
+            Assert.Null(result.TrackedSteps);
+            Assert.Null(result.TrackedOutputSteps);
+            Assert.Equal(TimeSpan.Zero, result.ElapsedTime);
+            Assert.Equal(generator, result.Generator);
+        }
+
         [Fact]
         public void RunResults_Are_Available_After_Generation()
         {
@@ -4329,6 +4351,36 @@ class C { }
 
             // step didn't run because the generator was already up to date
             Assert.False(stepRan);
+        }
+
+        [Fact]
+        public void ReplaceGenerators_Initializes_New_Generators()
+        {
+            var generator1 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx => { }));
+
+            bool initWasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                initWasCalled = true;
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                });
+            }));
+
+            var compilation = CreateCompilation("class C{}");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator1 });
+            driver = driver.RunGenerators(compilation);
+            var results = driver.GetRunResult();
+            Assert.Empty(results.GeneratedTrees);
+
+            driver = driver.ReplaceGenerators([generator2]);
+            driver = driver.RunGenerators(compilation);
+
+            results = driver.GetRunResult();
+            Assert.True(initWasCalled);
+            Assert.Single(results.GeneratedTrees);
         }
     }
 }

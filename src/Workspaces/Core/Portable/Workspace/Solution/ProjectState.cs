@@ -136,6 +136,10 @@ internal partial class ProjectState
         {
             var text = await documentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var contentHash = text.GetContentHash();
+
+            // Note: It is technically possible for multiple files to have the same content hash.  However, in that case
+            // the compiler will produce an error if that content hash is referred to by an interceptor attribute.  So
+            // it's fine for us to just pick one of the documents over the other here.
             result[contentHash] = documentId;
         }
 
