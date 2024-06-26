@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void EqualityUsingKeyFileSearchPaths()
         {
             var tempDir = Temp.CreateDirectory();
-            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\test"]);
-            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\test"]);
+            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
+            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
 
             Assert.Equal(provider1, provider2);
         }
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void InequalityUsingKeyFileSearchPaths()
         {
             var tempDir = Temp.CreateDirectory();
-            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\test"]);
-            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\test2"]);
+            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
+            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path + "2"]);
 
             Assert.NotEqual(provider1, provider2);
         }
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void InequalityUsingKeyFileSearchPathsDueToCaseSensitivity()
         {
             var tempDir = Temp.CreateDirectory();
-            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\test"]);
-            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [@"c:\Test"]);
+            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
+            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path.ToUpper()]);
 
             Assert.NotEqual(provider1, provider2);
         }
