@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="AI_generated_content_may_be_inaccurate">
-        <source>AI-generated content may be inaccurate</source>
-        <target state="translated">Obsah vygenerovaný umělou inteligencí může být nepřesný.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
         <source>An error occurred while generating documentation for this code.</source>
         <target state="translated">Při generování dokumentace pro tento kód došlo k chybě.</target>

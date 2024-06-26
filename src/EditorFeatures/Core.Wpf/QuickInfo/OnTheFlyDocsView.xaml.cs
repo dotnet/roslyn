@@ -111,7 +111,6 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                         }),
                     new ThematicBreakElement(),
                     _responseControl,
-                    new ThematicBreakElement(),
                 }));
 
         ResultsRequested += (_, _) => PopulateAIDocumentationElements(_cancellationTokenSource.Token);
