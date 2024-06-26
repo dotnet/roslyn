@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         static RefKind? tryGetReadOnlyRefKind(BoundExpression expression)
                         {
-                            switch (expression.GetRefKind())
+                            switch (expression.GetRefKindEx())
                             {
                                 case RefKind.Ref:
                                 case RefKind.Out:
