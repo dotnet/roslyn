@@ -119,7 +119,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         SetupTelemetry();
 
-        this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        this.SupportsAutomaticSuggestions = !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
         // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.IsAutomaticSuggestionsEnabled)
@@ -160,7 +160,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         {
             return;
         }
-        _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken);
+        _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken).ConfigureAwait(true);
         return;
     }
 
