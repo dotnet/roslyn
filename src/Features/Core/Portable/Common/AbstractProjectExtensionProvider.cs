@@ -92,7 +92,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
 
         static bool ShouldIncludeExtension(TExtension extension, (TextDocument, Func<TExportAttribute, ExtensionInfo>) args)
         {
-            (var document, var getExtensionInfoForFiltering) = args;
+            var (document, getExtensionInfoForFiltering) = args;
             if (!s_extensionInfoMap.TryGetValue(extension, out var extensionInfo))
                 extensionInfo = GetOrCreateExtensionInfo(extension, getExtensionInfoForFiltering);
 
