@@ -1094,7 +1094,7 @@ class @true {
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74117")]
-        public void TestBug74117()
+        public void TestRecordStructName()
         {
             var text = @"
 public record struct @decimal {
