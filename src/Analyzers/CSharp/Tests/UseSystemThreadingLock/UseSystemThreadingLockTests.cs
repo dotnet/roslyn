@@ -107,6 +107,32 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
+    public async Task TestNotWithInnerYield()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    private object _gate = new object();
+
+                    IEnumerable<int> M()
+                    {
+                        lock (_gate)
+                        {
+                            yield return 0;
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotWithoutLock()
     {
         await new VerifyCS.Test
@@ -543,6 +569,44 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
+    public async Task TestWithGenericMemberAccess()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C<T>
+                {
+                    private object [|_gate|] = new object();
+
+                    void M(C<int> c)
+                    {
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C<T>
+                {
+                    private Lock _gate = new Lock();
+                
+                    void M(C<int> c)
+                    {
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithImplicitObjectCreation_InField()
     {
         await new VerifyCS.Test
@@ -629,7 +693,7 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
-    public async Task TestWithObjectCreation_InConstructor()
+    public async Task TestWithObjectCreation_InConstructor1()
     {
         await new VerifyCS.Test
         {
@@ -661,6 +725,54 @@ public sealed class UseSystemThreadingLockTests
                     public C()
                     {
                         _gate = new Lock();
+                    }
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithObjectCreation_InConstructor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|];
+
+                    public C()
+                    {
+                        this._gate = new object();
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + s_systemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate;
+                
+                    public C()
+                    {
+                        this._gate = new Lock();
                     }
                 
                     void M()

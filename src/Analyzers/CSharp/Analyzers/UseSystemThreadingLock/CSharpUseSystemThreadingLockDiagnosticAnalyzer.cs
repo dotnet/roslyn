@@ -137,6 +137,14 @@ internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInC
 
             if (fieldReferenceOperation.Parent is ILockOperation lockOperation)
             {
+                // Locking on the the new lock type disallows yielding inside the lock.  So if we see that, immediately
+                // consider this not applicable.
+                if (lockOperation.Syntax.DescendantNodesAndSelf().Any(n => n is YieldStatementSyntax))
+                {
+                    potentialLockFields.Remove(fieldReference);
+                    return;
+                }
+
                 // We did lock on this field, mark as such as its now something we'd def like to convert to a Lock if possible.
                 wasLockedSet.Add(fieldReference);
                 return;
