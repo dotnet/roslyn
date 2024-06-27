@@ -49,13 +49,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
     private readonly IAsynchronousOperationListener _asyncListener;
     private readonly Solution _baseSolution;
-    private readonly Document _triggerDocument;
     private readonly ITextView _triggerView;
     private readonly IDisposable _inlineRenameSessionDurationLogBlock;
     private readonly IThreadingContext _threadingContext;
     public readonly InlineRenameService RenameService;
-
-    internal Document TriggerDocument => _triggerDocument;
 
     private bool _dismissed;
     private bool _isApplyingEdit;
@@ -63,6 +60,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private SymbolRenameOptions _options;
     private bool _previewChanges;
     private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
+
+    /// <summary>
+    /// The original <see cref="Document"/> where rename was triggered
+    /// </summary>
+    public Document TriggerDocument { get; }
 
     /// <summary>
     /// The original <see cref="SnapshotSpan"/> for the identifier that rename was triggered on
@@ -153,8 +155,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _renameInfo = renameInfo;
 
         TriggerSpan = triggerSpan;
-        _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (_triggerDocument == null)
+        TriggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (TriggerDocument == null)
         {
             throw new InvalidOperationException(EditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
         }
@@ -185,7 +187,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _initialRenameText = triggerSpan.GetText();
         this.ReplacementText = _initialRenameText;
 
-        _baseSolution = _triggerDocument.Project.Solution;
+        _baseSolution = TriggerDocument.Project.Solution;
         this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
         FileRenameInfo = _renameInfo.GetFileRenameInfo();
@@ -829,7 +831,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                     _renameInfo.FullDisplayName,
                     _renameInfo.Glyph,
                     newSolution,
-                    _triggerDocument.Project.Solution);
+                    TriggerDocument.Project.Solution);
 
                 if (newSolution == null)
                 {
