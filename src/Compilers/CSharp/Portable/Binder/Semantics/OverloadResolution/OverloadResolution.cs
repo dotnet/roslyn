@@ -1725,7 +1725,7 @@ outerDefault:
                 case []:
                 case [_]:
                 // We only look at methods and indexers, so if this isn't one of those scenarios, we don't need to do anything.
-                case [{ Member: not (MethodSymbol or PropertySymbol { IsIndexer: true }) }, _]:
+                case [{ Member: not (MethodSymbol or PropertySymbol { IsIndexer: true }) }, _, ..]:
                     return;
             }
 
