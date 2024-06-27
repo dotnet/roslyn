@@ -1338,6 +1338,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsSpan(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                Name: "Span",
+                Arity: 1,
+                ContainingType: null,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true },
+            };
+        }
+
+        internal static bool IsReadOnlySpan(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                Name: "ReadOnlySpan",
+                Arity: 1,
+                ContainingType: null,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true },
+            };
+        }
+
         internal static bool IsSpanChar(this TypeSymbol type)
         {
             return type is NamedTypeSymbol

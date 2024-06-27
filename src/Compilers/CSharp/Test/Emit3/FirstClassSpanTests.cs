@@ -63,39 +63,27 @@ public class FirstClassSpanTests : CSharpTestBase
             //     public static string Join(string separator, params ReadOnlySpan<string> values) => "span";
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "params ReadOnlySpan<string> values").WithArguments("params collections").WithLocation(13, 49));
 
-        var expectedDiagnostics = new[]
-        {
-            // (7,65): error CS0121: The call is ambiguous between the following methods or properties: 'StringExtensions.Join(string, params string[])' and 'StringExtensions.Join(string, params ReadOnlySpan<string>)'
-            //     public static string M(StringValues sv) => StringExtensions.Join(",", sv);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Join").WithArguments("StringExtensions.Join(string, params string[])", "StringExtensions.Join(string, params System.ReadOnlySpan<string>)").WithLocation(7, 65)
-        };
+        var expectedOutput = "array";
 
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+        var expectedIl = """
+            {
+              // Code size       17 (0x11)
+              .maxstack  2
+              IL_0000:  ldstr      ","
+              IL_0005:  ldarg.0
+              IL_0006:  call       "string[] StringValues.op_Implicit(StringValues)"
+              IL_000b:  call       "string StringExtensions.Join(string, params string[])"
+              IL_0010:  ret
+            }
+            """;
 
-        // PROTOTYPE: Need to consider "implicit span conversion" in "better conversion target" for this to work.
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
 
-        //var expectedOutput = "array";
-
-        //var expectedIl = """
-        //    {
-        //      // Code size       17 (0x11)
-        //      .maxstack  2
-        //      IL_0000:  ldstr      ","
-        //      IL_0005:  ldarg.0
-        //      IL_0006:  call       "string[] StringValues.op_Implicit(StringValues)"
-        //      IL_000b:  call       "string StringExtensions.Join(string, params string[])"
-        //      IL_0010:  ret
-        //    }
-        //    """;
-
-        //var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        //var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        //verifier.VerifyIL("C.M", expectedIl);
-
-        //comp = CreateCompilationWithSpan(source);
-        //verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        //verifier.VerifyIL("C.M", expectedIl);
+        comp = CreateCompilationWithSpan(source);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
     }
 
     [Fact]
@@ -345,14 +333,86 @@ public class FirstClassSpanTests : CSharpTestBase
             using System;
             Span<int> s = arr();
             static int[] arr() => new int[] { 1, 2, 3 };
-            """;
 
-        var comp = CreateCompilationWithSpan(source);
-        comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_Array);
-        comp.VerifyDiagnostics(
-            // (2,15): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,15): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
             // Span<int> s = arr();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span`1", "op_Implicit").WithLocation(2, 15));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Implicit_DifferentOperator()
+    {
+        var source = """
+            using System;
+            Span<int> s = arr();
+            static int[] arr() => new int[] { 1, 2, 3 };
+
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                    public static implicit operator Span<T>(int[] array) => throw null;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,15): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
+            // Span<int> s = arr();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Implicit_UnrecognizedModreq()
+    {
+        /*
+            public struct Span<T>
+            {
+                public static implicit operator modreq(A) Span<T>(T[] array) => throw null;
+            }
+            public class A { }
+            public static class C
+            {
+                public static void M(Span<int> s) { }
+            }
+         */
+        var ilSource = """
+            .class public sequential ansi sealed beforefieldinit System.Span`1<T> extends System.ValueType
+            {
+                .pack 0
+                .size 1
+                .method public hidebysig specialname static valuetype System.Span`1<!T> modreq(A) op_Implicit(!T[] 'array') cil managed
+                {
+                    .maxstack 1
+                    ret
+                }
+            }
+            .class public auto ansi sealed beforefieldinit A extends System.Object
+            {
+            }
+            .class public auto ansi abstract sealed beforefieldinit C extends System.Object
+            {
+                .method public hidebysig static void M(valuetype System.Span`1<int32> s) cil managed 
+                {
+                    .maxstack 1
+                    ret
+                }
+            }
+            """;
+        var source = """
+            C.M(new int[] { 1, 2, 3 });
+            """;
+        CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+            // (1,5): error CS0570: 'Span<T>.implicit operator Span<T>(T[])' is not supported by the language
+            // C.M(new int[] { 1, 2, 3 });
+            Diagnostic(ErrorCode.ERR_BindToBogus, "new int[] { 1, 2, 3 }").WithArguments("System.Span<T>.implicit operator System.Span<T>(T[])").WithLocation(1, 5));
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -403,15 +463,65 @@ public class FirstClassSpanTests : CSharpTestBase
             """);
     }
 
-    [Fact]
-    public void Conversion_Array_Span_Implicit_SpanTwice()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_ConstantData_NotWellKnownSpan(LanguageVersion langVersion)
     {
-        static string getSpanSource(string output) => $$"""
+        var source = """
+            extern alias span;
+            C.M1(new[] { 1 });
+            C.M2(new[] { 2 });
+            static class C
+            {
+                public static void M1(span::System.Span<int> s) => System.Console.Write(s[0]);
+                public static void M2(span::System.ReadOnlySpan<int> s) => System.Console.Write(s[0]);
+            }
+            """;
+        var spanDll = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span"]);
+        var verifier = CompileAndVerify([source, SpanSource],
+            references: [spanDll],
+            expectedOutput: "12",
+            verify: Verification.Fails,
+            // warning CS0436: Type conflicts with imported type
+            options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("CS0436", ReportDiagnostic.Suppress),
+            parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  4
+              IL_0000:  ldc.i4.1
+              IL_0001:  newarr     "int"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  stelem.i4
+              IL_000a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+              IL_000f:  call       "void C.M1(System.Span<int>)"
+              IL_0014:  ldc.i4.1
+              IL_0015:  newarr     "int"
+              IL_001a:  dup
+              IL_001b:  ldc.i4.0
+              IL_001c:  ldc.i4.2
+              IL_001d:  stelem.i4
+              IL_001e:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])"
+              IL_0023:  call       "void C.M2(System.ReadOnlySpan<int>)"
+              IL_0028:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Implicit_MultipleSpans_01(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    {
+        string getSpanSource(string output) => $$"""
             namespace System
             {
-                public readonly ref struct Span<T>
+                public readonly ref struct {{type}}<T>
                 {
-                    public static implicit operator Span<T>(T[] array)
+                    public static implicit operator {{type}}<T>(T[] array)
                     {
                         Console.Write("{{output}}");
                         return default;
@@ -424,10 +534,12 @@ public class FirstClassSpanTests : CSharpTestBase
             .VerifyDiagnostics()
             .EmitToImageReference();
 
-        var source = """
+        var source = $$"""
             using System;
-            Span<int> s = arr();
+            {{type}}<int> s = arr();
+            use(s);
             static int[] arr() => new int[] { 1, 2, 3 };
+            static void use({{type}}<int> s) { }
             """;
 
         var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer");
@@ -435,17 +547,64 @@ public class FirstClassSpanTests : CSharpTestBase
         verifier.VerifyDiagnostics(
             // (2,1): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
             // Span<int> s = arr();
-            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Span<T>").WithLocation(2, 1),
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, $"{type}<int>").WithArguments("", $"System.{type}<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", $"System.{type}<T>").WithLocation(2, 1),
+            // (5,17): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+            // static void use(Span<int> s) { }
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, $"{type}<int>").WithArguments("", $"System.{type}<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", $"System.{type}<T>").WithLocation(5, 17),
             // (5,41): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
             //         public static implicit operator Span<T>(T[] array)
-            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<T>").WithArguments("", "System.Span<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Span<T>").WithLocation(5, 41));
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, $"{type}<T>").WithArguments("", $"System.{type}<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", $"System.{type}<T>").WithLocation(5, 41));
 
-        verifier.VerifyIL("<top-level-statements-entry-point>", """
+        verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "int[] Program.<<Main>$>g__arr|0_0()"
+              IL_0005:  call       "System.{{type}}<int> System.{{type}}<int>.op_Implicit(int[])"
+              IL_000a:  call       "void Program.<<Main>$>g__use|0_1(System.{{type}}<int>)"
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Implicit_MultipleSpans_02(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    {
+        string getSpanSource(string output) => $$"""
+            namespace System
+            {
+                public readonly ref struct {{type}}<T>
+                {
+                    public static implicit operator {{type}}<T>(T[] array)
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
+                }
+            }
+            """;
+
+        var spanComp = CreateCompilation(getSpanSource("External"), assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["lib"]);
+
+        var source = $$"""
+            extern alias lib;
+            lib::System.{{type}}<int> s = arr();
+            static int[] arr() => new int[] { 1, 2, 3 };
+            """;
+
+        var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "External");
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
             {
               // Code size       12 (0xc)
               .maxstack  1
               IL_0000:  call       "int[] Program.<<Main>$>g__arr|0_0()"
-              IL_0005:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+              IL_0005:  call       "System.{{type}}<int> System.{{type}}<int>.op_Implicit(int[])"
               IL_000a:  pop
               IL_000b:  ret
             }
@@ -2087,12 +2246,32 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class D
             {
-                public static void M(Span<int> xs)
+                public static void M(Span<int> xs) { }
+            }
+            """;
+
+        var missingRosHelper = """
+            namespace System
+            {
+                public readonly ref struct Span<T>
                 {
-                    foreach (var x in xs)
-                    {
-                        Console.Write(x);
-                    }
+                    public static implicit operator Span<T>(T[] array) => throw null;
+                }
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                }
+            }
+            """;
+
+        var missingSpanHelper = """
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                }
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator ReadOnlySpan<T>(T[] array) => throw null;
                 }
             }
             """;
@@ -2104,33 +2283,24 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.Span<int>").WithLocation(3, 5)
         };
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(missingRosHelper, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(missingSpanHelper, TestOptions.Regular12, expectedDiagnostics);
 
         expectedDiagnostics = [
-            // (3,5): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+            // (3,5): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
             // D.M(new C());
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.Span`1", "op_Implicit").WithLocation(3, 5)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(3, 5)
         ];
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularNext);
-        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularNext, expectedDiagnostics);
+        verifyWithMissing(missingRosHelper, TestOptions.RegularNext);
+        verifyWithMissing(missingSpanHelper, TestOptions.RegularNext, expectedDiagnostics);
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularPreview);
-        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularPreview, expectedDiagnostics);
+        verifyWithMissing(missingRosHelper, TestOptions.RegularPreview);
+        verifyWithMissing(missingSpanHelper, TestOptions.RegularPreview, expectedDiagnostics);
 
-        void verifyWithMissing(WellKnownMember member, CSharpParseOptions parseOptions, params DiagnosticDescription[] expected)
+        void verifyWithMissing(string source2, CSharpParseOptions parseOptions, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithSpan(source, parseOptions: parseOptions);
-            comp.MakeMemberMissing(member);
-            if (expected.Length == 0)
-            {
-                CompileAndVerify(comp, expectedOutput: "456").VerifyDiagnostics();
-            }
-            else
-            {
-                comp.VerifyDiagnostics(expected);
-            }
+            CreateCompilation([source, source2], parseOptions: parseOptions).VerifyDiagnostics(expected);
         }
     }
 
@@ -2149,12 +2319,32 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class D
             {
-                public static void M(ReadOnlySpan<int> xs)
+                public static void M(ReadOnlySpan<int> xs) { }
+            }
+            """;
+
+        var missingRosHelper = """
+            namespace System
+            {
+                public readonly ref struct Span<T>
                 {
-                    foreach (var x in xs)
-                    {
-                        Console.Write(x);
-                    }
+                    public static implicit operator Span<T>(T[] array) => throw null;
+                }
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                }
+            }
+            """;
+
+        var missingSpanHelper = """
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                }
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator ReadOnlySpan<T>(T[] array) => throw null;
                 }
             }
             """;
@@ -2166,33 +2356,24 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.ReadOnlySpan<int>").WithLocation(3, 5)
         };
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(missingRosHelper, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(missingSpanHelper, TestOptions.Regular12, expectedDiagnostics);
 
         expectedDiagnostics = [
-            // (3,5): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.op_Implicit'
+            // (3,5): error CS0656: Missing compiler required member 'System.ReadOnlySpan<T>.op_Implicit'
             // D.M(new C());
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.ReadOnlySpan`1", "op_Implicit").WithLocation(3, 5)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.ReadOnlySpan<T>", "op_Implicit").WithLocation(3, 5)
         ];
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularNext, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularNext);
+        verifyWithMissing(missingRosHelper, TestOptions.RegularNext, expectedDiagnostics);
+        verifyWithMissing(missingSpanHelper, TestOptions.RegularNext);
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularPreview, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularPreview);
+        verifyWithMissing(missingRosHelper, TestOptions.RegularPreview, expectedDiagnostics);
+        verifyWithMissing(missingSpanHelper, TestOptions.RegularPreview);
 
-        void verifyWithMissing(WellKnownMember member, CSharpParseOptions parseOptions, params DiagnosticDescription[] expected)
+        void verifyWithMissing(string source2, CSharpParseOptions parseOptions, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithSpan(source, parseOptions: parseOptions);
-            comp.MakeMemberMissing(member);
-            if (expected.Length == 0)
-            {
-                CompileAndVerify(comp, expectedOutput: "456").VerifyDiagnostics();
-            }
-            else
-            {
-                comp.VerifyDiagnostics(expected);
-            }
+            CreateCompilation([source, source2], parseOptions: parseOptions).VerifyDiagnostics(expected);
         }
     }
 
@@ -2313,15 +2494,20 @@ public class FirstClassSpanTests : CSharpTestBase
             static class C
             {
                 public static void M(int[] arg) => arg.E();
-                public static void E(this Span<int> arg) => Console.Write(arg[1]);
+                public static void E(this Span<int> arg) { }
+            }
+            
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                }
             }
             """;
-        var comp = CreateCompilationWithSpan(source);
-        comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_Array);
-        comp.VerifyDiagnostics(
-            // (7,40): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,40): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
             //     public static void M(int[] arg) => arg.E();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arg").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 40));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arg").WithArguments("System.Span<T>", "op_Implicit").WithLocation(7, 40));
     }
 
     [Fact]
@@ -2424,6 +2610,23 @@ public class FirstClassSpanTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
         var info = model.GetSymbolInfo(invocation);
         Assert.Equal("void System.Span<System.Int32>.E<System.Int32>(System.Int32 x)", info.Symbol!.ToTestDisplayString());
+
+        var methodSymbol = (IMethodSymbol)info.Symbol!;
+        var spanType = methodSymbol.ReceiverType!;
+        Assert.Equal("System.Span<System.Int32>", spanType.ToTestDisplayString());
+
+        // Reduce the extension method with Span receiver.
+        var unreducedSymbol = methodSymbol.ReducedFrom!;
+        var reduced = unreducedSymbol.ReduceExtensionMethod(spanType);
+        Assert.Equal(methodSymbol, reduced);
+
+        var arrayType = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol().Parameters.Single().Type;
+        Assert.Equal("System.Int32[]", arrayType.ToTestDisplayString());
+
+        // Reduce the extension method with array receiver.
+        // PROTOTYPE: This needs type inference to work.
+        reduced = unreducedSymbol.ReduceExtensionMethod(arrayType);
+        Assert.Null(reduced);
     }
 
     [Fact]
@@ -2458,6 +2661,122 @@ public class FirstClassSpanTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
         var info = model.GetSymbolInfo(invocation);
         Assert.Equal("void System.Span<System.Int32>.E<System.Int32>(System.Int32 x)", info.Symbol!.ToTestDisplayString());
+
+        var methodSymbol = (IMethodSymbol)info.Symbol!;
+        var spanType = methodSymbol.ReceiverType!;
+        Assert.Equal("System.Span<System.Int32>", spanType.ToTestDisplayString());
+
+        // Reduce the extension method with Span receiver.
+        var unreducedSymbol = methodSymbol.ReducedFrom!;
+        var reduced = unreducedSymbol.ReduceExtensionMethod(spanType);
+        Assert.Equal(methodSymbol, reduced);
+
+        var arrayType = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol().Parameters.Single().Type;
+        Assert.Equal("System.Int32[]", arrayType.ToTestDisplayString());
+
+        // Reduce the extension method with array receiver.
+        // PROTOTYPE: This needs type inference to work.
+        reduced = unreducedSymbol.ReduceExtensionMethod(arrayType);
+        Assert.Null(reduced);
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_Generic_05()
+    {
+        var source = """
+            using System;
+            static class C
+            {
+                public static void M(int[] arg) => arg.E("abc");
+                public static void E<T>(this Span<int> arg, T x) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+              IL_0006:  ldstr      "abc"
+              IL_000b:  call       "void C.E<string>(System.Span<int>, string)"
+              IL_0010:  ret
+            }
+            """);
+
+        var tree = comp.SyntaxTrees.Single();
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        Assert.Equal("""arg.E("abc")""", invocation.ToString());
+
+        var model = comp.GetSemanticModel(tree);
+        var info = model.GetSymbolInfo(invocation);
+        Assert.Equal("void System.Span<System.Int32>.E<System.String>(System.String x)", info.Symbol!.ToTestDisplayString());
+
+        var methodSymbol = (IMethodSymbol)info.Symbol!;
+        var spanType = methodSymbol.ReceiverType!;
+        Assert.Equal("System.Span<System.Int32>", spanType.ToTestDisplayString());
+
+        // Reduce the extension method with Span receiver.
+        var unreducedSymbol = methodSymbol.ReducedFrom!;
+        var reduced = unreducedSymbol.ReduceExtensionMethod(spanType);
+        Assert.Equal("void System.Span<System.Int32>.E<T>(T x)", reduced.ToTestDisplayString());
+
+        var arrayType = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol().Parameters.Single().Type;
+        Assert.Equal("System.Int32[]", arrayType.ToTestDisplayString());
+
+        // Reduce the extension method with array receiver.
+        reduced = unreducedSymbol.ReduceExtensionMethod(arrayType);
+        Assert.Equal("void System.Span<System.Int32>.E<T>(T x)", reduced.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_Reduced_01()
+    {
+        var source = """
+            using System;
+            static class C
+            {
+                public static void M(int[] arg) => arg.E();
+                public static void E(this Span<int> arg) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+              IL_0006:  call       "void C.E(System.Span<int>)"
+              IL_000b:  ret
+            }
+            """);
+
+        var tree = comp.SyntaxTrees.Single();
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        Assert.Equal("arg.E()", invocation.ToString());
+
+        var model = comp.GetSemanticModel(tree);
+        var info = model.GetSymbolInfo(invocation);
+        Assert.Equal("void System.Span<System.Int32>.E()", info.Symbol!.ToTestDisplayString());
+
+        var methodSymbol = (IMethodSymbol)info.Symbol!;
+        var spanType = methodSymbol.ReceiverType!;
+        Assert.Equal("System.Span<System.Int32>", spanType.ToTestDisplayString());
+
+        // Reduce the extension method with Span receiver.
+        var unreducedSymbol = methodSymbol.ReducedFrom!;
+        var reduced = unreducedSymbol.ReduceExtensionMethod(spanType);
+        Assert.Equal("void System.Span<System.Int32>.E()", reduced.ToTestDisplayString());
+
+        var arrayType = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol().Parameters.Single().Type;
+        Assert.Equal("System.Int32[]", arrayType.ToTestDisplayString());
+
+        // Reduce the extension method with array receiver.
+        reduced = unreducedSymbol.ReduceExtensionMethod(arrayType);
+        Assert.Equal("void System.Span<System.Int32>.E()", reduced.ToTestDisplayString());
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2875,8 +3194,8 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "aa rSystem.Object[] ra ra").VerifyDiagnostics();
     }
 
-    [Fact]
-    public void OverloadResolution_ReadOnlySpanVsArray_05()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_05(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2890,23 +3209,8 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(ReadOnlySpan<object> x) => Console.Write(2);
             }
             """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
-
-        // PROTOTYPE: Need to consider "implicit span conversion" in "better conversion target" for this to work.
-
-        var expectedDiagnostics = new[]
-        {
-            // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(object[])' and 'C.M(ReadOnlySpan<object>)'
-            // C.M(null);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(object[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(3, 3),
-            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(object[])' and 'C.M(ReadOnlySpan<object>)'
-            // C.M(default);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(object[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(4, 3)
-        };
-
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -3017,16 +3321,8 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(params ReadOnlySpan<object> x) => Console.Write(2);
             }
             """;
-
-        // PROTOTYPE: Need to consider "implicit span conversion" in "better conversion target" for this to work.
-
-        CreateCompilationWithSpan(source).VerifyDiagnostics(
-            // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(params ReadOnlySpan<object>)'
-            // C.M(null);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params object[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(3, 3),
-            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(params ReadOnlySpan<object>)'
-            // C.M(default);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params object[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(4, 3));
+        var comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
