@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 ForImplicitVariableTypes = globalOptions.GetOption(ForImplicitVariableTypes, language),
                 ForLambdaParameterTypes = globalOptions.GetOption(ForLambdaParameterTypes, language),
                 ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
+                ForCollectionExpressions = globalOptions.GetOption(ForCollectionExpressions, language),
             };
 
         // Note: inlay hints is the term used in LSP, we Want to use the LSP name when communicate with the LSP client.
@@ -104,6 +105,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public static readonly PerLanguageOption2<bool> ForImplicitObjectCreation =
             new("csharp_enable_inlay_hints_for_implicit_object_creation",
                 defaultValue: InlineTypeHintsOptions.Default.ForImplicitObjectCreation,
+                group: s_inlayHintOptionGroup);
+
+        public static readonly PerLanguageOption2<bool> ForCollectionExpressions =
+            new("csharp_enable_inlay_hints_for_collection_expressions",
+                defaultValue: InlineTypeHintsOptions.Default.ForCollectionExpressions,
                 group: s_inlayHintOptionGroup);
     }
 }

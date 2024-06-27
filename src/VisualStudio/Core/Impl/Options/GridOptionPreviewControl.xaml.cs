@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
-        private readonly ImmutableArray<(string feature, ImmutableArray<IOption2> options)> _groupedEditorConfigOptions;
+        private readonly IEnumerable<(string feature, ImmutableArray<IOption2> options)> _groupedEditorConfigOptions;
         private readonly string _language;
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
@@ -41,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             OptionStore optionStore,
             Func<OptionStore, IServiceProvider,
             AbstractOptionPreviewViewModel> createViewModel,
-            ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedEditorConfigOptions,
+            IEnumerable<(string feature, ImmutableArray<IOption2> options)> groupedEditorConfigOptions,
             string language)
             : base(optionStore)
         {

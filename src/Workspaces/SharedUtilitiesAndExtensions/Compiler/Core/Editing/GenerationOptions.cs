@@ -24,5 +24,8 @@ internal class GenerationOptions
         group: CodeStyleOptionGroups.Usings,
         isEditorConfigOption: true);
 
-    public static readonly ImmutableArray<IOption2> AllOptions = [PlaceSystemNamespaceFirst, SeparateImportDirectiveGroups];
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    public static readonly ImmutableArray<IOption2> EditorConfigOptions = [PlaceSystemNamespaceFirst, SeparateImportDirectiveGroups];
 }

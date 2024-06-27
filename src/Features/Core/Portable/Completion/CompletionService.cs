@@ -214,14 +214,14 @@ public abstract partial class CompletionService : ILanguageService
 
         var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
 
-        // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-        (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+        document = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+
         var description = await extensionManager.PerformFunctionAsync(
             provider,
             cancellationToken => provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken),
             defaultValue: null,
             cancellationToken).ConfigureAwait(false);
-        GC.KeepAlive(semanticModel);
+
         return description;
     }
 
@@ -245,8 +245,7 @@ public abstract partial class CompletionService : ILanguageService
         {
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
 
-            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+            document = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = await extensionManager.PerformFunctionAsync(
                 provider,
@@ -256,7 +255,6 @@ public abstract partial class CompletionService : ILanguageService
             if (change == null)
                 return CompletionChange.Create(new TextChange(new TextSpan(), ""));
 
-            GC.KeepAlive(semanticModel);
             Debug.Assert(item.Span == change.TextChange.Span || item.IsComplexTextEdit);
             return change;
         }

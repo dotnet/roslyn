@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Options;
 internal static partial class EditorConfigFileGenerator
 {
     public static string Generate(
-        ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedOptions,
+        IEnumerable<(string feature, ImmutableArray<IOption2> options)> groupedOptions,
         IOptionsReader configOptions,
         string language)
     {
