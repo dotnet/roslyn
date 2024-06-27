@@ -385,12 +385,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
                 return null;
             }
 
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (model is null)
-            {
-                return null;
-            }
-
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root is null)
             {
