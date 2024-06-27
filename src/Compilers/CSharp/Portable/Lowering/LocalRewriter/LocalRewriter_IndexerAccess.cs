@@ -108,21 +108,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            BoundIndexerAccess? oldNodeOpt,
+            BoundExpression oldNode,
             bool isLeftOfAssignment)
         {
+            Debug.Assert(oldNode is BoundIndexerAccess or BoundObjectInitializerMember);
+
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
                 TypeSymbol type = indexer.Type;
-                Debug.Assert(oldNodeOpt?.Type.Equals(type, TypeCompareKind.ConsiderEverything) != false);
-                Debug.Assert(oldNodeOpt is null || oldNodeOpt.AccessorKind == AccessorKind.Set);
+                Debug.Assert(oldNode.Type is not null);
+                Debug.Assert(oldNode.Type.Equals(type, TypeCompareKind.ConsiderEverything) != false);
 
-                // This is an indexer set access. We return a BoundIndexerAccess node here.
-                // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
-
-                return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, AccessorKind.Set, argsToParamsOpt, defaultArguments, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, AccessorKind.Set, argsToParamsOpt, defaultArguments, type);
+                // This is an indexer access. We return a BoundIndexerAccess node here. This node will be rewritten
+                // with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
+                return oldNode switch
+                {
+                    BoundIndexerAccess indexerExpr => indexerExpr.Update(
+                        rewrittenReceiver,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        indexer,
+                        arguments,
+                        argumentNamesOpt,
+                        argumentRefKindsOpt,
+                        expanded,
+                        indexerExpr.AccessorKind,
+                        argsToParamsOpt,
+                        defaultArguments,
+                        type),
+                    BoundObjectInitializerMember member => new BoundIndexerAccess(
+                        syntax,
+                        rewrittenReceiver,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        indexer,
+                        arguments,
+                        argumentNamesOpt,
+                        argumentRefKindsOpt,
+                        expanded,
+                        member.AccessorKind,
+                        argsToParamsOpt,
+                        defaultArguments,
+                        type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(oldNode)
+                };
             }
             else
             {

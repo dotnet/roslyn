@@ -5769,6 +5769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt = default;
             BitVector defaultArguments = default;
             bool expanded = false;
+            AccessorKind accessorKind = AccessorKind.Unknown;
 
             switch (boundMemberKind)
             {
@@ -5807,6 +5808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
                         defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
+                        accessorKind = indexer.AccessorKind;
 
                         // If any of the arguments is an interpolated string handler that takes the receiver as an argument for creation,
                         // we disallow this. During lowering, indexer arguments are evaluated before the receiver for this scenario, and
@@ -5883,6 +5885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 defaultArguments,
                 resultKind,
+                accessorKind,
                 implicitReceiver.Type,
                 type: boundMember.Type,
                 hasErrors: hasErrors);

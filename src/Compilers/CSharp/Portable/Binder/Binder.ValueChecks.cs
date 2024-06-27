@@ -111,17 +111,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.UnexpectedValue(symbol);
             }
 
-            internal static MethodInfo Create(BoundIndexerAccess expr)
-            {
-                var symbol = expr.Indexer;
-                return expr.AccessorKind switch
+            internal static MethodInfo Create(PropertySymbol property, AccessorKind accessorKind) =>
+                accessorKind switch
                 {
-                    AccessorKind.Get => new MethodInfo(symbol, symbol.GetOwnOrInheritedGetMethod(), null),
-                    AccessorKind.Set => new MethodInfo(symbol, symbol.GetOwnOrInheritedSetMethod(), null),
-                    AccessorKind.Both => new MethodInfo(symbol, symbol.GetOwnOrInheritedGetMethod(), symbol.GetOwnOrInheritedSetMethod()),
-                    _ => throw ExceptionUtilities.UnexpectedValue(expr.AccessorKind),
+                    AccessorKind.Get => new MethodInfo(property, property.GetOwnOrInheritedGetMethod(), setMethod: null),
+                    AccessorKind.Set => new MethodInfo(property, property.GetOwnOrInheritedSetMethod(), setMethod: null),
+                    AccessorKind.Both => new MethodInfo(property, property.GetOwnOrInheritedGetMethod(), property.GetOwnOrInheritedSetMethod()),
+                    _ => throw ExceptionUtilities.UnexpectedValue(accessorKind),
                 };
-            }
+
+            internal static MethodInfo Create(BoundIndexerAccess expr) =>
+                Create(expr.Indexer, expr.AccessorKind);
+
+            public override string? ToString() => Method?.ToString();
         }
 
         /// <summary>
@@ -2044,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check receiver if ref-like
-            if (receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
+            if (methodInfo.Method?.RequiresInstanceReceiver == true && receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
             {
                 escapeScope = Math.Max(escapeScope, GetValEscape(receiver, scopeOfTheContainingExpression));
             }
@@ -4599,14 +4601,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = CallingMethodScope;
             foreach (var expr in initExpr.Initializers)
             {
-                var exprResult = GetValEscapeOfObjectInitializer(initExpr, expr, scopeOfTheContainingExpression);
+                var exprResult = GetValEscapeOfObjectMemberInitializer(expr, scopeOfTheContainingExpression);
                 result = Math.Max(result, exprResult);
             }
 
             return result;
         }
 
-        private uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, BoundExpression expr, uint scopeOfTheContainingExpression)
+        /// <summary>
+        /// 
+        /// </summary>
+        private uint GetValEscapeOfObjectMemberInitializer(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
             uint result;
             if (expr.Kind == BoundKind.AssignmentOperator)
@@ -4620,11 +4625,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var left = (BoundObjectInitializerMember)assignment.Left;
                 if (left.MemberSymbol is PropertySymbol { IsIndexer: true } property)
                 {
-                    MethodSymbol? accessor = property.RefKind != RefKind.None
-                        ? property.GetOwnOrInheritedGetMethod()
-                        : property.GetOwnOrInheritedSetMethod();
-
-                    MethodInfo methodInfo = MethodInfo.Create(property, accessor);
+                    Debug.Assert(left.AccessorKind != AccessorKind.Unknown);
+                    MethodInfo methodInfo = MethodInfo.Create(property, left.AccessorKind);
                     leftEscape = getIndexerEscape(methodInfo, left, rightEscape);
                 }
                 else
@@ -5553,7 +5555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var expr in initExpr.Initializers)
             {
-                if (GetValEscapeOfObjectInitializer(initExpr, expr, escapeFrom) > escapeTo)
+                if (GetValEscapeOfObjectMemberInitializer(expr, escapeFrom) > escapeTo)
                 {
                     Error(diagnostics, _inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, initExpr.Syntax, expr.Syntax);
                     return false;
