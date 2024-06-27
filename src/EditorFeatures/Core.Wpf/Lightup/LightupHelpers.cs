@@ -442,7 +442,6 @@ internal static class LightupHelpers
         return expression.Compile();
     }
 
-
     private static string GenerateParameterName(Type parameterType)
     {
         var typeName = parameterType.Name;

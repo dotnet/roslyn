@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
 
                     var kind = token.Kind();
 
-                    bool isInterestingKind =
+                    var isInterestingKind =
                         kind is SyntaxKind.IdentifierToken ||
                         kind is SyntaxKind.BaseKeyword ||
                         kind is SyntaxKind.ThisKeyword;
