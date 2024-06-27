@@ -57,6 +57,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
     public bool IsUsingResultPanel { get; set; }
     public bool IsUsingDropdown { get; set; }
+    public bool IsUsingContext { get; }
 
     private string? _selectedSuggestedName;
 
@@ -131,6 +132,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
 
         var getSuggestionsAutomatically = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        IsUsingContext = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsContext);
         IsUsingResultPanel = getSuggestionsAutomatically;
         IsUsingDropdown = !IsUsingResultPanel;
         SetupTelemetry();
@@ -163,19 +165,27 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private async Task GetSuggestionsTaskAsync(CancellationToken cancellationToken)
     {
-        var document = this.BaseViewModel.Session.TriggerDocument;
-        _ = document.GetLanguageService<IGoToDefinitionSymbolService>();
-        var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-        var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
-            .ConfigureAwait(true);
-        var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
-            .ConfigureAwait(true);
-        var smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
-            context
-            .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
+        if (IsUsingContext)
+        {
+            var document = this.BaseViewModel.Session.TriggerDocument;
+            _ = document.GetLanguageService<IGoToDefinitionSymbolService>();
+            var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+            var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+                .ConfigureAwait(true);
+            var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
+                .ConfigureAwait(true);
+            var smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
+                context
+                .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
 
-        _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
-            .ConfigureAwait(true);
+            _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
+                .ConfigureAwait(true);
+        }
+        else
+        {
+            _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken)
+                .ConfigureAwait(true);
+        }
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
