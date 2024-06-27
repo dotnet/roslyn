@@ -977,7 +977,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         var attrs = ctors.SelectAsArray(ctor => ctor.GetAttributes());
 
         Assert.Empty(attrs[0]);
-        AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Object priority)",
+        AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Int32 priority)",
             attrs[1].Single().AttributeConstructor.ToTestDisplayString());
 
         verifier.VerifyIL("System.Runtime.CompilerServices.C.Test()", """
