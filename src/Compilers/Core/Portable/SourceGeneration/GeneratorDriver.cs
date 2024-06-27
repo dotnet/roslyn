@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero, parseOptionsChanged: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero);
         }
 
         // 4.11 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis
         public GeneratorDriver ReplaceAdditionalTexts(ImmutableArray<AdditionalText> newTexts) => FromState(_state.With(additionalTexts: newTexts));
 
         public GeneratorDriver WithUpdatedParseOptions(ParseOptions newOptions) => newOptions is object
-                                                                                   ? FromState(_state.With(parseOptions: newOptions, parseOptionsChanged: true))
+                                                                                   ? FromState(_state.With(parseOptions: newOptions))
                                                                                    : throw new ArgumentNullException(nameof(newOptions));
 
         public GeneratorDriver WithUpdatedAnalyzerConfigOptions(AnalyzerConfigOptionsProvider newOptions) => newOptions is object
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed, parseOptionsChanged: false);
+            state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
             return state;
 
             static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)

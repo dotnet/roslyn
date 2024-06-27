@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis
                                       DriverStateTable stateTable,
                                       SyntaxStore syntaxStore,
                                       GeneratorDriverOptions driverOptions,
-                                      TimeSpan runtime,
-                                      bool parseOptionsChanged)
+                                      TimeSpan runtime)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -35,7 +34,6 @@ namespace Microsoft.CodeAnalysis
             DisabledOutputs = driverOptions.DisabledOutputs;
             TrackIncrementalSteps = driverOptions.TrackIncrementalGeneratorSteps;
             RunTime = runtime;
-            ParseOptionsChanged = parseOptionsChanged;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -118,8 +116,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxStore? syntaxStore = null,
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
-            TimeSpan? runTime = null,
-            bool? parseOptionsChanged = null)
+            TimeSpan? runTime = null)
         {
             return new GeneratorDriverState(
                 parseOptions ?? this.ParseOptions,
@@ -131,8 +128,7 @@ namespace Microsoft.CodeAnalysis
                 stateTable ?? this.StateTable,
                 syntaxStore ?? this.SyntaxStore,
                 this._driverOptions,
-                runTime ?? this.RunTime,
-                parseOptionsChanged ?? this.ParseOptionsChanged
+                runTime ?? this.RunTime
                 );
         }
     }
