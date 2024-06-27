@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
@@ -45,10 +44,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// The full name for this member access expression will require a cast to the declaring type.
         /// </summary>
         RequiresExplicitCast = 1 << 4,
-        /// <summary>
-        /// The member is compiler generated. It has no full name.
-        /// </summary>
-        IsCompilerGenerated = 1 << 5,
     }
 
     internal static class DeclarationInfoExtensions
