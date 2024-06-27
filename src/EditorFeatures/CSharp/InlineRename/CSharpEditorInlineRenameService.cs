@@ -91,15 +91,15 @@ internal sealed class CSharpEditorInlineRenameService(
         var contextBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>();
         if (!definitions.IsEmpty)
         {
-            contextBuilder.Add("definition", definitions.ToImmutableAndFree());
+            contextBuilder.Add("definition", definitions.ToImmutable());
         }
         if (!references.IsEmpty)
         {
-            contextBuilder.Add("reference", references.ToImmutableAndFree());
+            contextBuilder.Add("reference", references.ToImmutable());
         }
         if (!docComments.IsEmpty)
         {
-            contextBuilder.Add("documentation", docComments.ToImmutableAndFree());
+            contextBuilder.Add("documentation", docComments.ToImmutable());
         }
 
         return contextBuilder.ToImmutableDictionary();
