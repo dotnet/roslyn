@@ -3163,8 +3163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
-
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
@@ -7556,8 +7554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundLeft != null);
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
-
-            ReportFieldOrValueContextualKeywordConflictIfAny(right, right.Identifier, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
 

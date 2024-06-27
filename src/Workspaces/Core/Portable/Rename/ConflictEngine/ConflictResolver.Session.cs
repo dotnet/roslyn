@@ -505,9 +505,13 @@ internal static partial class ConflictResolver
         private IEnumerable<(SyntaxNodeOrToken syntax, RenameActionAnnotation annotation)> GetNodesOrTokensToCheckForConflicts(
             SyntaxNode syntaxRoot)
         {
-            return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
-                .Where(_renameAnnotations.HasAnnotations<RenameActionAnnotation>)
-                .Select(s => (s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
+            foreach (var nodeOrToken in syntaxRoot.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind))
+            {
+                var annotation = _renameAnnotations.GetAnnotations<RenameActionAnnotation>(nodeOrToken).FirstOrDefault();
+
+                if (annotation != null)
+                    yield return (nodeOrToken, annotation);
+            }
         }
 
         private async Task<bool> CheckForConflictAsync(

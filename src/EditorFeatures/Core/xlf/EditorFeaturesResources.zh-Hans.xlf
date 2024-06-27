@@ -637,6 +637,11 @@
         <target state="translated">将解决 {0} 个冲突</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="new">'{0}' declarations and interceptors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">“{0}”个实现的成员</target>

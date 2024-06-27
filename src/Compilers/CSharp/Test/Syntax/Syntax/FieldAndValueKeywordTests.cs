@@ -281,13 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                comp.VerifyEmitDiagnostics(
-                    // (14,21): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //         add { _ = C.value ?? C.@value; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(14, 21),
-                    // (15,36): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //         remove { _ = C.@value ?? C.value; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(15, 36));
+                comp.VerifyEmitDiagnostics();
             }
         }
 
@@ -674,15 +668,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,27): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { _ = from field in new int[0] select field; return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "from field in new int[0]").WithArguments("field", "preview").WithLocation(4, 27),
                     // (4,59): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //     object P1 { get { _ = from field in new int[0] select field; return null; } }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 59),
-                    // (6,27): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { _ = from value in new int[0] select value; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "from value in new int[0]").WithArguments("value", "preview").WithLocation(6, 27),
                     // (6,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from value in new int[0] select value; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 32),
@@ -804,15 +792,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,48): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "join field in new int[0] on x equals field").WithArguments("field", "preview").WithLocation(4, 48),
                     // (4,85): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 85),
-                    // (6,48): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "join value in new int[0] on x equals value").WithArguments("value", "preview").WithLocation(6, 48),
                     // (6,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 53),
@@ -825,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Theory]
+    [Theory]
         [CombinatorialData]
         public void IdentifierToken_JoinIntoClauseSyntax(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
@@ -869,15 +851,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,83): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "into field").WithArguments("field", "preview").WithLocation(4, 83),
                     // (4,101): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 101),
-                    // (6,83): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "into value").WithArguments("value", "preview").WithLocation(6, 83),
                     // (6,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 88),
@@ -934,15 +910,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,57): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "into field select field").WithArguments("field", "preview").WithLocation(4, 57),
                     // (4,75): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 75),
-                    // (6,57): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "into value select value").WithArguments("value", "preview").WithLocation(6, 57),
                     // (6,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
                     //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
                     Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 62),
@@ -996,12 +966,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { object field() => null; return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object field() => null;").WithArguments("field", "preview").WithLocation(4, 23),
-                    // (6,23): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { void value() { } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "void value() { }").WithArguments("value", "preview").WithLocation(6, 23),
                     // (6,28): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P3 { set { void value() { } } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(6, 28),
@@ -1052,15 +1016,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,27): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { int field = 0; return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field = 0").WithArguments("field", "preview").WithLocation(4, 27),
                     // (6,27): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P3 { set { int value = 0; } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(6, 27),
-                    // (6,27): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { int value = 0; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value = 0").WithArguments("value", "preview").WithLocation(6, 27),
                     // (7,27): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P4 { set { int @value = 0; } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(7, 27));
@@ -1086,15 +1044,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (4,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { F(out var field); return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 33),
                 // (6,33): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //     object P3 { set { F(out var value); } }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(6, 33),
-                // (6,33): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { F(out var value); } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 33),
                 // (7,33): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //     object P4 { set { F(out var @value); } }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(7, 33));
@@ -1160,12 +1112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (3,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { foreach (var field in new int[0]) { } return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "foreach (var field in new int[0]) { }").WithArguments("field", "preview").WithLocation(3, 23),
-                // (5,23): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { foreach (var value in new int[0]) { } } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "foreach (var value in new int[0]) { }").WithArguments("value", "preview").WithLocation(5, 23),
                 // (5,36): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //     object P3 { set { foreach (var value in new int[0]) { } } }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(5, 36),
@@ -1188,18 +1134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (3,37): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 37),
                 // (3,44): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(3, 44),
                 // (4,45): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(4, 45),
-                // (4,45): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(4, 45));
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(4, 45));
         }
 
         [Theory]
@@ -1244,12 +1184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,37): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { try { } catch (Exception field) { } return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "(Exception field)").WithArguments("field", "preview").WithLocation(5, 37),
-                    // (7,37): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { try { } catch (Exception value) { } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "(Exception value)").WithArguments("value", "preview").WithLocation(7, 37),
                     // (7,48): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P3 { set { try { } catch (Exception value) { } } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(7, 48),
@@ -1341,15 +1275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { object F1(object field) => field; return null; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object field").WithArguments("field", "preview").WithLocation(4, 33),
                     // (4,50): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //     object P1 { get { object F1(object field) => field; return null; } }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 50),
-                    // (6,33): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //     object P3 { set { object F3(object value) { return value; } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object value").WithArguments("value", "preview").WithLocation(6, 33),
                     // (6,56): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
                     //     object P3 { set { object F3(object value) { return value; } } }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 56));
@@ -1490,13 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (12,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //             f = () => field;
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 23),
-                    // (14,25): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //             f = () => C.field;
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(14, 25),
-                    // (17,25): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //             f = () => C.value;
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(17, 25));
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 23));
             }
         }
 
@@ -1552,13 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (10,28): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //             object F1() => field;
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 28),
-                    // (12,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //             object F3() => C.field;
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 30),
-                    // (15,36): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //             object G2() { return C.value; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(15, 36));
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 28));
             }
         }
 
@@ -1589,13 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics(
-                // (10,32): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             f = () => { object field = 1; return null; };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field = 1").WithArguments("field", "preview").WithLocation(10, 32),
-                // (17,32): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             a = () => { object value = 1; };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value = 1").WithArguments("value", "preview").WithLocation(17, 32));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1625,13 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics(
-                // (10,17): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             f = field => null;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 17),
-                // (17,17): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             a = value => { };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(17, 17));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1654,13 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics(
-                // (10,18): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             a = (field, @value) => { };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 18),
-                // (11,26): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             a = (@field, value) => { };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(11, 26));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1683,13 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics(
-                // (10,27): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             a = delegate (object field, object @value) { };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object field").WithArguments("field", "preview").WithLocation(10, 27),
-                // (11,42): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             a = delegate (object @field, object value) { };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object value").WithArguments("value", "preview").WithLocation(11, 42));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1716,13 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics(
-                // (8,34): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             object F1() { object field = 1; return null; };
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field = 1").WithArguments("field", "preview").WithLocation(8, 34),
-                // (14,32): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             void G1() { object value = 1; }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value = 1").WithArguments("value", "preview").WithLocation(14, 32));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1749,13 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics(
-                // (8,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             object F1(object field) => null;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object field").WithArguments("field", "preview").WithLocation(8, 23),
-                // (14,21): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             void G1(object value) { }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object value").WithArguments("value", "preview").WithLocation(14, 21));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]

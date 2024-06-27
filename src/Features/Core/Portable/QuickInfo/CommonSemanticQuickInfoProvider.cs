@@ -165,7 +165,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var symbols = tokenInformation.Symbols;
 
         // if generating quick info for an attribute, prefer bind to the class instead of the constructor
-        if (syntaxFactsService.IsAttributeName(token.Parent!))
+        if (syntaxFactsService.IsNameOfAttribute(token.Parent!))
         {
             symbols = [.. symbols.OrderBy((s1, s2) =>
                 s1.Kind == s2.Kind ? 0 :

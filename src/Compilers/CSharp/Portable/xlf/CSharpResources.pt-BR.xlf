@@ -1679,12 +1679,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">As duas declarações de métodos parciais precisam ter combinações idênticas dos modificadores 'virtual', 'override', 'sealed' e 'new'.</target>
+        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="translated">As declarações de método parcial precisam ter valores de retorno de referência correspondentes.</target>
+        <target state="new">Partial member declarations must have matching ref return values.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2029,7 +2029,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="needs-review-translation">O modificador 'scoped' do parâmetro '{0}' não corresponde à declaração de método parcial.</target>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -4830,12 +4830,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de parâmetro '{0}' não corresponde à declaração de método parcial.</target>
+        <target state="translated">A anulabilidade de tipos de referência em tipo de parâmetro '{0}' não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de parâmetro não corresponde à declaração de método parcial.</target>
+        <target state="translated">A anulabilidade de tipos de referência em tipo de parâmetro não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4880,12 +4880,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
+        <target state="translated">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
+        <target state="translated">A nulidade dos tipos de referência no tipo de retorno não corresponde à declaração de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6590,7 +6590,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="needs-review-translation">O modificador 'partial' só pode aparecer imediatamente antes de 'class', de 'record', de 'struct', de 'interface' ou de um tipo de retorno de método.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8199,7 +8199,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="translated">Um método parcial não pode implementar explicitamente um método de interface</target>
+        <target state="new">A partial member may not explicitly implement an interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8234,7 +8234,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="translated">As duas declarações de métodos parciais devem ser estáticas ou nenhuma delas deve ser desse tipo</target>
+        <target state="new">Both partial member declarations must be static or neither may be static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

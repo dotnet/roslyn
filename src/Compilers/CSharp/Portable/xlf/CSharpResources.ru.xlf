@@ -1679,12 +1679,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">Оба объявления разделяемого метода должны иметь одинаковые сочетания модификаторов "virtual", "override", "sealed" и "new".</target>
+        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="translated">Объявления разделяемого метода должны иметь одинаковые типы возвращаемого значения ref.</target>
+        <target state="new">Partial member declarations must have matching ref return values.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2029,7 +2029,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="needs-review-translation">Модификатор "scoped" параметра "{0}" не соответствует объявлению разделяемого метода.</target>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -4831,12 +4831,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в типе параметра "{0}" не совпадает с частичным объявлением метода.</target>
+        <target state="translated">Допустимость значения NULL для ссылочных типов в типе параметра "{0}" не совпадает с частичным объявлением метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в типе параметра не совпадает с частичным объявлением метода.</target>
+        <target state="translated">Допустимость значения NULL для ссылочных типов в типе параметра не совпадает с частичным объявлением метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4881,12 +4881,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в типе возвращаемого значения не совпадает с объявлением разделяемого метода.</target>
+        <target state="translated">Допустимость значения NULL для ссылочных типов в типе возвращаемого значения не совпадает с объявлением разделяемого метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в типе возвращаемого значения не совпадает с объявлением разделяемого метода.</target>
+        <target state="translated">Допустимость значения NULL для ссылочных типов в типе возвращаемого значения не совпадает с объявлением разделяемого метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6591,7 +6591,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="needs-review-translation">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface" и перед возвращаемым типом метода.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8200,7 +8200,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="translated">Разделяемый метод не может явно реализовывать метод интерфейса.</target>
+        <target state="new">A partial member may not explicitly implement an interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8235,7 +8235,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="translated">Объявления разделяемого метода либо оба должны иметь модификаторы static, либо ни одно из объявлений не должно иметь модификатора static.</target>
+        <target state="new">Both partial member declarations must be static or neither may be static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

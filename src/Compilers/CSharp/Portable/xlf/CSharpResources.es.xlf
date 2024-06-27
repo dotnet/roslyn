@@ -1679,12 +1679,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">Ambas declaraciones de método parcial deben tener combinaciones idénticas de los modificadores "virtual", "override", "sealed" y "new".</target>
+        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="translated">Las declaraciones de método parcial deben tener valores devueltos de referencia que coincidan.</target>
+        <target state="new">Partial member declarations must have matching ref return values.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2029,7 +2029,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="needs-review-translation">El modificador 'scoped' del parámetro '{0}' no coincide con la declaración de método parcial.</target>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -4830,12 +4830,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">La nulabilidad de los tipos de referencia del tipo de parámetro"{0}" no coincide con la declaración de método parcial.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro"{0}" no coincide con la declaración de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">La nulabilidad de los tipos de referencia del tipo de parámetro no coincide con la declaración de método parcial</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro no coincide con la declaración de método parcial</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4880,12 +4880,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">La nulabilidad de los tipos de referencia del tipo devuelto no coincide con la declaración de método parcial.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo devuelto no coincide con la declaración de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">La nulabilidad de los tipos de referencia del tipo devuelto no coincide con la declaración de método parcial.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo devuelto no coincide con la declaración de método parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6590,7 +6590,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="needs-review-translation">El modificador "partial" solo puede aparecer inmediatamente antes de "class", "record", "struct", "interface" o de un tipo de valor devuelto del método.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8199,7 +8199,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="translated">Un método parcial no puede implementar explícitamente un método de interfaz</target>
+        <target state="new">A partial member may not explicitly implement an interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8234,7 +8234,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="translated">Ambas declaraciones de método parcial deben ser estáticas o ninguna de ellas puede ser estática</target>
+        <target state="new">Both partial member declarations must be static or neither may be static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

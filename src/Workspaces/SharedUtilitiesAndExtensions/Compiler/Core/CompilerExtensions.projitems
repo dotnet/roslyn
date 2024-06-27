@@ -505,7 +505,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FixedSizeArrayBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\InterceptslocationUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\InterceptsLocationUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\OptionalExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />

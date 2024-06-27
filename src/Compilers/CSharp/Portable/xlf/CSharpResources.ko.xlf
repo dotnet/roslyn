@@ -1679,12 +1679,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">두 부분 메서드 선언에는 동일한 조합의 'virtual', 'override', 'sealed' 및 'new' 한정자가 있어야 합니다.</target>
+        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="translated">부분 메서드 선언에는 일치하는 참조 반환 값이 있어야 합니다.</target>
+        <target state="new">Partial member declarations must have matching ref return values.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2029,7 +2029,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="needs-review-translation">매개 변수 '{0}'의 '범위 지정' 한정자가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -4830,12 +4830,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">'{0}' 매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
+        <target state="translated">'{0}' 매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
+        <target state="translated">매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4880,12 +4880,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6590,7 +6590,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="needs-review-translation">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 반환 형식 바로 앞에만 올 수 있습니다.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8199,7 +8199,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="translated">부분 메서드(Partial Method)는 인터페이스 메서드를 명시적으로 구현할 수 없습니다.</target>
+        <target state="new">A partial member may not explicitly implement an interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8234,7 +8234,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="translated">두 부분 메서드(Partial Method) 선언 모두 static이거나 static이 아니어야 합니다.</target>
+        <target state="new">Both partial member declarations must be static or neither may be static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

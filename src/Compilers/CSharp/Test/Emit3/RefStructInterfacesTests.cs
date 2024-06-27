@@ -23551,23 +23551,19 @@ interface I1
 class Helper1<T, U>
     where T : allows ref struct
 {
-    static void Test1(U h1)
+    public static void Test1(U h1)
     {
         if (h1 is T)
         {
+            System.Console.Write(1);
+        }
+        else
+        {
+            System.Console.Write(2);
         }
     }
 }
-";
 
-            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
-            comp.VerifyDiagnostics(
-                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'U' and 'T'
-                //         if (h1 is T)
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "h1 is T").WithArguments("is", "U", "T").WithLocation(7, 13)
-                );
-
-            var src2 = @"
 class Helper2<U>
 {
     public static void Test2(U h2)
@@ -23591,24 +23587,61 @@ interface I1
 {
 }
 
+struct S1 : I1 {}
+
+struct S2 {}
+
 class Program : I1
 {
     static void Main()
     {
+        Helper1<S, I1>.Test1(new Program());
+        Helper1<Program, I1>.Test1(new Program());
+        Helper1<I1, Program>.Test1(new Program());
+        Helper1<Program, Program>.Test1(new Program());
+        Helper1<I1, S1>.Test1(new S1());
+        Helper1<S1, I1>.Test1(new S1());
+        Helper1<I1, I1>.Test1(new Program());
+        Helper1<S1, S1>.Test1(new S1());
+        Helper1<I1, S2>.Test1(new S2());
+        Helper1<S2, I1>.Test1(new S1());
+        Helper1<S2, S2>.Test1(new S2());
         Helper2<I1>.Test2(new Program());
     }
 }
 ";
-            comp = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "4" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "211111112214" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
             VerifyDiagnostics(
-                // (6,13): warning CS0184: The given expression is never of the provided ('S') type
+                // (22,13): warning CS0184: The given expression is never of the provided ('S') type
                 //         if (h2 is S)
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "h2 is S").WithArguments("S").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "h2 is S").WithArguments("S").WithLocation(22, 13)
                 );
+
+            // According to
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2074169181 and
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2075815858
+            // the following is a valid IL
+            verifier.VerifyIL("Helper1<T, U>.Test1(U)",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""U""
+  IL_0006:  isinst     ""T""
+  IL_000b:  brfalse.s  IL_0014
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""void System.Console.Write(int)""
+  IL_0013:  ret
+  IL_0014:  ldc.i4.2
+  IL_0015:  call       ""void System.Console.Write(int)""
+  IL_001a:  ret
+}
+");
 
             verifier.VerifyIL("Helper2<U>.Test2(U)",
 @"
@@ -23748,6 +23781,137 @@ class Helper1<T, U>
         }
 
         [Fact]
+        public void IsOperator_11()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static void Test1(S h1)
+    {
+        if (h1 is T)
+        {
+            System.Console.Write(1);
+        }
+        else
+        {
+            System.Console.Write(2);
+        }
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'S' and 'T'
+                //         if (h1 is T)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "h1 is T").WithArguments("is", "S", "T").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void IsOperator_12()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static void Test1(S1 h1)
+    {
+        if (h1 is T)
+        {
+            System.Console.Write(1);
+        }
+        else
+        {
+            System.Console.Write(2);
+        }
+    }
+}
+
+class Helper2
+{
+    public static void Test2(S1 h2)
+    {
+        if (h2 is S)
+        {
+            System.Console.Write(3);
+        }
+        else
+        {
+            System.Console.Write(4);
+        }
+    }
+}
+
+ref struct S
+{
+}
+
+struct S1 {}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S1());
+        Helper1<S1>.Test1(new S1());
+        Helper1<Program>.Test1(new S1());
+        Helper2.Test2(new S1());
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "2124" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics(
+                // (22,13): warning CS0184: The given expression is never of the provided ('S') type
+                //         if (h2 is S)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "h2 is S").WithArguments("S").WithLocation(22, 13)
+                );
+
+            // According to
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2074169181 and
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2075815858
+            // the following is a valid IL
+            verifier.VerifyIL("Helper1<T>.Test1(S1)",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""S1""
+  IL_0006:  isinst     ""T""
+  IL_000b:  brfalse.s  IL_0014
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""void System.Console.Write(int)""
+  IL_0013:  ret
+  IL_0014:  ldc.i4.2
+  IL_0015:  call       ""void System.Console.Write(int)""
+  IL_001a:  ret
+}
+");
+
+            verifier.VerifyIL("Helper2.Test2(S1)",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.4
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
         public void IsPattern_01()
         {
             var src1 = @"
@@ -23798,7 +23962,7 @@ class Program : I1
             var verifier = CompileAndVerify(
                 comp1,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "21" : null,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
             // According to
             // https://github.com/dotnet/runtime/pull/101458#issuecomment-2074169181 and
@@ -24157,18 +24321,104 @@ interface I1
         [Fact]
         public void IsPattern_07()
         {
-            var src = @"
+            var src1 = @"
 class Helper1<T, U>
-    where T : allows ref struct
+    where T : I2, allows ref struct
 {
-    static void Test1(U h1)
+    public static void Test1(U h1)
     {
         if (h1 is T t)
         {
+            t.M();
+        }
+        else
+        {
+            System.Console.Write(2);
         }
     }
 }
 
+ref struct S : I1, I2
+{
+    public void M() => throw null;
+}
+
+interface I1 : I2
+{
+}
+
+interface I2
+{
+    void M();
+}
+
+struct S1 : I1
+{
+    public void M() => System.Console.Write(5);
+}
+
+struct S2 : I2
+{
+    public void M() => System.Console.Write(4);
+}
+
+class Program : I1, I2
+{
+    static void Main()
+    {
+        Helper1<S, I1>.Test1(new Program());
+        Helper1<Program, I1>.Test1(new Program());
+        Helper1<I1, Program>.Test1(new Program());
+        Helper1<Program, Program>.Test1(new Program());
+        Helper1<I1, S1>.Test1(new S1());
+        Helper1<S1, I1>.Test1(new S1());
+        Helper1<I1, I1>.Test1(new Program());
+        Helper1<S1, S1>.Test1(new S1());
+        Helper1<I1, S2>.Test1(new S2());
+        Helper1<S2, I1>.Test1(new S1());
+        Helper1<S2, S2>.Test1(new S2());
+    }
+
+    public void M() => System.Console.Write(3);
+}
+";
+
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp1,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "23335535224" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            // According to
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2074169181 and
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2075815858
+            // the following is a valid IL
+            verifier.VerifyIL("Helper1<T, U>.Test1(U)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""U""
+  IL_0006:  isinst     ""T""
+  IL_000b:  brfalse.s  IL_002c
+  IL_000d:  ldarg.0
+  IL_000e:  box        ""U""
+  IL_0013:  isinst     ""T""
+  IL_0018:  unbox.any  ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""void I2.M()""
+  IL_002b:  ret
+  IL_002c:  ldc.i4.2
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
+}
+");
+
+            var src2 = @"
 class Helper2<U>
 {
     public static void Test2(U h2)
@@ -24188,14 +24438,11 @@ interface I1
 }
 ";
 
-            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
-            comp.VerifyDiagnostics(
-                // (7,19): error CS8121: An expression of type 'U' cannot be handled by a pattern of type 'T'.
-                //         if (h1 is T t)
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("U", "T").WithLocation(7, 19),
-                // (17,19): error CS8121: An expression of type 'U' cannot be handled by a pattern of type 'S'.
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp2.VerifyDiagnostics(
+                // (6,19): error CS8121: An expression of type 'U' cannot be handled by a pattern of type 'S'.
                 //         if (h2 is S s)
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "S").WithArguments("U", "S").WithLocation(17, 19)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S").WithArguments("U", "S").WithLocation(6, 19)
                 );
         }
 
@@ -24293,6 +24540,158 @@ class Helper1<T, U>
                 // (14,19): error CS8121: An expression of type 'U' cannot be handled by a pattern of type 'T'.
                 //         if (h2 is T t)
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("U", "T").WithLocation(14, 19)
+                );
+        }
+
+        [Fact]
+        public void IsPattern_11()
+        {
+            var src1 = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static void Test1(S h1)
+    {
+        if (h1 is T t)
+        {
+        }
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseDll);
+            comp1.VerifyDiagnostics(
+                // (7,19): error CS8121: An expression of type 'S' cannot be handled by a pattern of type 'T'.
+                //         if (h1 is T t)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("S", "T").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        public void IsPattern_12()
+        {
+            var src1 = @"
+class Helper1<T>
+    where T : I1, allows ref struct
+{
+    public static void Test1(S1 h1)
+    {
+        if (h1 is T t)
+        {
+            t.M();
+        }
+        else
+        {
+            System.Console.Write(2);
+        }
+    }
+}
+ref struct S : I1
+{
+    public void M()
+    {
+        System.Console.Write(3);
+    }
+}
+
+struct S1 : I1
+{
+    public void M()
+    {
+        System.Console.Write(4);
+    }
+}
+
+interface I1
+{
+    void M();
+}
+
+class Program : I1
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S1());
+        Helper1<S1>.Test1(new S1());
+        Helper1<Program>.Test1(new S1());
+    }
+
+    public void M()
+    {
+        System.Console.Write(1);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp1,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "242" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            // According to
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2074169181 and
+            // https://github.com/dotnet/runtime/pull/101458#issuecomment-2075815858
+            // the following is a valid IL
+            verifier.VerifyIL("Helper1<T>.Test1(S1)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""S1""
+  IL_0006:  isinst     ""T""
+  IL_000b:  brfalse.s  IL_002c
+  IL_000d:  ldarg.0
+  IL_000e:  box        ""S1""
+  IL_0013:  isinst     ""T""
+  IL_0018:  unbox.any  ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""void I1.M()""
+  IL_002b:  ret
+  IL_002c:  ldc.i4.2
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
+}
+");
+
+            var src2 = @"
+class Helper2
+{
+    static void Test2(S1 h2)
+    {
+        if (h2 is S s)
+        {
+        }
+    }
+}
+
+ref struct S : I1
+{
+}
+
+interface I1
+{
+}
+
+struct S1 : I1
+{
+}
+
+";
+
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp2.VerifyDiagnostics(
+                // (6,19): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S'.
+                //         if (h2 is S s)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S").WithArguments("S1", "S").WithLocation(6, 19)
                 );
         }
 
@@ -24688,6 +25087,86 @@ class Helper1<T, U>
                 // (12,13): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
                 //         _ = h2 as T;
                 Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h2 as T").WithArguments("T").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void AsOperator_11()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static void Test1(S h1)
+    {
+        _ = h1 as T;
+    }
+}
+
+class Helper2
+{
+    public static void Test2(S h2)
+    {
+        _ = h2 as S;
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                //         _ = h1 as T;
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h1 as T").WithArguments("T").WithLocation(7, 13),
+                // (15,13): error CS0077: The as operator must be used with a reference type or nullable type ('S' is a non-nullable value type)
+                //         _ = h2 as S;
+                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "h2 as S").WithArguments("S").WithLocation(15, 13)
+                );
+        }
+
+        [Fact]
+        public void AsOperator_12()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static void Test1(S1 h1)
+    {
+        _ = h1 as T;
+    }
+}
+
+class Helper2
+{
+    public static void Test2(S1 h2)
+    {
+        _ = h2 as S;
+    }
+}
+
+ref struct S : I1
+{
+}
+
+interface I1
+{
+}
+
+struct S1 : I1 {}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                //         _ = h1 as T;
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h1 as T").WithArguments("T").WithLocation(7, 13),
+                // (15,13): error CS0077: The as operator must be used with a reference type or nullable type ('S' is a non-nullable value type)
+                //         _ = h2 as S;
+                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "h2 as S").WithArguments("S").WithLocation(15, 13)
                 );
         }
 
