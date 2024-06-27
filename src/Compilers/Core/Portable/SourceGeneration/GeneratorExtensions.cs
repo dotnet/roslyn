@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         /// Converts an <see cref="IIncrementalGenerator"/> into an <see cref="ISourceGenerator"/> object that can be used when constructing a <see cref="GeneratorDriver"/>
         /// </summary>
         /// <param name="incrementalGenerator">The incremental generator to wrap</param>
-        /// <returns>A wrapped generator that can be passed to a generator driver</returns>
+        /// <returns>An <see cref="ISourceGenerator"/> that can be passed to a generator driver</returns>
         public static ISourceGenerator AsSourceGenerator(this IIncrementalGenerator incrementalGenerator) => incrementalGenerator switch
         {
             SourceGeneratorAdaptor adaptor => adaptor.SourceGenerator,

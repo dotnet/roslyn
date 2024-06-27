@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero, parseOptionsChanged: true);
         }
 
-        // 4.9 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        // 4.11 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken) => RunGenerators(compilation, generatorFilter: null, cancellationToken);
 
         /// <summary>
