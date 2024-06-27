@@ -655,6 +655,7 @@ public interface IUserInterface2
 {
     float InterfacePropertyOnlyGetter { get; }
 }
+
 [AutoImplementProperties(typeof(IUserInterface), typeof(IUserInterface2))]
 public partial class UserClass
 {
