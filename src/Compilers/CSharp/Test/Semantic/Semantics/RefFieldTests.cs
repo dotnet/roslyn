@@ -19777,17 +19777,17 @@ class C
                     public int field;
                     public ref int refField;
 
-                    ref int Prop1 => ref field; // 1
+                    ref int Prop1 => ref @field; // 1
 
                     [UnscopedRef]
-                    ref int Prop2 => ref field; // okay
+                    ref int Prop2 => ref @field; // okay
 
                     S2 Prop3 => new S2 { S = this }; // Okay
 
-                    S Prop4 => new S { refField = ref this.field }; // 2
+                    S Prop4 => new S { refField = ref this.@field }; // 2
 
                     [UnscopedRef]
-                    S Prop5 => new S { refField = ref this.field }; // okay
+                    S Prop5 => new S { refField = ref this.@field }; // okay
 
                     S M1() => new S { refField = ref this.field }; // 3
 
@@ -19803,11 +19803,11 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (11,26): error CS8170: Struct members cannot return 'this' or other instance members by reference
-                //     ref int Prop1 => ref field; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "field").WithLocation(11, 26),
+                //     ref int Prop1 => ref @field; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "@field").WithLocation(11, 26),
                 // (18,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
-                //     S Prop4 => new S { refField = ref this.field }; // 2
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "refField = ref this.field").WithLocation(18, 24),
+                //     S Prop4 => new S { refField = ref this.@field }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "refField = ref this.@field").WithLocation(18, 24),
                 // (23,23): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     S M1() => new S { refField = ref this.field }; // 3
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "refField = ref this.field").WithLocation(23, 23),

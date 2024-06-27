@@ -25,7 +25,6 @@ internal sealed class LanguageServerWorkspaceFactory
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerWorkspaceFactory(
         HostServicesProvider hostServicesProvider,
-        VSCodeAnalyzerLoader analyzerLoader,
         IFileChangeWatcher fileChangeWatcher,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
@@ -38,8 +37,6 @@ internal sealed class LanguageServerWorkspaceFactory
         Workspace = workspace;
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { });
         workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
-
-        analyzerLoader.InitializeDiagnosticsServices();
 
         var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
@@ -56,10 +53,10 @@ internal sealed class LanguageServerWorkspaceFactory
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
     public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 
-    public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths, ExtensionAssemblyManager extensionAssemblyManager)
+    public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
     {
         var references = new List<AnalyzerFileReference>();
-        var analyzerLoader = VSCodeAnalyzerLoader.CreateAnalyzerAssemblyLoader(extensionAssemblyManager, _logger);
+        var analyzerLoader = Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetLoader(shadowCopy: true);
 
         foreach (var analyzerPath in analyzerPaths)
         {

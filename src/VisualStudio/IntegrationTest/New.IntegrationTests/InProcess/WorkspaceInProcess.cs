@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -117,8 +118,8 @@ internal partial class WorkspaceInProcess
 
         if (waitForWorkspaceFirst)
         {
-            var workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceWaiter.ExpeditedWaitAsync().WithCancellation(cancellationToken);
+            await listenerProvider.WaitAllAsync(
+                workspace: null, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]).WithCancellation(cancellationToken);
         }
 
         var featureWaiter = listenerProvider.GetWaiter(featuresToWaitFor);
@@ -129,6 +130,9 @@ internal partial class WorkspaceInProcess
     {
         if (featureNames.Contains(FeatureAttribute.Workspace))
         {
+            if (!featureNames.Contains(FeatureAttribute.SourceGenerators))
+                featureNames = [.. featureNames, FeatureAttribute.SourceGenerators];
+
             await WaitForProjectSystemAsync(cancellationToken);
             await TestServices.Shell.WaitForFileChangeNotificationsAsync(cancellationToken);
             await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);

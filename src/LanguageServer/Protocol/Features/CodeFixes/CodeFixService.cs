@@ -116,10 +116,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
             allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
 
-            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            allDiagnostics = allDiagnostics.AddRange(
-                await buildOnlyDiagnosticsService.GetBuildOnlyDiagnosticsAsync(document.Id, cancellationToken).ConfigureAwait(false));
-
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
 
@@ -207,10 +203,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
             diagnostics = diagnostics.AddRange(copilotDiagnostics);
 
-            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            var buildOnlyDiagnostics = await buildOnlyDiagnosticsService.GetBuildOnlyDiagnosticsAsync(document.Id, cancellationToken).ConfigureAwait(false);
-
-            if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
+            if (diagnostics.IsEmpty)
                 yield break;
 
             if (!diagnostics.IsEmpty)
@@ -234,7 +227,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (document.Project.Solution.WorkspaceKind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
                 // For build-only diagnostics, we support configuration/suppression fixes.
-                diagnostics = diagnostics.AddRange(buildOnlyDiagnostics);
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
@@ -480,22 +472,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out var projectFixers))
                     {
                         Debug.Assert(!isInteractive);
-                        AddAllFixers(projectFixers, range, diagnostics);
+                        AddAllFixers(projectFixers, range, diagnostics, currentFixers, fixerToRangesAndDiagnostics);
                     }
 
                     if (hasAnySharedFixer && fixerMap!.TryGetValue(diagnosticId, out var workspaceFixers))
                     {
                         if (isInteractive)
                         {
-                            AddAllFixers(workspaceFixers.WhereAsArray(IsInteractiveCodeFixProvider), range, diagnostics);
+                            AddAllFixers(workspaceFixers.WhereAsArray(IsInteractiveCodeFixProvider), range, diagnostics, currentFixers, fixerToRangesAndDiagnostics);
                         }
                         else
                         {
-                            AddAllFixers(workspaceFixers, range, diagnostics);
+                            AddAllFixers(workspaceFixers, range, diagnostics, currentFixers, fixerToRangesAndDiagnostics);
                         }
                     }
                 }
             }
+
+            if (fixerToRangesAndDiagnostics.Count == 0)
+                yield break;
 
             // Now, sort the fixers so that the ones that are ordered before others get their chance to run first.
             var allFixers = fixerToRangesAndDiagnostics.Keys.ToImmutableArray();
@@ -588,10 +583,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             yield break;
 
-            void AddAllFixers(
+            static void AddAllFixers(
                 ImmutableArray<CodeFixProvider> fixers,
                 TextSpan range,
-                List<DiagnosticData> diagnostics)
+                List<DiagnosticData> diagnostics,
+                PooledHashSet<CodeFixProvider> currentFixers,
+                PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>> fixerToRangesAndDiagnostics)
             {
                 foreach (var fixer in fixers)
                 {
@@ -997,7 +994,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
-                => new(attribute.DocumentKinds, attribute.DocumentExtensions);
+        {
+            var kinds = EnumArrayConverter.FromStringArray<TextDocumentKind>(attribute.DocumentKinds);
+
+            return new(kinds, attribute.DocumentExtensions);
+        }
 
         private sealed class FixerComparer : IComparer<CodeFixProvider>
         {

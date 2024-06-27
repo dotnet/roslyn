@@ -55,6 +55,10 @@ internal sealed partial class SolutionCompilationState
     /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
     /// to move its own generators forward when a host changes these versions.
     /// </summary>
+    /// <remarks>
+    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
+    /// types.
+    /// </remarks>
     private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
 
     /// <summary>
@@ -117,9 +121,8 @@ internal sealed partial class SolutionCompilationState
         // An id shouldn't point at a tracker for a different project.
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
-        // Solution and SG version maps must correspond to the same set of projets.
+        // Solution and SG version maps must correspond to the same set of projects.
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
-            .Where(kvp => RemoteSupportedLanguages.IsSupported(kvp.Value.Language))
             .Select(kvp => kvp.Key)
             .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
     }
@@ -340,12 +343,13 @@ internal sealed partial class SolutionCompilationState
             modifyNewTrackerInfo: static (_, _) => { }, argModifyNewTrackerInfo: default(VoidResult),
             skipEmptyCallback: true);
 
+        // Add the new projects to the source generator execution version map.  Note: it's ok for us to have entries for
+        // non-C#/VB projects.  These will have no effect in-proc as we won't have compilation-trackers for these
+        // projects.  And, when communicating with the OOP process, we'll filter out these projects before sending them
+        // across in SolutionCompilationState.GetFilteredSourceGenerationExecutionMap.
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectInfo in projectInfos)
-        {
-            if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
-                versionMapBuilder.Add(projectInfo.Id, new());
-        }
+            versionMapBuilder.Add(projectInfo.Id, new());
 
         var sourceGeneratorExecutionVersionMap = new SourceGeneratorExecutionVersionMap(versionMapBuilder.ToImmutable());
         return Branch(
@@ -1258,7 +1262,7 @@ internal sealed partial class SolutionCompilationState
     /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
     /// </summary>
     public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
-        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
@@ -1266,8 +1270,6 @@ internal sealed partial class SolutionCompilationState
 
         foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions.Map)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var currentExecutionVersion = versionMapBuilder[projectId];
 
             // Nothing to do if already at this version.
@@ -1285,7 +1287,7 @@ internal sealed partial class SolutionCompilationState
                 // if the major version has changed then we also want to drop the generator driver so that we're rerun
                 // generators from scratch.
                 var forceRegeneration = currentExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
-                var newTracker = existingTracker.WithCreationPolicy(create: true, forceRegeneration, cancellationToken);
+                var newTracker = existingTracker.WithCreateCreationPolicy(forceRegeneration);
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
@@ -1321,7 +1323,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithCreationPolicy(create: false, forceRegeneration: false, cancellationToken);
+            var newTracker = oldTracker.WithDoNotCreateCreationPolicy(cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 

@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorFeatures.Lightup;
@@ -20,6 +21,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     internal const string WrappedTypeName = "Microsoft.VisualStudio.Text.Editor.SmartRename.ISmartRenameSession";
     private static readonly Type s_wrappedType;
 
+    private static readonly Func<object, TimeSpan> s_automaticFetchDelayAccessor;
     private static readonly Func<object, bool> s_isAvailableAccessor;
     private static readonly Func<object, bool> s_hasSuggestionsAccessor;
     private static readonly Func<object, bool> s_isInProgressAccessor;
@@ -38,6 +40,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     {
         s_wrappedType = typeof(AggregateFocusInterceptor).Assembly.GetType(WrappedTypeName, throwOnError: false, ignoreCase: false);
 
+        s_automaticFetchDelayAccessor = LightupHelpers.CreatePropertyAccessor<object, TimeSpan>(s_wrappedType, nameof(AutomaticFetchDelay), TimeSpan.Zero);
         s_isAvailableAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsAvailable), false);
         s_hasSuggestionsAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(HasSuggestions), false);
         s_isInProgressAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsInProgress), false);
@@ -56,6 +59,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         _instance = instance;
     }
 
+    public TimeSpan AutomaticFetchDelay => s_automaticFetchDelayAccessor(_instance);
     public bool IsAvailable => s_isAvailableAccessor(_instance);
     public bool HasSuggestions => s_hasSuggestionsAccessor(_instance);
     public bool IsInProgress => s_isInProgressAccessor(_instance);

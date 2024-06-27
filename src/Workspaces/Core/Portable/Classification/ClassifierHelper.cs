@@ -251,7 +251,8 @@ internal static partial class ClassifierHelper
             }
         }
 
-        var semanticPartsTree = new SimpleBinaryIntervalTree<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(default, values: semanticSpans);
+        var semanticPartsTree = ImmutableIntervalTree<TClassifiedSpan>.CreateFromUnsorted(
+            default(TClassifiedSpanIntervalIntrospector), semanticSpans);
 
         using var tempBuffer = TemporaryArray<TClassifiedSpan>.Empty;
 
@@ -263,8 +264,9 @@ internal static partial class ClassifierHelper
                 continue;
 
             tempBuffer.Clear();
-            semanticPartsTree.FillWithIntervalsThatOverlapWith(
-                syntacticPartSpan.Start, syntacticPartSpan.Length, ref tempBuffer.AsRef());
+            semanticPartsTree.Algorithms.FillWithIntervalsThatOverlapWith(
+                syntacticPartSpan.Start, syntacticPartSpan.Length, ref tempBuffer.AsRef(),
+                default(TClassifiedSpanIntervalIntrospector));
 
             if (tempBuffer.Count == 0)
             {

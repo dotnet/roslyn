@@ -297,7 +297,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
             {
                 var line = text.Lines[i];
 
-                if (restrictedSpans.HasIntervalThatIntersectsWith(line.Start))
+                if (restrictedSpans.Algorithms.HasIntervalThatIntersectsWith(line.Start, new TextSpanIntervalIntrospector()))
                 {
                     // Inside something we must not touch.  Include the line verbatim.
                     AppendFullLine(builder, line);
@@ -475,7 +475,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
     private static void AppendFullLine(StringBuilder builder, TextLine line)
         => builder.Append(line.Text!.ToString(line.SpanIncludingLineBreak));
 
-    private static (TextSpanIntervalTree interpolationInteriorSpans, TextSpanIntervalTree restrictedSpans) GetInterpolationSpans(
+    private static (ImmutableIntervalTree<TextSpan> interpolationInteriorSpans, ImmutableIntervalTree<TextSpan> restrictedSpans) GetInterpolationSpans(
         InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
     {
         var interpolationInteriorSpans = new SegmentedList<TextSpan>();
@@ -514,7 +514,9 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
             }
         }
 
-        return (new TextSpanIntervalTree(interpolationInteriorSpans), new TextSpanIntervalTree(restrictedSpans));
+        return (
+            ImmutableIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), interpolationInteriorSpans),
+            ImmutableIntervalTree<TextSpan>.CreateFromUnsorted(new TextSpanIntervalIntrospector(), restrictedSpans));
     }
 
     private static InterpolatedStringExpressionSyntax CleanInterpolatedString(
@@ -560,7 +562,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
             // ignore any blank lines we see.
             var line = lines[i];
 
-            if (restrictedSpans.HasIntervalThatIntersectsWith(line.Start))
+            if (restrictedSpans.Algorithms.HasIntervalThatIntersectsWith(line.Start, new TextSpanIntervalIntrospector()))
             {
                 // Inside something we must not touch.  Include the line verbatim.
                 AppendFullLine(builder, line);
@@ -628,7 +630,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
 
     private static string ComputeCommonWhitespacePrefix(
         ArrayBuilder<TextLine> lines,
-        TextSpanIntervalTree interpolationInteriorSpans)
+        ImmutableIntervalTree<TextSpan> interpolationInteriorSpans)
     {
         string? commonLeadingWhitespace = null;
 

@@ -80,7 +80,11 @@ internal sealed class CodeRefactoringService(
         }
 
         static ProjectCodeRefactoringProvider.ExtensionInfo GetExtensionInfo(ExportCodeRefactoringProviderAttribute attribute)
-            => new(attribute.DocumentKinds, attribute.DocumentExtensions);
+        {
+            var kinds = EnumArrayConverter.FromStringArray<TextDocumentKind>(attribute.DocumentKinds);
+
+            return new(kinds, attribute.DocumentExtensions);
+        }
     }
 
     public async Task<bool> HasRefactoringsAsync(

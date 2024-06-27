@@ -324,7 +324,8 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         // models given any position in the file with any particular text snapshot.
         using var _ = SegmentedListPool.GetPooledList<DocumentSymbolDataViewModel>(out var models);
         AddAllModels(newViewModelItems, models);
-        var intervalTree = BinaryIntervalTree.Create(new IntervalIntrospector(), models);
+        var intervalTree = ImmutableIntervalTree<DocumentSymbolDataViewModel>.CreateFromUnsorted(
+            new IntervalIntrospector(), models);
 
         var newViewState = new DocumentOutlineViewState(
             newTextSnapshot,

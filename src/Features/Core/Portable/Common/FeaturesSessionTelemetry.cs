@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.Common;
 
@@ -13,5 +14,6 @@ internal static class FeaturesSessionTelemetry
     {
         CompletionProvidersLogger.ReportTelemetry();
         ChangeSignatureLogger.ReportTelemetry();
+        OnTheFlyDocsLogger.ReportTelemetry();
     }
 }

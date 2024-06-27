@@ -24,9 +24,6 @@ internal static class VisualBasicCodeActionOptions
         CodeStyleOptions = VisualBasicIdeCodeStyleOptions.Default
     };
 
-    public static CodeActionOptions WithWrappingColumn(this CodeActionOptions options, int value)
-        => options with { WrappingColumn = value };
-
     public static CodeActionOptions With(this CodeActionOptions options, VisualBasicSyntaxFormattingOptions value)
         => options with { CleanupOptions = options.CleanupOptions with { FormattingOptions = value } };
 

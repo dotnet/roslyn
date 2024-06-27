@@ -103,7 +103,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
         CancellationToken cancellationToken)
     {
         // Create a simple interval tree for simplification spans.
-        var spansTree = new TextSpanIntervalTree(spans);
+        var spansTree = new TextSpanMutableIntervalTree(spans);
 
         var root = (TCompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
