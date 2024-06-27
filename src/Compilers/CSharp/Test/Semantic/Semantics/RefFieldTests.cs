@@ -19802,11 +19802,11 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (11,26): error CS8170: Struct members cannot return 'this' or other instance members by reference
-                //     ref int Prop1 => ref field; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "field").WithLocation(11, 26),
-                // (18,22): error CS8352: Cannot use variable 'refField = ref this.field' in this context because it may expose referenced variables outside of their declaration scope
-                //     S Prop4 => new S { refField = ref this.field }; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ refField = ref this.field }").WithArguments("refField = ref this.field").WithLocation(18, 22),
+                //     ref int Prop1 => ref @field; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "@field").WithLocation(11, 26),
+                // (18,22): error CS8352: Cannot use variable 'refField = ref this.@field' in this context because it may expose referenced variables outside of their declaration scope
+                //     S Prop4 => new S { refField = ref this.@field }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ refField = ref this.@field }").WithArguments("refField = ref this.@field").WithLocation(18, 22),
                 // (23,21): error CS8352: Cannot use variable 'refField = ref this.field' in this context because it may expose referenced variables outside of their declaration scope
                 //     S M1() => new S { refField = ref this.field }; // 3
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "{ refField = ref this.field }").WithArguments("refField = ref this.field").WithLocation(23, 21),
