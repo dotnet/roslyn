@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Reflection.Adds
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.ComponentInterfaces
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
@@ -41,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return type.IsPredefinedType()
         End Function
 
+        Friend Overrides Function TryGetMemberDisplay(metadataName As String, <Out> ByRef isGenerated As Boolean, <Out> ByRef displayName As String) As Boolean
+            isGenerated = metadataName.IndexOf("$"c) >= 0
+            displayName = If(isGenerated, Nothing, metadataName)
+            Return Not isGenerated
+        End Function
     End Class
-
 End Namespace

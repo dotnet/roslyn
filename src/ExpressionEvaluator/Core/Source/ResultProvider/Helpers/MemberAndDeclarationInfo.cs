@@ -7,6 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
@@ -43,6 +45,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// The full name for this member access expression will require a cast to the declaring type.
         /// </summary>
         RequiresExplicitCast = 1 << 4,
+        /// <summary>
+        /// The member is compiler generated. It has no full name.
+        /// </summary>
+        IsCompilerGenerated = 1 << 5,
     }
 
     internal static class DeclarationInfoExtensions
@@ -59,10 +65,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private readonly MemberInfo _member;
 
+        public readonly string DisplayName;
         public readonly DkmClrDebuggerBrowsableAttributeState? BrowsableState;
-        public readonly bool HideNonPublic;
-        public readonly bool IncludeTypeInMemberName;
-        public readonly bool RequiresExplicitCast;
+        public readonly bool IsGenerated;
+
         public readonly bool CanFavorite;
         public readonly bool IsFavorite;
 
@@ -71,20 +77,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         private readonly int _inheritanceLevel;
 
-        public MemberAndDeclarationInfo(MemberInfo member, DkmClrDebuggerBrowsableAttributeState? browsableState, DeclarationInfo info, int inheritanceLevel, bool canFavorite, bool isFavorite)
+        private readonly DeclarationInfo _info;
+
+        public MemberAndDeclarationInfo(MemberInfo member, string displayName, DkmClrDebuggerBrowsableAttributeState? browsableState, DeclarationInfo info, int inheritanceLevel, bool isGenerated, bool canFavorite, bool isFavorite)
         {
             Debug.Assert(member != null);
 
             _member = member;
-            this.BrowsableState = browsableState;
-            this.HideNonPublic = info.IsSet(DeclarationInfo.HideNonPublic);
-            this.IncludeTypeInMemberName = info.IsSet(DeclarationInfo.IncludeTypeInMemberName);
-            this.RequiresExplicitCast = info.IsSet(DeclarationInfo.RequiresExplicitCast);
-            this.CanFavorite = canFavorite && SupportsCanFavorite(member, info);
-            this.IsFavorite = isFavorite;
-
+            _info = info;
             _inheritanceLevel = inheritanceLevel;
+
+            DisplayName = displayName;
+            BrowsableState = browsableState;
+            CanFavorite = canFavorite && SupportsCanFavorite(member, info);
+            IsFavorite = isFavorite;
+            IsGenerated = isGenerated;
         }
+
+        public bool HideNonPublic => _info.IsSet(DeclarationInfo.HideNonPublic);
+        public bool IncludeTypeInMemberName => _info.IsSet(DeclarationInfo.IncludeTypeInMemberName);
+        public bool RequiresExplicitCast => _info.IsSet(DeclarationInfo.RequiresExplicitCast);
 
         public Type DeclaringType
         {
@@ -118,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        public string Name
+        public string MetadataName
         {
             get
             {
@@ -211,10 +223,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        public Type GetExplicitlyImplementedInterface(out string memberName)
+#nullable enable
+        public bool TryGetExplicitlyImplementedInterface([NotNullWhen(true)] out Type? interfaceType, [NotNullWhen(true)] out string? memberDisplayName)
         {
-            memberName = _member.Name;
-
             // We only display fields and properties and fields never implement interface members.
             if (_member.MemberType == MemberTypes.Property)
             {
@@ -222,7 +233,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // implements an interface member, but it does characterize the set of members we're
                 // interested in displaying differently.  For example, if the property is from VB, it will
                 // be an explicit interface implementation, but will not have a dot.
-                var dotPos = memberName.LastIndexOf('.');
+                var dotPos = _member.Name.LastIndexOf('.');
                 if (dotPos >= 0)
                 {
                     var property = (PropertyInfo)_member;
@@ -235,21 +246,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         foreach (var interfaceAccessor in accessor.GetExplicitInterfacesImplemented())
                         {
-                            memberName = memberName.Substring(dotPos + 1);
-                            return interfaceAccessor.DeclaringType;
+                            memberDisplayName = _member.Name.Substring(dotPos + 1);
+                            interfaceType = interfaceAccessor.DeclaringType;
+                            RoslynDebug.AssertNotNull(interfaceType);
+                            return true;
                         }
                     }
                 }
             }
 
-            return null;
+            interfaceType = null;
+            memberDisplayName = null;
+            return false;
         }
 
         private sealed class MemberNameComparer : IComparer<MemberAndDeclarationInfo>
         {
             public int Compare(MemberAndDeclarationInfo x, MemberAndDeclarationInfo y)
             {
-                var comp = string.Compare(x.Name, y.Name, StringComparison.Ordinal);
+                var comp = string.Compare(x.DisplayName, y.DisplayName, StringComparison.Ordinal);
                 return comp != 0 ? comp : (y._inheritanceLevel - x._inheritanceLevel);
             }
         }

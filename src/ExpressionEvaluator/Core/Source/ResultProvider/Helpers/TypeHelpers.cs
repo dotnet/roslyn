@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -30,12 +31,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this Type type,
             ArrayBuilder<MemberAndDeclarationInfo> includedMembers,
             Predicate<MemberInfo> predicate,
+            ResultProvider resultProvider,
             Type declaredType,
             DkmClrAppDomain appDomain,
             bool includeInherited,
             bool hideNonPublic,
             bool isProxyType,
-            bool includeCompilerGenerated,
+            bool raw,
             bool supportsFavorites,
             DkmClrObjectFavoritesInfo favoritesInfo)
         {
@@ -98,8 +100,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
-                    var memberName = member.Name;
-                    if (!includeCompilerGenerated && memberName.IsCompilerGenerated())
+                    if (!resultProvider.TryGetMemberDisplay(member.Name, out var isGenerated, out var memberName) && !raw)
                     {
                         continue;
                     }
@@ -172,9 +173,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         includedMembers.Add(
                             new MemberAndDeclarationInfo(
                                 member,
+                                memberName,
                                 browsableStateValue,
                                 previousDeclaration,
                                 inheritanceLevel,
+                                isGenerated: isGenerated,
                                 canFavorite: supportsFavorites && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName),
                                 isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName)));
                     }
@@ -876,9 +879,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static MemberAndDeclarationInfo GetMemberByName(this DkmClrType type, string name)
         {
-            var members = type.GetLmrType().GetMember(name, TypeHelpers.MemberBindingFlags);
-            Debug.Assert(members.Length == 1);
-            return new MemberAndDeclarationInfo(members[0], browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0, canFavorite: false, isFavorite: false);
+            var member = type.GetLmrType().GetMember(name, MemberBindingFlags).Single();
+            return new MemberAndDeclarationInfo(member, displayName: member.Name, browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0, isGenerated: false, canFavorite: false, isFavorite: false);
         }
     }
 }

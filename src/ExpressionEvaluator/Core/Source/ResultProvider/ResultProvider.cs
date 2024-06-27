@@ -61,6 +61,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract bool IsPrimitiveType(Type type);
 
+#nullable enable
+        internal abstract bool TryGetMemberDisplay(string metadataName, out bool isGenerated, out string? displayName);
+#nullable disable
+
         void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
             formatSpecifiers ??= Formatter.NoFormatSpecifiers;
