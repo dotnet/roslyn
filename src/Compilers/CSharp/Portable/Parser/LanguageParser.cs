@@ -4505,7 +4505,7 @@ parse_member_name:;
             }
             else
             {
-                identifier = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
+                identifier = this.ParseIdentifierToken();
             }
 
             // When the user type "int goo[]", give them a useful error
@@ -5145,7 +5145,7 @@ parse_member_name:;
             // declaration.  However, in the specific case of variable declarators, Dev10
             // specifically treats it as a variable name, even if it could be interpreted as a
             // keyword.
-            var name = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
+            var name = this.ParseIdentifierToken();
             BracketedArgumentListSyntax argumentList = null;
             EqualsValueClauseSyntax initializer = null;
             TerminatorState saveTerm = _termState;
@@ -5476,7 +5476,7 @@ parse_member_name:;
                 equalsValue = _syntaxFactory.EqualsValueClause(
                     this.EatToken(SyntaxKind.EqualsToken),
                     this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBraceToken
-                        ? this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_ConstantExpected)
+                        ? this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected)
                         : this.ParseExpressionCore());
             }
 
@@ -5556,7 +5556,6 @@ parse_member_name:;
         // PROTOTYPE: Test all code paths that hit this, and add cases that allow field or value to the grammar.
         // PROTOTYPE: Once all code paths are handled, switch from bool? to bool.
         private IdentifierNameSyntax ParseIdentifierName(
-            bool? reportErrorRatherThanConvertingFieldOrValue = null,
             ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.IdentifierName)
@@ -5568,13 +5567,12 @@ parse_member_name:;
             }
 
             return SyntaxFactory.IdentifierName(
-                ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue, code));
+                ParseIdentifierToken(code));
         }
 
         // PROTOTYPE: Test all code paths that hit this, and add cases that allow field or value to the grammar.
         // PROTOTYPE: Once all code paths are handled, switch from bool? to bool.
         private SyntaxToken ParseIdentifierToken(
-            bool? reportErrorRatherThanConvertingFieldOrValue = null,
             ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             var ctk = this.CurrentToken.Kind;
@@ -5593,23 +5591,11 @@ parse_member_name:;
                     return result;
                 }
 
-                bool isFieldOrValueInKeywordContext = IsCurrentTokenFieldOrValueInKeywordContext();
                 SyntaxToken identifierToken = this.EatToken();
 
                 if (this.IsInAsync && identifierToken.ContextualKind == SyntaxKind.AwaitKeyword)
                 {
                     identifierToken = this.AddError(identifierToken, ErrorCode.ERR_BadAwaitAsIdentifier);
-                }
-                else if (isFieldOrValueInKeywordContext)
-                {
-                    if (reportErrorRatherThanConvertingFieldOrValue.GetValueOrDefault())
-                    {
-                        identifierToken = this.AddError(identifierToken, ErrorCode.ERR_ContextualKeywordAsIdentifier, identifierToken.Text);
-                    }
-                    else
-                    {
-                        identifierToken = ConvertToKeyword(identifierToken);
-                    }
                 }
 
                 return identifierToken;
@@ -5726,13 +5712,13 @@ parse_member_name:;
             return _syntaxFactory.TypeParameter(
                 attrs,
                 this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword ? EatToken() : null,
-                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true));
+                this.ParseIdentifierToken());
         }
 
         // Parses the parts of the names between Dots and ColonColons.
         private SimpleNameSyntax ParseSimpleName(NameOptions options = NameOptions.None)
         {
-            var id = this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: true);
+            var id = this.ParseIdentifierName();
             if (id.Identifier.IsMissing)
             {
                 return id;
@@ -7433,7 +7419,7 @@ done:;
         {
             return _syntaxFactory.TupleElement(
                 ParseType(),
-                IsTrueIdentifier() ? this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true) : null);
+                IsTrueIdentifier() ? this.ParseIdentifierToken() : null);
         }
 
         private PostSkipAction SkipBadArrayRankSpecifierTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
@@ -8823,7 +8809,7 @@ done:;
                 SyntaxToken name = null;
                 if (this.IsTrueIdentifier())
                 {
-                    name = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
+                    name = this.ParseIdentifierToken();
                 }
 
                 _termState = saveTerm;
@@ -9552,7 +9538,7 @@ done:;
                     {
                         label = _syntaxFactory.CaseSwitchLabel(
                             caseKeyword,
-                            ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_ConstantExpected),
+                            ParseIdentifierName(ErrorCode.ERR_ConstantExpected),
                             this.EatToken(SyntaxKind.ColonToken));
                     }
                     else
@@ -9772,7 +9758,7 @@ done:;
 
             return _syntaxFactory.LabeledStatement(
                 attributes,
-                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
+                this.ParseIdentifierToken(),
                 this.EatToken(SyntaxKind.ColonToken),
                 this.ParsePossiblyAttributedStatement() ?? SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken)));
         }
@@ -11708,11 +11694,11 @@ done:;
 
             if (isIndexer && this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken)
             {
-                expression = this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_ValueExpected);
+                expression = this.ParseIdentifierName(ErrorCode.ERR_ValueExpected);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                expression = this.ParseIdentifierName(reportErrorRatherThanConvertingFieldOrValue: null, ErrorCode.ERR_MissingArgument);
+                expression = this.ParseIdentifierName(ErrorCode.ERR_MissingArgument);
             }
             else
             {
@@ -13412,7 +13398,7 @@ done:;
             }
             else
             {
-                name = this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true);
+                name = this.ParseIdentifierToken();
             }
 
             return _syntaxFactory.FromClause(
@@ -13431,7 +13417,7 @@ done:;
                 type: this.PeekToken(1).Kind != SyntaxKind.InKeyword
                     ? this.ParseType()
                     : null,
-                identifier: this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
+                identifier: this.ParseIdentifierToken(),
                 inKeyword: this.EatToken(SyntaxKind.InKeyword),
                 inExpression: this.ParseExpressionCore(),
                 onKeyword: this.EatContextualToken(SyntaxKind.OnKeyword, ErrorCode.ERR_ExpectedContextualKeywordOn),
@@ -13439,7 +13425,7 @@ done:;
                 equalsKeyword: this.EatContextualToken(SyntaxKind.EqualsKeyword, ErrorCode.ERR_ExpectedContextualKeywordEquals),
                 rightExpression: this.ParseExpressionCore(),
                 into: this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword
-                    ? _syntaxFactory.JoinIntoClause(ConvertToKeyword(this.EatToken()), this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true))
+                    ? _syntaxFactory.JoinIntoClause(ConvertToKeyword(this.EatToken()), this.ParseIdentifierToken())
                     : null);
         }
 
@@ -13448,7 +13434,7 @@ done:;
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword);
             return _syntaxFactory.LetClause(
                 this.EatContextualToken(SyntaxKind.LetKeyword),
-                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
+                this.ParseIdentifierToken(),
                 this.EatToken(SyntaxKind.EqualsToken),
                 this.ParseExpressionCore());
         }
@@ -13547,7 +13533,7 @@ done:;
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword);
             return _syntaxFactory.QueryContinuation(
                 this.EatContextualToken(SyntaxKind.IntoKeyword),
-                this.ParseIdentifierToken(reportErrorRatherThanConvertingFieldOrValue: true),
+                this.ParseIdentifierToken(),
                 this.ParseQueryBody());
         }
 

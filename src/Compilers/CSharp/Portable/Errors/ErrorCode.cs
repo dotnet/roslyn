@@ -2339,7 +2339,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         INF_IdentifierConflictWithContextualKeyword = 9258,
 
         ERR_InlineArrayAttributeOnRecord = 9259,
-        ERR_ContextualKeywordAsIdentifier = 9500, // PROTOTYPE: Compact error codes.
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

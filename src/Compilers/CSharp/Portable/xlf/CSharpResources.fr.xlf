@@ -517,11 +517,6 @@
         <target state="translated">Une valeur constante de type '{0}' est attendue</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ContextualKeywordAsIdentifier">
-        <source>'{0}' cannot be used as an identifier in this context; use '@{0}' instead.</source>
-        <target state="new">'{0}' cannot be used as an identifier in this context; use '@{0}' instead.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">Un constructeur de copie dans un enregistrement doit appeler un constructeur de copie de la base ou un constructeur d'objet sans paramètre, si l'enregistrement hérite de l'objet.</target>

@@ -1217,15 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object P { set { _ = new {{identifier}}(); } }
                 }
                 """,
-                TestOptions.Regular.WithLanguageVersion(languageVersion),
-                IsParsedAsToken(languageVersion, escapeIdentifier) ?
-                    new[]
-                    {
-                        // (3,30): error CS9500: 'field' cannot be used as an identifier in this context; use '@field' instead.
-                        //     object P { set { _ = new field(); } }
-                        Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, identifier).WithArguments(identifier).WithLocation(3, 30)
-                    } :
-                    []);
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1302,15 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object P { set { try { } catch (Exception {{identifier}}) { } } }
                 }
                 """,
-                TestOptions.Regular.WithLanguageVersion(languageVersion),
-                IsParsedAsToken(languageVersion, escapeIdentifier) ?
-                    new[]
-                    {
-                        // (3,47): error CS9500: 'field' cannot be used as an identifier in this context; use '@field' instead.
-                        //     object P { set { try { } catch (Exception field) { } } }
-                        Diagnostic(ErrorCode.ERR_ContextualKeywordAsIdentifier, identifier).WithArguments(identifier).WithLocation(3, 47)
-                    } :
-                    []);
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
