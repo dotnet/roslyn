@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -124,5 +125,7 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> OutputSteps { get; }
 
         internal ImmutableArray<(string Key, string Value)> HostOutputs { get; }
+
+        internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(t => t.Tree.Options != parseOptions);
     }
 }

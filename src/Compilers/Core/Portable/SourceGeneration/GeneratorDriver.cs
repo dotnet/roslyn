@@ -226,6 +226,12 @@ namespace Microsoft.CodeAnalysis
                 var generatorState = state.GeneratorStates[i];
                 var sourceGenerator = state.Generators[i];
 
+                if (shouldSkipGenerator(sourceGenerator))
+                {
+                    stateBuilder.Add(generatorState);
+                    continue;
+                }
+
                 // initialize the generator if needed
                 if (!generatorState.Initialized)
                 {
@@ -266,7 +272,7 @@ namespace Microsoft.CodeAnalysis
                                      ? new GeneratorState(postInitSources, inputNodes, outputNodes)
                                      : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, cancellationToken, isInit: true);
                 }
-                else if (state.ParseOptionsChanged && generatorState.PostInitTrees.Length > 0)
+                else if (generatorState.PostInitTrees.Length > 0 && generatorState.RequiresPostInitReparse(state.ParseOptions))
                 {
                     // the generator is initialized, but we need to reparse the post-init trees as the parse options have changed
                     var reparsedInitSources = ParseAdditionalSources(sourceGenerator, generatorState.PostInitTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken);
@@ -301,7 +307,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
-                if (generatorState.OutputNodes.Length == 0 || generatorFilter?.Invoke(new GeneratorFilterContext(state.Generators[i], cancellationToken)) == false)
+                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
                 {
                     continue;
                 }
@@ -336,6 +342,8 @@ namespace Microsoft.CodeAnalysis
 
                 return true;
             }
+
+            bool shouldSkipGenerator(ISourceGenerator generator) => generatorFilter?.Invoke(new GeneratorFilterContext(generator, cancellationToken)) == false;
         }
 
         private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, GeneratorRunStateTable.Builder generatorRunStateBuilder, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
