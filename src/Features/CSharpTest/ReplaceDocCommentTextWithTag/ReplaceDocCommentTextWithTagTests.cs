@@ -262,7 +262,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             /// Use WriteLine[||] as a Console.WriteLine replacement
             class C
             {
-                void WriteLine<TKey>(TKey key) { }
+                void WriteLine<TKey>(TKey value) { }
             }
             """,
 
@@ -270,7 +270,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             /// Use <see cref="WriteLine"/> as a Console.WriteLine replacement
             class C
             {
-                void WriteLine<TKey>(TKey key) { }
+                void WriteLine<TKey>(TKey value) { }
             }
             """);
     }
@@ -283,7 +283,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             /// Use WriteLine1[||] as a Console.WriteLine replacement
             class C
             {
-                void WriteLine<TKey>(TKey key) { }
+                void WriteLine<TKey>(TKey value) { }
             }
             """);
     }
@@ -295,16 +295,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key has type TKey[||] so we don't box primitives.
-                void WriteLine<TKey>(TKey key) { }
+                /// value has type TKey[||] so we don't box primitives.
+                void WriteLine<TKey>(TKey value) { }
             }
             """,
 
             """
             class C
             {
-                /// key has type <typeparamref name="TKey"/> so we don't box primitives.
-                void WriteLine<TKey>(TKey key) { }
+                /// value has type <typeparamref name="TKey"/> so we don't box primitives.
+                void WriteLine<TKey>(TKey value) { }
             }
             """);
     }
@@ -316,16 +316,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key has type TKey[||] so we don't box primitives.
-                void WriteLine<TKey>(TKey key){}
+                /// value has type TKey[||] so we don't box primitives.
+                void WriteLine<TKey>(TKey value){}
             }
             """,
 
             """
             class C
             {
-                /// key has type <typeparamref name="TKey"/> so we don't box primitives.
-                void WriteLine<TKey>(TKey key){}
+                /// value has type <typeparamref name="TKey"/> so we don't box primitives.
+                void WriteLine<TKey>(TKey value){}
             }
             """);
     }
@@ -337,16 +337,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key has type TKey[||] so we don't box primitives.
-                object WriteLine<TKey>(TKey key) => null;
+                /// value has type TKey[||] so we don't box primitives.
+                object WriteLine<TKey>(TKey value) => null;
             }
             """,
 
             """
             class C
             {
-                /// key has type <typeparamref name="TKey"/> so we don't box primitives.
-                object WriteLine<TKey>(TKey key) => null;
+                /// value has type <typeparamref name="TKey"/> so we don't box primitives.
+                object WriteLine<TKey>(TKey value) => null;
             }
             """);
     }
@@ -358,16 +358,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key has type TKey[||] so we don't box primitives.
-                void WriteLine<TKey>(TKey key);
+                /// value has type TKey[||] so we don't box primitives.
+                void WriteLine<TKey>(TKey value);
             }
             """,
 
             """
             class C
             {
-                /// key has type <typeparamref name="TKey"/> so we don't box primitives.
-                void WriteLine<TKey>(TKey key);
+                /// value has type <typeparamref name="TKey"/> so we don't box primitives.
+                void WriteLine<TKey>(TKey value);
             }
             """);
     }
@@ -379,16 +379,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key[||] has type TKey so we don't box primitives.
-                void WriteLine<TKey>(TKey key) { }
+                /// value[||] has type TKey so we don't box primitives.
+                void WriteLine<TKey>(TKey value) { }
             }
             """,
 
             """
             class C
             {
-                /// <paramref name="key"/> has type TKey so we don't box primitives.
-                void WriteLine<TKey>(TKey key) { }
+                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                void WriteLine<TKey>(TKey value) { }
             }
             """);
     }
@@ -400,16 +400,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key[||] has type TKey so we don't box primitives.
-                void WriteLine<TKey>(TKey key){}
+                /// value[||] has type TKey so we don't box primitives.
+                void WriteLine<TKey>(TKey value){}
             }
             """,
 
             """
             class C
             {
-                /// <paramref name="key"/> has type TKey so we don't box primitives.
-                void WriteLine<TKey>(TKey key){}
+                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                void WriteLine<TKey>(TKey value){}
             }
             """);
     }
@@ -421,16 +421,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key[||] has type TKey so we don't box primitives.
-                object WriteLine<TKey>(TKey key) => null;
+                /// value[||] has type TKey so we don't box primitives.
+                object WriteLine<TKey>(TKey value) => null;
             }
             """,
 
             """
             class C
             {
-                /// <paramref name="key"/> has type TKey so we don't box primitives.
-                object WriteLine<TKey>(TKey key) => null;
+                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                object WriteLine<TKey>(TKey value) => null;
             }
             """);
     }
@@ -442,16 +442,16 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// key[||] has type TKey so we don't box primitives.
-                void WriteLine<TKey>(TKey key);
+                /// value[||] has type TKey so we don't box primitives.
+                void WriteLine<TKey>(TKey value);
             }
             """,
 
             """
             class C
             {
-                /// <paramref name="key"/> has type TKey so we don't box primitives.
-                void WriteLine<TKey>(TKey key);
+                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                void WriteLine<TKey>(TKey value);
             }
             """);
     }
@@ -483,7 +483,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             /// Testing keyword inside <see langword ="nu[||]ll"/>
             class C
             {
-                void WriteLine<TKey>(TKey key) { }
+                void WriteLine<TKey>(TKey value) { }
             }
             """);
     }
@@ -496,7 +496,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             /// Testing keyword inside <see langword ="nu[||]ll"
             class C
             {
-                void WriteLine<TKey>(TKey key) { }
+                void WriteLine<TKey>(TKey value) { }
             }
             """);
     }

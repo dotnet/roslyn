@@ -37,22 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics();
             }
-            else if (languageVersion > LanguageVersion.CSharp12)
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (4,28): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C1 : A { object P => field; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 28),
-                    // (5,34): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C2 : A { object P { get => field; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 34),
-                    // (6,40): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C3 : A { object P { get { return field; } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 40),
-                    // (7,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C4 : A { object P { set { field = 0; } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(7, 33));
-            }
             else
             {
                 comp.VerifyEmitDiagnostics(
@@ -1302,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         get
                         {
-                            [A(nameof({{fieldIdentifier}}))] void F1(int @field) { }
+                            [A(nameof({{fieldIdentifier}}))] void F1(int {{fieldIdentifier}}) { }
                             return null;
                         }
                     }
@@ -1310,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         set
                         {
-                            [A(nameof({{valueIdentifier}}))] void F2(int @value) { }
+                            [A(nameof({{valueIdentifier}}))] void F2(int {{valueIdentifier}}) { }
                         }
                     }
                     object P3
@@ -1331,20 +1315,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics(
                     // (13,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //             [A(nameof(field))] void F1(int @field) { }
+                    //             [A(nameof(field))] void F1(int field) { }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
                     // (13,23): error CS8081: Expression does not have a name.
-                    //             [A(nameof(field))] void F1(int @field) { }
+                    //             [A(nameof(field))] void F1(int field) { }
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23));
             }
             else
             {
                 comp.VerifyEmitDiagnostics(
                     // (13,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //             [A(nameof(field))] void F1(int @field) { }
+                    //             [A(nameof(field))] void F1(int field) { }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
                     // (21,23): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //             [A(nameof(value))] void F2(int @value) { }
+                    //             [A(nameof(value))] void F2(int value) { }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(21, 23));
             }
         }
@@ -1356,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string fieldIdentifier = escapeIdentifier ? "@field" : "field";
             string valueIdentifier = escapeIdentifier ? "@value" : "value";
-            string source = $$$"""
+            string source = $$"""
                 #pragma warning disable 649, 8321
                 using System;
                 [AttributeUsage(AttributeTargets.All)]
@@ -1368,8 +1352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     event EventHandler E
                     {
-                        add { void F1([A(nameof({{{fieldIdentifier}}}))] int @field) { } }
-                        remove { void F2([A(nameof({{{valueIdentifier}}}))] int @value) { } }
+                        add { void F1([A(nameof({{fieldIdentifier}}))] int {{fieldIdentifier}}) { } }
+                        remove { void F2([A(nameof({{valueIdentifier}}))] int {{valueIdentifier}}) { } }
                     }
                 }
                 """;
@@ -1382,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics(
                     // (13,36): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //         remove { void F2([A(nameof(value))] int @value) { } }
+                    //         remove { void F2([A(nameof(value))] int value) { } }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(13, 36));
             }
         }

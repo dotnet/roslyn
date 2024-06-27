@@ -1444,6 +1444,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ContainingType is { });
             SynthesizedBackingFieldSymbolBase field;
 
+            ReportFieldOrValueContextualKeywordConflict(node, node.Token, diagnostics);
+
             switch (ContainingMember())
             {
                 case SynthesizedBackingFieldSymbolBase backingField:
@@ -1457,8 +1459,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_NoSuchMember, node, ContainingType, "field");
                     return BadExpression(node);
             }
-
-            ReportFieldOrValueContextualKeywordConflict(node, node.Token, diagnostics);
 
             // PROTOTYPE: We're not applying any checks to this field reference. What checks do we
             // use when referencing an explicitly-declared field, and which of those should be used here?

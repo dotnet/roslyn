@@ -1047,7 +1047,7 @@ ReturnNotFound:
                 {
                     ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
                 }
-                ThrowHelper.IfNullAndNullsAreIllegalThenThrow<TValue>(value, ExceptionArgument.@value);
+                ThrowHelper.IfNullAndNullsAreIllegalThenThrow<TValue>(value, ExceptionArgument.value);
 
                 try
                 {

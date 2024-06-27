@@ -5553,10 +5553,7 @@ parse_member_name:;
                 !(this.IsInQuery && IsTokenQueryContextualKeyword(token));
         }
 
-        // PROTOTYPE: Test all code paths that hit this, and add cases that allow field or value to the grammar.
-        // PROTOTYPE: Once all code paths are handled, switch from bool? to bool.
-        private IdentifierNameSyntax ParseIdentifierName(
-            ErrorCode code = ErrorCode.ERR_IdentifierExpected)
+        private IdentifierNameSyntax ParseIdentifierName(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.IdentifierName)
             {
@@ -5570,10 +5567,7 @@ parse_member_name:;
                 ParseIdentifierToken(code));
         }
 
-        // PROTOTYPE: Test all code paths that hit this, and add cases that allow field or value to the grammar.
-        // PROTOTYPE: Once all code paths are handled, switch from bool? to bool.
-        private SyntaxToken ParseIdentifierToken(
-            ErrorCode code = ErrorCode.ERR_IdentifierExpected)
+        private SyntaxToken ParseIdentifierToken(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             var ctk = this.CurrentToken.Kind;
             if (ctk == SyntaxKind.IdentifierToken)
