@@ -332,9 +332,9 @@
         <target state="translated">沒有明確傳回型別的匿名方法上不允許 AsyncMethodBuilder 屬性。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor">
-        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</source>
-        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</target>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToAccessor">
+        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</source>
+        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer">

@@ -7981,8 +7981,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer" xml:space="preserve">
     <value>Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</value>
   </data>
-  <data name="ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor" xml:space="preserve">
-    <value>Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</value>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToAccessor" xml:space="preserve">
+    <value>Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</value>
   </data>
   <data name="IDS_OverloadResolutionPriority" xml:space="preserve">
     <value>overload resolution priority</value>

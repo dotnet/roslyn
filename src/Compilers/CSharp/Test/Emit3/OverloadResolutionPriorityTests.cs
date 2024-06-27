@@ -1308,12 +1308,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
         comp.VerifyDiagnostics(
-            // (6,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.
+            // (6,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
-            // (8,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
+            // (8,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
         );
 
         var c = comp.GetTypeByMetadataName("C")!;
@@ -1339,9 +1339,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         //     }
         //     public int this[string x]
         //     {
-        //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
         //         get { System.Console.Write(1); return 1; }
-        //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
         //         set => System.Console.Write(2);
         //     }
         // }
@@ -1397,9 +1395,6 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         string x
                     ) cil managed 
                 {
-                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
-                        01 00 01 00 00 00 00 00
-                    )
                     // Method begins at RVA 0x2053
                     // Code size 8 (0x8)
                     .maxstack 8
@@ -1416,10 +1411,6 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         int32 'value'
                     ) cil managed 
                 {
-                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
-                        01 00 01 00 00 00 00 00
-                    )
-                    // Method begins at RVA 0x205c
                     // Code size 7 (0x7)
                     .maxstack 8
 
@@ -1467,6 +1458,96 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             c["test"] = 0;
             """;
 
-        CompileAndVerify(source, references: [ilRef], expectedOutput: "12").VerifyDiagnostics();
+        var comp = (CSharpCompilation)CompileAndVerify(source, references: [ilRef], expectedOutput: "12").VerifyDiagnostics().Compilation;
+
+        var c = comp.GetTypeByMetadataName("C")!;
+        var indexers = c.GetMembers("this[]");
+
+        Assert.Equal(2, indexers.Length);
+
+        var indexer = (PropertySymbol)indexers[0];
+        AssertEx.Equal("System.Int32 C.this[System.Object x] { get; set; }", indexer.ToTestDisplayString());
+        Assert.Equal(0, indexer.OverloadResolutionPriority);
+        // Note: We don't try to account for a methoddef actually being part of a property, and therefore changing what we read. If the methoddef has the attribute
+        // in metadata, we'll read it. It won't impact overload resolution, but it will be read.
+        Assert.Equal(1, indexer.GetMethod.OverloadResolutionPriority);
+        Assert.Equal(1, indexer.SetMethod.OverloadResolutionPriority);
+
+        indexer = (PropertySymbol)indexers[1];
+        AssertEx.Equal("System.Int32 C.this[System.String x] { get; set; }", indexer.ToTestDisplayString());
+        Assert.Equal(0, indexer.OverloadResolutionPriority);
+        // Note: We don't try to account for a methoddef actually being part of a property, and therefore changing what we read. If the methoddef has the attribute
+        // in metadata, we'll read it. It won't impact overload resolution, but it will be read.
+        Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority);
+    }
+
+    [Fact]
+    public void AppliedToPropertyGetterSetter()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            public class C
+            {
+                public int Prop
+                {
+                    [OverloadResolutionPriority(1)]
+                    get => throw null;
+                    [OverloadResolutionPriority(1)]
+                    set => throw null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (6,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
+            //         [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
+            // (8,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
+            //         [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
+        );
+
+        var c = comp.GetTypeByMetadataName("C")!;
+        var indexer = c.GetMember<PropertySymbol>("Prop");
+
+        Assert.Equal(0, indexer.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority);
+    }
+
+    [Fact]
+    public void AppliedToEventGetterSetter()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            public class C
+            {
+                public event System.Action Prop
+                {
+                    [OverloadResolutionPriority(1)]
+                    add { }
+                    [OverloadResolutionPriority(1)]
+                    remove { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (6,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
+            //         [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
+            // (8,10): error CS9502: Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
+            //         [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
+        );
+
+        var c = comp.GetTypeByMetadataName("C")!;
+        var indexer = c.GetMember<EventSymbol>("Prop");
+
+        Assert.Equal(0, indexer.AddMethod.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.RemoveMethod.OverloadResolutionPriority);
     }
 }

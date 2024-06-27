@@ -332,9 +332,9 @@
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToIndexerAccessor">
-        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</source>
-        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an indexer accessor.</target>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToAccessor">
+        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</source>
+        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer">
