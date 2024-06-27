@@ -11,7 +11,7 @@ steps:
   displayName: 🔍 Verify Signed Files
   inputs:
     TargetFolders: |
-      $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
+      $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - ${{ if parameters.IsOptProf }}:
