@@ -278,16 +278,37 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
                 // 2 first `int` parameters of an interpolated string handler
                 // constructor are mandatory. Therefore, do not report them as unused
-                if (parameter is { Type.SpecialType: SpecialType.System_Int32 } &&
-                    method is { Parameters: [var firstParameter, ..], MethodKind: MethodKind.Constructor } &&
-                    (firstParameter == parameter || (method.Parameters.Length > 1 && method.Parameters[1] == parameter)) &&
-                    containingType.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, interpolatedStringHandlerAttributeType)))
+                if (IsInterpolatedStringHandlerMandatoryConstructorParameter(parameter, method, containingType, interpolatedStringHandlerAttributeType))
                 {
                     return false;
                 }
             }
 
             return true;
+
+            static bool IsInterpolatedStringHandlerMandatoryConstructorParameter(
+                IParameterSymbol parameter,
+                IMethodSymbol method,
+                ITypeSymbol containingType,
+                INamedTypeSymbol? interpolatedStringHandlerAttributeType)
+            {
+                if (parameter.Type.SpecialType != SpecialType.System_Int32)
+                    return false;
+
+                if (method.MethodKind != MethodKind.Constructor)
+                    return false;
+
+                if (!((method.Parameters is [var firstParameter, ..] && firstParameter == parameter) ||
+                    (method.Parameters is [_, var secondParameter, ..] && secondParameter == parameter)))
+                {
+                    return false;
+                }
+
+                if (!containingType.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, interpolatedStringHandlerAttributeType)))
+                    return false;
+
+                return true;
+            }
         }
     }
 }
