@@ -366,6 +366,9 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                         if (primaryConstructor != null)
                             return false;
 
+                        if (constructor.Parameters.Any(p => p.Type.IsRefLikeType))
+                            return false;
+
                         primaryConstructor = constructor;
                         primaryConstructorDeclaration = constructorDeclaration;
                     }
