@@ -352,11 +352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIndexerAccess Update(AccessorKind accessorKind)
         {
-            if (accessorKind == this.AccessorKind)
-            {
-                return this;
-            }
-
             return this.Update(
                 ReceiverOpt,
                 InitialBindingReceiverIsSubjectToCloning,

@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKinds,
                 expanded: false,
-                accessorKind: AccessorKind.Unknown,
+                accessorKind: indexerAccess.AccessorKind,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 indexerAccess.Type);

@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = indexer.Type;
                 Debug.Assert(oldNodeOpt?.Type.Equals(type, TypeCompareKind.ConsiderEverything) != false);
+                Debug.Assert(oldNodeOpt is null || oldNodeOpt.AccessorKind == AccessorKind.Set);
 
                 // This is an indexer set access. We return a BoundIndexerAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.

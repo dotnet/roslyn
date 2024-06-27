@@ -1,0 +1,53 @@
+
+Mixing in oi is about the args passed to the indexer, not the object being initialized
+
+object initializer place holders are special because it can be an anything. The meaning of the place holder
+is only interesnting in the context of its use case. That is during check value not during normal visiting.
+
+
+The mixing is about `ref` arguments you 
+
+CheckValEscape (c)
+    - this is a bit special case it's not invocation or mixing.
+    - use a placeholder? 
+GetValEscape (g)
+    - This needs to include arguments to the indexer that are not scoped because they can 
+      be stashed into `this` and hence are part of the escape
+InvocationArgMixing
+
+
+
+Aleksey 
+    Stash the AccessorKind in BoundObjectInitializerMember inside of Binder_Expression.cs 5876 
+    Make the node non-optional, change the type to BoundExpression. Assert it can only be the two kinds that we care about
+
+
+Tests
+    - passing heapSpan to scoped parameter in object init can't escape. 
+
+
+10
+                +// (14,13): error CS8347: Cannot use a result of 'S1.this[Span<int>]' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                +//             [stackSpan] =  0, // 1
+                +Diagnostic(ErrorCode.ERR_EscapeCall, "[stackSpan]").WithArguments("S1.this[System.Span<int>]", "span").WithLocation(14, 13),
+
+                // (14,13): error CS8350: This combination of arguments to 'S1.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             [stackSpan] =  0, // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "[stackSpan]").WithArguments("S1.this[System.Span<int>]", "span").WithLocation(14, 13),
+
+                // (14,14): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //             [stackSpan] =  0, // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(14, 14),
+
+                // (14,14): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //             [stackSpan] =  0, // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(14, 14),
+            
+
+                // (14,13): error CS8350: This combination of arguments to 'S1.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             [stackSpan] =  0, // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "[stackSpan]").WithArguments("S1.this[System.Span<int>]", "span").WithLocation(14, 13),
+                // (14,14): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //             [stackSpan] =  0, // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(14, 14),
+    
