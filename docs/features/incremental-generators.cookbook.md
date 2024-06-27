@@ -747,7 +747,7 @@ sealed class {{AttributeClassName}} : Attribute
 
         foreach(TypedConstant constructorArgumentValue in attribute.ConstructorArguments[0].Values)
         {
-            if (constructorArgumentValue.Value is INamedTypeSymbol interfaceSymbol && interfaceSymbol.TypeKind == TypeKind.Interface)
+            if (constructorArgumentValue.Value is INamedTypeSymbol { TypeKind: TypeKind.Interface } interfaceSymbol)
             {
                 EquatableList<string> properties = new();
 
