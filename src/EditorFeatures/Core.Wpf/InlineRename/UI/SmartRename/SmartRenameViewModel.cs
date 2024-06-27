@@ -125,7 +125,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
 
         BaseViewModel = baseViewModel;
-        BaseViewModel.PropertyChanged += IdentifierTextPropertyChanged;
+        BaseViewModel.PropertyChanged += BaseViewModelPropertyChanged;
         BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
         SetupTelemetry();
@@ -261,7 +261,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         _isDisposed = true;
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
-        BaseViewModel.PropertyChanged -= IdentifierTextPropertyChanged;
+        BaseViewModel.PropertyChanged -= BaseViewModelPropertyChanged;
         _smartRenameSession.Dispose();
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
@@ -295,7 +295,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private void NotifyPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    private void IdentifierTextPropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void BaseViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
         {
