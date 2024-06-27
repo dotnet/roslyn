@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// This type is used hold lazily-initialized fields that many method will not need. We avoid creating it unless one the fields is needed;
+        /// This type is used to hold lazily-initialized fields that many methods will not need. We avoid creating it unless one of the fields is needed;
         /// unfortunately, this means that we need to be careful of data races. The general pattern that we use is to check for a flag in <see cref="_packedFlags"/>.
         /// If the flag for that field is set, and there was a positive result (ie, there are indeed custom attributes, or there is obsolete data), then it
         /// is safe to rely on the data in the field. If the flag for a field is set but the result is empty (ie, there is no obsolete data), then we can be in
