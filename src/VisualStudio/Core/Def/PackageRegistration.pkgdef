@@ -46,9 +46,9 @@
 "PreviewPaneChannels"="IntPreview,int.main"
 
 [$RootKey$\FeatureFlags\Roslyn\CopilotRenameGetContext]
-"Description"="Add context to C# Copilot Rename."
+"Description"="Add semantic context to Copilot Rename Suggestions in C#."
 "Value"=dword:00000000
-"Title"="Add context to C# Copilot Rename"
+"Title"="Semantic Context in C# Copilot Rename"
 "PreviewPaneChannels"="IntPreview,int.main"
 
 // Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
