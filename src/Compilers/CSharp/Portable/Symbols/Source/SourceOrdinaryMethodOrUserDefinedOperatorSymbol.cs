@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, _location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberNotExplicit, _location);
                 }
 
                 if (!ContainingType.IsPartial())
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, _location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberOnlyInPartialClass, _location);
                 }
             }
 

@@ -4,11 +4,9 @@
 
 #nullable disable
 
-using System;
 using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 

@@ -906,10 +906,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool inExpressionContext)
         {
-            var attributes = _pool.Allocate<AttributeListSyntax>();
             var saveTerm = _termState;
             _termState |= TerminatorState.IsAttributeDeclarationTerminator;
 
+            // An attribute can never appear *inside* an attribute argument (since a lambda expression cannot be used as
+            // a constant argument value).  However, during parsing we can end up in a state where we're trying to
+            // exactly that, through a path of Attribute->Argument->Expression->Attribute (since attributes can not be
+            // on lambda expressions).
+            //
+            // Worse, when we are in a deeply ambiguous (or gibberish) scenario, where we see lots of code with `... [
+            // ... [ ... ] ... ] ...`, we can get into exponential speculative parsing where we try `[ ... ]` both as an
+            // attribute *and* a collection expression.
+            //
+            // Since we cannot ever legally have an attribute within an attribute, we bail out here immediately
+            // syntactically.  This does mean we won't parse something like: `[X([Y]() => {})]` without errors, but that
+            // is not semantically legal anyway.
+            if (saveTerm == _termState)
+                return default;
+
+            var attributes = _pool.Allocate<AttributeListSyntax>();
             while (this.IsPossibleAttributeDeclaration())
             {
                 var attributeDeclaration = this.TryParseAttributeDeclaration(inExpressionContext);
@@ -11868,7 +11883,18 @@ done:;
                 // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
                 // to be resilient to the user writing this so we don't go completely off the rails.
                 if (equalsToken != null)
+                {
+                    // Note: we don't do this if we have `=[`.  Realistically, this is never going to be a lambda
+                    // expression as a `[` can only start an attribute declaration or collection expression, neither of
+                    // which can be a default arg.  Checking for this helps us from going off the rails in pathological
+                    // cases with lots of nested tokens that look like the could be anything.
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+                    {
+                        return false;
+                    }
+
                     this.ParseExpressionCore();
+                }
 
                 switch (this.CurrentToken.Kind)
                 {

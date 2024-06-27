@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public class ServiceHubServicesTests
+    public sealed class ServiceHubServicesTests
     {
         private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
              => new(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
@@ -216,7 +216,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact]
         public async Task TestUnknownProject()
         {
-            var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -765,10 +765,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return tempDoc.Id;
         }
 
-        private static IAsynchronousOperationWaiter GetWorkspaceWaiter(TestWorkspace workspace)
+        private static async Task WaitForSourceGeneratorsAsync(TestWorkspace workspace)
         {
             var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            return operations.GetWaiter(FeatureAttribute.Workspace);
+            await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
         }
 
         [Theory, CombinatorialData]
@@ -810,7 +810,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, callCount);
 
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             solution = workspace.CurrentSolution;
             project = solution.Projects.Single();
@@ -866,7 +866,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Because we're forcing regeneration, in both mode we should now see two calls to the generator.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             solution = workspace.CurrentSolution;
             project = solution.Projects.Single();
@@ -913,7 +913,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var initialSolution = workspace.CurrentSolution;
 
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -964,7 +964,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var initialSolution = workspace.CurrentSolution;
 
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1007,7 +1007,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // forceRegeneration=true should take precedence.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1049,7 +1049,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Updating project1 should only impact it.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1102,7 +1102,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Updating project1 should regen both projects due to p2p reference.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1155,7 +1155,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Updating project2 should regen only it due to project1 having no reference to it.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId2, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1210,7 +1210,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // for both as project2 has a ref on project1.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: true);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId2, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1255,7 +1255,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // only for project2 as project1 doesn't have a ref on it.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId2, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1298,7 +1298,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Project2 should have a minor update since we only have a solution-minor change.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: true);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
@@ -1341,12 +1341,114 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Project1 and 2 should have a major update since we have a solution-majorchange.
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: projectId1, forceRegeneration: false);
-            await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+            await WaitForSourceGeneratorsAsync(workspace);
 
             var currentSolution = workspace.CurrentSolution;
 
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
+        }
+
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_NoChange_ButExternalUpdateSignal(
+            SourceGeneratorExecutionPreference executionPreference,
+            bool forceRegeneration)
+        {
+            using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+            var callCount = 0;
+            AddSimpleDocument(workspace, new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)));
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            var document = Assert.Single(documents);
+            Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+
+            workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+            await WaitForSourceGeneratorsAsync(workspace);
+
+            project = workspace.CurrentSolution.Projects.Single();
+            documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            document = Assert.Single(documents);
+
+            if (forceRegeneration)
+            {
+                // In balanced/automatic mode, we were asked to force regenerate.  So that should be respected.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+            }
+            else
+            {
+                // In balanced or automatic mode, since nothing happened and we were not forced, we should not regenerate.
+                Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+            }
+        }
+
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_DocumentChange_ButExternalUpdateSignal(
+            SourceGeneratorExecutionPreference executionPreference,
+            bool forceRegeneration,
+            bool enqueueChangeBeforeEdit,
+            bool enqueueChangeAfterEdit)
+        {
+            using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+            var callCount = 0;
+            var normalDocId = AddSimpleDocument(workspace, new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)));
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            var document = Assert.Single(documents);
+            Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+
+            if (enqueueChangeBeforeEdit)
+                workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+            await WaitForSourceGeneratorsAsync(workspace);
+
+            // Now, make a simple edit to the main document.
+            Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(normalDocId, SourceText.From("// new text"))));
+
+            if (enqueueChangeAfterEdit)
+                workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+            await WaitForSourceGeneratorsAsync(workspace);
+
+            project = workspace.CurrentSolution.Projects.Single();
+            documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            document = Assert.Single(documents);
+
+            if (executionPreference == SourceGeneratorExecutionPreference.Automatic)
+            {
+                // in automatic mode we always rerun after a doc edit.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+                return;
+            }
+
+            if (forceRegeneration && (enqueueChangeBeforeEdit || enqueueChangeAfterEdit))
+            {
+                // If a force-regenerate notification came through either before or after the edit, we should regenerate.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+                return;
+            }
+
+            if (enqueueChangeAfterEdit)
+            {
+                // In balanced mode, if we hear about a save/build after a the last change to a project, we do want to regenerate.
+                Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
+            }
+            else
+            {
+                // In balanced mode, if there was no save/build after the last change, we want to reuse whatever we produced last time.
+                Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
+            }
         }
 
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
@@ -1409,6 +1511,48 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
 
             return solution;
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2085357")]
+        internal async Task TestNonCompilationLanguage(SourceGeneratorExecutionPreference sourceGeneratorExecution)
+        {
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService), typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
+
+            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
+            var projectId1 = ProjectId.CreateNewId();
+
+            var project1 = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                .GetRequiredProject(projectId1);
+            var tempDoc = project1.AddDocument("X.cs", SourceText.From("// "));
+            Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var noCompilationProject = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName);
+            Assert.True(workspace.SetCurrentSolution(_ => noCompilationProject.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var initialSolution = workspace.CurrentSolution;
+            var initialExecutionMap = initialSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
+
+            Assert.True(initialExecutionMap.ContainsKey(projectId1));
+            Assert.True(initialExecutionMap.ContainsKey(noCompilationProject.Id));
+
+            // forceRegeneration=true should take precedence.
+            workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+            await WaitForSourceGeneratorsAsync(workspace);
+
+            var finalSolution = workspace.CurrentSolution;
+            var finalExecutionMap = finalSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
+
+            Assert.True(finalExecutionMap.ContainsKey(projectId1));
+            Assert.True(finalExecutionMap.ContainsKey(noCompilationProject.Id));
+
+            // We should have successfully changed the version for the C# project.
+            Assert.NotEqual(initialExecutionMap[projectId1], finalExecutionMap[projectId1]);
+            Assert.NotEqual(initialExecutionMap[noCompilationProject.Id], finalExecutionMap[noCompilationProject.Id]);
         }
 
         private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)

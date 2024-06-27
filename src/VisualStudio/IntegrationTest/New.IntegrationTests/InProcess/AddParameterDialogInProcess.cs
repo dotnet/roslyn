@@ -14,112 +14,111 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
+namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
+
+[TestService]
+internal partial class AddParameterDialogInProcess
 {
-    [TestService]
-    internal partial class AddParameterDialogInProcess
+    private async Task<AddParameterDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {
-        private async Task<AddParameterDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
+        await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+        return Application.Current.Windows.OfType<AddParameterDialog>().SingleOrDefault();
+    }
+
+    private async Task ClickAsync(Func<AddParameterDialog, ButtonBase> buttonAccessor, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var dialog = await TryGetDialogAsync(cancellationToken);
+        AssertEx.NotNull(dialog);
+
+        Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
+    }
+
+    public async Task VerifyOpenAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        while (true)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            return Application.Current.Windows.OfType<AddParameterDialog>().SingleOrDefault();
-        }
-
-        private async Task ClickAsync(Func<AddParameterDialog, ButtonBase> buttonAccessor, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var dialog = await TryGetDialogAsync(cancellationToken);
-            AssertEx.NotNull(dialog);
-
-            Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
-        }
-
-        public async Task VerifyOpenAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (await TryGetDialogAsync(cancellationToken) is null)
-                {
-                    await Task.Delay(50, cancellationToken);
-                    continue;
-                }
-
-                await Task.Yield();
-                return;
-            }
-        }
-
-        public async Task VerifyClosedAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            while (await TryGetDialogAsync(cancellationToken) is not null)
+            cancellationToken.ThrowIfCancellationRequested();
+            if (await TryGetDialogAsync(cancellationToken) is null)
             {
                 await Task.Delay(50, cancellationToken);
+                continue;
             }
-        }
 
-        public async Task<bool> CloseWindowAsync(CancellationToken cancellationToken)
+            await Task.Yield();
+            return;
+        }
+    }
+
+    public async Task VerifyClosedAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        while (await TryGetDialogAsync(cancellationToken) is not null)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            if (await TryGetDialogAsync(cancellationToken) is not { })
-                return false;
-
-            await ClickCancelAsync(cancellationToken);
-            return true;
+            await Task.Delay(50, cancellationToken);
         }
+    }
 
-        public async Task ClickOKAsync(CancellationToken cancellationToken)
-        {
-            await ClickAsync(dialog => dialog.GetTestAccessor().OKButton, cancellationToken);
-        }
+    public async Task<bool> CloseWindowAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        public async Task ClickCancelAsync(CancellationToken cancellationToken)
-        {
-            await ClickAsync(dialog => dialog.GetTestAccessor().CancelButton, cancellationToken);
-        }
+        if (await TryGetDialogAsync(cancellationToken) is not { })
+            return false;
 
-        public async Task FillCallSiteFieldAsync(string callsiteValue, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await ClickCancelAsync(cancellationToken);
+        return true;
+    }
 
-            var dialog = await TryGetDialogAsync(cancellationToken);
-            AssertEx.NotNull(dialog);
+    public async Task ClickOKAsync(CancellationToken cancellationToken)
+    {
+        await ClickAsync(dialog => dialog.GetTestAccessor().OKButton, cancellationToken);
+    }
 
-            dialog.CallsiteValueTextBox.Focus();
-            dialog.CallsiteValueTextBox.Text = callsiteValue;
-        }
+    public async Task ClickCancelAsync(CancellationToken cancellationToken)
+    {
+        await ClickAsync(dialog => dialog.GetTestAccessor().CancelButton, cancellationToken);
+    }
 
-        public async Task FillNameFieldAsync(string parameterName, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+    public async Task FillCallSiteFieldAsync(string callsiteValue, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var dialog = await TryGetDialogAsync(cancellationToken);
-            AssertEx.NotNull(dialog);
+        var dialog = await TryGetDialogAsync(cancellationToken);
+        AssertEx.NotNull(dialog);
 
-            dialog.NameContentControl.Focus();
-            dialog.NameContentControl.Text = parameterName;
-        }
+        dialog.CallsiteValueTextBox.Focus();
+        dialog.CallsiteValueTextBox.Text = callsiteValue;
+    }
 
-        public async Task FillTypeFieldAsync(string typeName, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+    public async Task FillNameFieldAsync(string parameterName, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var dialog = await TryGetDialogAsync(cancellationToken);
-            AssertEx.NotNull(dialog);
+        var dialog = await TryGetDialogAsync(cancellationToken);
+        AssertEx.NotNull(dialog);
 
-            dialog.TypeContentControl.Focus();
-            dialog.TypeContentControl.Text = typeName;
-        }
+        dialog.NameContentControl.Focus();
+        dialog.NameContentControl.Text = parameterName;
+    }
 
-        public async Task SetCallSiteTodoAsync(CancellationToken cancellationToken)
-        {
-            await ClickAsync(dialog => dialog.IntroduceErrorRadioButton, cancellationToken);
-        }
+    public async Task FillTypeFieldAsync(string typeName, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var dialog = await TryGetDialogAsync(cancellationToken);
+        AssertEx.NotNull(dialog);
+
+        dialog.TypeContentControl.Focus();
+        dialog.TypeContentControl.Text = typeName;
+    }
+
+    public async Task SetCallSiteTodoAsync(CancellationToken cancellationToken)
+    {
+        await ClickAsync(dialog => dialog.IntroduceErrorRadioButton, cancellationToken);
     }
 }

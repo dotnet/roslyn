@@ -7,7 +7,6 @@
 using System;
 using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
 using Microsoft.CodeAnalysis.Host.Mef;

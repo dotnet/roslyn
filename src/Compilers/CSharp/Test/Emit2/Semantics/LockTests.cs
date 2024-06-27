@@ -3448,10 +3448,7 @@ public class LockTests : CSharpTestBase
         CreateCompilation([source, LockTypeDefinition]).VerifyEmitDiagnostics(
             // (9,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15),
-            // (11,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-            //             yield return 2;
-            Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(11, 13));
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15));
     }
 
     [Fact]
@@ -3560,10 +3557,7 @@ public class LockTests : CSharpTestBase
         CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyEmitDiagnostics(
             // (10,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(10, 15),
-            // (12,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-            //             yield return 2;
-            Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(12, 13));
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(10, 15));
     }
 
     [Fact]

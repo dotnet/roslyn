@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel

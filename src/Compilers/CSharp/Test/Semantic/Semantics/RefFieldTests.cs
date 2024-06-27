@@ -16654,22 +16654,22 @@ partial class C
 
             var expectedDiagnostics = new[]
             {
-                // (3,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                // (3,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial definition.
                 //     static partial void M1(scoped R<int> r) { } // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M1").WithArguments("r").WithLocation(3, 25),
-                // (4,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                // (4,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial definition.
                 //     static partial void M2(R<int> r) { } // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M2").WithArguments("r").WithLocation(4, 25),
-                // (5,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                // (5,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial definition.
                 //     static partial void M3(scoped ref R<int> r) { } // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M3").WithArguments("r").WithLocation(5, 25),
-                // (6,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                // (6,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial definition.
                 //     static partial void M4(ref R<int> r) { } // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M4").WithArguments("r").WithLocation(6, 25),
-                // (7,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                // (7,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial definition.
                 //     static partial void M5(scoped in R<int> r) { } // 5
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M5").WithArguments("r").WithLocation(7, 25),
-                // (8,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                // (8,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial definition.
                 //     static partial void M6(in R<int> r) { } // 6
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M6").WithArguments("r").WithLocation(8, 25)
             };
@@ -16719,16 +16719,16 @@ partial class C
 
             var expectedDiagnostics = new[]
             {
-                // (3,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial method declaration.
+                // (3,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial definition.
                 //     private partial void F1(scoped ref int i) { } // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "F1").WithArguments("i").WithLocation(3, 26),
-                // (4,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial method declaration.
+                // (4,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial definition.
                 //     private partial void F2(ref int i) { } // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "F2").WithArguments("i").WithLocation(4, 26),
-                // (5,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial method declaration.
+                // (5,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial definition.
                 //     private partial void F3(scoped in int i) { } // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "F3").WithArguments("i").WithLocation(5, 26),
-                // (6,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial method declaration.
+                // (6,26): error CS8988: The 'scoped' modifier of parameter 'i' doesn't match partial definition.
                 //     private partial void F4(ref int i) { } // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "F4").WithArguments("i").WithLocation(6, 26)
             };
@@ -19776,17 +19776,17 @@ class C
                     public int field;
                     public ref int refField;
 
-                    ref int Prop1 => ref field; // 1
+                    ref int Prop1 => ref @field; // 1
 
                     [UnscopedRef]
-                    ref int Prop2 => ref field; // okay
+                    ref int Prop2 => ref @field; // okay
 
                     S2 Prop3 => new S2 { S = this }; // Okay
 
-                    S Prop4 => new S { refField = ref this.field }; // 2
+                    S Prop4 => new S { refField = ref this.@field }; // 2
 
                     [UnscopedRef]
-                    S Prop5 => new S { refField = ref this.field }; // okay
+                    S Prop5 => new S { refField = ref this.@field }; // okay
 
                     S M1() => new S { refField = ref this.field }; // 3
 

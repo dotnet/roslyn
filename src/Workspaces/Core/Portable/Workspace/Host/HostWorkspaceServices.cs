@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -87,7 +87,9 @@ public abstract class HostWorkspaceServices
     /// <summary>
     /// A list of language names for supported language services.
     /// </summary>
-    public virtual IEnumerable<string> SupportedLanguages => [];
+    public virtual IEnumerable<string> SupportedLanguages => SupportedLanguagesArray;
+
+    internal virtual ImmutableArray<string> SupportedLanguagesArray => [];
 
     /// <summary>
     /// Returns true if the language is supported.

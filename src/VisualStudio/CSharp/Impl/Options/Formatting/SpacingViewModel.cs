@@ -8,7 +8,6 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 

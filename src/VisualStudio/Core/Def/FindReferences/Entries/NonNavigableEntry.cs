@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
 internal partial class StreamingFindUsagesPresenter
 {
-    private class NonNavigableDefinitionItemEntry(AbstractTableDataSourceFindUsagesContext context, RoslynDefinitionBucket definitionBucket)
+    private sealed class NonNavigableDefinitionItemEntry(AbstractTableDataSourceFindUsagesContext context, RoslynDefinitionBucket definitionBucket)
         : AbstractItemEntry(definitionBucket, context.Presenter)
     {
         protected override object? GetValueWorker(string keyName)

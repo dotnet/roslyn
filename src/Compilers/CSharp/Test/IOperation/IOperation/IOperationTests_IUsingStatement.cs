@@ -1939,9 +1939,6 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
@@ -2076,9 +2073,6 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
@@ -2213,9 +2207,6 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
@@ -2351,9 +2342,6 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params object[], int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params object[], int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
@@ -4755,9 +4743,6 @@ Block[B6] - Exit
 ";
             var expectedDiagnostics = new[]
             {
-                // file.cs(8,21): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'C.DisposeAsync(int, params int[], bool)'
-                //         await using(this){}
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this").WithArguments("extras", "C.DisposeAsync(int, params int[], bool)").WithLocation(8, 21),
                 // file.cs(8,21): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using(this){}
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "this").WithArguments("C").WithLocation(8, 21),
@@ -7573,12 +7558,9 @@ Block[B4] - Exit
 ";
             var expectedDiagnostics = new[]
             {
-                    // file.cs(8,13): warning CS0280: 'P' does not implement the 'disposable' pattern. 'P.Dispose()' has the wrong signature.
-                    //             using var x = new P();
-                    Diagnostic(ErrorCode.WRN_PatternBadSignature, "using var x = new P();").WithArguments("P", "disposable", "P.Dispose()").WithLocation(8, 13),
-                    // file.cs(8,13): error CS1674: 'P': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
-                    //             using var x = new P();
-                    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x = new P();").WithArguments("P").WithLocation(8, 13)
+                // file.cs(8,13): error CS1674: 'P': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //             using var x = new P();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x = new P();").WithArguments("P").WithLocation(8, 13)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
