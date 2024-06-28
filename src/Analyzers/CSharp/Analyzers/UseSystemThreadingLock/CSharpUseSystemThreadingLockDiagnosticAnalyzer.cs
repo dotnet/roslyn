@@ -187,13 +187,13 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 // consider this not applicable.
                 if (lockOperation.Syntax.ContainsYield())
                 {
-                    GetValueRefOrNullRef(potentialLockFields, fieldReference).canUse = false;
+                    valueRef.canUse = false;
                     return;
                 }
 
                 // We did lock on this field, mark as such as its now something we'd def like to convert to a
                 // System.Threading.Lock if possible.
-                GetValueRefOrNullRef(potentialLockFields, fieldReference).wasLocked = true;
+                valueRef.wasLocked = true;
                 return;
             }
 
@@ -214,7 +214,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             // Note: More patterns can be added here as needed.
 
             // This wasn't a supported case.  Immediately disallow conversion of this field.
-            GetValueRefOrNullRef(potentialLockFields, fieldReference).canUse = false;
+            valueRef.canUse = false;
         }, OperationKind.FieldReference);
 
         // Finally, once we're done analyzing the symbol body, report diagnostics for any fields that we determined are
