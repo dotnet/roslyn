@@ -297,7 +297,7 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
-    public async Task TestNotWithParenthesizedInitializer()
+    public async Task TestWithParenthesizedInitializer()
     {
         await new VerifyCS.Test
         {
@@ -305,6 +305,21 @@ public sealed class UseSystemThreadingLockTests
                 class C
                 {
                     private object _gate = (new object());
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = (new Lock());
 
                     void M()
                     {
@@ -1145,6 +1160,26 @@ public sealed class UseSystemThreadingLockTests
                     }
                 }
                 """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate;
+
+                    public C()
+                    {
+                        this._gate = (new Lock());
+                    }
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
@@ -1399,6 +1434,94 @@ public sealed class UseSystemThreadingLockTests
                         {
                         }
                         lock (_gate2)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithOtherField1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+                    private int i;
+
+                    void M()
+                    {
+                        Console.WriteLine(i);
+
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                    private int i;
+                
+                    void M()
+                    {
+                        Console.WriteLine(i);
+
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithOtherField2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+                    private object i;
+
+                    void M()
+                    {
+                        Console.WriteLine(i);
+
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                    private object i;
+                
+                    void M()
+                    {
+                        Console.WriteLine(i);
+
+                        lock (_gate)
                         {
                         }
                     }

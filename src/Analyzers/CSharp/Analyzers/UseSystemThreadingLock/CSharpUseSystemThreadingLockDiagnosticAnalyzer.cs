@@ -144,8 +144,8 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         foreach (var (field, declarator, option) in fieldsArray)
             potentialLockFields[field] = (declarator, option, canUse: true, wasLocked: false);
 
-        // Register a syntax node callback to ensure the field's initializer is either missing, or is only instantiating
-        // the field with a new object.
+        // Register a callback to ensure the field's initializer is either missing, or is only instantiating the field
+        // with a new object.
         context.RegisterOperationAction(context =>
         {
             var cancellationToken = context.CancellationToken;
@@ -157,6 +157,9 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 return;
 
             var fieldInitializer = (IFieldInitializerOperation)context.Operation;
+            if (fieldInitializer.Value is null)
+                return;
+
             if (fieldInitializer.Value is not IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object })
                 valueRef.canUse = false;
         }, OperationKind.FieldInitializer);
@@ -169,7 +172,12 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             var fieldReference = fieldReferenceOperation.Field.OriginalDefinition;
 
             // We only care about examining field references to the fields we're considering converting to System.Threading.Lock.
-            if (!potentialLockFields.ContainsKey(fieldReference))
+            ref var valueRef = ref GetValueRefOrNullRef(potentialLockFields, fieldReference);
+            if (Unsafe.IsNullRef(ref valueRef))
+                return;
+
+            // If some other analysis already determined we can't convert this field, then no point continuing.
+            if (!valueRef.canUse)
                 return;
 
             if (fieldReferenceOperation.Parent is ILockOperation lockOperation)
@@ -191,16 +199,11 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             // It's ok to assign to the field, as long as we're assigning a new lock object to it. e.g.  `_gate = new
             // object()` is fine to continue converting over to System.Threading.Lock.  But an assignment of something
             // else is not.
-            if (fieldReferenceOperation.Parent is IAssignmentOperation { Syntax: AssignmentExpressionSyntax assignmentSyntax } assignment &&
+            if (fieldReferenceOperation.Parent is IAssignmentOperation assignment &&
                 assignment.Target == fieldReferenceOperation &&
-                IsSystemObjectCreationExpression(fieldReferenceOperation.SemanticModel!, assignmentSyntax.Right, cancellationToken))
+                assignment.Value is IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object })
             {
-                var operand = assignment.Value is IConversionOperation { Conversion: { Exists: true, IsImplicit: true } } conversion
-                    ? conversion.Operand
-                    : assignment.Value;
-
-                if (operand is IObjectCreationOperation { Arguments.Length: 0, Constructor.ContainingType.SpecialType: SpecialType.System_Object })
-                    return;
+                return;
             }
 
             // Fine to use `nameof(someLock)` as that's not actually using the lock.
@@ -219,7 +222,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         {
             var cancellationToken = context.CancellationToken;
 
-            foreach (var (lockField, (fieldDeclaration, option, canUse, wasLocked)) in potentialLockFields)
+            foreach (var (lockField, (declarator, option, canUse, wasLocked)) in potentialLockFields)
             {
                 // If we blocked this field in our analysis pass, can immediately skip.
                 if (!canUse)
@@ -228,9 +231,6 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 // Has to at least see this field locked on to offer to convert it to a Lock.
                 if (!wasLocked)
                     continue;
-
-                // .Single is safe here as we confirmed there was only one DeclaringSyntaxReference in the field at the beginning of analysis.
-                var declarator = fieldDeclaration.Declaration.Variables.Single();
 
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
@@ -241,23 +241,5 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                     properties: null));
             }
         });
-
-        return;
-
-        static bool IsSystemObjectCreationExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
-        {
-            // new()
-            if (expression is ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 })
-                return true;
-
-            // new ...()
-            if (expression is ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 } objectCreationExpression &&
-                semanticModel.GetTypeInfo(expression, cancellationToken).Type?.SpecialType is SpecialType.System_Object)
-            {
-                return true;
-            }
-
-            return false;
-        }
     }
 }
