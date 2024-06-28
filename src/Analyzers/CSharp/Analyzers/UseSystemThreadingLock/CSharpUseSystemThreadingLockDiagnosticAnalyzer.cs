@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -81,7 +81,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
 
         // Needs to have a private field that is exactly typed as 'object'.  This way we can analyze all usages of it to
         // be sure it's completely safe to move to the new lock type.
-        using var fieldsArray = TemporaryArray<(IFieldSymbol field, CodeStyleOption2<bool> option)>.Empty;
+        using var fieldsArray = TemporaryArray<(IFieldSymbol field, FieldDeclarationSyntax fieldDeclaration, CodeStyleOption2<bool> option)>.Empty;
         using var _1 = PooledHashSet<SemanticModel>.GetInstance(out var cachedSemanticModels);
 
         foreach (var member in namedType.GetMembers())
@@ -108,21 +108,16 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                     continue;
             }
 
-            if (fieldSyntaxReference.GetSyntax(cancellationToken) is not VariableDeclaratorSyntax fieldSyntax)
+            if (fieldSyntaxReference.GetSyntax(cancellationToken) is not VariableDeclaratorSyntax variableDeclarator)
                 continue;
 
             // For simplicity, only offer this for fields with a single declarator.
-            if (fieldSyntax.Parent is not VariableDeclarationSyntax { Parent: FieldDeclarationSyntax, Variables.Count: 1 })
+            if (variableDeclarator.Parent is not VariableDeclarationSyntax { Parent: FieldDeclarationSyntax fieldDeclaration, Variables.Count: 1 })
                 return;
-
-            // If we have an initializer at the declaration site, it needs to be initialized with either `new object()`
-            // or `new()`.
-            if (fieldSyntax.Initializer != null && !IsSystemObjectCreationExpression(fieldSyntax.Initializer.Value))
-                continue;
 
             // Looks like something that could be converted to a System.Threading.Lock if we see that this field is used
             // in a compatible fashion.
-            fieldsArray.Add((field, currentOption!));
+            fieldsArray.Add((field, fieldDeclaration, currentOption!));
         }
 
         if (fieldsArray.Count == 0)
@@ -139,10 +134,34 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         // reference to its tuple value and overwriting a bool in place within that tuple with the new value.  And we
         // only move hte value in one direction.  For example 'canUse' only moved from 'true' to 'false' and 'wasLocked'
         // only moves the value from 'false' to 'true'.
-        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (CodeStyleOption2<bool> option, bool canUse, bool wasLocked)>();
+        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (FieldDeclarationSyntax fieldDeclaration, CodeStyleOption2<bool> option, bool canUse, bool wasLocked)>();
 
-        foreach (var (field, option) in fieldsArray)
-            potentialLockFields[field] = (option, canUse: true, wasLocked: false);
+        foreach (var (field, fieldDeclaration, option) in fieldsArray)
+            potentialLockFields[field] = (fieldDeclaration, option, canUse: true, wasLocked: false);
+
+        // Register a syntax node callback to ensure the field's initializer is either missing, or is only instantiating
+        // the field with a new object.
+        context.RegisterSyntaxNodeAction(context =>
+        {
+            var cancellationToken = context.CancellationToken;
+            var fieldDeclaration = (FieldDeclarationSyntax)context.Node;
+
+            foreach (var (currentField, currentFieldDeclaration, _) in fieldsArray)
+            {
+                if (currentFieldDeclaration == fieldDeclaration)
+                {
+                    // If we have an initializer at the declaration site, it needs to be initialized with either `new
+                    // object()` or `new()`.  If not, we can't convert this.  Note: we confirmed this field only has a
+                    // single declarator when doing our initial pass.  So .Single is safe here.
+                    var variableDeclarator = currentFieldDeclaration.Declaration.Variables.Single();
+                    if (variableDeclarator.Initializer != null &&
+                        !IsSystemObjectCreationExpression(context.SemanticModel, variableDeclarator.Initializer.Value, cancellationToken))
+                    {
+                        GetValueRefOrNullRef(potentialLockFields, currentField).canUse = false;
+                    }
+                }
+            }
+        }, SyntaxKind.FieldDeclaration);
 
         // Now go see how the code within this named type actually uses any fields within.
         context.RegisterOperationAction(context =>
@@ -176,7 +195,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             // else is not.
             if (fieldReferenceOperation.Parent is IAssignmentOperation { Syntax: AssignmentExpressionSyntax assignmentSyntax } assignment &&
                 assignment.Target == fieldReferenceOperation &&
-                IsSystemObjectCreationExpression(assignmentSyntax.Right))
+                IsSystemObjectCreationExpression(fieldReferenceOperation.SemanticModel!, assignmentSyntax.Right, cancellationToken))
             {
                 var operand = assignment.Value is IConversionOperation { Conversion: { Exists: true, IsImplicit: true } } conversion
                     ? conversion.Operand
@@ -196,11 +215,13 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             GetValueRefOrNullRef(potentialLockFields, fieldReference).canUse = false;
         }, OperationKind.FieldReference);
 
+        // Finally, once we're done analyzing the symbol body, report diagnostics for any fields that we determined are
+        // locks and can be safely converted.
         context.RegisterSymbolEndAction(context =>
         {
             var cancellationToken = context.CancellationToken;
 
-            foreach (var (lockField, (option, canUse, wasLocked)) in potentialLockFields)
+            foreach (var (lockField, (fieldDeclaration, option, canUse, wasLocked)) in potentialLockFields)
             {
                 // If we blocked this field in our analysis pass, can immediately skip.
                 if (!canUse)
@@ -211,7 +232,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                     continue;
 
                 // .Single is safe here as we confirmed there was only one DeclaringSyntaxReference in the field at the beginning of analysis.
-                var declarator = (VariableDeclaratorSyntax)lockField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
+                var declarator = fieldDeclaration.Declaration.Variables.Single();
 
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
@@ -223,26 +244,19 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             }
         });
 
-        static bool IsSystemObjectCreationExpression(ExpressionSyntax expression)
+        return;
+
+        static bool IsSystemObjectCreationExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             // new()
             if (expression is ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 })
                 return true;
 
             // new ...()
-            if (expression is ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 } objectCreationExpression)
+            if (expression is ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 } objectCreationExpression &&
+                semanticModel.GetTypeInfo(expression, cancellationToken).Type?.SpecialType is SpecialType.System_Object)
             {
-                // new object();
-                if (objectCreationExpression.Type is PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.ObjectKeyword })
-                    return true;
-
-                // new Object(), new System.Object(), etc. Almost certain the right type as it would be pathological to
-                // actually have a user type named Object (especially used as a lock).
-                if (objectCreationExpression.Type is IdentifierNameSyntax { Identifier.ValueText: nameof(System.Object) })
-                    return true;
-
-                if (objectCreationExpression.Type is QualifiedNameSyntax { Right.Identifier.ValueText: nameof(System.Object) })
-                    return true;
+                return true;
             }
 
             return false;
