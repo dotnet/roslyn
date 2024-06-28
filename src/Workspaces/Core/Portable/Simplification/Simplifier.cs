@@ -242,8 +242,9 @@ public static partial class Simplifier
             document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken);
 
     internal static async Task<Document> ReduceAsync(
-        Document document, ImmutableArray<AbstractReducer> reducers, SimplifierOptions options, CancellationToken cancellationToken)
+        Document document, ImmutableArray<AbstractReducer> reducers, CancellationToken cancellationToken)
     {
+        var options = await document.GetSimplifierOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         return await document.GetRequiredLanguageService<ISimplificationService>()
             .ReduceAsync(document, [root.FullSpan], options,
