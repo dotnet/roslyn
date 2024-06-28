@@ -10448,7 +10448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
-            if (Compilation.LanguageVersion < LanguageVersionFacts.CSharpNext)
+            if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
             {
                 return GetUniqueSignatureFromMethodGroup_CSharp10(node);
             }

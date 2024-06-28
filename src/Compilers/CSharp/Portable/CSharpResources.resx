@@ -6632,6 +6632,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion12" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion13" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>

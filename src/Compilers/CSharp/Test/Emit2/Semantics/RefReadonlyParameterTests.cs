@@ -7000,7 +7000,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -7025,7 +7025,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -7054,7 +7054,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
