@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -69,26 +70,16 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         var cancellationToken = context.CancellationToken;
 
         var namedType = (INamedTypeSymbol)context.Symbol;
-        if (namedType is not
-            {
-                TypeKind: TypeKind.Class or TypeKind.Struct,
-                DeclaringSyntaxReferences: [var reference, ..]
-            })
-        {
+        if (namedType is not { TypeKind: TypeKind.Class or TypeKind.Struct })
             return;
-        }
 
-        var syntaxTree = reference.GetSyntax(cancellationToken).SyntaxTree;
-        var option = context.GetCSharpAnalyzerOptions(syntaxTree).PreferSystemThreadingLock;
-
-        // Bail immediately if the user has disabled this feature.
-        if (!option.Value || ShouldSkipAnalysis(syntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
-            return;
+        SyntaxTree? currentSyntaxTree = null;
+        CodeStyleOption2<bool>? currentOption = null;
 
         // Needs to have a private field that is exactly typed as 'object'.  This way we can analyze all usages of it to
         // be sure it's completely safe to move to the new lock type.
-        using var fieldsArray = TemporaryArray<IFieldSymbol>.Empty;
-        using var _ = PooledHashSet<SemanticModel>.GetInstance(out var cachedSemanticModels);
+        using var fieldsArray = TemporaryArray<(IFieldSymbol field, CodeStyleOption2<bool> option)>.Empty;
+        using var _1 = PooledHashSet<SemanticModel>.GetInstance(out var cachedSemanticModels);
 
         foreach (var member in namedType.GetMembers())
         {
@@ -100,6 +91,18 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 } field)
             {
                 continue;
+            }
+
+            var fieldSyntaxTree = fieldSyntaxReference.SyntaxTree;
+            if (fieldSyntaxTree != currentSyntaxTree)
+            {
+                currentSyntaxTree = fieldSyntaxTree;
+
+                currentOption = context.GetCSharpAnalyzerOptions(currentSyntaxTree).PreferSystemThreadingLock;
+
+                // Ignore this field if it is is in a file that should be skipped.
+                if (!currentOption.Value || ShouldSkipAnalysis(currentSyntaxTree, context.Options, context.Compilation.Options, currentOption.Notification, cancellationToken))
+                    continue;
             }
 
             if (fieldSyntaxReference.GetSyntax(cancellationToken) is not VariableDeclaratorSyntax fieldSyntax)
@@ -116,21 +119,21 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
 
             // Looks like something that could be converted to a System.Threading.Lock if we see that this field is used
             // in a compatible fashion.
-            fieldsArray.Add(field);
+            fieldsArray.Add((field, currentOption!));
         }
 
         if (fieldsArray.Count == 0)
             return;
 
         // The set of fields we think could be converted to `System.Threading.Lock` from `object`.
-        var potentialLockFields = new ConcurrentSet<IFieldSymbol>();
+        var potentialLockFields = new ConcurrentDictionary<IFieldSymbol, CodeStyleOption2<bool>>();
 
         // Whether or not we saw this field used in a `lock (obj)` statement.  If not, we do not want to convert this as
         // the user wasn't using this as a lock.  Note: we can consider expanding the set of patterns we detect (like
         // Monitor.Enter + Monitor.Exit) if we think it's worthwhile.
         var wasLockedSet = new ConcurrentSet<IFieldSymbol>();
-        foreach (var field in fieldsArray)
-            potentialLockFields.Add(field);
+        foreach (var (field, option) in fieldsArray)
+            potentialLockFields[field] = option;
 
         // Now go see how the code within this named type actually uses any fields within.
         context.RegisterOperationAction(context =>
@@ -140,7 +143,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             var fieldReference = fieldReferenceOperation.Field.OriginalDefinition;
 
             // We only care about examining field references to the fields we're considering converting to System.Threading.Lock.
-            if (!potentialLockFields.Contains(fieldReference))
+            if (!potentialLockFields.ContainsKey(fieldReference))
                 return;
 
             if (fieldReferenceOperation.Parent is ILockOperation lockOperation)
@@ -149,7 +152,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 // consider this not applicable.
                 if (lockOperation.Syntax.DescendantNodesAndSelf().Any(n => n is YieldStatementSyntax))
                 {
-                    potentialLockFields.Remove(fieldReference);
+                    potentialLockFields.TryRemove(fieldReference, out _);
                     return;
                 }
 
@@ -181,14 +184,14 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             // Note: More patterns can be added here as needed.
 
             // This wasn't a supported case.  Immediately disallow conversion of this field.
-            potentialLockFields.Remove(fieldReference);
+            potentialLockFields.TryRemove(fieldReference, out _);
         }, OperationKind.FieldReference);
 
         context.RegisterSymbolEndAction(context =>
         {
             var cancellationToken = context.CancellationToken;
 
-            foreach (var lockField in potentialLockFields)
+            foreach (var (lockField, option) in potentialLockFields)
             {
                 // Has to at least see this field locked on to offer to convert it to a Lock.
                 if (!wasLockedSet.Contains(lockField))
