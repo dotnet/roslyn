@@ -9,6 +9,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.CallStack;
@@ -62,7 +63,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract bool IsPrimitiveType(Type type);
 
 #nullable enable
-        internal abstract bool TryGetMemberDisplay(string metadataName, out bool isGenerated, out string? displayName);
+        /// <summary>
+        /// Returns true if a generated member of <paramref name="metadataName"/> should be displayed.
+        /// <paramref name="displayName"/> is set to the unmangled name to be displayed.
+        /// </summary>
+        internal abstract bool TryGetGeneratedMemberDisplay(string metadataName, [NotNullWhen(true)] out string? displayName);
 #nullable disable
 
         void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)

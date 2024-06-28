@@ -100,9 +100,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
-                    if (!resultProvider.TryGetMemberDisplay(member.Name, out var isGenerated, out var memberName) && !raw)
+                    var memberName = member.Name;
+                    var isGenerated = memberName.IsCompilerGenerated();
+
+                    if (isGenerated)
                     {
-                        continue;
+                        // Some generated names are displayed under their original (unmangled) name,
+                        // others are only shown when displaying raw object.
+                        if (resultProvider.TryGetGeneratedMemberDisplay(memberName, out var unmangledMemberName))
+                        {
+                            memberName = unmangledMemberName;
+                        }
+                        else if (!raw)
+                        {
+                            continue;
+                        }
                     }
 
                     // The native EE shows proxy members regardless of accessibility if they have a

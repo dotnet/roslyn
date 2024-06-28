@@ -475,12 +475,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var fullNameProvider = resultProvider.FullNameProvider;
             var declaredType = member.Type;
             var declaredTypeInfo = customTypeInfoMap.SubstituteCustomTypeInfo(member.OriginalDefinitionType, member.TypeInfo);
+            string? memberNameForFullName;
 
             // Considering, we're not handling the case of a member inherited from a generic base type.
-            if (!member.TryGetExplicitlyImplementedInterface(out var declaringType, out var memberDisplayName))
+            if (member.TryGetExplicitlyImplementedInterface(out var declaringType, out var memberDisplayName))
+            {
+                // full name will include cast to the interface, e.g. "((I)obj).MemberName":
+                memberNameForFullName = memberDisplayName;
+            }
+            else
             {
                 declaringType = member.DeclaringType;
                 memberDisplayName = member.DisplayName;
+                memberNameForFullName = member.MetadataName;
             }
 
             var declaringTypeInfo = declaringType.IsInterface
@@ -490,7 +497,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var appDomain = memberValue.Type.AppDomain;
             string? fullName;
 
-            var memberNameForFullName = member.IsGenerated ? null : fullNameProvider.GetClrValidIdentifier(inspectionContext, member.MetadataName);
+            memberNameForFullName = fullNameProvider.GetClrValidIdentifier(inspectionContext, memberNameForFullName);
             if (memberNameForFullName == null)
             {
                 fullName = null;

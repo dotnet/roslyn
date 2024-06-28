@@ -43,10 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return type.IsPredefinedType()
         End Function
 
-        Friend Overrides Function TryGetMemberDisplay(metadataName As String, <Out> ByRef isGenerated As Boolean, <Out> ByRef displayName As String) As Boolean
-            isGenerated = metadataName.IndexOf("$"c) >= 0
-            displayName = If(isGenerated, Nothing, metadataName)
-            Return Not isGenerated
+        Friend Overrides Function TryGetGeneratedMemberDisplay(metadataName As String, <Out> ByRef displayName As String) As Boolean
+            displayName = Nothing
+            Return False
         End Function
     End Class
 End Namespace

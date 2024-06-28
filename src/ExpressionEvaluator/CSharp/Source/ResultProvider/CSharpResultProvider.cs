@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
@@ -41,13 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
 #nullable enable
-        internal override bool TryGetMemberDisplay(string metadataName, out bool isGenerated, out string? displayName)
+        internal override bool TryGetGeneratedMemberDisplay(string metadataName, [NotNullWhen(true)] out string? displayName)
         {
-            isGenerated = GeneratedNameParser.TryParseGeneratedName(metadataName, out var kind, out var openBracketOffset, out var closeBracketOffset);
-            if (!isGenerated)
+            if (!GeneratedNameParser.TryParseGeneratedName(metadataName, out var kind, out var openBracketOffset, out var closeBracketOffset))
             {
-                displayName = metadataName;
-                return true;
+                displayName = null;
+                return false;
             }
 
             switch (kind)
@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return true;
 
                 default:
-                    // do not display other generated members:
+                    // Do not display other generated members.
+                    // Set the display name to metadata name for raw view.
                     displayName = null;
                     return false;
             }
