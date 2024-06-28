@@ -226,7 +226,7 @@ internal partial class SerializerService : ISerializerService
         }
 
         // We only serialize C# and VB options (if present):
-        Debug.Assert(count <= 2);
+        Contract.ThrowIfFalse(count <= 2);
 
         var optionsByLanguage = ImmutableDictionary.CreateBuilder<string, StructuredAnalyzerConfigOptions>();
         var options = ImmutableDictionary.CreateBuilder<string, string>();
@@ -234,7 +234,7 @@ internal partial class SerializerService : ISerializerService
         for (var i = 0; i < count; i++)
         {
             var language = reader.ReadRequiredString();
-            Debug.Assert(language is LanguageNames.CSharp or LanguageNames.VisualBasic);
+            Contract.ThrowIfFalse(language is LanguageNames.CSharp or LanguageNames.VisualBasic);
 
             while (true)
             {

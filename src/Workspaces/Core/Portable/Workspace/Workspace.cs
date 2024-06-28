@@ -396,7 +396,7 @@ public abstract partial class Workspace : IDisposable
     /// <summary>
     /// Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
     /// allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
-    /// Vice versa, if a language is no longer present in <see cref="CurrentSolution"/> 
+    /// Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
     /// we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
     /// 
     /// This mechanism only takes care of flowing the initial snapshot of option values.
