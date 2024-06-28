@@ -30,17 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 ///     private ... Lock _gate = new Lock();
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseSystemThreadingLockDiagnosticId,
+        EnforceOnBuildValues.UseSystemThreadingLock,
+        CSharpCodeStyleOptions.PreferSystemThreadingLock,
+        new LocalizableResourceString(
+            nameof(CSharpAnalyzersResources.Use_System_Threading_Lock), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpUseSystemThreadingLockDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseSystemThreadingLockDiagnosticId,
-               EnforceOnBuildValues.UseSystemThreadingLock,
-               CSharpCodeStyleOptions.PreferSystemThreadingLock,
-               new LocalizableResourceString(
-                   nameof(CSharpAnalyzersResources.Use_System_Threading_Lock), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
