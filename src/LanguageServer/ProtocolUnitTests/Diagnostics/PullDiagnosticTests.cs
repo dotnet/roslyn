@@ -1975,8 +1975,9 @@ class A {";
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsWaitsForLspTextChangesWithMultipleSources(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    public async Task TestWorkspaceDiagnosticsWaitsForLspTextChangesWithMultipleSources(bool useVSDiagnostics, bool mutatingLspWorkspace, [CombinatorialRange(0, 10)] int iteration)
     {
+        _ = iteration;
         var markup1 =
 @"class A {";
         var markup2 = "";
@@ -2007,12 +2008,17 @@ class A {";
         Assert.NotEmpty(resultsOne);
         Assert.Empty(resultsTwo);
 
+        this.TestOutputLspLogger.LogInformation("new requests");
+
         // Make new requests - these requests should again wait for new changes.
         resultTaskOne = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.WorkspaceDocumentsAndProject, triggerConnectionClose: false);
         resultTaskTwo = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.EditAndContinue, triggerConnectionClose: false);
 
+        this.TestOutputLspLogger.LogInformation("waiting for changes");
+
         // Assert that the new requests correctly wait for new changes and do not complete even after some delay.
         await Task.Delay(TimeSpan.FromSeconds(5));
+        this.TestOutputLspLogger.LogInformation("finished waiting");
         Assert.False(resultTaskOne.IsCompleted);
         Assert.False(resultTaskTwo.IsCompleted);
 
