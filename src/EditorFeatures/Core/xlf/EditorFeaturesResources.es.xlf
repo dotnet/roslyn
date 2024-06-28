@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="_0_intercepted_locations">
         <source>'{0}' intercepted locations</source>
-        <target state="new">'{0}' intercepted locations</target>
+        <target state="translated">'{0}' ubicaciones interceptadas</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
