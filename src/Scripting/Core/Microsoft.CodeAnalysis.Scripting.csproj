@@ -20,7 +20,7 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Runtime.Loader" PrivateAssets="all" />
+    <PackageReference Include="System.Runtime.Loader" PrivateAssets="all" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs" />
