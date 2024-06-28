@@ -247,11 +247,6 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
     }
 
     private static bool IsObjectCreationOperation(IOperation value)
-    {
-        // unwrap the implicit conversion around `new()`
-        if (value is IConversionOperation { Conversion: { Exists: true, IsImplicit: true } } conversion)
-            value = conversion.Operand;
-
-        return value is IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object };
-    }
+        // unwrap the implicit conversion around `new()` if necessary.
+        => value.UnwrapImplicitConversion() is IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object };
 }
