@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -29,5 +30,17 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
 
         return new SymbolInlineRenameInfo(
             _refactorNotifyServices, symbolicInfo, _globalOptions.CreateProvider(), cancellationToken);
+    }
+
+    public bool IsRenameContextSupported => true;
+
+    public Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    {
+        return GetRenameContextCoreAsync(inlineRenameInfo, inlineRenameLocationSet, cancellationToken);
+    }
+
+    protected virtual Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);
     }
 }

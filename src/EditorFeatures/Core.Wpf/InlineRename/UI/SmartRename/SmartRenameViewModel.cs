@@ -3,21 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 
@@ -64,6 +66,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// both of which are handled in <see cref="ToggleOrTriggerSuggestions"/>."/>
     /// </summary>
     public bool IsAutomaticSuggestionsEnabled { get; private set; }
+
+    /// <summary>
+    /// Determines whether smart rename gets semantic context to augment the request for suggested names.
+    /// </summary>
+    public bool IsUsingContext { get; }
 
     private string? _selectedSuggestedName;
 
@@ -114,12 +121,13 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
 
         BaseViewModel = baseViewModel;
-        BaseViewModel.PropertyChanged += IdentifierTextPropertyChanged;
-        this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
+        BaseViewModel.PropertyChanged += BaseViewModelPropertyChanged;
+        BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
         SetupTelemetry();
 
         this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        this.IsUsingContext = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsContext);
         // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.IsAutomaticSuggestionsEnabled)
@@ -160,8 +168,31 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         {
             return;
         }
-        _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken).ConfigureAwait(true);
-        return;
+
+        if (IsUsingContext)
+        {
+            var document = this.BaseViewModel.Session.TriggerDocument;
+            var smartRenameContext = ImmutableDictionary<string, string[]>.Empty;
+            var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+            if (editorRenameService.IsRenameContextSupported)
+            {
+                var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+                    .ConfigureAwait(true);
+                var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
+                    .ConfigureAwait(true);
+                smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
+                    context
+                    .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
+            }
+
+            _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
+                .ConfigureAwait(true);
+        }
+        else
+        {
+            _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken)
+                .ConfigureAwait(true);
+        }
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -226,7 +257,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         _isDisposed = true;
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
-        BaseViewModel.PropertyChanged -= IdentifierTextPropertyChanged;
+        BaseViewModel.PropertyChanged -= BaseViewModelPropertyChanged;
         _smartRenameSession.Dispose();
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
@@ -260,7 +291,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private void NotifyPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    private void IdentifierTextPropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void BaseViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
         {
