@@ -419,6 +419,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var boundAttribute = boundAttributeArray[i];
                             Debug.Assert(boundAttribute is not null);
+                            if (boundAttribute.Constructor is { } ctor)
+                            {
+                                Binder.CheckRequiredMembersInObjectInitializer(ctor, ImmutableArray<BoundExpression>.CastUp(boundAttribute.NamedArguments), boundAttribute.Syntax, diagnostics);
+                            }
                             NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
                         }
                     }
