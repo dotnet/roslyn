@@ -248,6 +248,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
 
     private static bool IsObjectCreationOperation(IOperation value)
     {
+        // unwrap the implicit conversion around `new()`
         if (value is IConversionOperation { Conversion: { Exists: true, IsImplicit: true } } conversion)
             value = conversion.Operand;
 
