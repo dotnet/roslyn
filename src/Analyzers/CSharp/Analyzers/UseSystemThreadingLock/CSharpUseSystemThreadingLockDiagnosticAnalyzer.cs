@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 ///     private ... Lock _gate = new Lock();
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseSystemThreadingLockDiagnosticId,
