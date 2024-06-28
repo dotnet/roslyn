@@ -4,202 +4,202 @@
     <body>
       <trans-unit id="Aborted">
         <source>Aborted!</source>
-        <target state="new">Aborted!</target>
+        <target state="translated">Прервано</target>
         <note />
       </trans-unit>
       <trans-unit id="Attaching_debugger_to_process_0">
         <source>Attaching debugger to process {0}</source>
-        <target state="new">Attaching debugger to process {0}</target>
+        <target state="translated">Подключение отладчика для обработки {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Building_project">
         <source>Building project...</source>
-        <target state="new">Building project...</target>
+        <target state="translated">Сборка проекта...</target>
         <note />
       </trans-unit>
       <trans-unit id="Canceled">
         <source>Canceled!</source>
-        <target state="new">Canceled!</target>
+        <target state="translated">Отменено</target>
         <note />
       </trans-unit>
       <trans-unit id="Client_failed_to_attach_the_debugger">
         <source>Client failed to attach the debugger</source>
-        <target state="new">Client failed to attach the debugger</target>
+        <target state="translated">Клиенту не удалось подключить отладчик</target>
         <note />
       </trans-unit>
       <trans-unit id="Completed_reload_of_all_projects_in_0">
         <source>Completed (re)load of all projects in {0}</source>
-        <target state="new">Completed (re)load of all projects in {0}</target>
+        <target state="translated">Завершена (повторная) загрузка всех проектов в {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
-        <target state="new">Debugging tests...</target>
+        <target state="translated">Идет отладка тестов...</target>
         <note />
       </trans-unit>
       <trans-unit id="Discovering_tests">
         <source>Discovering tests...</source>
-        <target state="new">Discovering tests...</target>
+        <target state="translated">Обнаружение тестов...</target>
         <note />
       </trans-unit>
       <trans-unit id="Exception_thrown_0">
         <source>Exception thrown: {0}</source>
-        <target state="new">Exception thrown: {0}</target>
+        <target state="translated">Возникло исключение: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">
         <source>Failed!</source>
-        <target state="new">Failed!</target>
+        <target state="translated">Не выполнено</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4">
         <source>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</source>
-        <target state="new">Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</target>
+        <target state="translated">Не пройдено:    {0}, пройдено:    {1}, пропущено:    {2}, всего:    {3}, длительность:    {4}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
+        <target state="translated">Не удалось прочитать файл RUNSETTINGS в {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">
         <source>Failed to run restore on {0}</source>
-        <target state="new">Failed to run restore on {0}</target>
+        <target state="translated">Не удалось запустить восстановление в {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_0_tests_in_1">
         <source>Found {0} tests in {1}</source>
-        <target state="new">Found {0} tests in {1}</target>
+        <target state="translated">Обнаружены тесты ({0}) в {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Loading_0">
         <source>Loading {0}...</source>
-        <target state="new">Loading {0}...</target>
+        <target state="translated">Загрузка {0}...</target>
         <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>
-        <target state="new">Message</target>
+        <target state="translated">Сообщение</target>
         <note />
       </trans-unit>
       <trans-unit id="No_test_methods_found_in_requested_range">
         <source>No test methods found in requested range</source>
-        <target state="new">No test methods found in requested range</target>
+        <target state="translated">Методы тестов не найдены в запрашиваемом диапазоне</target>
         <note />
       </trans-unit>
       <trans-unit id="Nothing_found_to_restore">
         <source>Nothing found to restore</source>
-        <target state="new">Nothing found to restore</target>
+        <target state="translated">Ничего не найдено для восстановления</target>
         <note />
       </trans-unit>
       <trans-unit id="Passed">
         <source>Passed!</source>
-        <target state="new">Passed!</target>
+        <target state="translated">Пройдено</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_0_has_unresolved_dependencies">
         <source>Project {0} has unresolved dependencies</source>
-        <target state="new">Project {0} has unresolved dependencies</target>
+        <target state="translated">В проекте {0} имеются неразрешенные зависимости</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
         <source>Project {0} loaded by C# Dev Kit</source>
-        <target state="new">Project {0} loaded by C# Dev Kit</target>
+        <target state="translated">Проект {0} загружен при помощи C# Dev Kit</target>
         <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
-        <target state="new">Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</target>
+        <target state="translated">Не удалось загрузить проекты, так не удалось найти инструменты сборки .NET Framework. Попробуйте установить Visual Studio или пакет Visual Studio Build Tools либо проверьте журналы для получения дополнительных сведений.</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
         <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
-        <target state="new">Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</target>
+        <target state="translated">Не удалось загрузить проекты, так как не удалось найти Mono. Убедитесь, что Mono и MSBuild установлены и проверьте журналы для получения дополнительных сведений.</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore">
         <source>Restore</source>
-        <target state="new">Restore</target>
+        <target state="translated">Восстановить</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore_complete">
         <source>Restore complete</source>
-        <target state="new">Restore complete</target>
+        <target state="translated">Восстановление завершено</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore_started">
         <source>Restore started</source>
-        <target state="new">Restore started</target>
+        <target state="translated">Восстановление запущено</target>
         <note />
       </trans-unit>
       <trans-unit id="Restoring_0">
         <source>Restoring {0}</source>
-        <target state="new">Restoring {0}</target>
+        <target state="translated">Выполняется восстановление {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_dotnet_restore_on_0">
         <source>Running dotnet restore on {0}</source>
-        <target state="new">Running dotnet restore on {0}</target>
+        <target state="translated">Выполнение dotnet restore для {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_tests">
         <source>Running tests...</source>
-        <target state="new">Running tests...</target>
+        <target state="translated">Выполняются тесты…</target>
         <note />
       </trans-unit>
       <trans-unit id="Runsettings_file_does_not_exist_at_0">
         <source>.runsettings file does not exist at {0}</source>
-        <target state="new">.runsettings file does not exist at {0}</target>
+        <target state="translated">Файл RUNSETTINGS не существует в {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_csharp_logs">
         <source>Show C# logs</source>
-        <target state="new">Show C# logs</target>
+        <target state="translated">Показать журналы C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
-        <target state="new">Stack Trace</target>
+        <target state="translated">Трассировка стека</target>
         <note />
       </trans-unit>
       <trans-unit id="Starting_test_discovery">
         <source>Starting test discovery</source>
-        <target state="new">Starting test discovery</target>
+        <target state="translated">Запуск обнаружения тестов</target>
         <note />
       </trans-unit>
       <trans-unit id="Starting_test_run">
         <source>Starting test run</source>
-        <target state="new">Starting test run</target>
+        <target state="translated">Начало тестового запуска</target>
         <note />
       </trans-unit>
       <trans-unit id="Successfully_completed_load_of_0">
         <source>Successfully completed load of {0}</source>
-        <target state="new">Successfully completed load of {0}</target>
+        <target state="translated">Завершена загрузка {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary">
         <source>Summary</source>
-        <target state="new">Summary</target>
+        <target state="translated">Сводка</target>
         <note />
       </trans-unit>
       <trans-unit id="Test_discovery_aborted">
         <source>Test discovery aborted</source>
-        <target state="new">Test discovery aborted</target>
+        <target state="translated">Обнаружение тестов прервано</target>
         <note />
       </trans-unit>
       <trans-unit id="Test_run_error">
         <source>Test run error: {0}</source>
-        <target state="new">Test run error: {0}</target>
+        <target state="translated">Ошибка тестового запуска: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="There_were_problems_loading_project_0_See_log_for_details">
         <source>There were problems loading project {0}. See log for details.</source>
-        <target state="new">There were problems loading project {0}. See log for details.</target>
+        <target state="translated">Возникли проблемы при загрузке проекта {0}. Дополнительные сведения см. в журнале.</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_runsettings_file_at_0">
         <source>Using .runsettings file at {0}</source>
-        <target state="new">Using .runsettings file at {0}</target>
+        <target state="translated">Использование файла RUNSETTINGS в {0}</target>
         <note />
       </trans-unit>
     </body>
