@@ -38,8 +38,12 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Use_System_Threading_Lock), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
+    /// <summary>
+    /// A method body edit anywhere in a type will force us to reanalyze the whole type.
+    /// </summary>
+    /// <returns></returns>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
     {
