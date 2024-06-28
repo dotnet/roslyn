@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemThreadingLock)]
 public sealed class UseSystemThreadingLockTests
 {
-    private const string SystemThreadingLockType = """
+    private const string SystemThreadingLockTypePolyFill = """
 
         namespace System.Threading
         {
@@ -45,7 +45,99 @@ public sealed class UseSystemThreadingLockTests
         """;
 
     [Fact]
-    public async Task TestInCSharp13()
+    public async Task TestNotInCSharp13_Net80()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInCSharp12_Net80()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInCSharp12_Net80_PolyFill()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockTypePolyFill,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInCSharp12_Net90()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInCSharp13_Net80_PolyFill()
     {
         await new VerifyCS.Test
         {
@@ -61,7 +153,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """ + SystemThreadingLockTypePolyFill,
             FixedCode = """
                 using System.Threading;
 
@@ -76,14 +168,52 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """ + SystemThreadingLockTypePolyFill,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
     [Fact]
-    public async Task TestNotWithInternalLock()
+    public async Task TestInCSharp13_Net90()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPolyFill_InternalLock()
     {
         await new VerifyCS.Test
         {
@@ -99,14 +229,14 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType.Replace("public", "internal"),
+                """ + SystemThreadingLockTypePolyFill.Replace("public", "internal"),
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
     [Fact]
-    public async Task TestNotWithNoInnerScopeType()
+    public async Task TestNotWithPolyFill_NoInnerScopeType()
     {
         await new VerifyCS.Test
         {
@@ -122,14 +252,14 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType.Replace(" Scope", " Scope1"),
+                """ + SystemThreadingLockTypePolyFill.Replace(" Scope", " Scope1"),
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
     [Fact]
-    public async Task TestNotWithPrivateScopeType()
+    public async Task TestNotWithPolyFill_PrivateScopeType()
     {
         await new VerifyCS.Test
         {
@@ -145,7 +275,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType
+                """ + SystemThreadingLockTypePolyFill
                     .Replace("public ref struct", "private ref struct")
                     .Replace("public Scope", "private Scope"),
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
@@ -154,7 +284,7 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
-    public async Task TestNotWithRefStructScopeType()
+    public async Task TestNotWithPolyFill_NotRefStructScopeType()
     {
         await new VerifyCS.Test
         {
@@ -170,7 +300,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType.Replace("public ref struct", "public struct"),
+                """ + SystemThreadingLockTypePolyFill.Replace("public ref struct", "public struct"),
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
@@ -194,7 +324,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -210,9 +340,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -233,7 +363,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -248,9 +378,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -273,7 +403,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System;
                 using System.Threading;
@@ -289,9 +419,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -312,7 +442,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -327,32 +457,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotInCSharp12()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    private object _gate = new object();
-
-                    void M()
-                    {
-                        lock (_gate)
-                        {
-                        }
-                    }
-                }
-                """ + SystemThreadingLockType,
-            LanguageVersion = LanguageVersion.CSharp12,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -376,9 +483,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -403,7 +510,7 @@ public sealed class UseSystemThreadingLockTests
                         yield return 0;
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Collections.Generic;
                 using System.Threading;
@@ -421,9 +528,9 @@ public sealed class UseSystemThreadingLockTests
                         yield return 0;
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -452,7 +559,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Collections.Generic;
                 using System.Threading;
@@ -474,9 +581,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -494,9 +601,9 @@ public sealed class UseSystemThreadingLockTests
                     {
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -521,9 +628,9 @@ public sealed class UseSystemThreadingLockTests
 
                     void Goo(object o) { }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -546,32 +653,9 @@ public sealed class UseSystemThreadingLockTests
                         var v = _gate.GetType();
                     }
                 }
-                """ + SystemThreadingLockType,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWithoutSystemThreadingLock()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    private object _gate = new object();
-
-                    void M()
-                    {
-                        lock (_gate)
-                        {
-                        }
-                    }
-                }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -592,9 +676,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -615,9 +699,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -638,9 +722,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -666,9 +750,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -694,9 +778,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -717,9 +801,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -740,9 +824,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -767,7 +851,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -786,9 +870,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -814,7 +898,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -834,9 +918,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -857,7 +941,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -872,9 +956,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -895,7 +979,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -910,9 +994,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -933,7 +1017,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -948,9 +1032,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -971,7 +1055,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -986,9 +1070,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1014,7 +1098,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1034,9 +1118,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1062,7 +1146,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1082,9 +1166,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1110,7 +1194,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1130,9 +1214,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1158,7 +1242,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1178,9 +1262,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1210,7 +1294,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1234,9 +1318,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1266,7 +1350,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1290,9 +1374,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1314,7 +1398,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1330,9 +1414,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1351,9 +1435,9 @@ public sealed class UseSystemThreadingLockTests
                     {
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1375,7 +1459,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1391,9 +1475,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1418,7 +1502,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1437,9 +1521,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1463,7 +1547,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1481,9 +1565,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 
@@ -1507,7 +1591,7 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             FixedCode = """
                 using System.Threading;
 
@@ -1525,9 +1609,9 @@ public sealed class UseSystemThreadingLockTests
                         }
                     }
                 }
-                """ + SystemThreadingLockType,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 }
