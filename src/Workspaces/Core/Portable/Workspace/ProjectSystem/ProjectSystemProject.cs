@@ -230,7 +230,7 @@ internal sealed partial class ProjectSystemProject
         ChangeProjectProperty(
             ref field,
             newValue,
-            (solutionChanges, projectUpdateState, oldValue) =>
+            (solutionChanges, projectUpdateState, _) =>
             {
                 solutionChanges.UpdateSolutionForProjectAction(Id, updateSolution(solutionChanges.Solution));
                 return projectUpdateState;
@@ -242,8 +242,7 @@ internal sealed partial class ProjectSystemProject
         ref T field,
         T newValue,
         Func<SolutionChangeAccumulator, ProjectUpdateState, T, ProjectUpdateState> updateSolution,
-        bool logThrowAwayTelemetry = false,
-        Action<ProjectUpdateState>? onAfterUpdate = null)
+        bool logThrowAwayTelemetry = false)
     {
         using (_gate.DisposableWait())
         {
@@ -291,7 +290,7 @@ internal sealed partial class ProjectSystemProject
             {
                 _projectSystemProjectFactory.ApplyBatchChangeToWorkspace(
                     (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue),
-                    onAfterUpdateAlways: onAfterUpdate);
+                    onAfterUpdateAlways: null);
             }
         }
     }
@@ -679,7 +678,7 @@ internal sealed partial class ProjectSystemProject
 
                 return projectUpdateState;
             },
-            onAfterUpdateAlways: (projectUpdateState) =>
+            onAfterUpdateAlways: projectUpdateState =>
             {
                 // It is very important that these are cleared in the onAfterUpdateAlways action passed to ApplyBatchChangeToWorkspaceMaybeAsync
                 // This is because the transformation may be run multiple times (if the workspace current solution is changed underneath us),

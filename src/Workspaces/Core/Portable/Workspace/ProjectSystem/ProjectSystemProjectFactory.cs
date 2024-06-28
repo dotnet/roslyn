@@ -30,9 +30,11 @@ internal sealed partial class ProjectSystemProjectFactory
     // serialization lock and then allow us to update our own state under that lock.
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-    private ProjectUpdateState _projectUpdateState = new(
-        ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
-        ImmutableDictionary<ProjectId, ProjectReferenceInformation>.Empty, [], []);
+    /// <summary>
+    /// Stores the latest state of the project system factory.
+    /// Access to this is synchronized via <see cref="_gate"/>
+    /// </summary>
+    private ProjectUpdateState _projectUpdateState = ProjectUpdateState.Empty;
 
     public Workspace Workspace { get; }
     public IAsynchronousOperationListener WorkspaceListener { get; }
@@ -358,11 +360,13 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        var project = Workspace.CurrentSolution.GetRequiredProject(projectId);
+        // This is set in the transformation function, but needs to be used by the onAfterUpdateAlways callback
+        // so we define it here outside of the lambda.
+        Project project = null!;
 
         ApplyBatchChangeToWorkspace_NoLock((solutionChanges, projectUpdateState) =>
         {
-            var project = Workspace.CurrentSolution.GetRequiredProject(projectId);
+            project = Workspace.CurrentSolution.GetRequiredProject(projectId);
 
             if (projectUpdateState.ProjectReferenceInfos.TryGetValue(projectId, out var projectReferenceInfo))
             {
@@ -382,6 +386,8 @@ internal sealed partial class ProjectSystemProjectFactory
             return projectUpdateState;
         }, onAfterUpdateAlways: (projectUpdateState) =>
         {
+            // This is called once after the above transformation is successfully applied.
+
             ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
             ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
 
@@ -398,6 +404,7 @@ internal sealed partial class ProjectSystemProjectFactory
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
         _projectUpdateState = projectUpdateState;
+        return;
 
         void UpdateReferenceFileWatchers(
             ImmutableArray<PortableExecutableReference> removedReferences,

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -39,12 +40,16 @@ internal sealed partial class ProjectSystemProjectFactory
     /// <param name="AddedReferences">
     /// Incremental state containing references added in the current update.
     /// </param>
-    public record class ProjectUpdateState(
+    public sealed record class ProjectUpdateState(
         ImmutableDictionary<string, ImmutableArray<ProjectId>> ProjectsByOutputPath,
         ImmutableDictionary<ProjectId, ProjectReferenceInformation> ProjectReferenceInfos,
         ImmutableArray<PortableExecutableReference> RemovedReferences,
         ImmutableArray<PortableExecutableReference> AddedReferences)
     {
+        public static ProjectUpdateState Empty = new(
+            ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
+            ImmutableDictionary<ProjectId, ProjectReferenceInformation>.Empty, [], []);
+
         public ProjectUpdateState WithProjectReferenceInfo(ProjectId projectId, ProjectReferenceInformation projectReferenceInformation)
         {
             return this with
