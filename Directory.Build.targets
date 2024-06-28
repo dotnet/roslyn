@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <PropertyGroup>
+    <LangVersion Condition="'$(Language)'=='C#'">12</LangVersion>
+    <LangVersion Condition="'$(Language)'=='VB'">16.9</LangVersion>
+  </PropertyGroup>
   <ItemGroup>
     <!-- Avoid compile error about missing namespace when combining ImplicitUsings with .NET Framework target frameworks. -->
     <Using Remove="System.Net.Http" Condition="'$(TargetFrameworkIdentifier)'=='.NETFramework'" />
