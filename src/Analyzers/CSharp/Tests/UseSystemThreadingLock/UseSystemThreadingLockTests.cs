@@ -84,6 +84,46 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
+    public async Task TestWithDocCommentReference()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+
+                    /// Uses <see cref="_gate"/>
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                
+                    /// Uses <see cref="_gate"/>
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithFullType1()
     {
         await new VerifyCS.Test
