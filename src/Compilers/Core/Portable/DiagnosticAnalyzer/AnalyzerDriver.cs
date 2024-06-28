@@ -2313,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 //     generated_code = true | false
                 // If there is no explicit user configuration, fallback to our generated code heuristic.
                 var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options) ??
+                return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable() ??
                     _isGeneratedCode(tree, cancellationToken);
             }
         }
