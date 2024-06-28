@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 /// <summary>
 /// Looks for code of the form:
 /// 
-///     object _gate = new object();
+///     private ... object _gate = new object();
 ///     ...
 ///     lock (_gate)
 ///     {
