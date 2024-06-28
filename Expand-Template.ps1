@@ -148,6 +148,9 @@ try {
     Replace-Placeholders -Path "src/AssemblyInfo.cs" -Replacements @{
         'COMPANY-PLACEHOLDER'=$Author
     }
+    Replace-Placeholders -Path "src/AssemblyInfo.vb" -Replacements @{
+        'COMPANY-PLACEHOLDER'=$Author
+    }
     Replace-Placeholders -Path "LICENSE" -Replacements @{
         'COMPANY-PLACEHOLDER'=$Author
     }
