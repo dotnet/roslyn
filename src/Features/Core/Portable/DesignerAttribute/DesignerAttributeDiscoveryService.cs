@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Composition;
@@ -30,6 +31,17 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAttributeDiscoveryService
 {
+    /// <summary>
+    /// Ugly, but sufficient hack.  During times where we're missing global usings (which may not always be available
+    /// while the sdk is regenerating/restoring on things like a tfm switch), we hardcode in knowledge we have about
+    /// which namespaces the core designable types are in.  That way we can still make a solid guess about what the base
+    /// type is, even if we can't resolve it at this moment.
+    /// </summary> 
+    private static readonly ImmutableArray<string> s_wellKnownDesignerNamespaces = [
+        "System.Windows.Forms.Form",
+        "System.Windows.Forms.Design",
+        "System.ComponentModel"];
+
     /// <summary>
     /// Cache from the individual references a project has, to a boolean specifying if reference knows about the
     /// System.ComponentModel.DesignerCategoryAttribute attribute.
@@ -244,7 +256,7 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
             }
 
             hasDesignerCategoryType ??= await HasDesignerCategoryTypeAsync(project, cancellationToken).ConfigureAwait(false);
-            var data = await ComputeDesignerAttributeDataAsync(project, documentId, filePath, hasDesignerCategoryType.Value).ConfigureAwait(false);
+            var data = await ComputeDesignerAttributeDataAsync(project, documentId, filePath, hasDesignerCategoryType.Value, existingInfo.category).ConfigureAwait(false);
             if (data.Category != existingInfo.category)
                 results.Add((data, projectVersion));
         }
@@ -252,13 +264,13 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
         return results.ToImmutableAndClear();
 
         async Task<DesignerAttributeData> ComputeDesignerAttributeDataAsync(
-            Project project, DocumentId documentId, string filePath, bool hasDesignerCategoryType)
+            Project project, DocumentId documentId, string filePath, bool hasDesignerCategoryType, string? existingCategory)
         {
             // We either haven't computed the designer info, or our data was out of date.  We need
             // So recompute here.  Figure out what the current category is, and if that's different
             // from what we previously stored.
             var category = await ComputeDesignerAttributeCategoryAsync(
-                hasDesignerCategoryType, project, documentId, cancellationToken).ConfigureAwait(false);
+                hasDesignerCategoryType, project, documentId, existingCategory, cancellationToken).ConfigureAwait(false);
 
             return new DesignerAttributeData
             {
@@ -270,7 +282,7 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
     }
 
     public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
-        bool hasDesignerCategoryType, Project project, DocumentId documentId, CancellationToken cancellationToken)
+        bool hasDesignerCategoryType, Project project, DocumentId documentId, string? existingCategory, CancellationToken cancellationToken)
     {
         // simple case.  If there's no DesignerCategory type in this compilation, then there's definitely no
         // designable types.
@@ -292,9 +304,16 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var firstClassType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(firstClass, cancellationToken);
 
-        foreach (var type in firstClassType.GetBaseTypesAndThis())
+        foreach (var type in GetBaseTypesAndThis(semanticModel.Compilation, firstClassType))
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // If we hit an error type while walking up, then preserve the existing category.  We do want a temporary
+            // invalid base type to not cause us to lose the existing category, causing a designable type to revert to
+            // an undesignable one.  The designer can still support scenarios like this as it is itself error tolerant,
+            // falling back to the prior category in a case like this.
+            if (type is IErrorTypeSymbol errorType)
+                return existingCategory;
 
             // See if it has the designer attribute on it. Use symbol-equivalence instead of direct equality
             // as the symbol we have 
@@ -304,6 +323,33 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
         }
 
         return null;
+
+        static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(Compilation compilation, INamedTypeSymbol firstType)
+        {
+            var current = firstType;
+            while (current != null)
+            {
+                yield return current;
+                current = current.BaseType;
+
+                if (current is IErrorTypeSymbol errorType)
+                    current = TryMapToNonErrorType(compilation, errorType);
+            }
+        }
+
+        static INamedTypeSymbol? TryMapToNonErrorType(Compilation compilation, IErrorTypeSymbol errorType)
+        {
+            foreach (var wellKnownNamespace in s_wellKnownDesignerNamespaces)
+            {
+                var wellKnownType = compilation.GetTypeByMetadataName($"{wellKnownNamespace}.{errorType.Name}");
+                if (wellKnownType != null)
+                    return wellKnownType;
+            }
+
+            // Couldn't find a match.  Just return the error type as is.  Caller will handle this case and try to
+            // preserve the existing category.
+            return errorType;
+        }
 
         static bool IsDesignerAttribute(INamedTypeSymbol? attributeClass)
             => attributeClass is
