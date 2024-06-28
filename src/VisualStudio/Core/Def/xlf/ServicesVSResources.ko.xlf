@@ -1364,7 +1364,7 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_collection_expressions">
         <source>Show hints for collection expressions</source>
-        <target state="new">Show hints for collection expressions</target>
+        <target state="translated">컬렉션 식에 대한 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
