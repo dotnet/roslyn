@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
@@ -16,6 +17,8 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
+
+using static SegmentedCollectionsMarshal;
 
 /// <summary>
 /// Looks for code of the form:
@@ -126,14 +129,14 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             return;
 
         // The set of fields we think could be converted to `System.Threading.Lock` from `object`.
-        var potentialLockFields = new ConcurrentDictionary<IFieldSymbol, CodeStyleOption2<bool>>();
+        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (CodeStyleOption2<bool> option, bool canUse)>();
 
         // Whether or not we saw this field used in a `lock (obj)` statement.  If not, we do not want to convert this as
         // the user wasn't using this as a lock.  Note: we can consider expanding the set of patterns we detect (like
         // Monitor.Enter + Monitor.Exit) if we think it's worthwhile.
         var wasLockedSet = new ConcurrentSet<IFieldSymbol>();
         foreach (var (field, option) in fieldsArray)
-            potentialLockFields[field] = option;
+            potentialLockFields[field] = (option, canUse: true);
 
         // Now go see how the code within this named type actually uses any fields within.
         context.RegisterOperationAction(context =>
@@ -152,7 +155,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 // consider this not applicable.
                 if (lockOperation.Syntax.ContainsYield())
                 {
-                    potentialLockFields.TryRemove(fieldReference, out _);
+                    GetValueRefOrNullRef(potentialLockFields, fieldReference).canUse = false;
                     return;
                 }
 
@@ -184,15 +187,19 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             // Note: More patterns can be added here as needed.
 
             // This wasn't a supported case.  Immediately disallow conversion of this field.
-            potentialLockFields.TryRemove(fieldReference, out _);
+            GetValueRefOrNullRef(potentialLockFields, fieldReference).canUse = false;
         }, OperationKind.FieldReference);
 
         context.RegisterSymbolEndAction(context =>
         {
             var cancellationToken = context.CancellationToken;
 
-            foreach (var (lockField, option) in potentialLockFields)
+            foreach (var (lockField, (option, canUse)) in potentialLockFields)
             {
+                // If we blocked this field in our analysis pass, can immediately skip.
+                if (!canUse)
+                    continue;
+
                 // Has to at least see this field locked on to offer to convert it to a Lock.
                 if (!wasLockedSet.Contains(lockField))
                     continue;
