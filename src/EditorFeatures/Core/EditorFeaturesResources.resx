@@ -932,20 +932,17 @@ Do you want to proceed?</value>
   <data name="Obsolete_symbol" xml:space="preserve">
     <value>Obsolete symbol</value>
   </data>
-  <data name="AI_generated_content_may_be_inaccurate" xml:space="preserve">
-    <value>AI-generated content may be inaccurate</value>
+  <data name="Copilot" xml:space="preserve">
+    <value>Copilot</value>
   </data>
-  <data name="GitHub_Copilot" xml:space="preserve">
-    <value>GitHub Copilot</value>
+  <data name="Copilot_thinking" xml:space="preserve">
+    <value>Copilot thinking...</value>
   </data>
-  <data name="GitHub_Copilot_thinking" xml:space="preserve">
-    <value>GitHub Copilot thinking...</value>
+  <data name="Generate_summary_with_Copilot" xml:space="preserve">
+    <value>Generate summary with Copilot (might be inaccurate)</value>
   </data>
-  <data name="Show_an_AI_generated_summary_of_this_code" xml:space="preserve">
-    <value>Show an AI generated summary of this code</value>
-  </data>
-  <data name="Tell_me_more" xml:space="preserve">
-    <value>Tell me more</value>
+  <data name="Describe_with_Copilot" xml:space="preserve">
+    <value>Describe with Copilot</value>
   </data>
   <data name="On_the_fly_documentation" xml:space="preserve">
     <value>On-the-fly documentation</value>
