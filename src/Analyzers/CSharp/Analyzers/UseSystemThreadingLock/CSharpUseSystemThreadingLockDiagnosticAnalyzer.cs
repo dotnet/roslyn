@@ -86,7 +86,6 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         // Needs to have a private field that is exactly typed as 'object'.  This way we can analyze all usages of it to
         // be sure it's completely safe to move to the new lock type.
         using var fieldsArray = TemporaryArray<(IFieldSymbol field, VariableDeclaratorSyntax declarator, CodeStyleOption2<bool> option)>.Empty;
-        using var _1 = PooledHashSet<SemanticModel>.GetInstance(out var cachedSemanticModels);
 
         foreach (var member in namedType.GetMembers())
         {
