@@ -235,6 +235,104 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
+    public async Task TestWithYieldOutsideLock()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    private object [|_gate|] = new object();
+
+                    IEnumerable<int> M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+
+                        yield return 0;
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Collections.Generic;
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+
+                    IEnumerable<int> M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+
+                        yield return 0;
+                    }
+                }
+                """ + SystemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithYieldInsideLocalFunctionInsideLock()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    private object [|_gate|] = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                            var v = LocalFunction();
+
+                            IEnumerable<int> LocalFunction()
+                            {
+                                yield return 0;
+                            }
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Collections.Generic;
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                            var v = LocalFunction();
+                
+                            IEnumerable<int> LocalFunction()
+                            {
+                                yield return 0;
+                            }
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotWithoutLock()
     {
         await new VerifyCS.Test
