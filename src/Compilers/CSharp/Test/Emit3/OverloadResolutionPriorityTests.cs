@@ -860,25 +860,63 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             public class C
             {
                 [OverloadResolutionPriority(1)]
-                public void M(object o) => System.Console.WriteLine("1");
+                public void M(object o) => System.Console.Write("1");
                 public void M(string s) => throw null;
+
+                [OverloadResolutionPriority(1)]
+                public int this[object o]
+                {
+                    get
+                    {
+                        System.Console.Write("2");
+                        return 1;
+                    }
+                    set
+                    {
+                        System.Console.Write("3");
+                    }
+                }
+                public int this[string s]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+
+                [OverloadResolutionPriority(1)]
+                public C(object o)
+                {
+                    System.Console.Write("4");
+                }
+
+                public C(string s)
+                {
+                    throw null;
+                }
             }
             """;
 
         CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (5,6): error CS8652: The feature 'overload resolution priority' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority").WithLocation(5, 6));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority").WithLocation(5, 6),
+            // (9,6): error CS8652: The feature 'overload resolution priority' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority").WithLocation(9, 6),
+            // (28,6): error CS8652: The feature 'overload resolution priority' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority").WithLocation(28, 6));
 
         var definingComp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
         var consumingSource = """
-            var c = new C();
+            var c = new C("test");
+            c["test"] = 0;
+            _ = c["test"];
             c.M("test");
             """;
 
         // We don't error on consumption, only on definition, so this runs just fine.
-        CompileAndVerify(consumingSource, references: [definingComp.ToMetadataReference()], parseOptions: TestOptions.Regular12, expectedOutput: "1").VerifyDiagnostics();
+        CompileAndVerify(consumingSource, references: [definingComp.ToMetadataReference()], parseOptions: TestOptions.Regular12, expectedOutput: "4321").VerifyDiagnostics();
     }
 
     [Fact]
@@ -1547,7 +1585,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         var c = comp.GetTypeByMetadataName("C")!;
         var indexer = c.GetMember<EventSymbol>("Prop");
 
-        Assert.Equal(0, indexer.AddMethod.OverloadResolutionPriority);
-        Assert.Equal(0, indexer.RemoveMethod.OverloadResolutionPriority);
+        Assert.Equal(0, indexer!.AddMethod!.OverloadResolutionPriority);
+        Assert.Equal(0, indexer!.RemoveMethod!.OverloadResolutionPriority);
     }
 }

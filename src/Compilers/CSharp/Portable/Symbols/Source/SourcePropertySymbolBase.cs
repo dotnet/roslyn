@@ -1412,6 +1412,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
+                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+
                 if (!IsIndexer)
                 {
                     // Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.
