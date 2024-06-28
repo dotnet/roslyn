@@ -17,6 +17,7 @@
   -->
   <ItemGroup>
     <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.tgz" />
+    <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.zip" />
 
     <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
 

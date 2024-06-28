@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    states.Add(GeneratorState.Empty);
+                    states.Add(default);
                 }
             }
 
@@ -171,6 +171,11 @@ namespace Microsoft.CodeAnalysis
 
             static ImmutableArray<GeneratedSourceResult> getGeneratorSources(GeneratorState generatorState)
             {
+                if (!generatorState.Initialized)
+                {
+                    return default;
+                }
+
                 ArrayBuilder<GeneratedSourceResult> sources = ArrayBuilder<GeneratedSourceResult>.GetInstance(generatorState.PostInitTrees.Length + generatorState.GeneratedTrees.Length);
                 foreach (var tree in generatorState.PostInitTrees)
                 {

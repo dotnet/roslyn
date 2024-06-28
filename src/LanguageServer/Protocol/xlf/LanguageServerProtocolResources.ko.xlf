@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="DocumentUriSerializationError">
         <source>Unable to deserialize Uri. Unexpected value encountered: {0}</source>
-        <target state="translated">URI를 역직렬화할 수 없습니다. 예기치 않은 값 {0}이(가) 있습니다.</target>
+        <target state="new">Unable to deserialize Uri. Unexpected value encountered: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="MarkupContentSerializationError">
         <source>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</source>
-        <target state="translated">MarkupContent를 역직렬화할 수 없습니다. 예기치 않은 값 {0}이(가) 있습니다.</target>
+        <target state="new">Unable to deserialize MarkupContent. Unexpected value encountered: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="NestedSumType">
         <source>A SumType cannot have another SumType as type parameter.</source>
-        <target state="translated">SumType에는 다른 SumType을 형식 매개 변수로 사용할 수 없습니다.</target>
+        <target state="new">A SumType cannot have another SumType as type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSumTypeMatch">
         <source>None of the SumType type parameters could be deserialized</source>
-        <target state="translated">SumType 형식 매개 변수를 역직렬화할 수 없습니다.</target>
+        <target state="new">None of the SumType type parameters could be deserialized</target>
         <note />
       </trans-unit>
       <trans-unit id="StringEnumMissingConstructor">
         <source>Type {0} is missing a contructor that takes a single string as parameter.</source>
-        <target state="translated">{0} 유형에 단일 문자열을 매개 변수로 사용하는 생성자가 없습니다.</target>
+        <target state="new">Type {0} is missing a contructor that takes a single string as parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="StringEnumSerializationError">
         <source>Unable to deserialize string-based enum. Unexpected data encountered: {0}</source>
-        <target state="translated">문자열 기반 열거형을 역직렬화할 수 없습니다. 예상치 못한 데이터 발생: {0}</target>
+        <target state="new">Unable to deserialize string-based enum. Unexpected data encountered: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="TextDocumentSyncSerializationError">
         <source>Unable to deserialize TextDocumentSyncOptions.  Unexpected value encountered: {0}</source>
-        <target state="translated">TextDocumentSyncOptions를 역직렬화할 수 없습니다. 예기치 않은 값 {0}이(가) 있습니다.</target>
+        <target state="new">Unable to deserialize TextDocumentSyncOptions.  Unexpected value encountered: {0}</target>
         <note />
       </trans-unit>
     </body>
