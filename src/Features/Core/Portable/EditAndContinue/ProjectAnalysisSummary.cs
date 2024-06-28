@@ -12,9 +12,9 @@ internal enum ProjectAnalysisSummary
     NoChanges,
 
     /// <summary>
-    /// Project contains compilation errors that block EnC analysis.
+    /// Project contains syntax errors that block EnC analysis.
     /// </summary>
-    CompilationErrors,
+    SyntaxErrors,
 
     /// <summary>
     /// Project contains rude edits.

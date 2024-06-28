@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfInIterator">
         <source>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</source>
-        <target state="new">The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</target>
+        <target state="translated">'&amp;' 演算子は、反復子メソッドのパラメーターまたはローカル変数では使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_AllowsClauseMustBeLast">
         <source>The 'allows' constraint clause must be the last constraint specified</source>
-        <target state="new">The 'allows' constraint clause must be the last constraint specified</target>
+        <target state="translated">'allows' 制約句は最後に指定する制約でなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
         <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
-        <target state="new">foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</target>
+        <target state="translated">foreach ステートメントは ref 構造体を許容する型パラメーターであり、コンパイル時に IDisposable を実装することが不明であるため、'{0}' 型の列挙子を操作することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike">
         <source>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</source>
-        <target state="new">A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</target>
+        <target state="translated">ref 構造体を許容する型パラメーターでは、非仮想インスタンス インターフェイス メンバーにアクセスできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -289,12 +289,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
         <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="new">foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</target>
+        <target state="translated">'{0}' は ref 構造体または ref 構造体を許容する型パラメーターであるため、非同期または反復子のメソッド内で '{0}' 型の列挙子に対して foreach ステートメントは機能しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>
+        <target state="translated">'{0}' 型のパラメーターは、非同期メソッドまたは非同期ラムダ式で宣言することができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
-        <target state="new">Cannot use 'yield return' in an 'unsafe' block</target>
+        <target state="translated">'unsafe' ブロックでは 'yield return' を使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -354,7 +354,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
         <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
-        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <target state="translated">'{0}' 型の式に対して動的な呼び出しを行うことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
         <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
-        <target state="new">Cannot allow ref structs for a type parameter known from other constraints to be a class</target>
+        <target state="translated">他の制約から認識される型パラメーターの ref 構造体をクラスにすることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="ERR_DynamicDispatchToParamsCollection">
         <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
-        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
+        <target state="translated">'{0}' は、動的ディスパッチ中にサポートされない、拡張形式の非配列パラメーター コレクションでのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -972,6 +972,11 @@
         <target state="translated">'init' アクセサーを 'readonly' としてマークできません。代わりに '{0}' を readonly としてマークします。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">インライン配列型の要素にアクセスできるのは、暗黙的に 'int'、'System.Index'、または 'System.Range' に変換できる 1 つの引数を使用する場合のみです。</target>
@@ -1134,27 +1139,27 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
         <source>The data argument to InterceptsLocationAttribute is not in the correct format.</source>
-        <target state="new">The data argument to InterceptsLocationAttribute is not in the correct format.</target>
+        <target state="translated">InterceptsLocationAttribute のデータ引数の形式が正しくありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidPosition">
         <source>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</source>
-        <target state="new">The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</target>
+        <target state="translated">InterceptsLocationAttribute のデータ引数が、ファイル '{0}' 内の無効な位置を参照しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDuplicateFile">
         <source>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</source>
-        <target state="new">Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</target>
+        <target state="translated">コンパイルの他の場所で重複しているため、ファイル '{0}' 内の呼び出しをインターセプトできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationFileNotFound">
         <source>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</source>
-        <target state="new">Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</target>
+        <target state="translated">コンパイルで一致するファイルが見つからなかったため、ファイル '{0}' 内の呼び出しをインターセプトできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationUnsupportedVersion">
         <source>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</source>
-        <target state="new">Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</target>
+        <target state="translated">インターセプター形式のバージョン '{0}' はサポートされていません。サポートされている最新バージョンは '1' です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1529,7 +1534,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotRefStructConstraintNotSatisfied">
         <source>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="new">The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <target state="translated">'{2}' 型は、ジェネリック型またはメソッド '{0}' のパラメーター '{1}' として使用するためには、ref 構造体または ref 構造体を許容する型パラメーターにすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1602,11 +1607,6 @@
         <target state="translated">'parameter null-checking' 機能はサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">'{0}' の非配列 params コレクション パラメーターの展開形式と通常の形式の間のあいまいさです。対応する引数の型は 'dynamic' のみです。動的引数のキャストを検討してください。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">コンストラクター '{0}' は、必要なメンバー '{1}' を初期化しないままにします。</target>
@@ -1642,24 +1642,49 @@
         <target state="translated">params パラメーターには有効なコレクションの種類が必要です</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="translated">両方の部分メソッド宣言には、同じアクセシビリティ修飾子を指定する必要があります。</target>
+      <trans-unit id="ERR_PartialMemberAccessibilityDifference">
+        <source>Both partial member declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">両方の部分メソッド宣言には、'virtual'、'override'、'sealed'、'new' 修飾子の同じ組み合わせを指定する必要があります。</target>
+      <trans-unit id="ERR_PartialMemberCannotBeAbstract">
+        <source>A partial member cannot have the 'abstract' modifier</source>
+        <target state="new">A partial member cannot have the 'abstract' modifier</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="translated">部分メソッド宣言は、両方とも readonly であるか、両方とも readonly でないかのいずれかである必要があります</target>
+      <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
+        <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
+        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Partial method declarations must have matching ref return values.</source>
-        <target state="translated">部分メソッドの宣言には、一致する ref 戻り値が必要です。</target>
+      <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
+        <source>A partial member must be declared within a partial type</source>
+        <target state="new">A partial member must be declared within a partial type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberParamsDifference">
+        <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
+        <target state="new">Both partial member declarations must use a params parameter or neither may use a params parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberReadOnlyDifference">
+        <source>Both partial member declarations must be readonly or neither may be readonly</source>
+        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberExtendedModDifference">
+        <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberRefReturnDifference">
+        <source>Partial member declarations must have matching ref return values.</source>
+        <target state="new">Partial member declarations must have matching ref return values.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
@@ -1685,6 +1710,51 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">部分メソッド '{0}' には、'out' パラメーターが指定されているため、アクセシビリティ修飾子が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
+        <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
+        <target state="new">A partial property may not have multiple defining declarations, and cannot be an auto-property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
+        <source>A partial property may not have multiple implementing declarations</source>
+        <target state="new">A partial property may not have multiple implementing declarations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyInitMismatch">
+        <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
+        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingAccessor">
+        <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
+        <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingDefinition">
+        <source>Partial property '{0}' must have a definition part.</source>
+        <target state="new">Partial property '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingImplementation">
+        <source>Partial property '{0}' must have an implementation part.</source>
+        <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyRequiredDifference">
+        <source>Both partial property declarations must be required or neither may be required</source>
+        <target state="new">Both partial property declarations must be required or neither may be required</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyTypeDifference">
+        <source>Both partial property declarations must have the same type.</source>
+        <target state="new">Both partial property declarations must have the same type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
+        <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
+        <target state="new">Property accessor '{0}' does not implement any accessor declared on the definition part</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -1779,7 +1849,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalAcrossAwait">
         <source>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="new">A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</target>
+        <target state="translated">'ref' ローカルは、'await' または 'yield' 境界を越えて保持することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
@@ -1844,12 +1914,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
         <source>'ref struct' is already specified.</source>
-        <target state="new">'ref struct' is already specified.</target>
+        <target state="translated">'ref 構造体' は既に指定されています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</target>
+        <target state="translated">'{0}' は、ref 構造体 '{2}' のインターフェイス メンバー '{1}' を実装できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
@@ -1899,7 +1969,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
-        <target state="new">Target runtime doesn't support by-ref-like generics.</target>
+        <target state="translated">対象のランタイムは、参照渡しのようなジェネリックをサポートしていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1953,8 +2023,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
-        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">パラメーター '{0}' の 'scoped' 修飾子が部分メソッド宣言と一致しません。</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -2179,12 +2249,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</target>
+        <target state="translated">実装されたメンバー '{0}' には UnscopedRefAttribute が含まれていないため、この属性をインターフェイスの実装に適用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute は構造体インスタンスのメソッドとプロパティにのみ適用でき、コンストラクターまたは init のみのメンバーには適用できません。</target>
+        <target state="translated">UnscopedRefAttribute は構造体または仮想インターフェイス インスタンス メソッドとプロパティにのみ適用でき、コンストラクターまたは init のみのメンバーには適用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -2272,6 +2342,11 @@
         <target state="translated">非同期メソッド ビルダーのオーバーライド</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
+        <source>allows ref struct constraint</source>
+        <target state="new">allows ref struct constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">自動既定の構造体フィールド</target>
@@ -2305,6 +2380,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">拡張プロパティ パターン</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
+        <source>field and value keywords</source>
+        <target state="new">field and value keywords</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2439,12 +2519,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefStructInterfaces">
         <source>ref struct interfaces</source>
-        <target state="new">ref struct interfaces</target>
+        <target state="translated">ref 構造体インターフェイス</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
         <source>ref and unsafe in async and iterator methods</source>
-        <target state="new">ref and unsafe in async and iterator methods</target>
+        <target state="translated">非同期および反復子メソッドの ref と unsafe</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2537,14 +2617,24 @@
         <target state="translated">ポインター</target>
         <note />
       </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
+        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
+        <target state="new">'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
+        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
+        <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
         <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
-        <target state="new">Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
+        <target state="translated">コンパイルには、ラムダ式を少なくとも {0} 回バインドする必要があります。明示的なパラメーター型を使用してラムダ式を宣言することを検討するか、包まれるメソッド呼び出しがジェネリックである場合は、明示的な型引数の使用を検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas_Title">
         <source>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
-        <target state="new">Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
+        <target state="translated">コンパイルでは、ラムダ式を何度もバインドする必要があります。明示的なパラメーター型を使用してラムダ式を宣言することを検討するか、包まれるメソッド呼び出しがジェネリックである場合は、明示的な型引数の使用を検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2620,16 +2710,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">'in' パラメーターに対応する引数の 'ref' 修飾子は 'in' と同じです。代わりに 'in' を使用することを検討してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="new">'yield return' should not be used in the body of a lock statement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="new">'yield return' should not be used in the body of a lock statement</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
@@ -2790,36 +2870,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">複数回指定されたアナライザー参照</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">配列 params 以外のコレクション パラメーターを持つ 1 つ以上のコンストラクター オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">配列 params 以外のコレクション パラメーターを持つ 1 つ以上のコンストラクター オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つ 1 つ以上のインデクサー オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つ 1 つ以上のインデクサー オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
-        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">配列 params 以外のコレクション パラメーターを持つメソッド '{0}' の 1 つ以上のオーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
-        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つメソッドの 1 つ以上のオーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -3050,6 +3100,16 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">パラメーターにラムダの params 修飾子がありますが、ターゲット デリゲート型にはありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference">
+        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
+        <source>Partial property declarations have signature differences.</source>
+        <target state="new">Partial property declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -5200,12 +5260,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">null 非許容の {0} '{1}' には、コンストラクターの終了時に null 以外の値が入っていなければなりません。{0} を Null 許容として宣言することをご検討ください。</target>
+        <target state="translated">null 非許容の {0} '{1}' には、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、{0} を Null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="needs-review-translation">null 非許容のフィールドには、コンストラクターの終了時に null 以外の値が入っていなければなりません。Null 許容として宣言することをご検討ください。</target>
+        <target state="translated">null 非許容のフィールドには、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、Null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6529,8 +6589,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="translated">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、またはメソッドの戻り値の型の直前にのみ指定できます。</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -6690,7 +6750,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
         <source>The new() constraint must be the last restrictive constraint specified</source>
-        <target state="needs-review-translation">new() 制約は最後に指定する制約でなければなりません</target>
+        <target state="translated">new() 制約は最後に指定する制約でなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -8137,19 +8197,9 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">ラムダ パラメーターの使用方法に一貫性がありません。パラメーター型はすべて明示的であるか、またはすべて暗黙的である必要があります</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have the 'abstract' modifier</source>
-        <target state="translated">部分メソッドに 'abstract' 修飾子を指定することはできません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial type</source>
-        <target state="translated">部分メソッドは、部分型内で宣言される必要があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodNotExplicit">
-        <source>A partial method may not explicitly implement an interface method</source>
-        <target state="translated">部分メソッドは、インターフェイス メソッドを明示的に実装できないことがあります</target>
+      <trans-unit id="ERR_PartialMemberNotExplicit">
+        <source>A partial member may not explicitly implement an interface member</source>
+        <target state="new">A partial member may not explicitly implement an interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8167,19 +8217,9 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">部分メソッドでは、複数の実装宣言を含むことができない場合があります</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodParamsDifference">
-        <source>Both partial method declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="translated">部分メソッド宣言は、両方とも params パラメーターを使用するか、両方とも params パラメーターを使用しないかのいずれかである必要があります</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodMustHaveLatent">
         <source>No defining declaration found for implementing declaration of partial method '{0}'</source>
         <target state="translated">部分メソッド '{0}' の実装宣言に対する定義宣言が見つかりませんでした</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodInconsistentTupleNames">
-        <source>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="translated">部分メソッド宣言 '{0}' および '{1}' は、どちらも同じタプル要素名を使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
@@ -8192,14 +8232,9 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">メソッド '{0}' は実装宣言がない部分メソッドであるため、このメソッドからデリゲートを作成できません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodStaticDifference">
-        <source>Both partial method declarations must be static or neither may be static</source>
-        <target state="translated">部分メソッド宣言は、両方とも static であるか、両方とも static でないかのいずれかである必要があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">部分メソッド宣言は、両方とも unsafe であるか、両方とも unsafe でないかのいずれかである必要があります</target>
+      <trans-unit id="ERR_PartialMemberStaticDifference">
+        <source>Both partial member declarations must be static or neither may be static</source>
+        <target state="new">Both partial member declarations must be static or neither may be static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
@@ -10641,7 +10676,7 @@ C# では out と ref を区別しますが、CLR では同じと認識します
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
         <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'await' は、型 '{0}' を含む式では使用できません</target>
+        <target state="translated">'{0}' 型のインスタンスは、'await' または 'yield' 境界を越えて保持することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11228,7 +11263,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <target state="translated">型 '{0}' のインスタンスは、入れ子になった関数、クエリ式、反復子ブロック、または非同期メソッドの中では使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">

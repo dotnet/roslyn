@@ -13,15 +13,12 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -38,12 +35,11 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     /// </summary>
     private sealed class SingleDiagnosticKindPullTaggerProvider(
         AbstractDiagnosticsTaggerProvider<TTag> callback,
-        DiagnosticKind diagnosticKind,
-        IThreadingContext threadingContext,
         IDiagnosticAnalyzerService analyzerService,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener listener) : AsynchronousTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, listener)
+        DiagnosticKind diagnosticKind,
+        TaggerHost taggerHost,
+        string featureName)
+        : AsynchronousTaggerProvider<TTag>(taggerHost, featureName)
     {
         private readonly DiagnosticKind _diagnosticKind = diagnosticKind;
         private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;

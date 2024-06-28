@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Applying_changes_to_0">
         <source>Applying changes to {0}</source>
-        <target state="new">Applying changes to {0}</target>
+        <target state="translated">Stosowanie zmian do {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_files">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Running_code_cleanup_on_fixed_documents">
         <source>Running code cleanup on fixed documents</source>
-        <target state="new">Running code cleanup on fixed documents</target>
+        <target state="translated">Uruchamianie oczyszczania kodu dla stałych dokumentów</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">

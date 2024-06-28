@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// Create an appropriate <see cref="Solution"/> instance corresponding to the <paramref
-        /// name="solutionChecksum"/> passed in.  Note: this method changes no Workspace state and exists purely to
+        /// name="newSolutionChecksum"/> passed in.  Note: this method changes no Workspace state and exists purely to
         /// compute the corresponding solution.  Updating of our caches, or storing this solution as the <see
         /// cref="Workspace.CurrentSolution"/> of this <see cref="RemoteWorkspace"/> is the responsibility of any
         /// callers.
@@ -224,26 +225,41 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private async Task<Solution> ComputeDisconnectedSolutionAsync(
             AssetProvider assetProvider,
-            Checksum solutionChecksum,
+            Checksum newSolutionChecksum,
             CancellationToken cancellationToken)
         {
             try
             {
                 // Try to create the solution snapshot incrementally off of the workspaces CurrentSolution first.
                 var updater = new SolutionCreator(Services.HostServices, assetProvider, this.CurrentSolution);
-                if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
+                if (await updater.IsIncrementalUpdateAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false))
                 {
-                    return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                    return await updater.CreateSolutionAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     // Otherwise, this is a different solution, or the first time we're creating this solution.  Bulk
                     // sync over all assets for it.
-                    await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                    await assetProvider.SynchronizeSolutionAssetsAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false);
 
                     // get new solution info and options
-                    var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                    return CreateSolutionFromInfo(solutionInfo);
+                    var solutionInfo = await assetProvider.CreateSolutionInfoAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false);
+                    var solution = CreateSolutionFromInfo(solutionInfo);
+
+                    // ensure that the solution has the correct source generator execution versions. note we should do
+                    // this all in a unified fashion with CreateSolutionAsync above.  However, that is blocked in
+                    // https://github.com/dotnet/roslyn/pull/72860
+                    {
+                        var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
+                            AssetPathKind.SolutionCompilationStateChecksums, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                        var newVersions = await assetProvider.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
+                            AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
+
+                        solution = solution.UpdateSpecificSourceGeneratorExecutionVersions(newVersions);
+                    }
+
+                    return solution;
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

@@ -22,9 +22,6 @@ internal sealed class RemoteProjectFile
     public Task<ImmutableArray<DiagnosticLogItem>> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken)
         => _client.InvokeAsync<ImmutableArray<DiagnosticLogItem>>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetDiagnosticLogItems), parameters: [], cancellationToken);
 
-    public Task<string> GetDocumentExtensionAsync(SourceCodeKind sourceCodeKind, CancellationToken cancellationToken)
-        => _client.InvokeAsync<string>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetDocumentExtension), parameters: [sourceCodeKind], cancellationToken);
-
     public Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
         => _client.InvokeAsync<ImmutableArray<ProjectFileInfo>>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetProjectFileInfosAsync), parameters: [], cancellationToken);
 
@@ -34,8 +31,8 @@ internal sealed class RemoteProjectFile
     public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
         => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.RemoveDocument), parameters: [filePath], cancellationToken);
 
-    public Task AddMetadataReferenceAsync(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddMetadataReference), parameters: [metadataReferenceIdentity, properties, hintPath], cancellationToken);
+    public Task AddMetadataReferenceAsync(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath, CancellationToken cancellationToken)
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddMetadataReference), parameters: [metadataReferenceIdentity, aliases, hintPath], cancellationToken);
 
     public Task RemoveMetadataReferenceAsync(string shortAssemblyName, string fullAssemblyName, string filePath, CancellationToken cancellationToken)
         => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.RemoveMetadataReference), parameters: [shortAssemblyName, fullAssemblyName, filePath], cancellationToken);

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -99,22 +98,17 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         CancellationToken cancellationToken)
     {
         // First just look for this normal constructor references using the name of it's containing type.
-        var name = methodSymbol.ContainingType.Name;
+        var containingType = methodSymbol.ContainingType;
+        var containingTypeName = containingType.Name;
         AddReferencesInDocumentWorker(
-            methodSymbol, name, state, processResult, processResultData, cancellationToken);
+            methodSymbol, containingTypeName, state, processResult, processResultData, cancellationToken);
 
         // Next, look for constructor references through a global alias to our containing type.
         foreach (var globalAlias in state.GlobalAliases)
-        {
-            // ignore the cases where the global alias might match the type name (i.e.
-            // global alias Console = System.Console).  We'll already find those references
-            // above.
-            if (state.SyntaxFacts.StringComparer.Equals(name, globalAlias))
-                continue;
+            FindReferenceToAlias(methodSymbol, state, processResult, processResultData, containingTypeName, globalAlias, cancellationToken);
 
-            AddReferencesInDocumentWorker(
-                methodSymbol, globalAlias, state, processResult, processResultData, cancellationToken);
-        }
+        foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(containingTypeName, containingType.Arity))
+            FindReferenceToAlias(methodSymbol, state, processResult, processResultData, containingTypeName, localAlias, cancellationToken);
 
         // Finally, look for constructor references to predefined types (like `new int()`),
         // implicit object references, and inside global suppression attributes.
@@ -126,6 +120,19 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             methodSymbol, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindReferenceToAlias<TData>(
+        IMethodSymbol methodSymbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, string name, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the type name (i.e.
+        // global alias Console = System.Console).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(name, alias))
+            return;
+
+        AddReferencesInDocumentWorker(
+            methodSymbol, alias, state, processResult, processResultData, cancellationToken);
     }
 
     /// <summary>
@@ -190,15 +197,26 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
             FindReferencesInDocumentUsingIdentifier(symbol, simpleName, state, processResult, processResultData, cancellationToken);
     }
 
-    private void FindReferencesInImplicitObjectCreationExpression<TData>(
+    private static void FindReferencesInImplicitObjectCreationExpression<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
+        if (!state.Cache.SyntaxTreeIndex.ContainsImplicitObjectCreation)
+            return;
+
+        // Note: only C# supports implicit object creation.  So we don't need to do anything special around case
+        // insensitive matching here.
+        //
+        // Search for all the `new` tokens in the file.
+        var newKeywordTokens = state.Cache.GetNewKeywordTokens(cancellationToken);
+        if (newKeywordTokens.IsEmpty)
+            return;
+
         // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
-        var minimumArgumentCount = symbol.Parameters.Count(p => !p.IsOptional && !p.IsParams);
+        var minimumArgumentCount = symbol.Parameters.Count(static p => !p.IsOptional && !p.IsParams);
         var maximumArgumentCount = symbol.Parameters is [.., { IsParams: true }]
             ? int.MaxValue
             : symbol.Parameters.Length;
@@ -208,35 +226,32 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
             : symbol.Parameters.Length;
 
         var implicitObjectKind = state.SyntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;
-        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
-        return;
-
-        static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
-            => syntaxTreeInfo.ContainsImplicitObjectCreation;
-
-        void CollectMatchingReferences(
-            SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData)
+        foreach (var newKeywordToken in newKeywordTokens)
         {
-            if (node.RawKind != implicitObjectKind)
-                return;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var node = newKeywordToken.Parent;
+            if (node is null || node.RawKind != implicitObjectKind)
+                continue;
 
             // if there are too few or too many arguments, then don't bother checking.
             var actualArgumentCount = state.SyntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
             if (actualArgumentCount < minimumArgumentCount || actualArgumentCount > maximumArgumentCount)
-                return;
+                continue;
 
             // if we need an exact count then make sure that the count we have fits the count we need.
             if (exactArgumentCount != -1 && exactArgumentCount != actualArgumentCount)
-                return;
+                continue;
 
             var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
             if (Matches(constructor, symbol))
             {
-                var location = node.GetFirstToken().GetLocation();
-                var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
-
                 var result = new FinderLocation(node, new ReferenceLocation(
-                    state.Document, alias: null, location, isImplicit: true, symbolUsageInfo,
+                    state.Document,
+                    alias: null,
+                    newKeywordToken.GetLocation(),
+                    isImplicit: true,
+                    GetSymbolUsageInfo(node, state, cancellationToken),
                     GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
                 processResult(result, processResultData);
             }

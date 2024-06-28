@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement;
 
@@ -59,8 +60,8 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
             if (!context.ShouldAnalyzeSpan(child.FullSpan))
                 continue;
 
-            if (child.IsNode)
-                Recurse(context, notificationOption, child.AsNode()!, cancellationToken);
+            if (child.AsNode(out var childNode))
+                Recurse(context, notificationOption, childNode, cancellationToken);
         }
     }
 

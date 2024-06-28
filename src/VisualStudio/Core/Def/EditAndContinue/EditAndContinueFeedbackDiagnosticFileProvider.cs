@@ -13,12 +13,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue;
 

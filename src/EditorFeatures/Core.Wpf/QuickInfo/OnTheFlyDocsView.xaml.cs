@@ -206,7 +206,14 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
             m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
+            m["HasDocumentationComments"] = _onTheFlyDocsElement.HasComments;
         }, LogLevel.Information));
+
+        OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
+        if (_onTheFlyDocsElement.HasComments)
+        {
+            OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
+        }
 
         ResultsRequested?.Invoke(this, EventArgs.Empty);
     }

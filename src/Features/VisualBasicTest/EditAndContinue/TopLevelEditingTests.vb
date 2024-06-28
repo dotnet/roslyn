@@ -687,7 +687,7 @@ Public Class A3 : Inherits System.Attribute : End Class
 
             edits.VerifySemantics(
                 semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C"))},
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -1094,7 +1094,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities:=EditAndContinueTestVerifier.BaselineCapabilities,
                 diagnostics:={Diagnostic(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, "Sub F()", "CreateNewOnMetadataUpdateAttribute")})
         End Sub
 
@@ -1136,7 +1136,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities:=EditAndContinueTestVerifier.BaselineCapabilities,
                 diagnostics:={Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Class D", FeaturesResources.class_)})
         End Sub
 
@@ -2539,7 +2539,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.BeginInvoke"))
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -3304,7 +3304,7 @@ End Structure
                         }),
                     DocumentResults()
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -10804,7 +10804,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RemoveMethod),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RaiseMethod)
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>

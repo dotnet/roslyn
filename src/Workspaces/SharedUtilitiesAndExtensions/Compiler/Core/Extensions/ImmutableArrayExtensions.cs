@@ -4,12 +4,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
-    internal static class ImmutableArrayExtensions
+    internal static partial class ImmutableArrayExtensions
     {
         public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
         {
@@ -28,9 +26,6 @@ namespace Roslyn.Utilities
 
             return ImmutableArray.Create<T>(items);
         }
-
-        public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-            => new(first, second);
 
         public static ImmutableArray<T> TakeAsArray<T>(this ImmutableArray<T> array, int count)
         {

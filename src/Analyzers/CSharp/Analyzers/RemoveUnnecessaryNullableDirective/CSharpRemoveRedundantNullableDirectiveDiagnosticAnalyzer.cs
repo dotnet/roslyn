@@ -72,10 +72,10 @@ internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
             if (!current.ContainsDirectives)
                 continue;
 
-            if (current.IsNode)
+            if (current.AsNode(out var childNode))
             {
                 // Add the nodes in reverse so we continue walking in a depth-first fashion.
-                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                foreach (var child in childNode.ChildNodesAndTokens().Reverse())
                     stack.Push(child);
             }
             else if (current.IsToken)

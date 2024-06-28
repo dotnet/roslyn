@@ -1423,7 +1423,7 @@ struct Buffer
         }
 
         [Fact]
-        public void InlineArrayType_28()
+        public void InlineArrayType_28_Record()
         {
             var src = @"
 [System.Runtime.CompilerServices.InlineArray(10)]
@@ -1434,9 +1434,9 @@ record struct Buffer(int p)
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,15): error CS9169: Inline array struct must declare one and only one instance field.
-                // record struct Buffer(int p)
-                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 15)
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
                 );
 
             var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
@@ -2186,6 +2186,79 @@ class Program
                 //         foreach (var z in a)
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "a").WithArguments("Buffer").WithLocation(11, 27)
                 );
+        }
+
+        [Fact]
+        public void InlineArrayType_52_Record()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+record struct Buffer(int p1, int p2)
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void InlineArrayType_53_Record(int size)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(" + size + @")]
+record struct Buffer()
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(1)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(size, length);
+            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
+        }
+
+        [Fact]
+        public void InlineArrayType_54_Record()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+record struct Buffer()
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
         }
 
         [Fact]

@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="AI_generated_content_may_be_inaccurate">
         <source>AI-generated content may be inaccurate</source>
-        <target state="new">AI-generated content may be inaccurate</target>
+        <target state="translated">Il est possible que le contenu généré par IA soit inexact</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
         <source>An error occurred while generating documentation for this code.</source>
-        <target state="new">An error occurred while generating documentation for this code.</target>
+        <target state="translated">Une erreur s'est produite lors de la génération de la documentation pour ce code.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
@@ -74,12 +74,12 @@
       </trans-unit>
       <trans-unit id="GitHub_Copilot">
         <source>GitHub Copilot</source>
-        <target state="new">GitHub Copilot</target>
+        <target state="translated">GitHub Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="GitHub_Copilot_thinking">
         <source>GitHub Copilot thinking...</source>
-        <target state="new">GitHub Copilot thinking...</target>
+        <target state="translated">Réflexion GitHub Copilot...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -224,12 +224,12 @@
       </trans-unit>
       <trans-unit id="Obsolete_symbol">
         <source>Obsolete symbol</source>
-        <target state="new">Obsolete symbol</target>
+        <target state="translated">Symbole obsolète</target>
         <note />
       </trans-unit>
       <trans-unit id="On_the_fly_documentation">
         <source>On-the-fly documentation</source>
-        <target state="new">On-the-fly documentation</target>
+        <target state="translated">Documentation à la volée</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -324,12 +324,12 @@
       </trans-unit>
       <trans-unit id="Run">
         <source>Run</source>
-        <target state="new">Run</target>
+        <target state="translated">Exécuter</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_an_AI_generated_summary_of_this_code">
         <source>Show an AI generated summary of this code</source>
-        <target state="new">Show an AI generated summary of this code</target>
+        <target state="translated">Afficher un résumé de ce code généré par IA</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -354,7 +354,7 @@
       </trans-unit>
       <trans-unit id="Tell_me_more">
         <source>Tell me more</source>
-        <target state="new">Tell me more</target>
+        <target state="translated">En savoir plus</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
@@ -637,9 +637,19 @@
         <target state="translated">{0} conflit(s) seront résolus</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="new">'{0}' declarations and interceptors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">'{0}' membres implémentés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="new">'{0}' intercepted locations</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">

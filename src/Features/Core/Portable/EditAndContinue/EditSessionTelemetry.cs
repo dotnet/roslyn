@@ -92,7 +92,7 @@ internal sealed class EditSessionTelemetry
                 case ProjectAnalysisSummary.NoChanges:
                     break;
 
-                case ProjectAnalysisSummary.CompilationErrors:
+                case ProjectAnalysisSummary.SyntaxErrors:
                     _hadCompilationErrors = true;
                     break;
 

@@ -667,7 +667,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
             Debug.Assert(newActiveStatements.All(a => a != null));
 
-            if (!diagnostics.IsEmpty())
+            if (!diagnostics.IsEmpty)
             {
                 LogRudeEdits(diagnostics, newText, filePath);
             }
@@ -1117,7 +1117,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             //    We create syntax map even if it's not necessary: if any data member initializers are active/contain lambdas.
             //    Since initializers are usually simple the map should not be large enough to make it worth optimizing it away.
             var matchingNodes =
-                (!activeNodes.IsEmpty() ||
+                (!activeNodes.IsEmpty ||
                 newStateMachineInfo.HasSuspensionPoints ||
                 newBodyHasLambdas ||
                 IsConstructorWithMemberInitializers(newMember, cancellationToken) ||
@@ -2355,6 +2355,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
            oldParameter.HasReferenceTypeConstraint == newParameter.HasReferenceTypeConstraint &&
            oldParameter.HasValueTypeConstraint == newParameter.HasValueTypeConstraint &&
+           oldParameter.AllowsRefLikeType == newParameter.AllowsRefLikeType &&
            oldParameter.HasConstructorConstraint == newParameter.HasConstructorConstraint &&
            oldParameter.HasNotNullConstraint == newParameter.HasNotNullConstraint &&
            oldParameter.HasUnmanagedTypeConstraint == newParameter.HasUnmanagedTypeConstraint &&
@@ -3184,6 +3185,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     // The partial type needs to be specified in the following cases:
                     // 1) partial method is updated (in case both implementation and definition are updated)
                     // 2) partial type is updated
+                    // https://github.com/dotnet/roslyn/issues/73772: do we also need to check IPropertySymbol.PartialDefinitionPart here?
                     var partialType = editKind == SemanticEditKind.Update && symbol is IMethodSymbol { PartialDefinitionPart: not null }
                         ? symbolCache.GetKey(symbol.ContainingType, cancellationToken)
                         : IsPartialTypeEdit(oldSymbol, newSymbol, oldTree, newTree)
@@ -3353,6 +3355,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     var result = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
 
                     // If we were looking for a definition and an implementation is returned the definition does not exist.
+                    // https://github.com/dotnet/roslyn/issues/73772: Does PartialDefinitionPart also need to be checked here?
                     return symbol is IMethodSymbol { PartialDefinitionPart: not null } && result is IMethodSymbol { IsPartialDefinition: true } ? null : result;
                 }
 
@@ -3665,6 +3668,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
+            // https://github.com/dotnet/roslyn/issues/73772
             Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
 
             var partialType = symbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(symbol.ContainingType, cancellationToken) : (SymbolKey?)null;

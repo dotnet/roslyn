@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.IO;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using System.Collections.Immutable;
 using System.Collections.Generic;
@@ -35,7 +34,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory([ImportMany] I
             Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind),
             externalResolvers: externalResolvers);
 
-        public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)
-            => options.ShadowCopy ? _shadowCopyLoader : _loader;
+        public IAnalyzerAssemblyLoader GetLoader(bool shadowCopy)
+            => shadowCopy ? _shadowCopyLoader : _loader;
     }
 }

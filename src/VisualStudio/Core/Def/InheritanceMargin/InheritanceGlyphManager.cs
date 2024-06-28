@@ -43,7 +43,11 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
     private readonly IEditorFormatMap _editorFormatMap;
     private readonly IAsynchronousOperationListener _listener;
     private readonly Canvas _glyphsContainer;
-    private readonly SimpleIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
+
+    /// <summary>
+    /// Mutable.  Must only be accessed from the UI thread.
+    /// </summary>
+    private SimpleMutableIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
 
     public InheritanceGlyphManager(
         Workspace workspace,
@@ -71,7 +75,7 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
         _heightAndWidthOfTheGlyph = heightAndWidthOfTheGlyph;
         _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
-        _glyphDataTree = new SimpleIntervalTree<GlyphData, GlyphDataIntrospector>(new GlyphDataIntrospector(), values: null);
+        _glyphDataTree = new(new GlyphDataIntrospector(), values: null);
         UpdateBackgroundColor();
     }
 
@@ -111,7 +115,7 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
         }
 
         var remainingGlyphData = _glyphDataTree.Except(glyphDataToRemove).ToImmutableArray();
-        _glyphDataTree.ClearInPlace();
+        _glyphDataTree = new(new GlyphDataIntrospector(), values: null);
         foreach (var glyphData in remainingGlyphData)
         {
             _glyphDataTree.AddIntervalInPlace(glyphData);
@@ -130,7 +134,7 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
         {
             // Go through all the existing visuals and invalidate or transform as appropriate.
             var allGlyphData = _glyphDataTree.ToImmutableArray();
-            _glyphDataTree.ClearInPlace();
+            _glyphDataTree = new(new GlyphDataIntrospector(), values: null);
             foreach (var (span, glyph) in allGlyphData)
             {
                 var newSpan = span.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive);
