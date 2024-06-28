@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
@@ -60,7 +61,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             if (!compilation.LanguageVersion().IsCSharp13OrAbove())
                 return;
 
-            var lockType = compilation.GetTypeByMetadataName("System.Threading.Lock");
+            var lockType = compilation.GetBestTypeByMetadataName("System.Threading.Lock");
             if (lockType is not { DeclaredAccessibility: Accessibility.Public })
                 return;
 
