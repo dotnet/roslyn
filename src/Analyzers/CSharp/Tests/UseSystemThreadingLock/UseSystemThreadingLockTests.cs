@@ -107,6 +107,77 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
+    public async Task TestNotWithNoInnerScopeType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType.Replace(" Scope", " Scope1"),
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPrivateScopeType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType
+                    .Replace("public ref struct", "private ref struct")
+                    .Replace("public Scope", "private Scope"),
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithRefStructScopeType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType.Replace("public ref struct", "public struct"),
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithDocCommentReference()
     {
         await new VerifyCS.Test

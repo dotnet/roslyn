@@ -64,6 +64,9 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             if (lockType is not { DeclaredAccessibility: Accessibility.Public })
                 return;
 
+            if (lockType.GetTypeMembers("Scope").FirstOrDefault() is not { TypeKind: TypeKind.Struct, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public })
+                return;
+
             context.RegisterSymbolStartAction(AnalyzeNamedType, SymbolKind.NamedType);
         });
     }
