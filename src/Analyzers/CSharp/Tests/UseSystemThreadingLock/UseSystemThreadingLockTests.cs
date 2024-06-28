@@ -84,6 +84,29 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
+    public async Task TestNotWithInternalLock()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType.Replace("public", "internal"),
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithDocCommentReference()
     {
         await new VerifyCS.Test
