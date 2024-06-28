@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Collections;
@@ -85,7 +86,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
 
         // Needs to have a private field that is exactly typed as 'object'.  This way we can analyze all usages of it to
         // be sure it's completely safe to move to the new lock type.
-        using var fieldsArray = TemporaryArray<(IFieldSymbol field, FieldDeclarationSyntax fieldDeclaration, CodeStyleOption2<bool> option)>.Empty;
+        using var fieldsArray = TemporaryArray<(IFieldSymbol field, VariableDeclaratorSyntax declarator, CodeStyleOption2<bool> option)>.Empty;
         using var _1 = PooledHashSet<SemanticModel>.GetInstance(out var cachedSemanticModels);
 
         foreach (var member in namedType.GetMembers())
@@ -116,12 +117,12 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 continue;
 
             // For simplicity, only offer this for fields with a single declarator.
-            if (variableDeclarator.Parent is not VariableDeclarationSyntax { Parent: FieldDeclarationSyntax fieldDeclaration, Variables.Count: 1 })
+            if (variableDeclarator.Parent is not VariableDeclarationSyntax { Parent: FieldDeclarationSyntax, Variables.Count: 1 })
                 return;
 
             // Looks like something that could be converted to a System.Threading.Lock if we see that this field is used
             // in a compatible fashion.
-            fieldsArray.Add((field, fieldDeclaration, currentOption!));
+            fieldsArray.Add((field, variableDeclarator, currentOption!));
         }
 
         if (fieldsArray.Count == 0)
@@ -138,34 +139,27 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         // reference to its tuple value and overwriting a bool in place within that tuple with the new value.  And we
         // only move hte value in one direction.  For example 'canUse' only moved from 'true' to 'false' and 'wasLocked'
         // only moves the value from 'false' to 'true'.
-        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (FieldDeclarationSyntax fieldDeclaration, CodeStyleOption2<bool> option, bool canUse, bool wasLocked)>();
+        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (VariableDeclaratorSyntax declarator, CodeStyleOption2<bool> option, bool canUse, bool wasLocked)>();
 
-        foreach (var (field, fieldDeclaration, option) in fieldsArray)
-            potentialLockFields[field] = (fieldDeclaration, option, canUse: true, wasLocked: false);
+        foreach (var (field, declarator, option) in fieldsArray)
+            potentialLockFields[field] = (declarator, option, canUse: true, wasLocked: false);
 
         // Register a syntax node callback to ensure the field's initializer is either missing, or is only instantiating
         // the field with a new object.
-        context.RegisterSyntaxNodeAction(context =>
+        context.RegisterOperationAction(context =>
         {
             var cancellationToken = context.CancellationToken;
-            var fieldDeclaration = (FieldDeclarationSyntax)context.Node;
+            if (context.ContainingSymbol is not IFieldSymbol fieldSymbol)
+                return;
 
-            foreach (var (currentField, currentFieldDeclaration, _) in fieldsArray)
-            {
-                if (currentFieldDeclaration == fieldDeclaration)
-                {
-                    // If we have an initializer at the declaration site, it needs to be initialized with either `new
-                    // object()` or `new()`.  If not, we can't convert this.  Note: we confirmed this field only has a
-                    // single declarator when doing our initial pass.  So .Single is safe here.
-                    var variableDeclarator = currentFieldDeclaration.Declaration.Variables.Single();
-                    if (variableDeclarator.Initializer != null &&
-                        !IsSystemObjectCreationExpression(context.SemanticModel, variableDeclarator.Initializer.Value, cancellationToken))
-                    {
-                        GetValueRefOrNullRef(potentialLockFields, currentField).canUse = false;
-                    }
-                }
-            }
-        }, SyntaxKind.FieldDeclaration);
+            ref var valueRef = ref GetValueRefOrNullRef(potentialLockFields, fieldSymbol);
+            if (Unsafe.IsNullRef(ref valueRef))
+                return;
+
+            var fieldInitializer = (IFieldInitializerOperation)context.Operation;
+            if (fieldInitializer.Value is not IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object })
+                valueRef.canUse = false;
+        }, OperationKind.FieldInitializer);
 
         // Now go see how the code within this named type actually uses any fields within.
         context.RegisterOperationAction(context =>
