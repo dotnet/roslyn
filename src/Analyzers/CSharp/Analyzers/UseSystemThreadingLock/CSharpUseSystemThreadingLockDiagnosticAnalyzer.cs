@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 ///     
 /// and converts it to:
 /// 
-///     Lock _gate = new Lock();
+///     private ... Lock _gate = new Lock();
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal class CSharpUseSystemThreadingLockDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
