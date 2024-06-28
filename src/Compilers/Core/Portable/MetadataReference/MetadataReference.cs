@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
 
@@ -315,17 +316,24 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceProperties properties,
             DocumentationProvider? documentation = null)
         {
+            // Note: returns MetadataReference and not PortableExecutableReference so that we can in future support assemblies that
+            // which are not backed by PE image.
+
             return CreateFromAssemblyInternal(assembly, properties, documentation);
         }
 
         internal static PortableExecutableReference CreateFromAssemblyInternal(
             Assembly assembly,
             MetadataReferenceProperties properties,
-            DocumentationProvider? documentation = null)
-        {
-            // Note: returns MetadataReference and not PortableExecutableReference so that we can in future support assemblies that
-            // which are not backed by PE image.
+            DocumentationProvider? documentation = null) =>
+            CreateFromAssemblyOrNullInternal(assembly, properties, documentation, throwOnFailure: true)!;
 
+        internal static unsafe PortableExecutableReference? CreateFromAssemblyOrNullInternal(
+            Assembly assembly,
+            MetadataReferenceProperties properties,
+            DocumentationProvider? documentation = null,
+            bool throwOnFailure = false)
+        {
             if (assembly == null)
             {
                 throw new ArgumentNullException(nameof(assembly));
@@ -333,7 +341,14 @@ namespace Microsoft.CodeAnalysis
 
             if (assembly.IsDynamic)
             {
-                throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToDynamicAssembly);
+                if (throwOnFailure)
+                {
+                    throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToDynamicAssembly);
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             if (properties.Kind != MetadataImageKind.Assembly)
@@ -341,24 +356,37 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.CantCreateModuleReferenceToAssembly, nameof(properties));
             }
 
-            string location = assembly.Location;
-            if (string.IsNullOrEmpty(location))
+            AssemblyMetadata metadata;
+            var location = assembly.IsDynamic ? null : assembly.Location;
+
+#if NETCOREAPP
+            if (assembly.TryGetRawMetadata(out var blob, out var length))
             {
-                throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToAssemblyWithoutLocation);
+                metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromMetadata((IntPtr)blob, length));
+            }
+            else
+#endif
+            {
+                if (string.IsNullOrEmpty(location))
+                {
+                    if (throwOnFailure)
+                    {
+                        throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToAssemblyWithoutLocation);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                Stream peStream = StandardFileSystem.Instance.OpenFileWithNormalizedException(location, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+                // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
+                // which might also lock the file until the reference is GC'd.
+                metadata = AssemblyMetadata.CreateFromStream(peStream);
             }
 
-            Stream peStream = StandardFileSystem.Instance.OpenFileWithNormalizedException(location, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
-            // which might also lock the file until the reference is GC'd.
-            var metadata = AssemblyMetadata.CreateFromStream(peStream);
-
             return new MetadataImageReference(metadata, properties, documentation, location, display: null);
-        }
-
-        internal static bool HasMetadata(Assembly assembly)
-        {
-            return !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location);
         }
     }
 }
