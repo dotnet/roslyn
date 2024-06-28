@@ -130,23 +130,19 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
 
         // The set of fields we think could be converted to `System.Threading.Lock` from `object`.
         //
-        // Note: both this and wasLocked have their values written to concurrently in the analysis pass below.  This is
-        // safe as we never are actually mutating the dictionary itself (we're not adding/removing items).  We're just
-        // getting a reference to their value and overwriting a bool in place with the new value.  And we only move hte
-        // value in one direction.  For example potentialLockFields only moves 'canUse' from 'true' to 'false' and 
-        // 'wasLocked' only moves the value from 'false' to true.
-        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (CodeStyleOption2<bool> option, bool canUse)>();
-
-        // Whether or not we saw this field used in a `lock (obj)` statement.  If not, we do not want to convert this as
-        // the user wasn't using this as a lock.  Note: we can consider expanding the set of patterns we detect (like
-        // Monitor.Enter + Monitor.Exit) if we think it's worthwhile.
-        var wasLocked = new SegmentedDictionary<IFieldSymbol, bool>();
+        // 'wasLocked' tracks whether or not we saw this field used in a `lock (obj)` statement.  If not, we do not want
+        // to convert this as the user wasn't using this as a lock.  Note: we can consider expanding the set of patterns
+        // we detect (like Monitor.Enter + Monitor.Exit) if we think it's worthwhile.
+        //
+        // Note: both this dictionary is written to concurrently in the analysis pass below.  This is safe as we never
+        // are actually mutating the dictionary itself (we're not adding/removing items).  We're just getting a
+        // reference to its tuple value and overwriting a bool in place within that tuple with the new value.  And we
+        // only move hte value in one direction.  For example 'canUse' only moved from 'true' to 'false' and 'wasLocked'
+        // only moves the value from 'false' to 'true'.
+        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (CodeStyleOption2<bool> option, bool canUse, bool wasLocked)>();
 
         foreach (var (field, option) in fieldsArray)
-        {
-            potentialLockFields[field] = (option, canUse: true);
-            wasLocked[field] = false;
-        }
+            potentialLockFields[field] = (option, canUse: true, wasLocked: false);
 
         // Now go see how the code within this named type actually uses any fields within.
         context.RegisterOperationAction(context =>
@@ -171,7 +167,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
 
                 // We did lock on this field, mark as such as its now something we'd def like to convert to a
                 // System.Threading.Lock if possible.
-                GetValueRefOrNullRef(wasLocked, fieldReference) = true;
+                GetValueRefOrNullRef(potentialLockFields, fieldReference).wasLocked = true;
                 return;
             }
 
@@ -204,14 +200,14 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         {
             var cancellationToken = context.CancellationToken;
 
-            foreach (var (lockField, (option, canUse)) in potentialLockFields)
+            foreach (var (lockField, (option, canUse, wasLocked)) in potentialLockFields)
             {
                 // If we blocked this field in our analysis pass, can immediately skip.
                 if (!canUse)
                     continue;
 
                 // Has to at least see this field locked on to offer to convert it to a Lock.
-                if (!wasLocked[lockField])
+                if (!wasLocked)
                     continue;
 
                 // .Single is safe here as we confirmed there was only one DeclaringSyntaxReference in the field at the beginning of analysis.
