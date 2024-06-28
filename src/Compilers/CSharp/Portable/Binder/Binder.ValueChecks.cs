@@ -421,23 +421,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static AccessorKind GetIndexerAccessorKind(BoundIndexerAccess indexerAccess, BindValueKind valueKind)
         {
-            var coreValueKind = valueKind & ValueKindSignificantBitsMask;
-            var returnsByRef = indexerAccess.Indexer.RefKind != RefKind.None;
-            AccessorKind kind = coreValueKind switch
+            if (indexerAccess.Indexer.RefKind != RefKind.None)
             {
-                BindValueKind.CompoundAssignment => returnsByRef ? AccessorKind.Get : AccessorKind.Both,
-                BindValueKind.Assignable => returnsByRef ? AccessorKind.Get : AccessorKind.Set,
-                BindValueKind.RValue => AccessorKind.Get,
+                return AccessorKind.Get;
+            }
 
-                // These combinations of not returns by ref but having a ref accessor kind 
-                // occur in error scenarios.
-                BindValueKind.RefOrOut => AccessorKind.Get,
-                BindValueKind.RefAssignable => AccessorKind.Get,
-                BindValueKind.ReadonlyRef => AccessorKind.Get,
-                _ => AccessorKind.Unknown,
+            var coreValueKind = valueKind & ValueKindSignificantBitsMask;
+            return coreValueKind switch
+            {
+                BindValueKind.CompoundAssignment => AccessorKind.Both,
+                BindValueKind.Assignable => AccessorKind.Set,
+                _ => AccessorKind.Get,
             };
-            Debug.Assert(kind != AccessorKind.Unknown);
-            return kind;
         }
 
         private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)

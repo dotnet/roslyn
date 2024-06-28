@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.CodeDom.Compiler;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -14,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences, CompilerFeature.RefLifetime)]
     public class RefEscapingTests : CompilingTestBase
     {
         [Fact]

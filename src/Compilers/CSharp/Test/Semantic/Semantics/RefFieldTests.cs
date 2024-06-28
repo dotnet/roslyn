@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.RefLifetime)]
     public class RefFieldTests : CSharpTestBase
     {
         internal static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
@@ -5388,7 +5389,6 @@ unsafe ref struct S<T>
                 // (14,11): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         y[x] = 1; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 11));
-  
         }
 
         [Fact]
