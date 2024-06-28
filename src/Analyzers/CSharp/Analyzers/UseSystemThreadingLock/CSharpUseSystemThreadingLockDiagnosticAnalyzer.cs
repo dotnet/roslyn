@@ -150,7 +150,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             {
                 // Locking on the the new lock type disallows yielding inside the lock.  So if we see that, immediately
                 // consider this not applicable.
-                if (lockOperation.Syntax.DescendantNodesAndSelf().Any(n => n is YieldStatementSyntax))
+                if (lockOperation.Syntax.ContainsYield())
                 {
                     potentialLockFields.TryRemove(fieldReference, out _);
                     return;
