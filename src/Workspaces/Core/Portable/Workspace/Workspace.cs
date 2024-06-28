@@ -393,6 +393,20 @@ public abstract partial class Workspace : IDisposable
         }
     }
 
+    /// <summary>
+    /// Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
+    /// allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
+    /// Vice versa, if a language is no longer present in <see cref="CurrentSolution"/> 
+    /// we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
+    /// 
+    /// This mechanism only takes care of flowing the initial snapshot of option values.
+    /// It's up to the host to keep the individual values up-to-date by updating 
+    /// <see cref="CurrentSolution"/> as appropriate.
+    /// 
+    /// Implementing the initialization here allows us to uphold an invariant that
+    /// the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
+    /// of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
+    /// </summary>
     private Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
     {
         var newFallbackOptions = newSolution.FallbackAnalyzerOptions;

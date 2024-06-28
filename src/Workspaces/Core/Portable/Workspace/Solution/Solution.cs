@@ -1637,7 +1637,7 @@ public partial class Solution
     public OptionSet Options => this.SolutionState.Options;
 
     /// <summary>
-    /// Analyzer references associated with the solution.n
+    /// Analyzer references associated with the solution.
     /// </summary>
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
 

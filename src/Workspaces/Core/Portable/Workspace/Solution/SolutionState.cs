@@ -362,7 +362,7 @@ internal sealed partial class SolutionState
                 fallbackAnalyzerOptions = StructuredAnalyzerConfigOptions.Empty;
             }
 
-            AddLanguageCount(ref langaugeCountDeltas, language, amount: +1);
+            AddLanguageCountDelta(ref langaugeCountDeltas, language, amount: +1);
 
             var newProject = new ProjectState(languageServices, projectInfo, fallbackAnalyzerOptions);
             return newProject;
@@ -453,7 +453,7 @@ internal sealed partial class SolutionState
         var languageCountDeltas = new TemporaryArray<(string language, int count)>();
         foreach (var projectId in projectIds)
         {
-            AddLanguageCount(ref languageCountDeltas, _projectIdToProjectStateMap[projectId].Language, amount: -1);
+            AddLanguageCountDelta(ref languageCountDeltas, _projectIdToProjectStateMap[projectId].Language, amount: -1);
         }
 
         return this.Branch(
@@ -464,16 +464,18 @@ internal sealed partial class SolutionState
             dependencyGraph: newDependencyGraph);
     }
 
-    private static void AddLanguageCount(ref TemporaryArray<(string language, int count)> languageCounts, string language, int amount)
+    private static void AddLanguageCountDelta(ref TemporaryArray<(string language, int count)> languageCountDeltas, string language, int amount)
     {
-        var index = languageCounts.IndexOf(static (c, language) => c.language == language, language);
+        Contract.ThrowIfFalse(amount is -1 or +1);
+
+        var index = languageCountDeltas.IndexOf(static (c, language) => c.language == language, language);
         if (index < 0)
         {
-            languageCounts.Add((language, amount));
+            languageCountDeltas.Add((language, amount));
         }
         else
         {
-            languageCounts[index] = (language, languageCounts[index].count + amount);
+            languageCountDeltas[index] = (language, languageCountDeltas[index].count + amount);
         }
     }
 
@@ -493,7 +495,7 @@ internal sealed partial class SolutionState
             }
             else
             {
-                Debug.Assert(newCount == 0);
+                Contract.ThrowIfFalse(newCount == 0);
                 projectCountByLanguage = projectCountByLanguage.Remove(language);
             }
         }

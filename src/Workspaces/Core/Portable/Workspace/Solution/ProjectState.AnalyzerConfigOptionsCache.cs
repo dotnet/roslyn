@@ -37,17 +37,19 @@ internal partial class ProjectState
         public readonly AsyncLazy<Value> Lazy = AsyncLazy.Create(
             asynchronousComputeFunction: static async (args, cancellationToken) =>
             {
-                var tasks = args.analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
+                var (analyzerConfigDocumentStates, fallbackOptions) = args;
+                var tasks = analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
                 var analyzerConfigs = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), args.fallbackOptions);
+                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions);
             },
             synchronousComputeFunction: static (args, cancellationToken) =>
             {
-                var analyzerConfigs = args.analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
-                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), args.fallbackOptions);
+                var (analyzerConfigDocumentStates, fallbackOptions) = args;
+                var analyzerConfigs = analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
+                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions);
             },
             arg: (analyzerConfigDocumentStates, fallbackOptions));
 

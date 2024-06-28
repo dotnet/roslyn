@@ -140,7 +140,7 @@ internal partial class SolutionState
                 var fallbackAnalyzerOptionsChecksum = ChecksumCache.GetOrCreate(
                     FallbackAnalyzerOptions,
                     static (value, args) => args.serializer.CreateChecksum(value, args.cancellationToken),
-                    (serializer, cancellationToken));
+                    arg: (serializer, cancellationToken));
 
                 var stateChecksums = new SolutionStateChecksums(
                     projectConeId,

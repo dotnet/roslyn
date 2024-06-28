@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Options;
 
 /// <summary>
-/// Keeps <see cref="SolutionState.FallbackAnalyzerOptions"/> up-to-date with global option values maintained by <see cref="IGlobalOptionService"/>.
+/// Keeps <see cref="Solution.FallbackAnalyzerOptions"/> up-to-date with global option values maintained by <see cref="IGlobalOptionService"/>.
 /// </summary>
 [Export]
 [ExportEventListener(WellKnownEventListeners.Workspace,
@@ -41,6 +41,7 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService 
 
         try
         {
+            // only editorconfig options are stored in Solution.FallbackAnalyzerOptions:
             if (!args.ChangedOptions.Any(static o => o.key.Option.Definition.IsEditorConfigOption))
             {
                 return;

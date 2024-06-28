@@ -225,12 +225,16 @@ internal partial class SerializerService : ISerializerService
             return ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty;
         }
 
+        // We only serialize C# and VB options (if present):
+        Debug.Assert(count <= 2);
+
         var optionsByLanguage = ImmutableDictionary.CreateBuilder<string, StructuredAnalyzerConfigOptions>();
         var options = ImmutableDictionary.CreateBuilder<string, string>();
 
         for (var i = 0; i < count; i++)
         {
             var language = reader.ReadRequiredString();
+            Debug.Assert(language is LanguageNames.CSharp or LanguageNames.VisualBasic);
 
             while (true)
             {
