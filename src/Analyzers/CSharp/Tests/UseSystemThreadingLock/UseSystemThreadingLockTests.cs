@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UsePrimaryConstructor;
@@ -304,7 +303,7 @@ public sealed class UseSystemThreadingLockTests
             TestCode = """
                 class C
                 {
-                    private object _gate = (new object());
+                    private object [|_gate|] = (new object());
 
                     void M()
                     {
@@ -1145,7 +1144,7 @@ public sealed class UseSystemThreadingLockTests
             TestCode = """
                 class C
                 {
-                    private object _gate;
+                    private object [|_gate|];
 
                     public C()
                     {
@@ -1457,7 +1456,7 @@ public sealed class UseSystemThreadingLockTests
 
                     void M()
                     {
-                        Console.WriteLine(i);
+                        System.Console.WriteLine(i);
 
                         lock (_gate)
                         {
@@ -1475,7 +1474,7 @@ public sealed class UseSystemThreadingLockTests
                 
                     void M()
                     {
-                        Console.WriteLine(i);
+                        System.Console.WriteLine(i);
 
                         lock (_gate)
                         {
@@ -1501,7 +1500,7 @@ public sealed class UseSystemThreadingLockTests
 
                     void M()
                     {
-                        Console.WriteLine(i);
+                        System.Console.WriteLine(i);
 
                         lock (_gate)
                         {
@@ -1519,7 +1518,7 @@ public sealed class UseSystemThreadingLockTests
                 
                     void M()
                     {
-                        Console.WriteLine(i);
+                        System.Console.WriteLine(i);
 
                         lock (_gate)
                         {

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -103,7 +104,7 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
             variableDeclaration.Type,
             lockTypeExpression.WithTriviaFrom(variableDeclaration.Type));
 
-        if (variableDeclarator.Initializer?.Value is ObjectCreationExpressionSyntax objectCreationExpression)
+        if (variableDeclarator.Initializer?.Value.WalkDownParentheses() is ObjectCreationExpressionSyntax objectCreationExpression)
         {
             editor.ReplaceNode(
                 objectCreationExpression.Type,
@@ -149,7 +150,7 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
                     continue;
                 }
 
-                if (assignment.Right is not ObjectCreationExpressionSyntax objectCreation)
+                if (assignment.Right.WalkDownParentheses() is not ObjectCreationExpressionSyntax objectCreation)
                     continue;
 
                 groupDocumentEditor.ReplaceNode(

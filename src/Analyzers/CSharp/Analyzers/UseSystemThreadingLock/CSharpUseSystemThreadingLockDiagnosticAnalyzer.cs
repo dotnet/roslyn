@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -160,7 +161,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             if (fieldInitializer.Value is null)
                 return;
 
-            if (fieldInitializer.Value is not IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object })
+            if (!IsObjectCreationOperation(fieldInitializer.Value))
                 valueRef.canUse = false;
         }, OperationKind.FieldInitializer);
 
@@ -201,7 +202,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             // else is not.
             if (fieldReferenceOperation.Parent is IAssignmentOperation assignment &&
                 assignment.Target == fieldReferenceOperation &&
-                assignment.Value is IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object })
+                IsObjectCreationOperation(assignment.Value))
             {
                 return;
             }
@@ -241,5 +242,13 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                     properties: null));
             }
         });
+    }
+
+    private static bool IsObjectCreationOperation(IOperation value)
+    {
+        if (value is IConversionOperation { Conversion: { Exists: true, IsImplicit: true } } conversion)
+            value = conversion.Operand;
+
+        return value is IObjectCreationOperation { Type.SpecialType: SpecialType.System_Object };
     }
 }
