@@ -140,7 +140,9 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
         // reference to its tuple value and overwriting a bool in place within that tuple with the new value.  And we
         // only move hte value in one direction.  For example 'canUse' only moved from 'true' to 'false' and 'wasLocked'
         // only moves the value from 'false' to 'true'.
-        var potentialLockFields = new SegmentedDictionary<IFieldSymbol, (VariableDeclaratorSyntax declarator, CodeStyleOption2<bool> option, bool canUse, bool wasLocked)>();
+        var potentialLockFields = new SegmentedDictionary<
+            IFieldSymbol,
+            (VariableDeclaratorSyntax declarator, CodeStyleOption2<bool> option, bool canUse, bool wasLocked)>(capacity: fieldsArray.Count);
 
         foreach (var (field, declarator, option) in fieldsArray)
             potentialLockFields[field] = (declarator, option, canUse: true, wasLocked: false);
