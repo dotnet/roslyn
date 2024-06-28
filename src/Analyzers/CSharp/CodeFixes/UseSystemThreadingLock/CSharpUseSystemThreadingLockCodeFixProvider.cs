@@ -83,7 +83,7 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
         semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var compilation = semanticModel.Compilation;
 
-        var lockType = compilation.GetTypeByMetadataName("System.Threading.Lock");
+        var lockType = compilation.GetBestTypeByMetadataName("System.Threading.Lock");
         if (lockType is null)
             return;
 
