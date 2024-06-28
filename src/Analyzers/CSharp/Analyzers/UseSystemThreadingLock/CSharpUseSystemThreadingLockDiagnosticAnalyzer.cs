@@ -57,7 +57,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 return;
 
             var lockType = compilation.GetTypeByMetadataName("System.Threading.Lock");
-            if (lockType is null)
+            if (lockType is not { DeclaredAccessibility: Accessibility.Public })
                 return;
 
             context.RegisterSymbolStartAction(AnalyzeNamedType, SymbolKind.NamedType);
