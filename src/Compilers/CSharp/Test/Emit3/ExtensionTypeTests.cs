@@ -41706,6 +41706,52 @@ class Program
     }
 
     [Fact]
+    public void InstanceMethod_Metadata_17()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public void Method()
+    {
+        System.Console.Write(1);
+    }
+
+    public static void Method(C c)
+    {
+        System.Console.Write(2);
+    }
+}
+
+public class C
+{
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.Method();
+        C.Method(c);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "12", verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("12"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp2, expectedOutput: "12", verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void InstanceProperty_Metadata_01()
     {
         var src1 = """
@@ -42696,4 +42742,1408 @@ class Program
     // PROTOTYPE(roles): Ensure instance events are never treated as WINRT events.
 
     // PROTOTYPE(roles): Test consumption of instance APIs from VB as static APIs. Also check behavior of legacy C# compilers.
+
+    [Fact]
+    public void InstanceMethod_Metadata_ConsumptionFromPreviousVersion_01()
+    {
+        // public implicit extension E for C
+        // {
+        //     public void Method()
+        //     {
+        //         this.Increment();
+        //     }
+        // }
+        // 
+        // public class C
+        // {
+        //     public int F;
+        // 
+        //     public void Increment()
+        //     {
+        //         F++;
+        //     }
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+	extends [mscorlib]System.ValueType
+{
+    .field private class C '<UnderlyingInstance>$'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+	.method public hidebysig static 
+		void Method (
+			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: callvirt instance void C::Increment()
+		IL_0006: ret
+	}
+
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ret
+	}
+}
+
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field public int32 F
+
+    .method public hidebysig 
+    	instance void Increment () cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.0
+    	IL_0002: ldfld int32 C::F
+    	IL_0007: ldc.i4.1
+    	IL_0008: add
+    	IL_0009: stfld int32 C::F
+    	IL_000e: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+    	instance void .ctor () cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: call instance void [mscorlib]System.Object::.ctor()
+    	IL_0006: ret
+    }
+}
+""";
+
+#if !PREVIOUSVERSIONOFCOMPILER
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F);
+        c.Method();
+        System.Console.Write(c.F);
+        c.Method();
+        System.Console.Write(c.F);
+    }
+}
+""";
+#else
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F);
+        E.Method(c);
+        System.Console.Write(c.F);
+        E.Method(c);
+        System.Console.Write(c.F);
+    }
+}
+""";
+#endif
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "012").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_ConsumptionFromPreviousVersion_02()
+    {
+        // public implicit extension E for C
+        // {
+        //     public void Method()
+        //     {
+        //         this.Increment();
+        //     }
+        // }
+        // 
+        // public struct C
+        // {
+        //     public int F;
+        // 
+        //     public void Increment()
+        //     {
+        //         F++;
+        //     }
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .field private valuetype C '<UnderlyingInstance>$'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+    .method public hidebysig static 
+    	void Method (
+    		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+    	) cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: call instance void C::Increment()
+    	IL_0006: ret
+    }
+
+    .method public hidebysig static 
+    	void '<ImplicitExtension>$' (
+    		valuetype C ''
+    	) cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ret
+    }
+}
+
+.class public sequential ansi sealed beforefieldinit C
+    extends [mscorlib]System.ValueType
+{
+    .field public int32 F
+
+    .method public hidebysig 
+    	instance void Increment () cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.0
+    	IL_0002: ldfld int32 C::F
+    	IL_0007: ldc.i4.1
+    	IL_0008: add
+    	IL_0009: stfld int32 C::F
+    	IL_000e: ret
+    }
+}
+""";
+
+#if !PREVIOUSVERSIONOFCOMPILER
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F);
+        c.Method();
+        System.Console.Write(c.F);
+        c.Method();
+        System.Console.Write(c.F);
+    }
+}
+""";
+#else
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F);
+        E.Method(ref c);
+        System.Console.Write(c.F);
+        E.Method(ref c);
+        System.Console.Write(c.F);
+    }
+}
+""";
+#endif
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "012").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_ConsumptionFromPreviousVersion_01()
+    {
+        // public implicit extension E for C
+        // {
+        //     public int P1
+        //     {
+        //         get => this.P;
+        //         set => this.P = value; 
+        //     }
+        // }
+        // 
+        // public class C
+        // {
+        //     public int P { get; set; }
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+	extends [mscorlib]System.ValueType
+{
+	.field private class C '<UnderlyingInstance>$'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+
+	.method public hidebysig specialname static 
+		int32 get_P1 (
+			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: callvirt instance int32 C::get_P()
+		IL_0006: ret
+	}
+
+	.method public hidebysig specialname static 
+		void set_P1 (
+			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			int32 'value'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::set_P(int32)
+		IL_0007: ret
+	}
+
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ret
+	}
+
+	.property int32 P1(
+		class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+	)
+	{
+		.get int32 E::get_P1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute))
+		.set void E::set_P1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+	}
+}
+
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field private int32 '<P>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+    .method public hidebysig specialname 
+    	instance int32 get_P () cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldfld int32 C::'<P>k__BackingField'
+    	IL_0006: ret
+    }
+
+    .method public hidebysig specialname 
+    	instance void set_P (
+    		int32 'value'
+    	) cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.1
+    	IL_0002: stfld int32 C::'<P>k__BackingField'
+    	IL_0007: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+    	instance void .ctor () cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: call instance void [mscorlib]System.Object::.ctor()
+    	IL_0006: ret
+    }
+
+    .property instance int32 P()
+    {
+    	.get instance int32 C::get_P()
+    	.set instance void C::set_P(int32)
+    }
+}
+""";
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.P1 = 2;
+        System.Console.WriteLine(c.P1);
+    }
+}
+""";
+
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+#if !PREVIOUSVERSIONOFCOMPILER
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+#else
+        comp.VerifyDiagnostics(
+            // (6,11): error CS1061: 'C' does not contain a definition for 'P1' and no accessible extension method 'P1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.P1 = 2;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P1").WithArguments("C", "P1").WithLocation(6, 11),
+            // (7,36): error CS1061: 'C' does not contain a definition for 'P1' and no accessible extension method 'P1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         System.Console.WriteLine(c.P1);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P1").WithArguments("C", "P1").WithLocation(7, 36)
+            );
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.P1[c] = 2;
+        System.Console.WriteLine(E.P1[c]);
+    }
+}
+""";
+        comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics(
+            // (6,11): error CS1545: Property, indexer, or event 'E.P1[C]' is not supported by the language; try directly calling accessor methods 'E.get_P1(C)' or 'E.set_P1(C, int)'
+            //         E.P1[c] = 2;
+            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P1").WithArguments("E.P1[C]", "E.get_P1(C)", "E.set_P1(C, int)").WithLocation(6, 11),
+            // (7,36): error CS1545: Property, indexer, or event 'E.P1[C]' is not supported by the language; try directly calling accessor methods 'E.get_P1(C)' or 'E.set_P1(C, int)'
+            //         System.Console.WriteLine(E.P1[c]);
+            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P1").WithArguments("E.P1[C]", "E.get_P1(C)", "E.set_P1(C, int)").WithLocation(7, 36)
+            );
+
+        var src4 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.set_P1(c, 2);
+        System.Console.WriteLine(E.get_P1(c));
+    }
+}
+""";
+        comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+#endif
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_ConsumptionFromPreviousVersion_02()
+    {
+        // public implicit extension E for C
+        // {
+        //     public int P1
+        //     {
+        //         get => this.P;
+        //         set => this.P = value; 
+        //     }
+        // }
+        // 
+        // public struct C
+        // {
+        //     public int P { get; set; }
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+	extends [mscorlib]System.ValueType
+{
+	.field private valuetype C '<UnderlyingInstance>$'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+
+	.method public hidebysig specialname static 
+		int32 get_P1 (
+			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance int32 C::get_P()
+		IL_0006: ret
+	}
+
+	.method public hidebysig specialname static 
+		void set_P1 (
+			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			int32 'value'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call instance void C::set_P(int32)
+		IL_0007: ret
+	}
+
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			valuetype C ''
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ret
+	}
+
+	.property int32 P1(
+		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+	)
+	{
+		.get int32 E::get_P1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		.set void E::set_P1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+	}
+}
+
+.class public sequential ansi sealed beforefieldinit C
+    extends [mscorlib]System.ValueType
+{
+    .field private int32 '<P>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+    .method public hidebysig specialname 
+    	instance int32 get_P () cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldfld int32 C::'<P>k__BackingField'
+    	IL_0006: ret
+    }
+
+    .method public hidebysig specialname 
+    	instance void set_P (
+    		int32 'value'
+    	) cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.1
+    	IL_0002: stfld int32 C::'<P>k__BackingField'
+    	IL_0007: ret
+    }
+
+    .property instance int32 P()
+    {
+    	.get instance int32 C::get_P()
+    	.set instance void C::set_P(int32)
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.P1 = 2;
+        System.Console.WriteLine(c.P1);
+    }
+}
+""";
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+#if !PREVIOUSVERSIONOFCOMPILER
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+#else
+        comp.VerifyDiagnostics(
+            // (6,11): error CS1061: 'C' does not contain a definition for 'P1' and no accessible extension method 'P1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.P1 = 2;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P1").WithArguments("C", "P1").WithLocation(6, 11),
+            // (7,36): error CS1061: 'C' does not contain a definition for 'P1' and no accessible extension method 'P1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         System.Console.WriteLine(c.P1);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P1").WithArguments("C", "P1").WithLocation(7, 36)
+            );
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.P1[c] = 2;
+        System.Console.WriteLine(E.P1[c]);
+    }
+}
+""";
+        comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics(
+            // (6,11): error CS1545: Property, indexer, or event 'E.P1[ref C]' is not supported by the language; try directly calling accessor methods 'E.get_P1(ref C)' or 'E.set_P1(ref C, int)'
+            //         E.P1[c] = 2;
+            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P1").WithArguments("E.P1[ref C]", "E.get_P1(ref C)", "E.set_P1(ref C, int)").WithLocation(6, 11),
+            // (7,36): error CS1545: Property, indexer, or event 'E.P1[ref C]' is not supported by the language; try directly calling accessor methods 'E.get_P1(ref C)' or 'E.set_P1(ref C, int)'
+            //         System.Console.WriteLine(E.P1[c]);
+            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P1").WithArguments("E.P1[ref C]", "E.get_P1(ref C)", "E.set_P1(ref C, int)").WithLocation(7, 36)
+            );
+
+        var src4 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.set_P1(ref c, 2);
+        System.Console.WriteLine(E.get_P1(ref c));
+    }
+}
+""";
+        comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+#endif
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_ConsumptionFromPreviousVersion_01()
+    {
+        // public implicit extension E for C
+        // {
+        //     public int this[int i]
+        //     {
+        //         get => this.P;
+        //         set => this.P = value; 
+        //     }
+        // }
+        // 
+        // public class C
+        // {
+        //     public int P { get; set; }
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+    	01 00 04 49 74 65 6d 00 00
+    )
+
+    .field private class C '<UnderlyingInstance>$'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+    .method public hidebysig specialname static 
+    	int32 get_Item (
+    		class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+    		int32 i
+    	) cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: callvirt instance int32 C::get_P()
+    	IL_0006: ret
+    }
+
+    .method public hidebysig specialname static 
+    	void set_Item (
+    		class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+    		int32 i,
+    		int32 'value'
+    	) cil managed 
+    {
+    	// Method begins at RVA 0x206f
+    	// Code size 8 (0x8)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.2
+    	IL_0002: callvirt instance void C::set_P(int32)
+    	IL_0007: ret
+    }
+
+    .method public hidebysig static 
+    	void '<ImplicitExtension>$' (
+    		class C ''
+    	) cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ret
+    }
+
+    .property int32 Item(
+    	class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+    	int32 i
+    )
+    {
+    	.get int32 E::get_Item(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+    	.set void E::set_Item(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32, int32)
+    }
+}
+
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field private int32 '<P>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+    .method public hidebysig specialname 
+    	instance int32 get_P () cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldfld int32 C::'<P>k__BackingField'
+    	IL_0006: ret
+    }
+
+    .method public hidebysig specialname 
+    	instance void set_P (
+    		int32 'value'
+    	) cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.1
+    	IL_0002: stfld int32 C::'<P>k__BackingField'
+    	IL_0007: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+    	instance void .ctor () cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: call instance void [mscorlib]System.Object::.ctor()
+    	IL_0006: ret
+    }
+
+    .property instance int32 P()
+    {
+    	.get instance int32 C::get_P()
+    	.set instance void C::set_P(int32)
+    }
+}
+""";
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c[1] = 2;
+        System.Console.WriteLine(c[1]);
+    }
+}
+""";
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+#if !PREVIOUSVERSIONOFCOMPILER
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+#else
+        comp.VerifyDiagnostics(
+            // (6,9): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //         c[1] = 2;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1]").WithArguments("C").WithLocation(6, 9),
+            // (7,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //         System.Console.WriteLine(c[1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1]").WithArguments("C").WithLocation(7, 34)
+            );
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.Item[c, 1] = 2;
+        System.Console.WriteLine(E.Item[c, 1]);
+    }
+}
+""";
+
+        comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0117: 'E' does not contain a definition for 'Item'
+            //         E.Item[c, 1] = 2;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Item").WithArguments("E", "Item").WithLocation(6, 11),
+            // (7,36): error CS0117: 'E' does not contain a definition for 'Item'
+            //         System.Console.WriteLine(E.Item[c, 1]);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Item").WithArguments("E", "Item").WithLocation(7, 36)
+            );
+
+        var src4 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.set_Item(c, 1, 2);
+        System.Console.WriteLine(E.get_Item(c, 1));
+    }
+}
+""";
+
+        comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0571: 'E.this[C, int].set': cannot explicitly call operator or accessor
+            //         E.set_Item(c, 1, 2);
+            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Item").WithArguments("E.this[C, int].set").WithLocation(6, 11),
+            // (7,36): error CS0571: 'E.this[C, int].get': cannot explicitly call operator or accessor
+            //         System.Console.WriteLine(E.get_Item(c, 1));
+            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Item").WithArguments("E.this[C, int].get").WithLocation(7, 36)
+            );
+#endif
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_ConsumptionFromPreviousVersion_02()
+    {
+        // public implicit extension E for C
+        // {
+        //     public int this[int i]
+        //     {
+        //         get => this.P;
+        //         set => this.P = value; 
+        //     }
+        // }
+        // 
+        // public struct C
+        // {
+        //     public int P { get; set; }
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+    	01 00 04 49 74 65 6d 00 00
+    )
+
+    .field private valuetype C '<UnderlyingInstance>$'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+    .method public hidebysig specialname static 
+    	int32 get_Item (
+    		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+    		int32 i
+    	) cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: call instance int32 C::get_P()
+    	IL_0006: ret
+    }
+
+    .method public hidebysig specialname static 
+    	void set_Item (
+    		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+    		int32 i,
+    		int32 'value'
+    	) cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.2
+    	IL_0002: call instance void C::set_P(int32)
+    	IL_0007: ret
+    }
+
+    .method public hidebysig static 
+    	void '<ImplicitExtension>$' (
+    		valuetype C ''
+    	) cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ret
+    }
+
+    .property int32 Item(
+    	valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+    	int32 i
+    )
+    {
+    	.get int32 E::get_Item(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+    	.set void E::set_Item(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32, int32)
+    }
+}
+
+.class public sequential ansi sealed beforefieldinit C
+    extends [mscorlib]System.ValueType
+{
+    .field private int32 '<P>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+
+    .method public hidebysig specialname 
+    	instance int32 get_P () cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldfld int32 C::'<P>k__BackingField'
+    	IL_0006: ret
+    }
+
+    .method public hidebysig specialname 
+    	instance void set_P (
+    		int32 'value'
+    	) cil managed 
+    {
+    	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    		01 00 00 00
+    	)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldarg.1
+    	IL_0002: stfld int32 C::'<P>k__BackingField'
+    	IL_0007: ret
+    }
+
+    .property instance int32 P()
+    {
+    	.get instance int32 C::get_P()
+    	.set instance void C::set_P(int32)
+    }
+}
+""";
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c[1] = 2;
+        System.Console.WriteLine(c[1]);
+    }
+}
+""";
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+#if !PREVIOUSVERSIONOFCOMPILER
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+#else
+        comp.VerifyDiagnostics(
+            // (6,9): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //         c[1] = 2;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1]").WithArguments("C").WithLocation(6, 9),
+            // (7,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //         System.Console.WriteLine(c[1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1]").WithArguments("C").WithLocation(7, 34)
+            );
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.Item[c, 1] = 2;
+        System.Console.WriteLine(E.Item[c, 1]);
+    }
+}
+""";
+
+        comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0117: 'E' does not contain a definition for 'Item'
+            //         E.Item[c, 1] = 2;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Item").WithArguments("E", "Item").WithLocation(6, 11),
+            // (7,36): error CS0117: 'E' does not contain a definition for 'Item'
+            //         System.Console.WriteLine(E.Item[c, 1]);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Item").WithArguments("E", "Item").WithLocation(7, 36)
+            );
+
+        var src4 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.set_Item(ref c, 1, 2);
+        System.Console.WriteLine(E.get_Item(ref c, 1));
+    }
+}
+""";
+
+        comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+#endif
+    }
+
+    [Fact]
+    public void InstanceEvent_Metadata_ConsumptionFromPreviousVersion_01()
+    {
+        // public implicit extension E for C
+        // {
+        //     public event System.Action E1
+        //     {
+        //         add => this.E += value;
+        //         remove => this.E -= value; 
+        //     }
+        // }
+        // 
+        // public class C
+        // {
+        //     public event System.Action E;
+        // 
+        //     public void Fire() => E();
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+	extends [mscorlib]System.ValueType
+{
+	.field private class C '<UnderlyingInstance>$'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+
+	.method public hidebysig specialname static 
+		void add_E1 (
+			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::add_E(class [mscorlib]System.Action)
+		IL_0007: ret
+	}
+
+	.method public hidebysig specialname static 
+		void remove_E1 (
+			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: callvirt instance void C::remove_E(class [mscorlib]System.Action)
+		IL_0007: ret
+	}
+
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ret
+	}
+
+	.event [mscorlib]System.Action E1
+	{
+		.addon void E::add_E1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), class [mscorlib]System.Action)
+		.removeon void E::remove_E1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), class [mscorlib]System.Action)
+	}
+}
+
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	.field private class [mscorlib]System.Action E
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+
+	.method public hidebysig specialname 
+		instance void add_E (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.maxstack 3
+		.locals init (
+			[0] class [mscorlib]System.Action,
+			[1] class [mscorlib]System.Action,
+			[2] class [mscorlib]System.Action
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C::E
+		IL_0006: stloc.0
+		IL_0007: ldloc.0
+		IL_0008: stloc.1
+		IL_0009: ldloc.1
+		IL_000a: ldarg.1
+		IL_000b: call class [mscorlib]System.Delegate [mscorlib]System.Delegate::Combine(class [mscorlib]System.Delegate, class [mscorlib]System.Delegate)
+		IL_0010: castclass [mscorlib]System.Action
+		IL_0015: stloc.2
+		IL_0016: ldarg.0
+		IL_0017: ldflda class [mscorlib]System.Action C::E
+		IL_001c: ldloc.2
+		IL_001d: ldloc.1
+		IL_001e: call !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action>(!!0&, !!0, !!0)
+		IL_0023: stloc.0
+		IL_0024: ldloc.0
+		IL_0025: ldloc.1
+		IL_0026: bne.un.s IL_0007
+		IL_0028: ret
+	}
+
+	.method public hidebysig specialname 
+		instance void remove_E (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.maxstack 3
+		.locals init (
+			[0] class [mscorlib]System.Action,
+			[1] class [mscorlib]System.Action,
+			[2] class [mscorlib]System.Action
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C::E
+		IL_0006: stloc.0
+		IL_0007: ldloc.0
+		IL_0008: stloc.1
+		IL_0009: ldloc.1
+		IL_000a: ldarg.1
+		IL_000b: call class [mscorlib]System.Delegate [mscorlib]System.Delegate::Remove(class [mscorlib]System.Delegate, class [mscorlib]System.Delegate)
+		IL_0010: castclass [mscorlib]System.Action
+		IL_0015: stloc.2
+		IL_0016: ldarg.0
+		IL_0017: ldflda class [mscorlib]System.Action C::E
+		IL_001c: ldloc.2
+		IL_001d: ldloc.1
+		IL_001e: call !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action>(!!0&, !!0, !!0)
+		IL_0023: stloc.0
+		IL_0024: ldloc.0
+		IL_0025: ldloc.1
+		IL_0026: bne.un.s IL_0007
+		IL_0028: ret
+	}
+
+	.method public hidebysig 
+		instance void Fire () cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C::E
+		IL_0006: callvirt instance void [mscorlib]System.Action::Invoke()
+		IL_000b: ret
+	}
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	}
+
+	.event [mscorlib]System.Action E
+	{
+		.addon instance void C::add_E(class [mscorlib]System.Action)
+		.removeon instance void C::remove_E(class [mscorlib]System.Action)
+	}
+}
+""";
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.E1 += M2();
+        c.Fire();
+        c.E1 += M3();
+        c.E1 -= M2();
+        c.Fire();
+    }
+
+    static System.Action M2() => (() => System.Console.Write(2));
+    static System.Action M3() => (() => System.Console.Write(3));
+}
+""";
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+
+#if !PREVIOUSVERSIONOFCOMPILER
+        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+#else
+        comp.VerifyDiagnostics(
+            // (6,11): error CS1061: 'C' does not contain a definition for 'E1' and no accessible extension method 'E1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.E1 += M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("C", "E1").WithLocation(6, 11),
+            // (8,11): error CS1061: 'C' does not contain a definition for 'E1' and no accessible extension method 'E1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.E1 += M3();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("C", "E1").WithLocation(8, 11),
+            // (9,11): error CS1061: 'C' does not contain a definition for 'E1' and no accessible extension method 'E1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.E1 -= M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("C", "E1").WithLocation(9, 11)
+            );
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.add_E1(c, M2());
+        c.Fire();
+        E.add_E1(c, M3());
+        E.remove_E1(c, M2());
+        c.Fire();
+    }
+
+    static System.Action M2() => (() => System.Console.Write(2));
+    static System.Action M3() => (() => System.Console.Write(3));
+}
+""";
+        comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+#endif
+    }
+
+    [Fact]
+    public void InstanceEvent_Metadata_ConsumptionFromPreviousVersion_02()
+    {
+        // public implicit extension E for C
+        // {
+        //     public event System.Action E1
+        //     {
+        //         add => this.E += value;
+        //         remove => this.E -= value; 
+        //     }
+        // }
+        // 
+        // public struct C
+        // {
+        //     public event System.Action E;
+        // 
+        //     public void Fire() => E();
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+	extends [mscorlib]System.ValueType
+{
+	.field private valuetype C '<UnderlyingInstance>$'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+
+	.method public hidebysig specialname static 
+		void add_E1 (
+			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call instance void C::add_E(class [mscorlib]System.Action)
+		IL_0007: ret
+	}
+
+	.method public hidebysig specialname static 
+		void remove_E1 (
+			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call instance void C::remove_E(class [mscorlib]System.Action)
+		IL_0007: ret
+	}
+
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			valuetype C ''
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ret
+	}
+
+	.event [mscorlib]System.Action E1
+	{
+		.addon void E::add_E1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, class [mscorlib]System.Action)
+		.removeon void E::remove_E1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, class [mscorlib]System.Action)
+	}
+}
+
+.class public sequential ansi sealed beforefieldinit C
+	extends [mscorlib]System.ValueType
+{
+	.field private class [mscorlib]System.Action E
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+
+	.method public hidebysig specialname 
+		instance void add_E (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.maxstack 3
+		.locals init (
+			[0] class [mscorlib]System.Action,
+			[1] class [mscorlib]System.Action,
+			[2] class [mscorlib]System.Action
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C::E
+		IL_0006: stloc.0
+		IL_0007: ldloc.0
+		IL_0008: stloc.1
+		IL_0009: ldloc.1
+		IL_000a: ldarg.1
+		IL_000b: call class [mscorlib]System.Delegate [mscorlib]System.Delegate::Combine(class [mscorlib]System.Delegate, class [mscorlib]System.Delegate)
+		IL_0010: castclass [mscorlib]System.Action
+		IL_0015: stloc.2
+		IL_0016: ldarg.0
+		IL_0017: ldflda class [mscorlib]System.Action C::E
+		IL_001c: ldloc.2
+		IL_001d: ldloc.1
+		IL_001e: call !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action>(!!0&, !!0, !!0)
+		IL_0023: stloc.0
+		IL_0024: ldloc.0
+		IL_0025: ldloc.1
+		IL_0026: bne.un.s IL_0007
+		IL_0028: ret
+	}
+
+	.method public hidebysig specialname 
+		instance void remove_E (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.maxstack 3
+		.locals init (
+			[0] class [mscorlib]System.Action,
+			[1] class [mscorlib]System.Action,
+			[2] class [mscorlib]System.Action
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C::E
+		IL_0006: stloc.0
+		IL_0007: ldloc.0
+		IL_0008: stloc.1
+		IL_0009: ldloc.1
+		IL_000a: ldarg.1
+		IL_000b: call class [mscorlib]System.Delegate [mscorlib]System.Delegate::Remove(class [mscorlib]System.Delegate, class [mscorlib]System.Delegate)
+		IL_0010: castclass [mscorlib]System.Action
+		IL_0015: stloc.2
+		IL_0016: ldarg.0
+		IL_0017: ldflda class [mscorlib]System.Action C::E
+		IL_001c: ldloc.2
+		IL_001d: ldloc.1
+		IL_001e: call !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action>(!!0&, !!0, !!0)
+		IL_0023: stloc.0
+		IL_0024: ldloc.0
+		IL_0025: ldloc.1
+		IL_0026: bne.un.s IL_0007
+		IL_0028: ret
+	}
+
+	.method public hidebysig 
+		instance void Fire () cil managed 
+	{
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C::E
+		IL_0006: callvirt instance void [mscorlib]System.Action::Invoke()
+		IL_000b: ret
+	}
+
+	.event [mscorlib]System.Action E
+	{
+		.addon instance void C::add_E(class [mscorlib]System.Action)
+		.removeon instance void C::remove_E(class [mscorlib]System.Action)
+	}
+}
+""";
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.E1 += M2();
+        c.Fire();
+        c.E1 += M3();
+        c.E1 -= M2();
+        c.Fire();
+    }
+
+    static System.Action M2() => (() => System.Console.Write(2));
+    static System.Action M3() => (() => System.Console.Write(3));
+}
+""";
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+#if !PREVIOUSVERSIONOFCOMPILER
+        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+#else
+        comp.VerifyDiagnostics(
+            // (6,11): error CS1061: 'C' does not contain a definition for 'E1' and no accessible extension method 'E1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.E1 += M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("C", "E1").WithLocation(6, 11),
+            // (8,11): error CS1061: 'C' does not contain a definition for 'E1' and no accessible extension method 'E1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.E1 += M3();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("C", "E1").WithLocation(8, 11),
+            // (9,11): error CS1061: 'C' does not contain a definition for 'E1' and no accessible extension method 'E1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.E1 -= M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("C", "E1").WithLocation(9, 11)
+            );
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        E.add_E1(ref c, M2());
+        c.Fire();
+        E.add_E1(ref c, M3());
+        E.remove_E1(ref c, M2());
+        c.Fire();
+    }
+
+    static System.Action M2() => (() => System.Console.Write(2));
+    static System.Action M3() => (() => System.Console.Write(3));
+}
+""";
+        comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+#endif
+    }
 }
