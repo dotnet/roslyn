@@ -551,41 +551,45 @@ internal sealed partial class ProjectSystemProject
                 return;
             }
 
-            var documentFileNamesAdded = ImmutableArray.CreateBuilder<string>();
-            var documentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
-            var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
-            var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
+            // The transformation function will set these variables, but we need to use them after the transformation is applied
+            // so we must instantiate them here.
+            ImmutableArray<string> documentFileNamesAdded = [];
+            ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen = [];
+            ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> additionalDocumentsToOpen = [];
+            ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> analyzerConfigDocumentsToOpen = [];
 
             var hasAnalyzerChanges = _analyzersAddedInBatch.Count > 0 || _analyzersRemovedInBatch.Count > 0;
 
             await _projectSystemProjectFactory.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, (solutionChanges, projectUpdateState) =>
             {
-                _sourceFiles.UpdateSolutionForBatch(
+                // Changes made inside this transformation must be idemopotent in case it is attempted multiple times.
+
+                var documentFileNamesAddedBuilder = ImmutableArray.CreateBuilder<string>();
+                documentsToOpen = _sourceFiles.UpdateSolutionForBatch(
                     solutionChanges,
-                    documentFileNamesAdded,
-                    documentsToOpen,
+                    documentFileNamesAddedBuilder,
                     static (s, documents) => s.AddDocuments(documents),
                     WorkspaceChangeKind.DocumentAdded,
                     static (s, ids) => s.RemoveDocuments(ids),
                     WorkspaceChangeKind.DocumentRemoved);
 
-                _additionalFiles.UpdateSolutionForBatch(
+                additionalDocumentsToOpen = _additionalFiles.UpdateSolutionForBatch(
                     solutionChanges,
-                    documentFileNamesAdded,
-                    additionalDocumentsToOpen,
+                    documentFileNamesAddedBuilder,
                     static (s, documents) => s.AddAdditionalDocuments(documents),
                     WorkspaceChangeKind.AdditionalDocumentAdded,
                     static (s, ids) => s.RemoveAdditionalDocuments(ids),
                     WorkspaceChangeKind.AdditionalDocumentRemoved);
 
-                _analyzerConfigFiles.UpdateSolutionForBatch(
+                analyzerConfigDocumentsToOpen = _analyzerConfigFiles.UpdateSolutionForBatch(
                     solutionChanges,
-                    documentFileNamesAdded,
-                    analyzerConfigDocumentsToOpen,
+                    documentFileNamesAddedBuilder,
                     static (s, documents) => s.AddAnalyzerConfigDocuments(documents),
                     WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
                     static (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                     WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
+
+                documentFileNamesAdded = documentFileNamesAddedBuilder.ToImmutable();
 
                 // Metadata reference removing. Do this before adding in case this removes a project reference that
                 // we are also going to add in the same batch. This could happen if case is changing, or we're targeting
@@ -677,7 +681,7 @@ internal sealed partial class ProjectSystemProject
             },
             onAfterUpdateAlways: (projectUpdateState) =>
             {
-                // It is very important that these are cleared in the onAfterUpdate action passed to ApplyBatchChangeToWorkspaceMaybeAsync
+                // It is very important that these are cleared in the onAfterUpdateAlways action passed to ApplyBatchChangeToWorkspaceMaybeAsync
                 // This is because the transformation may be run multiple times (if the workspace current solution is changed underneath us),
                 // whereas onAfterUpdate runs a single time once the transformation has been applied.
                 _sourceFiles.ClearBatchState();
@@ -714,8 +718,8 @@ internal sealed partial class ProjectSystemProject
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
 
             // Give the host the opportunity to check if those files are open
-            if (documentFileNamesAdded.Count > 0)
-                await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded.ToImmutable()).ConfigureAwait(false);
+            if (documentFileNamesAdded.Count() > 0)
+                await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded).ConfigureAwait(false);
 
             // If we added or removed analyzers, then re-run all generators to bring them up to date.
             if (hasAnalyzerChanges)

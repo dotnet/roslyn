@@ -29,7 +29,7 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
     /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
     /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
     /// </summary>
-    private readonly Dictionary<PortableExecutableReference, (IWatchedFile Token, int Count)> _metadataReferenceFileWatchingTokens = [];
+    private readonly Dictionary<PortableExecutableReference, (IWatchedFile Token, int RefCount)> _metadataReferenceFileWatchingTokens = [];
 
     /// <summary>
     /// Stores the caller for a previous disposal of a reference produced by this class, to track down a double-dispose issue.
@@ -105,12 +105,12 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
     {
         lock (_gate)
         {
-            var (token, count) = _metadataReferenceFileWatchingTokens.GetOrAdd(reference, (_) =>
+            var (token, count) = _metadataReferenceFileWatchingTokens.GetOrAdd(reference, _ =>
             {
                 var fileToken = _fileReferenceChangeContext.Value.EnqueueWatchingFile(fullFilePath);
-                return (fileToken, 0);
+                return (fileToken, RefCount: 0);
             });
-            _metadataReferenceFileWatchingTokens[reference] = (token, count + 1);
+            _metadataReferenceFileWatchingTokens[reference] = (token, RefCount: count + 1);
         }
     }
 
@@ -131,7 +131,7 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
                 throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
             }
 
-            var newRefCount = watchedFileReference.Count - 1;
+            var newRefCount = watchedFileReference.RefCount - 1;
             Contract.ThrowIfFalse(newRefCount >= 0, "Ref count cannot be negative");
             if (newRefCount == 0)
             {

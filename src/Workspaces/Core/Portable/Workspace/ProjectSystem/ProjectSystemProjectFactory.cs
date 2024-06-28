@@ -262,6 +262,7 @@ internal sealed partial class ProjectSystemProjectFactory
         return ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, mutation, onAfterUpdateAlways);
     }
 
+    /// <inheritdoc cref="ApplyBatchChangeToWorkspaceAsync(Func{SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState}, Action{ProjectUpdateState}?)"/>
     public async Task ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdateAlways)
     {
         using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())

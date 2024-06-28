@@ -534,24 +534,24 @@ internal sealed partial class ProjectSystemProject
         /// While it is OK for this method to *read* local state, it cannot *modify* it as this may
         /// be called multiple times (when the workspace update fails due to interceding updates).
         /// </summary>
-        internal void UpdateSolutionForBatch(
+        internal ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> UpdateSolutionForBatch(
             SolutionChangeAccumulator solutionChanges,
             ImmutableArray<string>.Builder documentFileNamesAdded,
-            List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
             Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
             WorkspaceChangeKind addDocumentChangeKind,
             Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
             WorkspaceChangeKind removeDocumentChangeKind)
         {
-            UpdateSolutionForBatch(solutionChanges, documentFileNamesAdded, documentsToOpen, addDocuments,
+            // Intentionally making copies to pass into the static update function.
+            // State is cleared at the end once the solution changes are actually applied via ClearBatchState.
+            return UpdateSolutionForBatch(solutionChanges, documentFileNamesAdded, addDocuments,
                 addDocumentChangeKind, removeDocuments, removeDocumentChangeKind, _project.Id, _documentsAddedInBatch.ToImmutableArray(),
                 _documentsRemovedInBatch.ToImmutableArray(), _orderedDocumentsInBatch,
-                (documentId) => _sourceTextContainersToDocumentIds.GetKeyOrDefault(documentId));
+                documentId => _sourceTextContainersToDocumentIds.GetKeyOrDefault(documentId));
 
-            static void UpdateSolutionForBatch(
+            static ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> UpdateSolutionForBatch(
                 SolutionChangeAccumulator solutionChanges,
                 ImmutableArray<string>.Builder documentFileNamesAdded,
-                List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 WorkspaceChangeKind addDocumentChangeKind,
                 Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
@@ -562,6 +562,8 @@ internal sealed partial class ProjectSystemProject
                 ImmutableList<DocumentId>? orderedDocumentsInBatch,
                 Func<DocumentId, SourceTextContainer?> getContainer)
             {
+                using var _ = ArrayBuilder<(DocumentId documentId, SourceTextContainer textContainer)>.GetInstance(out var documentsToOpen);
+
                 // Document adding...
                 solutionChanges.UpdateSolutionForDocumentAction(
                     newSolution: addDocuments(solutionChanges.Solution, documentsAddedInBatch),
@@ -581,7 +583,7 @@ internal sealed partial class ProjectSystemProject
                 }
 
                 // Document removing...
-                solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, [.. documentsRemovedInBatch]),
+                solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, documentsRemovedInBatch),
                     removeDocumentChangeKind,
                     documentsRemovedInBatch);
 
@@ -592,6 +594,8 @@ internal sealed partial class ProjectSystemProject
                         projectId,
                         solutionChanges.Solution.WithProjectDocumentsOrder(projectId, orderedDocumentsInBatch));
                 }
+
+                return documentsToOpen.ToImmutable();
             }
         }
 
