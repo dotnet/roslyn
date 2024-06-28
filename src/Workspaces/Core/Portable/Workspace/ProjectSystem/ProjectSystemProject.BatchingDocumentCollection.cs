@@ -429,7 +429,7 @@ internal sealed partial class ProjectSystemProject
                         }
                     }
                     return projectUpdateState;
-                }, onAfterUpdate: null).ConfigureAwait(false);
+                }, onAfterUpdateAlways: null).ConfigureAwait(false);
 
                 documentsToChange.Free();
             }

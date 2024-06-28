@@ -229,8 +229,7 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         using (_gate.DisposableWait())
         {
-            var projectUpdateState = _projectUpdateState;
-            projectUpdateState = action(Workspace, projectUpdateState);
+            var projectUpdateState = action(Workspace, _projectUpdateState);
             ApplyProjectUpdateState(projectUpdateState);
         }
     }
@@ -250,34 +249,37 @@ internal sealed partial class ProjectSystemProjectFactory
     }
 
     /// <inheritdoc cref="ApplyBatchChangeToWorkspaceAsync(Func{SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState}, Action{ProjectUpdateState}?)"/>
-    public void ApplyBatchChangeToWorkspace(Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdate)
+    public void ApplyBatchChangeToWorkspace(Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdateAlways)
     {
-        ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, mutation, onAfterUpdate).VerifyCompleted();
+        ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, mutation, onAfterUpdateAlways).VerifyCompleted();
     }
 
     /// <inheritdoc cref="ApplyBatchChangeToWorkspaceAsync(Func{SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState}, Action{ProjectUpdateState}?)"/>
-    public Task ApplyBatchChangeToWorkspaceAsync(Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdate)
+    public Task ApplyBatchChangeToWorkspaceAsync(Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdateAlways)
     {
-        return ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, mutation, onAfterUpdate);
+        return ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, mutation, onAfterUpdateAlways);
     }
 
-    public async Task ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdate)
+    public async Task ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdateAlways)
     {
         using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
         {
-            await ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(useAsync, mutation, onAfterUpdate).ConfigureAwait(false);
+            await ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(useAsync, mutation, onAfterUpdateAlways).ConfigureAwait(false);
         }
     }
 
     /// <summary>
     /// Applies a change to the workspace that can do any number of project changes.
     /// The mutation action must be safe to attempt multiple times, in case there are interceding solution changes.
-    /// If outside changes need to run under the global lock and run only once, they should use the <paramref name="onAfterUpdate"/> action.
+    /// If outside changes need to run under the global lock and run only once, they should use the <paramref name="onAfterUpdateAlways"/> action.
+    /// <paramref name="onAfterUpdateAlways"/> will always run even if the transformation applied no changes.
     /// </summary>
     /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
     /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-    public async Task ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(bool useAsync, Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdate)
+    public async Task ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(bool useAsync, Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdateAlways)
     {
+        Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
         // We need the data from the accumulator across the lambda callbacks to SetCurrentSolutionAsync, so declare
         // it here. It will be assigned in `transformation:` below (which may happen multiple times if the
         // transformation needs to rerun).  Once the transformation succeeds and is applied, the
@@ -292,9 +294,8 @@ internal sealed partial class ProjectSystemProjectFactory
             {
                 solutionChanges = new SolutionChangeAccumulator(oldSolution);
 
-                // Reset the project update state in case this is a retry (we don't want to save the results of the last attempt).
-                projectUpdateState = _projectUpdateState;
-                projectUpdateState = mutation(solutionChanges, projectUpdateState);
+                // Use the _projectUpdateState here to ensure retries run with the original state.
+                projectUpdateState = mutation(solutionChanges, _projectUpdateState);
 
                 // Note: If the accumulator showed no changes it will return oldSolution.  This ensures that
                 // SetCurrentSolutionAsync bails out immediately and no further work is done.
@@ -308,25 +309,25 @@ internal sealed partial class ProjectSystemProjectFactory
                 foreach (var documentId in solutionChanges.DocumentIdsRemoved)
                     Workspace.ClearDocumentData(documentId);
             },
-            onAfterUpdate: (_, _) =>
-            {
-                // Now that the project update has actually applied, we can apply the results of it.
-                // For example saving the state and updating file watchers for added/removed references.
-                ApplyProjectUpdateState(projectUpdateState);
-                if (onAfterUpdate != null)
-                {
-                    onAfterUpdate(projectUpdateState);
-                }
-            },
+            onAfterUpdate: null,
             CancellationToken.None).ConfigureAwait(false);
+
+        // Now that the project update has actually applied, we can apply the results of it.
+        // For example saving the state and updating file watchers for added/removed references.
+        //
+        // Importantly this is not done inside the SetCurrentSolution onAfterUpdate as that
+        // will only run *if* the transformation resulted in a changed solution, but this
+        // must run regardless (it is possible we update maps, but did not end up actually changing the sln object) in the transformation.
+        ApplyProjectUpdateState(projectUpdateState);
+        onAfterUpdateAlways?.Invoke(projectUpdateState);
     }
 
     private void ApplyBatchChangeToWorkspace_NoLock(
-        Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdate)
+        Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState> mutation, Action<ProjectUpdateState>? onAfterUpdateAlways)
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(useAsync: false, mutation, onAfterUpdate).VerifyCompleted();
+        ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(useAsync: false, mutation, onAfterUpdateAlways).VerifyCompleted();
     }
 
     private static ProjectUpdateState GetReferenceInformation(ProjectId projectId, ProjectUpdateState projectUpdateState, out ProjectReferenceInformation projectReference)
@@ -376,7 +377,7 @@ internal sealed partial class ProjectSystemProjectFactory
             }
 
             return projectUpdateState;
-        }, onAfterUpdate: (projectUpdateState) =>
+        }, onAfterUpdateAlways: (projectUpdateState) =>
         {
             ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
             ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
@@ -618,7 +619,7 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
         {
-            projectUpdateState = GetReferenceInformation(projectId, projectUpdateState, out var referenceInfo);
+            projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo);
 
             // Update ConvertedProjectReferences in place to avoid duplicate list allocations
             for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count(); i++)
@@ -646,7 +647,7 @@ internal sealed partial class ProjectSystemProjectFactory
                     {
                         ConvertedProjectReferences = referenceInfo.ConvertedProjectReferences.RemoveAt(i)
                     };
-                    projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectId, referenceInfo);
+                    projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectIdToRetarget, referenceInfo);
 
                     // We have converted one, but you could have more than one reference with different aliases
                     // that we need to convert, so we'll keep going. Make sure to decrement the index so we don't
@@ -828,7 +829,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 }
             }
             return projectUpdateState;
-        }, onAfterUpdate: null).ConfigureAwait(false);
+        }, onAfterUpdateAlways: null).ConfigureAwait(false);
     }
 
     internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)

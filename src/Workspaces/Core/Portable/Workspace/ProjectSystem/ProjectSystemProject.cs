@@ -291,7 +291,7 @@ internal sealed partial class ProjectSystemProject
             {
                 _projectSystemProjectFactory.ApplyBatchChangeToWorkspace(
                     (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue),
-                    onAfterUpdate: onAfterUpdate);
+                    onAfterUpdateAlways: onAfterUpdate);
             }
         }
     }
@@ -675,7 +675,7 @@ internal sealed partial class ProjectSystemProject
 
                 return projectUpdateState;
             },
-            onAfterUpdate: (projectUpdateState) =>
+            onAfterUpdateAlways: (projectUpdateState) =>
             {
                 // It is very important that these are cleared in the onAfterUpdate action passed to ApplyBatchChangeToWorkspaceMaybeAsync
                 // This is because the transformation may be run multiple times (if the workspace current solution is changed underneath us),
