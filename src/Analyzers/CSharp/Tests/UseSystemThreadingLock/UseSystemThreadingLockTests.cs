@@ -1057,6 +1057,118 @@ public sealed class UseSystemThreadingLockTests
     }
 
     [Fact]
+    public async Task TestWithObjectCreation_InInitializer1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|];
+
+                    public C()
+                    {
+                    }
+
+                    void M()
+                    {
+                        C c = new()
+                        {
+                            _gate = new(),
+                        };
+
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock [|_gate|];
+                
+                    public C()
+                    {
+                    }
+                
+                    void M()
+                    {
+                        C c = new()
+                        {
+                            _gate = new(),
+                        };
+                
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithObjectCreation_InInitializer2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|];
+
+                    public C()
+                    {
+                    }
+
+                    void M()
+                    {
+                        C c = new()
+                        {
+                            _gate = new object(),
+                        };
+
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock [|_gate|];
+                
+                    public C()
+                    {
+                    }
+                
+                    void M()
+                    {
+                        C c = new()
+                        {
+                            _gate = new Lock(),
+                        };
+                
+                        lock (c._gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockType,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithNameOf()
     {
         await new VerifyCS.Test
