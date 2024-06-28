@@ -30,7 +30,9 @@ internal sealed partial class ProjectSystemProjectFactory
     // serialization lock and then allow us to update our own state under that lock.
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-    private ProjectUpdateState _projectUpdateState = new(ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty, ImmutableDictionary<ProjectId, ProjectReferenceInformation>.Empty, [], []);
+    private ProjectUpdateState _projectUpdateState = new(
+        ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
+        ImmutableDictionary<ProjectId, ProjectReferenceInformation>.Empty, [], []);
 
     public Workspace Workspace { get; }
     public IAsynchronousOperationListener WorkspaceListener { get; }
