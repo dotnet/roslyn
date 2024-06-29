@@ -19,17 +19,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 [DataContract]
 internal sealed record class IdeAnalyzerOptions
 {
-    private static readonly CodeStyleOption2<bool> s_defaultPreferSystemHashCode =
-        new(value: true, notification: NotificationOption2.Suggestion);
-
     public static readonly IdeAnalyzerOptions CommonDefault = new();
 
     [DataMember] public bool CrashOnAnalyzerException { get; init; } = false;
-    [DataMember] public bool ReportInvalidPlaceholdersInStringDotFormatCalls { get; init; } = true;
-    [DataMember] public bool ReportInvalidRegexPatterns { get; init; } = true;
-    [DataMember] public bool ReportInvalidJsonPatterns { get; init; } = true;
-    [DataMember] public bool DetectAndOfferEditorFeaturesForProbableJsonStrings { get; init; } = true;
-    [DataMember] public CodeStyleOption2<bool> PreferSystemHashCode { get; init; } = s_defaultPreferSystemHashCode;
 
     /// <summary>
     /// Default values for <see cref="CleanCodeGenerationOptions"/>, or null if not available (the project language does not support these options).
