@@ -16,6 +16,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 #if !CODE_STYLE
 using Roslyn.Utilities;
@@ -60,6 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;
+
+            [StringSyntax("C#-Test")] public new string TestCode { set => base.TestCode = value; }
+            [StringSyntax("C#-Test")] public new string FixedCode { set => base.FixedCode = value; }
 
 #if !CODE_STYLE
             internal CodeActionOptionsProvider CodeActionOptions
