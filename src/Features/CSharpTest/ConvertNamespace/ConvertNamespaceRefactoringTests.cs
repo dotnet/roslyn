@@ -21,16 +21,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<ConvertNamespaceCodeRefactoringPr
 [UseExportProvider]
 public sealed class ConvertNamespaceRefactoringTests
 {
-    public static IEnumerable<object[]> EndOfDocumentSequences
-    {
-        get
-        {
-            yield return new object[] { "" };
-            yield return new object[] { """
-
-                """ };
-        }
-    }
+    public static IEnumerable<object[]> EndOfDocumentSequences => [[""], ["\r\n"]];
 
     #region Convert To File Scoped
 
