@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,7 +23,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
 public partial class UseCollectionInitializerTests_CollectionExpression
 {
-    private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+    private static async Task TestInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
         await new VerifyCS.Test
         {
@@ -34,7 +35,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
     }
 
-    private static Task TestMissingInRegularAndScriptAsync(string testCode)
+    private static Task TestMissingInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode)
         => TestInRegularAndScriptAsync(testCode, testCode);
 
     [Fact]
@@ -2937,7 +2938,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [];
+                    List<int> c = 
+                    [];
                 }
             }
             """);
@@ -3027,6 +3029,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c =
+
                         [];
                 }
             }
@@ -3059,6 +3062,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c =
+
                         [];
                 }
             }
@@ -3089,7 +3093,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [];
+                    List<int> c = 
+                        [];
                 }
             }
             """);

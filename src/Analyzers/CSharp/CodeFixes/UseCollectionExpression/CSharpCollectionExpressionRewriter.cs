@@ -190,17 +190,19 @@ internal static class CSharpCollectionExpressionRewriter
                 //    [1, 2, 3]
                 // ]
                 var shouldIncludeAdditionalLeadingTrivia = initializer is not null &&
-                   initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment() || x.IsEndOfLine());
+                    initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment() || x.IsEndOfLine());
 
                 if (shouldIncludeAdditionalLeadingTrivia)
                 {
                     var additionalLeadingTrivia = initializer!.OpenBraceToken.GetPreviousToken().TrailingTrivia
                         .SkipInitialWhitespace()
-                        .Concat(initializer.OpenBraceToken.LeadingTrivia)
-                        .Concat(expressionToReplace
-                            .GetLeadingTrivia()
-                            .SkipInitialWhitespace());
+                        .Concat(initializer.OpenBraceToken.LeadingTrivia);
                     collectionExpression = collectionExpression.WithLeadingTrivia(additionalLeadingTrivia);
+                }
+                else
+                {
+                    // otherwise, we want to unconditionally preserve any and all trivia in the original expression
+                    collectionExpression = collectionExpression.WithTriviaFrom(expressionToReplace);
                 }
 
                 return collectionExpression;
