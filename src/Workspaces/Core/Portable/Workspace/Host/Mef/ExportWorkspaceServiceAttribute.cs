@@ -31,16 +31,21 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public string Layer { get; } = layer ?? throw new ArgumentNullException(nameof(layer));
 
         /// <summary>
-        /// <see cref="WorkspaceKind"/>s that the service is specified for.
+        /// <see cref="WorkspaceKinds"/> that the service is specified for.
         /// If non-empty the service is only exported for the listed workspace kinds and <see cref="Layer"/> is not applied,
         /// unless <see cref="Layer"/> is <see cref="ServiceLayer.Test"/> in which case the export overrides all other exports.
         /// </summary>
-        internal IReadOnlyList<string> WorkspaceKinds { get; } = [];
+        internal WorkspaceKinds WorkspaceKinds { get; } = WorkspaceKinds.Unknown;
 
-        internal ExportWorkspaceServiceAttribute(Type serviceType, string[] workspaceKinds)
+        internal ExportWorkspaceServiceAttribute(Type serviceType, WorkspaceKinds workspaceKinds)
             : this(serviceType)
         {
             WorkspaceKinds = workspaceKinds;
         }
+
+        //internal ExportWorkspaceServiceAttribute(Type serviceType, WorkspaceKinds workspaceKinds)
+        //    : this(serviceType, workspaceKinds.ToArray())
+        //{
+        //}
     }
 }

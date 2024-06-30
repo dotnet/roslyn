@@ -11,12 +11,25 @@ using Xunit;
 using System;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
+using System.Reflection;
+using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider, Trait(Traits.Feature, Traits.Features.Workspace)]
     public class WorkspaceTests
     {
+        [Fact]
+        public void WorkspaceKindsFields()
+        {
+            // Field of WorkspaceKind should match values of WorkspaceKinds that have a single bit set.
+
+            AssertEx.SetEqual(
+                ((WorkspaceKinds[])Enum.GetValues(typeof(WorkspaceKinds))).Where(k => BitArithmeticUtilities.CountBits((int)k) == 1).Select(k => k.ToString()),
+                typeof(WorkspaceKind).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static).Select(f => f.Name));
+        }
+
         [Fact]
         public void TestChangeDocumentContent_TryApplyChanges_Throws()
         {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal sealed class InteractiveSupportsFeatureService
     {
-        [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), [WorkspaceKind.Interactive]), Shared]
+        [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), WorkspaceKinds.Interactive), Shared]
         internal class InteractiveTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
             [ImportingConstructor]
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 => true;
         }
 
-        [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), [WorkspaceKind.Interactive]), Shared]
+        [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), WorkspaceKinds.Interactive), Shared]
         internal class InteractiveDocumentSupportsFeatureService : IDocumentSupportsFeatureService
         {
             [ImportingConstructor]

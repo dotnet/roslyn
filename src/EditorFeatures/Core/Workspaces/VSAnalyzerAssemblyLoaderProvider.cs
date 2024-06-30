@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Workspaces;
 
-[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
+[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), WorkspaceKinds.Host), Shared]
 internal class VSAnalyzerAssemblyLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
 {
     [ImportingConstructor]
