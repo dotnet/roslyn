@@ -37,7 +37,6 @@ public sealed class GenerateFilteredReferenceAssembliesTaskTests : CSharpTestBas
     [Theory]
     [InlineData("+")]
     [InlineData("-")]
-    [InlineData("-#")]
     public void ParseApiPatterns_Error_ExpectedMetadataName(string value)
     {
         var errors = new List<(string message, int line)>();
@@ -67,8 +66,8 @@ public sealed class GenerateFilteredReferenceAssembliesTaskTests : CSharpTestBas
     [InlineData("%", true, SymbolKindFlags.NamedType, @"%")]
     [InlineData("<", true, SymbolKindFlags.NamedType, @"<")]
     [InlineData("a b c", true, SymbolKindFlags.NamedType, @"a\ b\ c")]
-    [InlineData("a b c#", true, SymbolKindFlags.NamedType, @"a\ b\ c")]
-    [InlineData(" a b #c", true, SymbolKindFlags.NamedType, @"a\ b")]
+    [InlineData("a b c#", true, SymbolKindFlags.NamedType, @"a\ b\ c\#")]
+    [InlineData(" a b #c", true, SymbolKindFlags.NamedType, @"a\ b\ \#c")]
     [InlineData(" + System.IO", true, SymbolKindFlags.NamedType, @"System\.IO")]
     [InlineData("+System.IO.*", true, SymbolKindFlags.NamedType, @"System\.IO\..*")]
     [InlineData(" -System.IO.**", false, SymbolKindFlags.NamedType, @"System\.IO\..*.*")]
@@ -76,7 +75,7 @@ public sealed class GenerateFilteredReferenceAssembliesTaskTests : CSharpTestBas
     [InlineData("𫚭鿯龻蝌灋齅ㄥ﹫䶱ན།ىي꓂", true, SymbolKindFlags.NamedType, @"𫚭鿯龻蝌灋齅ㄥ﹫䶱ན།ىي꓂")] // GB18030
     [InlineData("M:*", true, SymbolKindFlags.Method, @".*")]
     [InlineData("M:?", true, SymbolKindFlags.Method, @"\?")]
-    [InlineData("M: a b #c", true, SymbolKindFlags.Method, @"a\ b")]
+    [InlineData("M:a.b.#ctor", true, SymbolKindFlags.Method, @"a\.b\.\#ctor")]
     [InlineData("+M: System.IO", true, SymbolKindFlags.Method, @"System\.IO")]
     [InlineData("+M: System.IO.Path.F(*)", true, SymbolKindFlags.Method, @"System\.IO\.Path\.F\(.*\)")]
     internal void ParseApiPatterns(string value, bool isIncluded, SymbolKindFlags symbolKinds, string pattern)
