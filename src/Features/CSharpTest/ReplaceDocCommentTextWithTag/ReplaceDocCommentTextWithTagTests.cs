@@ -387,7 +387,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                /// <see langword="value"/> has type TKey so we don't box primitives.
                 void WriteLine<TKey>(TKey value) { }
             }
             """);
@@ -408,7 +408,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                /// <see langword="value"/> has type TKey so we don't box primitives.
                 void WriteLine<TKey>(TKey value){}
             }
             """);
@@ -429,7 +429,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                /// <see langword="value"/> has type TKey so we don't box primitives.
                 object WriteLine<TKey>(TKey value) => null;
             }
             """);
@@ -450,7 +450,7 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """
             class C
             {
-                /// <paramref name="value"/> has type TKey so we don't box primitives.
+                /// <see langword="value"/> has type TKey so we don't box primitives.
                 void WriteLine<TKey>(TKey value);
             }
             """);
