@@ -42,6 +42,13 @@ namespace Microsoft.CodeAnalysis
             _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero);
         }
 
+        /// <summary>
+        /// Run generators and produce an updated <see cref="GeneratorDriver"/> containing the results.
+        /// </summary>
+        /// <param name="compilation">The compilation to run generators against</param>
+        /// <returns>An updated driver that contains the results of the generators running.</returns>
+        public GeneratorDriver RunGenerators(Compilation compilation) => RunGenerators(compilation, generatorFilter: null, cancellationToken: default);
+
         // 4.11 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken) => RunGenerators(compilation, generatorFilter: null, cancellationToken);
 
@@ -49,10 +56,10 @@ namespace Microsoft.CodeAnalysis
         /// Run generators and produce an updated <see cref="GeneratorDriver"/> containing the results.
         /// </summary>
         /// <param name="compilation">The compilation to run generators against</param>
-        /// <param name="generatorFilter">An optional filter that specifies which generators to run. If <c>null</c> all generators will run.</param>
+        /// <param name="generatorFilter">A filter that specifies which generators to run. If <c>null</c> all generators will run.</param>
         /// <param name="cancellationToken">Used to cancel an in progress operation.</param>
         /// <returns>An updated driver that contains the results of the generators running.</returns>
-        public GeneratorDriver RunGenerators(Compilation compilation, Func<GeneratorFilterContext, bool>? generatorFilter = null, CancellationToken cancellationToken = default)
+        public GeneratorDriver RunGenerators(Compilation compilation, Func<GeneratorFilterContext, bool>? generatorFilter, CancellationToken cancellationToken = default)
         {
             var state = RunGeneratorsCore(compilation, diagnosticsBag: null, generatorFilter, cancellationToken);
             return FromState(state);
