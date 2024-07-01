@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 #if !CODE_STYLE
 using System.Collections.Immutable;
@@ -19,6 +20,7 @@ using Xunit;
 #if !NETCOREAPP
 using System;
 using Roslyn.Utilities;
+using System.Text;
 #endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
@@ -64,9 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public void Add(OptionsCollection? options)
             => AddRange(options);
 
-        public void AddRange(OptionsCollection? options)
+        public void AddRange(IEnumerable<KeyValuePair<OptionKey2, object?>>? options)
         {
-            if (options is null)
+            if (options == null)
                 return;
 
             foreach (var (key, value) in options)
@@ -95,9 +97,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             Assert.All(this, o => Assert.True(o.Key.Option.Definition.IsEditorConfigOption));
 
-            return StructuredAnalyzerConfigOptions.Create(
-               new DictionaryAnalyzerConfigOptions(
-                    this.Select(static o => new KeyValuePair<string, string>(o.Key.Option.Definition.ConfigName, o.Key.Option.Definition.Serializer.Serialize(o.Value))).ToImmutableDictionary()));
+            var builder = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
+
+            foreach (var (key, value) in this)
+            {
+                if (value is NamingStylePreferences namingPreferences)
+                {
+                    NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
+                        namingPreferences.SymbolSpecifications,
+                        namingPreferences.NamingStyles,
+                        namingPreferences.NamingRules,
+                        LanguageName,
+                        entryWriter: builder.Add,
+                        triviaWriter: null);
+                }
+                else
+                {
+                    builder.Add(key.Option.Definition.ConfigName, key.Option.Definition.Serializer.Serialize(value));
+                }
+            }
+
+            return StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
         }
 #endif
 
