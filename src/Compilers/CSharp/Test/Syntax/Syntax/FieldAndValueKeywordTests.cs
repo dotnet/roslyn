@@ -391,29 +391,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class C
                 {
                     Func<object> field;
-                    object P1 { get { return field(); } }
-                    object P2 { get { return @field(); } }
+                    Func<object> P1 { get { _ = field(); return null; } }
+                    Func<object> P2 { get { _ = @field(); return null; } }
+                    Func<object> P3 { set { _ = value(); } }
+                    Func<object> P4 { set { _ = @value(); } }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
-            {
-                // PROTOTYPE: This should bind successfully. Also test field[0].
-                comp.VerifyEmitDiagnostics(
-                    // (6,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { return field(); } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 30),
-                    // (6,30): error CS0149: Method name expected
-                    //     object P1 { get { return field(); } }
-                    Diagnostic(ErrorCode.ERR_MethodNameExpected, "field").WithLocation(6, 30));
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (6,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object P1 { get { return field(); } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 30));
-            }
+            comp.VerifyEmitDiagnostics(
+                // (6,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     Func<object> P1 { get { _ = field(); return null; } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 33));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IdentifierToken_Index(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = """
+                #pragma warning disable 649
+                class C
+                {
+                    object[] field;
+                    object[] P1 { get { _ = field[0]; return null; } }
+                    object[] P2 { get { _ = @field[0]; return null; } }
+                    object[] P3 { set { _ = value[0]; } }
+                    object[] P4 { set { _ = @value[0]; } }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (5,29): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object[] P1 { get { _ = field[0]; return null; } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 29));
         }
 
         [Theory]

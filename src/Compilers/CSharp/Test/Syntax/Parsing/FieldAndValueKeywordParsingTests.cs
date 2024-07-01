@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return escapeIdentifier ? "@" + identifier : identifier;
         }
 
-        // PROTOTYPE: Search for all uses of LanguageParser.IsTrueIdentifier(). Most (all?) of those should also allow field or value because those were identifiers previously.
-
         [Theory]
         [CombinatorialData]
         public void Context_Property_Initializer(
