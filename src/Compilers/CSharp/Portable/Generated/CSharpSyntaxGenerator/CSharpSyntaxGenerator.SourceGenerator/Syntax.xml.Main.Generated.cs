@@ -126,6 +126,12 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
     public virtual TResult? VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a FieldExpressionSyntax node.</summary>
+    public virtual TResult? VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ValueExpressionSyntax node.</summary>
+    public virtual TResult? VisitValueExpression(ValueExpressionSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
     public virtual TResult? VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -858,6 +864,12 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
     public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a FieldExpressionSyntax node.</summary>
+    public virtual void VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ValueExpressionSyntax node.</summary>
+    public virtual void VisitValueExpression(ValueExpressionSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
     public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1588,6 +1600,12 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
         => node.Update(VisitToken(node.Token));
 
     public override SyntaxNode? VisitLiteralExpression(LiteralExpressionSyntax node)
+        => node.Update(VisitToken(node.Token));
+
+    public override SyntaxNode? VisitFieldExpression(FieldExpressionSyntax node)
+        => node.Update(VisitToken(node.Token));
+
+    public override SyntaxNode? VisitValueExpression(ValueExpressionSyntax node)
         => node.Update(VisitToken(node.Token));
 
     public override SyntaxNode? VisitMakeRefExpression(MakeRefExpressionSyntax node)
@@ -2935,6 +2953,28 @@ public static partial class SyntaxFactory
         }
         return (LiteralExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.LiteralExpression(kind, (Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
     }
+
+    /// <summary>Creates a new FieldExpressionSyntax instance.</summary>
+    public static FieldExpressionSyntax FieldExpression(SyntaxToken token)
+    {
+        if (token.Kind() != SyntaxKind.FieldKeyword) throw new ArgumentException(nameof(token));
+        return (FieldExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.FieldExpression((Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new FieldExpressionSyntax instance.</summary>
+    public static FieldExpressionSyntax FieldExpression()
+        => SyntaxFactory.FieldExpression(SyntaxFactory.Token(SyntaxKind.FieldKeyword));
+
+    /// <summary>Creates a new ValueExpressionSyntax instance.</summary>
+    public static ValueExpressionSyntax ValueExpression(SyntaxToken token)
+    {
+        if (token.Kind() != SyntaxKind.ValueKeyword) throw new ArgumentException(nameof(token));
+        return (ValueExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ValueExpression((Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new ValueExpressionSyntax instance.</summary>
+    public static ValueExpressionSyntax ValueExpression()
+        => SyntaxFactory.ValueExpression(SyntaxFactory.Token(SyntaxKind.ValueKeyword));
 
     /// <summary>Creates a new MakeRefExpressionSyntax instance.</summary>
     public static MakeRefExpressionSyntax MakeRefExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)

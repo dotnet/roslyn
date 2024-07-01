@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out bool hasAccessorList,
                 out bool accessorsHaveImplementation,
+                out bool generateBackingFieldAlways,
                 out bool isInitOnly,
                 out var getSyntax,
                 out var setSyntax);
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
+                generateBackingFieldAlways: generateBackingFieldAlways,
                 memberName,
                 location,
                 diagnostics);
@@ -100,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
+            bool generateBackingFieldAlways,
             string memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
@@ -118,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
+                generateBackingFieldAlways: generateBackingFieldAlways,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
@@ -200,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
+            out bool generateBackingFieldAlways,
             out bool isInitOnly,
             out CSharpSyntaxNode? getSyntax,
             out CSharpSyntaxNode? setSyntax)
@@ -212,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasAccessorList)
             {
+                generateBackingFieldAlways = false;
                 accessorsHaveImplementation = false;
                 foreach (var accessor in syntax.AccessorList!.Accessors)
                 {
@@ -254,16 +260,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
 
-                    if (accessor.Body != null || accessor.ExpressionBody != null)
+                    var body = (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
+                    if (body != null)
                     {
                         accessorsHaveImplementation = true;
+                        generateBackingFieldAlways = generateBackingFieldAlways || containsFieldKeyword(body);
                     }
                 }
             }
             else
             {
-                accessorsHaveImplementation = GetArrowExpression(syntax) is object;
+                var body = GetArrowExpression(syntax);
+                accessorsHaveImplementation = body is object;
+                generateBackingFieldAlways = body is { } && containsFieldKeyword(body);
                 Debug.Assert(accessorsHaveImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
+            }
+
+            static bool containsFieldKeyword(SyntaxNode syntax)
+            {
+                return syntax.DescendantTokens().Any(static t => t.Kind() == SyntaxKind.FieldKeyword);
             }
         }
 

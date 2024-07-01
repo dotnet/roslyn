@@ -1729,23 +1729,28 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            verify(Parse(text, options: TestOptions.Regular12), SyntaxKind.IdentifierName);
+            verify(Parse(text), SyntaxKind.ValueExpression);
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
+            void verify(SyntaxTree tree, SyntaxKind expectedKind)
+            {
+                var comp = CreateCompilation(tree);
+                var model = comp.GetSemanticModel(tree);
+                var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
+                Assert.Equal(expectedKind, exprSyntaxToBind.Kind());
 
-            var symbol = bindInfo.Symbol;
-            Assert.NotNull(symbol);
-            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
-            Assert.Equal("value", symbol.Name);
-            Assert.Equal(SymbolKind.Method, symbol.ContainingSymbol.Kind);
+                var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
-            var lookupSymbols = model.LookupSymbols(exprSyntaxToBind.SpanStart, name: "value");
-            Assert.Equal(symbol, lookupSymbols.Single());
+                var symbol = bindInfo.Symbol;
+                Assert.NotNull(symbol);
+                Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+                Assert.Equal("value", symbol.Name);
+                Assert.Equal(SymbolKind.Method, symbol.ContainingSymbol.Kind);
+
+                var lookupSymbols = model.LookupSymbols(exprSyntaxToBind.SpanStart, name: "value");
+                Assert.Equal(symbol, lookupSymbols.Single());
+            }
         }
 
         [WorkItem(542777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542777")]

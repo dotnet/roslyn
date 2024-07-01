@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
+            bool generateBackingFieldAlways,
             RefKind refKind,
             string memberName,
             SyntaxList<AttributeListSyntax> indexerNameAttributeLists,
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if ((isAutoProperty && hasGetAccessor) || hasInitializer)
+            if (generateBackingFieldAlways || (isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 string fieldName = GeneratedNames.MakeBackingFieldName(_name);

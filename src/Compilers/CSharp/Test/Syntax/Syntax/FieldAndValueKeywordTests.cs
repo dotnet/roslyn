@@ -391,15 +391,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class C
                 {
                     Func<object> field;
-                    object P1 { get { return field(); } }
-                    object P2 { get { return @field(); } }
+                    Func<object> P1 { get { _ = field(); return null; } }
+                    Func<object> P2 { get { _ = @field(); return null; } }
+                    Func<object> P3 { set { _ = value(); } }
+                    Func<object> P4 { set { _ = @value(); } }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (6,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { return field(); } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 30));
+                // (6,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     Func<object> P1 { get { _ = field(); return null; } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 33));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IdentifierToken_Index(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = """
+                #pragma warning disable 649
+                class C
+                {
+                    object[] field;
+                    object[] P1 { get { _ = field[0]; return null; } }
+                    object[] P2 { get { _ = @field[0]; return null; } }
+                    object[] P3 { set { _ = value[0]; } }
+                    object[] P4 { set { _ = @value[0]; } }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (5,29): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object[] P1 { get { _ = field[0]; return null; } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 29));
         }
 
         [Theory]
@@ -435,19 +460,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,59): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from field in new int[0] select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 59),
-                // (6,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P3 { set { _ = from value in new int[0] select value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 32),
-                // (6,59): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { _ = from value in new int[0] select value; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 59),
-                // (7,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P4 { set { _ = from @value in new int[0] select @value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 32));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Bind 'value' and report info diagnostic if not implicit parameter?
+                comp.VerifyEmitDiagnostics(
+                    // (4,59): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from field in new int[0] select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 59),
+                    // (6,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from value in new int[0] select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 32),
+                    // (7,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from @value in new int[0] select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 32));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,59): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from field in new int[0] select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 59),
+                    // (6,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from value in new int[0] select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 32),
+                    // (6,59): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //     object P3 { set { _ = from value in new int[0] select value; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 59),
+                    // (7,32): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from @value in new int[0] select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 32));
+            }
         }
 
         [Theory]
@@ -466,19 +508,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,69): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 69),
-                // (6,52): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P3 { set { _ = from i in new int[0] let value = i select value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 52),
-                // (6,69): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { _ = from i in new int[0] let value = i select value; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 69),
-                // (7,52): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P4 { set { _ = from i in new int[0] let @value = i select @value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 52));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Bind 'value' and report info diagnostic if not implicit parameter?
+                comp.VerifyEmitDiagnostics(
+                    // (4,69): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 69),
+                    // (6,52): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from i in new int[0] let value = i select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 52),
+                    // (7,52): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from i in new int[0] let @value = i select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 52));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,69): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 69),
+                    // (6,52): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from i in new int[0] let value = i select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 52),
+                    // (6,69): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //     object P3 { set { _ = from i in new int[0] let value = i select value; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 69),
+                    // (7,52): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from i in new int[0] let @value = i select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 52));
+            }
         }
 
         [Theory]
@@ -497,19 +556,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,85): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 85),
-                // (6,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 53),
-                // (6,85): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 85),
-                // (7,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P4 { set { _ = from x in new int[0] join @value in new int[0] on x equals @value select x; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 53));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Bind 'value' and report info diagnostic if not implicit parameter?
+                comp.VerifyEmitDiagnostics(
+                    // (4,85): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 85),
+                    // (6,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 53),
+                    // (7,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from x in new int[0] join @value in new int[0] on x equals @value select x; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 53));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,85): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 85),
+                    // (6,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 53),
+                    // (6,85): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //     object P3 { set { _ = from x in new int[0] join value in new int[0] on x equals value select x; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 85),
+                    // (7,53): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from x in new int[0] join @value in new int[0] on x equals @value select x; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 53));
+            }
         }
 
         [Theory]
@@ -528,19 +604,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,101): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 101),
-                // (6,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 88),
-                // (6,101): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 101),
-                // (7,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P4 { set { _ = from x in new int[0] join y in new int[0] on x equals y into @value select @value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 88));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Bind 'value' and report info diagnostic if not implicit parameter?
+                comp.VerifyEmitDiagnostics(
+                    // (4,101): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 101),
+                    // (6,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 88),
+                    // (7,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from x in new int[0] join y in new int[0] on x equals y into @value select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 88));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,101): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 101),
+                    // (6,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 88),
+                    // (6,101): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //     object P3 { set { _ = from x in new int[0] join y in new int[0] on x equals y into value select value; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 101),
+                    // (7,88): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from x in new int[0] join y in new int[0] on x equals y into @value select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 88));
+            }
         }
 
         [Theory]
@@ -559,19 +652,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,75): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 75),
-                // (6,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 62),
-                // (6,75): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 75),
-                // (7,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
-                //     object P4 { set { _ = from x in new int[0] select x into @value select @value; } }
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 62));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Bind 'value' and report info diagnostic if not implicit parameter?
+                comp.VerifyEmitDiagnostics(
+                    // (4,75): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 75),
+                    // (6,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 62),
+                    // (7,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from x in new int[0] select x into @value select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 62));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,75): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 75),
+                    // (6,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "value").WithArguments("value").WithLocation(6, 62),
+                    // (6,75): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //     object P3 { set { _ = from x in new int[0] select x into value select value; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 75),
+                    // (7,62): error CS1931: The range variable 'value' conflicts with a previous declaration of 'value'
+                    //     object P4 { set { _ = from x in new int[0] select x into @value select @value; } }
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "@value").WithArguments("value").WithLocation(7, 62));
+            }
         }
 
         [Theory]
@@ -777,13 +887,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,50): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { object F1(object field) => field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 50),
-                // (6,56): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //     object P3 { set { object F3(object value) { return value; } } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 56));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Bind 'value' and report info diagnostic if not implicit parameter?
+                comp.VerifyEmitDiagnostics(
+                    // (4,50): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { object F1(object field) => field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 50));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,50): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object P1 { get { object F1(object field) => field; return null; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 50),
+                    // (6,56): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //     object P3 { set { object F3(object value) { return value; } } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(6, 56));
+            }
         }
 
         [Theory]
@@ -840,16 +961,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (9,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             object @value;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(9, 20),
-                // (10,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             (field, @value) = new C();
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 14),
-                // (11,22): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             (@field, value) = new C();
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(11, 22));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                // PROTOTYPE: Bind 'value' and report info diagnostic if not implicit parameter?
+                comp.VerifyEmitDiagnostics(
+                    // (9,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             object @value;
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(9, 20),
+                    // (10,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //             (field, @value) = new C();
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 14));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             object @value;
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(9, 20),
+                    // (10,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //             (field, @value) = new C();
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 14),
+                    // (11,22): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //             (@field, value) = new C();
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(11, 22));
+            }
         }
 
         [Theory]
@@ -1180,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Attribute_LocalFunction(
+        public void Attribute_LocalFunction_01(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string fieldIdentifier = escapeIdentifier ? "@field" : "field";
@@ -1223,6 +1358,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics();
             }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //             [A(nameof(field))] void F1(int field) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
+                    // (13,23): error CS8081: Expression does not have a name.
+                    //             [A(nameof(field))] void F1(int field) { }
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23));
+            }
             else
             {
                 comp.VerifyEmitDiagnostics(
@@ -1233,6 +1378,290 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     //             [A(nameof(value))] void F2(int value) { }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(21, 23));
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Attribute_LocalFunction_02(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+        {
+            string fieldIdentifier = escapeIdentifier ? "@field" : "field";
+            string valueIdentifier = escapeIdentifier ? "@value" : "value";
+            string source = $$"""
+                #pragma warning disable 649, 8321
+                using System;
+                [AttributeUsage(AttributeTargets.All)]
+                class A : Attribute
+                {
+                    public A(string s) { }
+                }
+                class C
+                {
+                    event EventHandler E
+                    {
+                        add { void F1([A(nameof({{fieldIdentifier}}))] int {{fieldIdentifier}}) { } }
+                        remove { void F2([A(nameof({{valueIdentifier}}))] int {{valueIdentifier}}) { } }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (escapeIdentifier || languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,36): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                    //         remove { void F2([A(nameof(value))] int value) { } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(13, 36));
+            }
+        }
+
+        [Fact]
+        public void FieldInInitializer_01()
+        {
+            string source = """
+                class C
+                {
+                    object P { get; } = F(field);
+                    static object F(object value) => value;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,27): error CS0103: The name 'field' does not exist in the current context
+                //     object P { get; } = F(field);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 27));
+        }
+
+        [Fact]
+        public void FieldInInitializer_02()
+        {
+            string source = """
+                class C
+                {
+                    object P { get => null; } = field;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
+                //     object P { get => null; } = field;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
+                // (3,33): error CS0103: The name 'field' does not exist in the current context
+                //     object P { get => null; } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 33));
+        }
+
+        [Fact]
+        public void FieldInInitializer_03()
+        {
+            string source = """
+                class C
+                {
+                    object P { set { } } = field;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
+                //     object P { set { } } = field;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
+                // (3,28): error CS0103: The name 'field' does not exist in the current context
+                //     object P { set { } } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 28));
+        }
+
+        [Fact]
+        public void Field_02()
+        {
+            string source = """
+                class C
+                {
+                    public object P => field = 1;
+                    public object Q { get => field = 2; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        System.Console.WriteLine((c.P, c.Q));
+                    }
+                }
+                """;
+            // PROTOTYPE: Should succeed. Use CompileAndVerify(), check expectedOutput,
+            // and verify IL for C.P.get and C.Q.get.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     public object P => field = 1;
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 24),
+                // (3,24): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     public object P => field = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(3, 24),
+                // (4,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     public object Q { get => field = 2; }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 30),
+                // (4,30): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     public object Q { get => field = 2; }
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(4, 30));
+        }
+
+        [Fact]
+        public void Field_03()
+        {
+            string source = """
+                class C
+                {
+                    public object P => Initialize(out field, 1);
+                    public object Q { get => Initialize(out field, 2); }
+                    static object Initialize(out object field, object value)
+                    {
+                        field = value;
+                        return field;
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        System.Console.WriteLine((c.P, c.Q));
+                    }
+                }
+                """;
+            // PROTOTYPE: Should succeed. Use CompileAndVerify(), check expectedOutput,
+            // and verify IL for C.P.get and C.Q.get.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,39): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     public object P => Initialize(out field, 1);
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 39),
+                // (3,39): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //     public object P => Initialize(out field, 1);
+                Diagnostic(ErrorCode.ERR_RefReadonly, "field").WithLocation(3, 39),
+                // (4,45): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     public object Q { get => Initialize(out field, 2); }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 45),
+                // (4,45): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //     public object Q { get => Initialize(out field, 2); }
+                Diagnostic(ErrorCode.ERR_RefReadonly, "field").WithLocation(4, 45));
+        }
+
+        [Fact]
+        public void Field_NameOf_01()
+        {
+            string source = """
+                class C
+                {
+                    object P => nameof(field);
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P => nameof(field);
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 24),
+                // (3,24): error CS8081: Expression does not have a name.
+                //     object P => nameof(field);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 24));
+        }
+
+        [Fact]
+        public void Field_NameOf_02()
+        {
+            string source = """
+                class C
+                {
+                    object P { set { _ = nameof(field); } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P { set { _ = nameof(field); } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 33),
+                // (3,33): error CS8081: Expression does not have a name.
+                //     object P { set { _ = nameof(field); } }
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 33));
+        }
+
+        [Fact]
+        public void FieldReference_01()
+        {
+            string source = """
+                class C
+                {
+                    static C _other = new();
+                    object P => _other.field;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //     object P => _other.field;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void FieldReference_02()
+        {
+            string source = """
+                class C
+                {
+                    C P
+                    {
+                        get { return null; }
+                        set { field = value.field; }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //         set { field = value.field; }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 15),
+                // (6,29): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         set { field = value.field; }
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29));
+        }
+
+        [Fact]
+        public void FieldReference_03()
+        {
+            string source = """
+                class C
+                {
+                    int P
+                    {
+                        set { _ = this is { field: 0 }; }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,29): error CS0117: 'C' does not contain a definition for 'field'
+                //         set { _ = this is { field: 0 }; }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("C", "field").WithLocation(5, 29));
+        }
+
+        [Fact]
+        public void RefProperty()
+        {
+            string source = """
+                class C
+                {
+                    ref int P => ref field;
+                }
+                """;
+            // PROTOTYPE: Should report: error CS8145: Auto-implemented properties cannot return by reference
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,22): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     ref int P => ref field;
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 22));
         }
     }
 }

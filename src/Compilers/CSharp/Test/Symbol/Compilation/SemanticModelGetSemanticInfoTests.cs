@@ -4468,21 +4468,25 @@ class C
     internal object P { set { p = /*<bind>*/value/*</bind>*/; } }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            verify(GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular12));
+            verify(GetSemanticInfoForTest<ValueExpressionSyntax>(sourceCode));
 
-            Assert.Equal("System.Object", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+            static void verify(Utils.SemanticInfoSummary semanticInfo)
+            {
+                Assert.Equal("System.Object", semanticInfo.Type.ToTestDisplayString());
+                Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+                Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+                Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("System.Object value", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+                Assert.Equal("System.Object value", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
+                Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+                Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
         }
 
         [Fact]
@@ -4498,10 +4502,15 @@ class C
         set { values[i] = /*<bind>*/value/*</bind>*/; }
     }
 }";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal("System.String value", semanticInfo.Symbol.ToTestDisplayString());
+            verify(GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular12));
+            verify(GetSemanticInfoForTest<ValueExpressionSyntax>(sourceCode));
+
+            static void verify(Utils.SemanticInfoSummary semanticInfo)
+            {
+                Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal("System.String value", semanticInfo.Symbol.ToTestDisplayString());
+            }
         }
 
         [Fact]

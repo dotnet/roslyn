@@ -2357,6 +2357,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name = "";
                     if (top) goto default;
                     return true;
+                case SyntaxKind.ValueExpression:
+                    name = "value";
+                    return true;
                 default:
                     {
                         var code = top ? ErrorCode.ERR_ExpressionHasNoName : ErrorCode.ERR_SubexpressionNotInNameof;

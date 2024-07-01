@@ -3201,6 +3201,136 @@ internal sealed partial class LiteralExpressionSyntax : ExpressionSyntax
         => new LiteralExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
 }
 
+/// <summary>Class which represents the syntax node for a field expression.</summary>
+internal sealed partial class FieldExpressionSyntax : ExpressionSyntax
+{
+    internal readonly SyntaxToken token;
+
+    internal FieldExpressionSyntax(SyntaxKind kind, SyntaxToken token, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    internal FieldExpressionSyntax(SyntaxKind kind, SyntaxToken token, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    internal FieldExpressionSyntax(SyntaxKind kind, SyntaxToken token)
+      : base(kind)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    /// <summary>SyntaxToken representing the field keyword.</summary>
+    public SyntaxToken Token => this.token;
+
+    internal override GreenNode? GetSlot(int index)
+        => index == 0 ? this.token : null;
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FieldExpressionSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFieldExpression(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFieldExpression(this);
+
+    public FieldExpressionSyntax Update(SyntaxToken token)
+    {
+        if (token != this.Token)
+        {
+            var newNode = SyntaxFactory.FieldExpression(token);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new FieldExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new FieldExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
+}
+
+/// <summary>Class which represents the syntax node for a value expression.</summary>
+internal sealed partial class ValueExpressionSyntax : ExpressionSyntax
+{
+    internal readonly SyntaxToken token;
+
+    internal ValueExpressionSyntax(SyntaxKind kind, SyntaxToken token, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    internal ValueExpressionSyntax(SyntaxKind kind, SyntaxToken token, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    internal ValueExpressionSyntax(SyntaxKind kind, SyntaxToken token)
+      : base(kind)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    /// <summary>SyntaxToken representing the value keyword.</summary>
+    public SyntaxToken Token => this.token;
+
+    internal override GreenNode? GetSlot(int index)
+        => index == 0 ? this.token : null;
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ValueExpressionSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitValueExpression(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitValueExpression(this);
+
+    public ValueExpressionSyntax Update(SyntaxToken token)
+    {
+        if (token != this.Token)
+        {
+            var newNode = SyntaxFactory.ValueExpression(token);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new ValueExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new ValueExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
+}
+
 /// <summary>Class which represents the syntax node for MakeRef expression.</summary>
 internal sealed partial class MakeRefExpressionSyntax : ExpressionSyntax
 {
@@ -26456,6 +26586,8 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitValueExpression(ValueExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
@@ -26703,6 +26835,8 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitValueExpression(ValueExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
@@ -27022,6 +27156,12 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update((SyntaxToken)Visit(node.Token));
 
     public override CSharpSyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
+        => node.Update((SyntaxToken)Visit(node.Token));
+
+    public override CSharpSyntaxNode VisitFieldExpression(FieldExpressionSyntax node)
+        => node.Update((SyntaxToken)Visit(node.Token));
+
+    public override CSharpSyntaxNode VisitValueExpression(ValueExpressionSyntax node)
         => node.Update((SyntaxToken)Visit(node.Token));
 
     public override CSharpSyntaxNode VisitMakeRefExpression(MakeRefExpressionSyntax node)
@@ -28612,6 +28752,46 @@ internal partial class ContextAwareSyntax
         if (cached != null) return (LiteralExpressionSyntax)cached;
 
         var result = new LiteralExpressionSyntax(kind, token, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public FieldExpressionSyntax FieldExpression(SyntaxToken token)
+    {
+#if DEBUG
+        if (token == null) throw new ArgumentNullException(nameof(token));
+        if (token.Kind != SyntaxKind.FieldKeyword) throw new ArgumentException(nameof(token));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FieldExpression, token, this.context, out hash);
+        if (cached != null) return (FieldExpressionSyntax)cached;
+
+        var result = new FieldExpressionSyntax(SyntaxKind.FieldExpression, token, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public ValueExpressionSyntax ValueExpression(SyntaxToken token)
+    {
+#if DEBUG
+        if (token == null) throw new ArgumentNullException(nameof(token));
+        if (token.Kind != SyntaxKind.ValueKeyword) throw new ArgumentException(nameof(token));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ValueExpression, token, this.context, out hash);
+        if (cached != null) return (ValueExpressionSyntax)cached;
+
+        var result = new ValueExpressionSyntax(SyntaxKind.ValueExpression, token, this.context);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
@@ -33860,6 +34040,46 @@ internal static partial class SyntaxFactory
         if (cached != null) return (LiteralExpressionSyntax)cached;
 
         var result = new LiteralExpressionSyntax(kind, token);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static FieldExpressionSyntax FieldExpression(SyntaxToken token)
+    {
+#if DEBUG
+        if (token == null) throw new ArgumentNullException(nameof(token));
+        if (token.Kind != SyntaxKind.FieldKeyword) throw new ArgumentException(nameof(token));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FieldExpression, token, out hash);
+        if (cached != null) return (FieldExpressionSyntax)cached;
+
+        var result = new FieldExpressionSyntax(SyntaxKind.FieldExpression, token);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static ValueExpressionSyntax ValueExpression(SyntaxToken token)
+    {
+#if DEBUG
+        if (token == null) throw new ArgumentNullException(nameof(token));
+        if (token.Kind != SyntaxKind.ValueKeyword) throw new ArgumentException(nameof(token));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ValueExpression, token, out hash);
+        if (cached != null) return (ValueExpressionSyntax)cached;
+
+        var result = new ValueExpressionSyntax(SyntaxKind.ValueExpression, token);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);

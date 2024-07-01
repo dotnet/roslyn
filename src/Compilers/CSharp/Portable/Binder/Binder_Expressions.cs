@@ -730,6 +730,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.SizeOfExpression:
                         return BindSizeOf((SizeOfExpressionSyntax)node, diagnostics);
 
+                    case SyntaxKind.FieldExpression:
+                        return BindFieldExpression((FieldExpressionSyntax)node, diagnostics);
+
+                    case SyntaxKind.ValueExpression:
+                        return BindValueExpression((ValueExpressionSyntax)node, diagnostics);
+
                     case SyntaxKind.AddAssignmentExpression:
                     case SyntaxKind.AndAssignmentExpression:
                     case SyntaxKind.DivideAssignmentExpression:
@@ -1433,6 +1439,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
+        private BoundExpression BindFieldExpression(FieldExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(ContainingType is { });
+            SynthesizedBackingFieldSymbolBase field;
+
+            ReportFieldOrValueContextualKeywordConflict(node, node.Token, diagnostics);
+
+            switch (ContainingMember())
+            {
+                case SynthesizedBackingFieldSymbolBase backingField:
+                    field = backingField;
+                    break;
+                case MethodSymbol { AssociatedSymbol: SourcePropertySymbol property }:
+                    field = property.BackingField;
+                    break;
+                default:
+                    // PROTOTYPE: Handle other cases.
+                    diagnostics.Add(ErrorCode.ERR_NoSuchMember, node, ContainingType, "field");
+                    return BadExpression(node);
+            }
+
+            // PROTOTYPE: We're not applying any checks to this field reference. What checks do we
+            // use when referencing an explicitly-declared field, and which of those should be used here?
+            var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);
+            return new BoundFieldAccess(node, implicitReceiver, field, constantValueOpt: null);
+        }
+
+        private BoundExpression BindValueExpression(ValueExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            var method = (MethodSymbol)ContainingMember();
+            Debug.Assert(method.MethodKind is MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove);
+            // PROTOTYPE: We're not applying any checks to this parameter reference. What checks do we
+            // use for a parameter referenced by identifier, and which of those should be used here?
+            var parameter = method.Parameters[^1];
+            return new BoundParameter(node, parameter);
+        }
+
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics, bool errorForManaged = false)
         {
@@ -1748,12 +1791,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
                 case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
-                    {
-                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-                        diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
-                    }
+                    ReportFieldOrValueContextualKeywordConflict(syntax, identifier, diagnostics);
                     break;
             }
+        }
+
+        private static void ReportFieldOrValueContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        {
+            string name = identifier.Text;
+            var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
         }
 #nullable disable
 
