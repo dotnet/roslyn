@@ -167,7 +167,39 @@ internal static class CSharpCollectionExpressionRewriter
                     OpenBracketToken.WithoutTrivia(),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
                     CloseBracketToken.WithoutTrivia());
-                return collectionExpression.WithTriviaFrom(expressionToReplace);
+
+                // Even though the collection expression itself fits on a single line, there could be
+                // additional trivia between the array creation expression and the initializer list.
+                // We should include this additional trivia in the final collection expression.
+                //
+                // int[][] = new int[]
+                // {
+                //     new int[] // some identifying comment
+                //     { 1, 2, 3 }
+                // }
+                //
+                //  ...
+                //
+                // int[][] =
+                // [
+                //    // some identifying comment
+                //    [1, 2, 3]
+                // ]
+                var shouldIncludeAdditionalLeadingTrivia = initializer is not null &&
+                    initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment());
+
+                if (shouldIncludeAdditionalLeadingTrivia)
+                {
+                    var additionalLeadingTrivia = initializer!.OpenBraceToken.GetPreviousToken().TrailingTrivia
+                        .SkipInitialWhitespace()
+                        .Concat(initializer.OpenBraceToken.LeadingTrivia);
+                    return collectionExpression.WithLeadingTrivia(additionalLeadingTrivia);
+                }
+                else
+                {
+                    // otherwise, we want to unconditionally preserve any and all trivia in the original expression
+                    return collectionExpression.WithTriviaFrom(expressionToReplace);
+                }
             }
         }
 
