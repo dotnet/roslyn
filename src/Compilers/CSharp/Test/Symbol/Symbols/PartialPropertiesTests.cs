@@ -4976,7 +4976,7 @@ public partial class C
             Assert.Equal("SourceFile(Program.cs[52..53))", defSymbol.Locations.Single().ToString());
             Assert.Equal("SourceFile(Program.cs[97..98))", implSymbol.Locations.Single().ToString());
         }
-        
+
         [Fact]
         public void OnlyOneAccessorHasBodyOnImplementation()
         {
