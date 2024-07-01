@@ -31,11 +31,9 @@ internal sealed class CSharpEditorInlineRenameService(
     /// <summary>
     /// Uses semantic information of renamed symbol to produce a map containing contextual information for use in Copilot rename feature
     /// </summary>
-    /// <param name="inlineRenameInfo">Instance of <see cref="IInlineRenameInfo"/> pertinent to the rename session.</param>
-    /// <param name="inlineRenameLocationSet"><see cref="IInlineRenameLocationSet"/> of references discovered for the rename session.</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Map where key indicates the kind of semantic information, and value is an array of relevant code snippets.</returns>
-    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(
+        IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<TextSpan>.GetInstance(out var seen);
         using var _2 = ArrayBuilder<string>.GetInstance(out var definitions);
