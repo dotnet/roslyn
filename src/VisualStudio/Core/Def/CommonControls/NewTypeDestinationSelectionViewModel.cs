@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
@@ -20,8 +21,8 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         string.Empty,
         string.Empty,
         ImmutableArray<string>.Empty,
-        null
-    );
+        null,
+        new InMemoryNewTypeDestinationValueSource());
 
     private readonly string _fileExtension;
     private readonly string _defaultNamespace;
@@ -37,7 +38,8 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         ImmutableArray<string> conflictingNames,
-        ISyntaxFactsService? syntaxFactsService)
+        ISyntaxFactsService? syntaxFactsService,
+        INewTypeDestinationValueSource newTypeDestination)
     {
         _defaultName = defaultName;
         _fileExtension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
@@ -48,6 +50,7 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         _typeName = _defaultName;
         _syntaxFactsService = syntaxFactsService;
         _fileName = $"{defaultName}{_fileExtension}";
+        _destination = newTypeDestination;
     }
 
     private string _typeName;
@@ -87,14 +90,17 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         set { SetProperty(ref _fileName, value); }
     }
 
-    private NewTypeDestination _destination = NewTypeDestination.NewFile;
+    private readonly INewTypeDestinationValueSource _destination;
+
     public NewTypeDestination Destination
     {
-        get { return _destination; }
+        get { return _destination.NewTypeDestination; }
         set
         {
-            if (SetProperty(ref _destination, value))
+            if (value != _destination.NewTypeDestination)
             {
+                _destination.NewTypeDestination = value;
+                NotifyPropertyChanged(nameof(Destination));
                 NotifyPropertyChanged(nameof(FileNameEnabled));
             }
         }

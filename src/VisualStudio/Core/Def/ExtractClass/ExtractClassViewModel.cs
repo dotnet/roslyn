@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.VisualStudio.LanguageServices.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -29,7 +30,8 @@ internal class ExtractClassViewModel
         string languageName,
         string typeParameterSuffix,
         ImmutableArray<string> conflictingNames,
-        ISyntaxFactsService syntaxFactsService)
+        ISyntaxFactsService syntaxFactsService,
+        INewTypeDestinationValueSource newTypeDestination)
     {
         _notificationService = notificationService;
         _selectedType = selectedType;
@@ -46,7 +48,8 @@ internal class ExtractClassViewModel
             defaultNamespace,
             typeParameterSuffix,
             conflictingNames,
-            syntaxFactsService);
+            syntaxFactsService,
+            newTypeDestination);
     }
 
     internal bool TrySubmit()

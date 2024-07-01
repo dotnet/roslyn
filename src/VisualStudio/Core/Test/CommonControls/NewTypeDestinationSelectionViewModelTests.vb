@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.CommonControls
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
@@ -243,7 +244,8 @@ class $$MyClass
                     languageName:=languageName,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,
                     conflictingNames:=symbol.ContainingNamespace.GetAllTypes(CancellationToken.None).SelectAsArray(Function(t) t.Name),
-                    syntaxFactsService:=workspaceDoc.GetRequiredLanguageService(Of ISyntaxFactsService))
+                    syntaxFactsService:=workspaceDoc.GetRequiredLanguageService(Of ISyntaxFactsService),
+                    newTypeDestination:=New InMemoryNewTypeDestinationValueSource())
             End Using
         End Function
     End Class
