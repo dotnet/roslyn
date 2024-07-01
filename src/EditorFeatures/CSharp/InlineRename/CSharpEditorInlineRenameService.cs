@@ -47,14 +47,8 @@ internal sealed class CSharpEditorInlineRenameService(
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false) ??
                 await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false);
 
-            var documentText = await renameDefinition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (documentText is null)
-            {
-                continue;
-            }
-
-            // Find documentation comments using optional service
-            var symbolService = renameDefinition.Document.GetLanguageService<IGoToDefinitionSymbolService>();
+            // Find documentation comments of definitions
+            var symbolService = renameDefinition.Document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
             if (symbolService is not null)
             {
                 var textSpan = inlineRenameInfo.TriggerSpan;
@@ -68,6 +62,7 @@ internal sealed class CSharpEditorInlineRenameService(
                 }
             }
 
+            var documentText = await renameDefinition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             AddSpanOfInterest(documentText, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
         }
 
@@ -80,11 +75,6 @@ internal sealed class CSharpEditorInlineRenameService(
                 await renameLocation.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false);
 
             var documentText = await renameLocation.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (documentText is null)
-            {
-                continue;
-            }
-
             AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
         }
 
@@ -117,7 +107,7 @@ internal sealed class CSharpEditorInlineRenameService(
             }
 
             // If a well defined surrounding span was not computed or if the computed surrounding span was too large,
-            // select a span that encompasses ContextTargetHalfLineCount lines above and ContextTargetHalfLineCount lines below the error squiggle.
+            // select a span that encompasses NumberOfContextLines lines above and NumberOfContextLines lines below the identifier.
             if (surroundingSpanOfInterest is null || lineCount <= 0 || lineCount > NumberOfContextLines * 2)
             {
                 startLine = Math.Max(0, documentText.Lines.GetLineFromPosition(fallbackSpan.Start).LineNumber - NumberOfContextLines);
