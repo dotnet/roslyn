@@ -372,6 +372,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         {
                             if (!constant.IsFloating)
                             {
+                                if (comparand is BoundConversion { Type.SpecialType: SpecialType.System_Object, ConversionKind: ConversionKind.Boxing, Operand.Type: TypeParameterSymbol { AllowsRefLikeType: true } } &&
+                                    constant.IsNull)
+                                {
+                                    // Boxing is not supported for ref like type parameters, therefore the code that we usually emit 'box; ldnull; ceq/cgt'
+                                    // is not going to work. There is, however, an exception for 'box; brtrue/brfalse' sequence (https://github.com/dotnet/runtime/blob/main/docs/design/features/byreflike-generics.md#special-il-sequences).
+                                    EmitExpression(comparand, true);
+
+                                    object falseLabel = new object();
+                                    object endLabel = new object();
+                                    _builder.EmitBranch(sense ? ILOpCode.Brtrue_s : ILOpCode.Brfalse_s, falseLabel);
+                                    _builder.EmitBoolConstant(true);
+                                    _builder.EmitBranch(ILOpCode.Br, endLabel);
+
+                                    _builder.AdjustStack(-1);
+                                    _builder.MarkLabel(falseLabel);
+                                    _builder.EmitBoolConstant(false);
+                                    _builder.MarkLabel(endLabel);
+                                    return;
+                                }
+
                                 if (sense)
                                 {
                                     EmitIsNullOrZero(comparand, constant);

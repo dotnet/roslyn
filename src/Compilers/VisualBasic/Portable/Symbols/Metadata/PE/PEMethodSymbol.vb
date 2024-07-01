@@ -1251,7 +1251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If useSiteInfo.DiagnosticInfo IsNot Nothing OrElse Not useSiteInfo.SecondaryDependencies.IsNullOrEmpty() Then
-                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo)
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitializeFromDefault(PrimaryDependency, useSiteInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()

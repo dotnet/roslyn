@@ -148,7 +148,7 @@ internal partial class SerializerService
             case nameof(AnalyzerFileReference):
                 var fullPath = reader.ReadRequiredString();
                 var shadowCopy = reader.ReadBoolean();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(shadowCopy));
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();

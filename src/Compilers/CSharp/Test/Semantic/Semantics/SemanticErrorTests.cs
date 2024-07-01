@@ -4010,6 +4010,9 @@ class Test
                 // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int value = 0; // CS0136
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
+                // (25,15): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                //             M(value);
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(25, 15),
                 // (30,35): error CS0136: A local or parameter named 'q' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         System.Func<int, int> f = q=>q; // 0136
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
@@ -4024,7 +4027,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
                 // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int value = 0; // CS0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17));
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
+                // (25,15): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                //             M(value);
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(25, 15));
         }
 
         [Fact]
@@ -7269,15 +7275,15 @@ public class C
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (10,14): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (10,14): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //     f = x=>f(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle"),
-                // (11,29): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(10, 14),
+                // (11,29): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //     f = delegate { return f(__arglist); };
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle"),
-                // (12,44): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 29),
+                // (12,44): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //     var q = from x in new int[10] select f(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle")
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 44)
                 );
         }
 
@@ -7304,12 +7310,12 @@ public class C
   }
 }";
             CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
-                // (10,34): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (10,34): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //       RuntimeArgumentHandle h2 = h; // Bad use of h
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"),
-                // (11,43): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(10, 34),
+                // (11,43): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //       ArgIterator args1 = new ArgIterator(h); // Bad use of h
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"));
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 43));
         }
 
         [Fact]
@@ -7321,9 +7327,9 @@ using System.Collections.Generic;
 public class C
 {
   static void N(RuntimeArgumentHandle x) {}
-  static IEnumerable<int> M(RuntimeArgumentHandle h1) // Error: hoisted to field
+  static IEnumerable<int> M(RuntimeArgumentHandle h1)
   {
-    N(h1);
+    N(h1); // Error: hoisted to field
     yield return 1;
     RuntimeArgumentHandle h2 = default(RuntimeArgumentHandle);
     yield return 2;
@@ -7339,12 +7345,12 @@ public class C
 
             CreateCompilation(source).Emit(new System.IO.MemoryStream()).Diagnostics
                 .Verify(
-                // (7,51): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
-                //   static IEnumerable<int> M(RuntimeArgumentHandle h1) // Error: hoisted to field
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h1").WithArguments("System.RuntimeArgumentHandle"),
-                // (13,7): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (9,7): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
+                //     N(h1); // Error: hoisted to field
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h1").WithArguments("System.RuntimeArgumentHandle").WithLocation(9, 7),
+                // (13,7): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
                 //     N(h2); // Error: hoisted to field
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h2").WithArguments("System.RuntimeArgumentHandle")
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h2").WithArguments("System.RuntimeArgumentHandle").WithLocation(13, 7)
                 );
         }
 
@@ -15318,35 +15324,48 @@ class C
 {
    IEnumerator<int> IteratorMeth() {
       int i;
-      unsafe  // CS1629
+      unsafe
       {
          int *p = &i;
          yield return *p;
       }
    }
 
-    unsafe IEnumerator<int> IteratorMeth2() {   // CS1629
+    unsafe IEnumerator<int> IteratorMeth2() {
         yield break;
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,7): error CS1629: Unsafe code may not appear in iterators
-                //       unsafe  // CS1629
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"),
-                // (9,10): error CS1629: Unsafe code may not appear in iterators
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,7): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //       unsafe
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 7),
+                // (9,10): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //          int *p = &i;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int *"),
-                // (9,19): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 10),
+                // (9,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //          int *p = &i;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&i"),
-                // (10,24): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&i").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 19),
+                // (10,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //          yield return *p;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "p"),
-                // (14,29): error CS1629: Unsafe code may not appear in iterators
-                //     unsafe IEnumerator<int> IteratorMeth2() {   // CS1629
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "IteratorMeth2")
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 24),
+                // (14,29): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     unsafe IEnumerator<int> IteratorMeth2() {
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IteratorMeth2").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 29)
                 );
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,20): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                //          int *p = &i;
+                Diagnostic(ErrorCode.ERR_AddressOfInIterator, "i").WithLocation(9, 20),
+                // (10,10): error CS9238: Cannot use 'yield return' in an 'unsafe' block
+                //          yield return *p;
+                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(10, 10)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

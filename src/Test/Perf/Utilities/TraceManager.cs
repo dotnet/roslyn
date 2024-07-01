@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Roslyn.Test.Performance.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;

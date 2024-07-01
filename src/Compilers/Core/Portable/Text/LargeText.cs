@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return SourceText.From(string.Empty, encoding, checksumAlgorithm);
             }
 
-            var maxCharRemainingGuess = encoding.GetMaxCharCountOrThrowIfHuge(stream);
+            var maxCharRemainingGuess = GetMaxCharCountOrThrowIfHuge(encoding, stream);
             Debug.Assert(longLength > 0 && longLength <= int.MaxValue); // GetMaxCharCountOrThrowIfHuge should have thrown.
             int length = (int)longLength;
 
@@ -238,7 +238,9 @@ namespace Microsoft.CodeAnalysis.Text
             var position = 0;
             var index = 0;
             var lastCr = -1;
-            var list = new SegmentedList<int>();
+            // Initial line capacity estimated at 64 chars / line. This value was obtained by
+            // looking at ratios in large files in the roslyn repo.
+            var list = new SegmentedList<int>(Length / 64);
 
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks

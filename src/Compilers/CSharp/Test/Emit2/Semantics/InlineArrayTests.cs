@@ -1423,7 +1423,7 @@ struct Buffer
         }
 
         [Fact]
-        public void InlineArrayType_28()
+        public void InlineArrayType_28_Record()
         {
             var src = @"
 [System.Runtime.CompilerServices.InlineArray(10)]
@@ -1434,9 +1434,9 @@ record struct Buffer(int p)
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,15): error CS9169: Inline array struct must declare one and only one instance field.
-                // record struct Buffer(int p)
-                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 15)
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
                 );
 
             var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
@@ -2186,6 +2186,79 @@ class Program
                 //         foreach (var z in a)
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "a").WithArguments("Buffer").WithLocation(11, 27)
                 );
+        }
+
+        [Fact]
+        public void InlineArrayType_52_Record()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+record struct Buffer(int p1, int p2)
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void InlineArrayType_53_Record(int size)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(" + size + @")]
+record struct Buffer()
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(1)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(size, length);
+            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
+        }
+
+        [Fact]
+        public void InlineArrayType_54_Record()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+record struct Buffer()
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS9259: Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_InlineArrayAttributeOnRecord, "System.Runtime.CompilerServices.InlineArray").WithLocation(2, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
         }
 
         [Fact]
@@ -4691,9 +4764,12 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (24,22): error CS4007: 'await' cannot be used in an expression containing the type 'System.ReadOnlySpan<Buffer10<int>>'
-                //            [Get01()][await FromResult(Get02(x))];
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<Buffer10<int>>").WithLocation(24, 22)
+                // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<Buffer10<int>>' cannot be preserved across 'await' or 'yield' boundary.
+                //         => MemoryMarshal.CreateReadOnlySpan(
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
+                ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(
+                        ref Unsafe.AsRef(in GetC(x).F)),
+                10)").WithArguments("System.ReadOnlySpan<Buffer10<int>>").WithLocation(20, 12)
                 );
         }
 
@@ -4743,9 +4819,12 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                    // (24,13): error CS4007: 'await' cannot be used in an expression containing the type 'System.ReadOnlySpan<int>'
-                    //            [await FromResult(Get02(x))];
-                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<int>").WithLocation(24, 13)
+                // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         => MemoryMarshal.CreateReadOnlySpan(
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
+                ref Unsafe.As<Buffer10<int>, int>(
+                        ref Unsafe.AsRef(in GetC(x).F[Get01()])),
+                10)").WithArguments("System.ReadOnlySpan<int>").WithLocation(20, 12)
                 );
         }
 
@@ -8958,9 +9037,6 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         return M3(x)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("Buffer10").WithLocation(7, 16),
                 // (7,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(7, 16),
@@ -8970,24 +9046,15 @@ public ref struct Buffer10
                 // (7,19): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 19),
-                // (13,17): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         var y = M3(x)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("Buffer10").WithLocation(13, 17),
                 // (13,17): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var y = M3(x)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(13, 17),
                 // (14,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(14, 16),
-                // (24,16): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         return M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("Buffer10").WithLocation(24, 16),
                 // (24,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(xx)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(24, 16),
-                // (29,18): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         var yy = M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("Buffer10").WithLocation(29, 18),
                 // (29,18): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var yy = M3(xx)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18),
@@ -14555,10 +14622,10 @@ class Program
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
   IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
   IL_000b:  ldarg.1
-  IL_000c:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref TElement, int)""
+  IL_000c:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref readonly TElement, int)""
   IL_0011:  ret
 }
 ");
@@ -14652,7 +14719,7 @@ class Program
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
   IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
   IL_000b:  ldarg.1
   IL_000c:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
@@ -14743,7 +14810,7 @@ class Program
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
   IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
   IL_000b:  ret
 }
@@ -16388,15 +16455,15 @@ class Program
                 // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.ReadOnlySpan<int>?'
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
-                // (13,45): error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
+                // (13,45): error CS9244: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 45),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.ReadOnlySpan<int>").WithLocation(13, 45),
                 // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.Span<int>?'
                 //     static int M5() => M6(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.Span<int>?").WithLocation(18, 27),
-                // (20,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (20,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M6(System.Span<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.Span<int>").WithLocation(20, 37)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(20, 37)
                 );
         }
 
@@ -16475,15 +16542,15 @@ class Program
                 // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.ReadOnlySpan<int>?'
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
-                // (13,45): error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
+                // (13,45): error CS9244: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 45),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.ReadOnlySpan<int>").WithLocation(13, 45),
                 // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.Span<int>?'
                 //     static int M5() => M6(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.Span<int>?").WithLocation(18, 27),
-                // (20,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (20,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M6(System.Span<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.Span<int>").WithLocation(20, 37)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(20, 37)
                 );
         }
 
@@ -18487,7 +18554,7 @@ class Program
   IL_0019:  dup
   IL_001a:  ldind.i4
   IL_001b:  call       ""void System.Console.Write(int)""
-  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped in int)""
+  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped ref readonly int)""
   IL_0025:  dup
   IL_0026:  ldind.i4
   IL_0027:  ldc.i4.m1
@@ -18714,7 +18781,7 @@ class Program
   IL_0019:  dup
   IL_001a:  ldind.i4
   IL_001b:  call       ""void System.Console.Write(int)""
-  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped in int)""
+  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped ref readonly int)""
   IL_0025:  dup
   IL_0026:  ldind.i4
   IL_0027:  ldc.i4.m1
@@ -19161,18 +19228,12 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (7,27): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         foreach (var y in GetBuffer(x))
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(x)").WithArguments("Buffer10").WithLocation(7, 27),
                 // (7,27): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var y in GetBuffer(x))
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(x)").WithArguments("System.Span<int>").WithLocation(7, 27),
                 // (9,20): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //             return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(9, 20),
-                // (17,28): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         foreach (var yy in GetBuffer(xx))
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("Buffer10").WithLocation(17, 28),
                 // (17,28): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var yy in GetBuffer(xx))
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("System.Span<int>").WithLocation(17, 28),
@@ -20154,30 +20215,45 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InAsync_03()
         {
             var src = @"
 class Program
 {
-    static async void Test()
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
     {
+        s_buffer[1] = 3;
+
         foreach (ref int y in GetBuffer())
         {
+            y *= y;
+            System.Console.Write(y);
         }
 
         await System.Threading.Tasks.Task.Yield();
+
+        System.Console.Write(s_buffer[1]);
     }
 
-    static ref Buffer4<int> GetBuffer() => throw null;
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,26): error CS8177: Async methods cannot have by-reference locals
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(6, 26)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26));
+
+            var expectedOutput = "09009";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -20598,30 +20674,48 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InAsync_07()
         {
             var src = @"
 class Program
 {
-    static async void Test()
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
     {
+        s_buffer[1] = 3;
+
+        int i = 0;
         foreach (ref readonly int y in GetBuffer())
         {
+            System.Console.Write(y);
+            s_buffer[i++]++;
+            System.Console.Write(y);
+            System.Console.Write(' ');
         }
 
         await System.Threading.Tasks.Task.Yield();
+
+        System.Console.Write(s_buffer[1]);
     }
 
-    static ref readonly Buffer4<int> GetBuffer() => throw null;
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,35): error CS8177: Async methods cannot have by-reference locals
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (11,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(6, 35)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 35));
+
+            var expectedOutput = "01 34 01 01 4";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                verify: Verification.FailsILVerify, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                verify: Verification.FailsILVerify, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -20795,6 +20889,500 @@ class Program
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InAsync_10()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        s_buffer[1] = 3;
+
+        ref Buffer4<int> buffer = ref GetBuffer();
+        foreach (ref int y in buffer)
+        {
+            y *= y;
+            System.Console.Write(y);
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+
+        System.Console.Write(s_buffer[1]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref Buffer4<int> buffer = ref GetBuffer();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26),
+                // (11,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 26));
+
+            var expectedOutput = "09009";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InAsync_11()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        s_buffer[1] = 3;
+
+        foreach (ref int y in GetBuffer())
+        {
+            await System.Threading.Tasks.Task.Yield();
+            y *= y;
+            System.Console.Write(y);
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+
+        System.Console.Write(s_buffer[1]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26));
+
+            var expectedDiagnostics = new[]
+            {
+                // (13,13): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(13, 13),
+                // (13,18): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(13, 18),
+                // (14,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(14, 34)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InAsync_12()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        s_buffer[1] = 3;
+
+        foreach (ref int y in GetBuffer())
+        {
+            y *= y;
+            System.Console.Write(y);
+            await System.Threading.Tasks.Task.Yield();
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+
+        System.Console.Write(s_buffer[1]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, @"foreach (ref int y in GetBuffer())
+        {
+            y *= y;
+            System.Console.Write(y);
+            await System.Threading.Tasks.Task.Yield();
+        }").WithArguments("Program.GetBuffer()").WithLocation(10, 9)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InAsync_13()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        s_buffer[1] = 3;
+
+        ref Buffer4<int> buffer = ref GetBuffer();
+        foreach (ref int y in buffer)
+        {
+            y *= y;
+            System.Console.Write(y);
+            await System.Threading.Tasks.Task.Yield();
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+
+        System.Console.Write(s_buffer[1]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref Buffer4<int> buffer = ref GetBuffer();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26),
+                // (11,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 26));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,31): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(11, 31)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InAsync_14()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        Test(c).Wait();
+    }
+
+    static async Task Test(C x)
+    {
+        ref readonly Buffer4<int> f = ref x.F;
+        foreach (var y in f)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            await Task.Yield();
+            await Task.Delay(2);
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (21,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(21, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (22,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(22, 27)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InAsync_15()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        foreach (ref readonly int y in GetBuffer())
+        {
+            System.Console.Write(y);
+            await System.Threading.Tasks.Task.Yield();
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, @"foreach (ref readonly int y in GetBuffer())
+        {
+            System.Console.Write(y);
+            await System.Threading.Tasks.Task.Yield();
+        }").WithArguments("Program.GetBuffer()").WithLocation(8, 9)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InAsync_16()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        foreach (ref readonly int y in GetBuffer())
+        {
+            await System.Threading.Tasks.Task.Yield();
+            System.Console.Write(y);
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(11, 34)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InAsync_17()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        Test(c).Wait();
+    }
+
+    static async Task Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            await Task.Yield();
+            await Task.Delay(2);
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+" + Buffer4Definition;
+            var expectedOutput = " 0 1 2 3";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InAsync_18()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static async Task Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            await Task.Yield();
+            System.Console.Write(y);
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (13,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in x.F)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (16,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(16, 34)
+            };
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InAsync_19()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static async Task Test(C x)
+    {
+        ref readonly Buffer4<int> f = ref x.F;
+
+        foreach (var i in f) System.Console.Write(i);
+
+        foreach (var y in f)
+        {
+            System.Console.Write(y);
+            await Task.Yield();
+        }
+
+        foreach (var j in f) System.Console.Write(j);
+
+        foreach (var z in f)
+        {
+            System.Console.Write(z);
+            await Task.Yield();
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (13,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (17,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(17, 27),
+                // (23,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var j in f) System.Console.Write(j);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(23, 27),
+                // (25,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var z in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(25, 27)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -21037,30 +21625,53 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InIterator_03()
         {
             var src = @"
 class Program
 {
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
     static System.Collections.Generic.IEnumerable<int> Test()
     {
         foreach (ref int y in GetBuffer())
         {
+            y *= y;
+            System.Console.Write(y);
         }
 
         yield return -1;
+
+        System.Console.Write(s_buffer[2]);
     }
 
-    static ref Buffer4<int> GetBuffer() => throw null;
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,26): error CS8176: Iterators cannot have by-reference locals
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(6, 26)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26));
+
+            var expectedOutput = "0090-19";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -21333,30 +21944,56 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InIterator_07()
         {
             var src = @"
 class Program
 {
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
     static System.Collections.Generic.IEnumerable<int> Test()
     {
+        int i = 0;
         foreach (ref readonly int y in GetBuffer())
         {
+            System.Console.Write(y);
+            s_buffer[i++]++;
+            System.Console.Write(y);
+            System.Console.Write(' ');
         }
 
         yield return -1;
+
+        System.Console.Write(s_buffer[2]);
     }
 
-    static ref readonly Buffer4<int> GetBuffer() => throw null;
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,35): error CS8176: Iterators cannot have by-reference locals
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (19,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(6, 35)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 35));
+
+            var expectedOutput = "01 01 34 01 -14";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                verify: Verification.FailsILVerify, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                verify: Verification.FailsILVerify, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -21489,6 +22126,524 @@ class Program
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InIterator_10()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        ref Buffer4<int> buffer = ref GetBuffer();
+        foreach (ref int y in buffer)
+        {
+            y *= y;
+            System.Console.Write(y);
+        }
+
+        yield return -1;
+
+        System.Console.Write(s_buffer[2]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref Buffer4<int> buffer = ref GetBuffer();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26),
+                // (19,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 26));
+
+            var expectedOutput = "0090-19";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InIterator_11()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (ref int y in GetBuffer())
+        {
+            yield return 1;
+            y *= y;
+            System.Console.Write(y);
+        }
+
+        yield return -1;
+
+        System.Console.Write(s_buffer[2]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26));
+
+            var expectedDiagnostics = new[]
+            {
+                // (21,13): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(21, 13),
+                // (21,18): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(21, 18),
+                // (22,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(22, 34)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InIterator_12()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (ref int y in GetBuffer())
+        {
+            y *= y;
+            System.Console.Write(y);
+            yield return 1;
+        }
+
+        yield return -1;
+
+        System.Console.Write(s_buffer[2]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26));
+
+            var expectedDiagnostics = new[]
+            {
+                // (18,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, @"foreach (ref int y in GetBuffer())
+        {
+            y *= y;
+            System.Console.Write(y);
+            yield return 1;
+        }").WithArguments("Program.GetBuffer()").WithLocation(18, 9)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InIterator_13()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        ref Buffer4<int> buffer = ref GetBuffer();
+        foreach (ref int y in buffer)
+        {
+            y *= y;
+            System.Console.Write(y);
+            yield return 1;
+        }
+
+        yield return -1;
+
+        System.Console.Write(s_buffer[2]);
+    }
+
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref Buffer4<int> buffer = ref GetBuffer();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26),
+                // (19,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 26));
+
+            var expectedDiagnostics = new[]
+            {
+                // (19,31): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(19, 31)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InIterator_14()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        foreach (var a in Test(c))
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        ref readonly Buffer4<int> f = ref x.F;
+        foreach (var y in f)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            yield return -1;
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (20,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(20, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (21,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(21, 27)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InIterator_15()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (ref readonly int y in GetBuffer())
+        {
+            System.Console.Write(y);
+            yield return 1;
+        }
+
+        yield return -1;
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, @"foreach (ref readonly int y in GetBuffer())
+        {
+            System.Console.Write(y);
+            yield return 1;
+        }").WithArguments("Program.GetBuffer()").WithLocation(8, 9)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InIterator_16()
+        {
+            var src = @"
+class Program
+{
+    static Buffer4<int> s_buffer;
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (ref readonly int y in GetBuffer())
+        {
+            yield return 1;
+            System.Console.Write(y);
+        }
+
+        yield return -1;
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(11, 34)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InIterator_17()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        foreach (var a in Test(c))
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            yield return -1;
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+" + Buffer4Definition;
+            var expectedOutput = " 0 1 2 3";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InIterator_18()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            yield return -1;
+            System.Console.Write(y);
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (11,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in x.F)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (14,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(14, 34)
+            };
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InIterator_19()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        ref readonly Buffer4<int> f = ref x.F;
+
+        foreach (var i in f) System.Console.Write(i);
+
+        foreach (var y in f)
+        {
+            System.Console.Write(y);
+            yield return -1;
+        }
+
+        foreach (var j in f) System.Console.Write(j);
+
+        foreach (var z in f)
+        {
+            System.Console.Write(z);
+            yield return -2;
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (11,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(15, 27),
+                // (21,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var j in f) System.Console.Write(j);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(21, 27),
+                // (23,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var z in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(23, 27)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -21870,12 +23025,12 @@ struct Buffer4
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (7,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (7,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public static implicit operator System.Span<int>?(Buffer4 b) => new [] {1, 2, 3, 4}; 
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.Span<int>?").WithArguments("System.Span<int>").WithLocation(7, 37),
-                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "System.Span<int>?").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(7, 37),
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         System.Console.WriteLine(((System.Span<int>?)b).Value[0]);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.Span<int>?").WithArguments("System.Span<int>").WithLocation(12, 36)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "System.Span<int>?").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(12, 36)
                 );
         }
 
@@ -22005,6 +23160,219 @@ struct ThreeStringBuffer {
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Initialization_Await_RefStruct()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                var b = new Buffer();
+                b[0] = await GetInt();
+                b[1] = await GetInt();
+
+                static Task<int> GetInt() => Task.FromResult(42);
+                
+                [System.Runtime.CompilerServices.InlineArray(4)]
+                ref struct Buffer
+                {
+                    private int _element0;
+                }
+                """;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (3,1): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var b = new Buffer();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 1),
+                // (4,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[0] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[0]").WithArguments("Buffer").WithLocation(4, 1),
+                // (5,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[1] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[1]").WithArguments("Buffer").WithLocation(5, 1),
+                // (10,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct Buffer
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer").WithLocation(10, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[0] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[0]").WithArguments("Buffer").WithLocation(4, 1),
+                // (5,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[1] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[1]").WithArguments("Buffer").WithLocation(5, 1),
+                // (10,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct Buffer
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer").WithLocation(10, 12)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Initialization_Await()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                var b = new Buffer();
+                b[0] = await GetInt();
+                System.Console.Write(b[1]);
+                b[1] = await GetInt();
+                System.Console.Write(b[1]);
+
+                static Task<int> GetInt() => Task.FromResult(42);
+                
+                [System.Runtime.CompilerServices.InlineArray(4)]
+                struct Buffer
+                {
+                    private int _element0;
+                }
+                """;
+            foreach (var parseOptions in new[] { TestOptions.Regular12, TestOptions.RegularNext, TestOptions.RegularPreview })
+            {
+                var verifier = CompileAndVerify(src, expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "042",
+                    parseOptions: parseOptions, targetFramework: TargetFramework.Net80, verify: Verification.FailsPEVerify);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+                    {
+                      // Code size      316 (0x13c)
+                      .maxstack  3
+                      .locals init (int V_0,
+                                    int V_1,
+                                    System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                                    System.Exception V_3)
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldfld      "int Program.<<Main>$>d__0.<>1__state"
+                      IL_0006:  stloc.0
+                      .try
+                      {
+                        IL_0007:  ldloc.0
+                        IL_0008:  brfalse.s  IL_0054
+                        IL_000a:  ldloc.0
+                        IL_000b:  ldc.i4.1
+                        IL_000c:  beq        IL_00cb
+                        IL_0011:  ldarg.0
+                        IL_0012:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_0017:  initobj    "Buffer"
+                        IL_001d:  call       "System.Threading.Tasks.Task<int> Program.<<Main>$>g__GetInt|0_0()"
+                        IL_0022:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                        IL_0027:  stloc.2
+                        IL_0028:  ldloca.s   V_2
+                        IL_002a:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+                        IL_002f:  brtrue.s   IL_0070
+                        IL_0031:  ldarg.0
+                        IL_0032:  ldc.i4.0
+                        IL_0033:  dup
+                        IL_0034:  stloc.0
+                        IL_0035:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_003a:  ldarg.0
+                        IL_003b:  ldloc.2
+                        IL_003c:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_0041:  ldarg.0
+                        IL_0042:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                        IL_0047:  ldloca.s   V_2
+                        IL_0049:  ldarg.0
+                        IL_004a:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)"
+                        IL_004f:  leave      IL_013b
+                        IL_0054:  ldarg.0
+                        IL_0055:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_005a:  stloc.2
+                        IL_005b:  ldarg.0
+                        IL_005c:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_0061:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+                        IL_0067:  ldarg.0
+                        IL_0068:  ldc.i4.m1
+                        IL_0069:  dup
+                        IL_006a:  stloc.0
+                        IL_006b:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_0070:  ldloca.s   V_2
+                        IL_0072:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                        IL_0077:  stloc.1
+                        IL_0078:  ldarg.0
+                        IL_0079:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_007e:  call       "ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer, int>(ref Buffer)"
+                        IL_0083:  ldloc.1
+                        IL_0084:  stind.i4
+                        IL_0085:  ldarg.0
+                        IL_0086:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_008b:  ldc.i4.1
+                        IL_008c:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer, int>(ref Buffer, int)"
+                        IL_0091:  ldind.i4
+                        IL_0092:  call       "void System.Console.Write(int)"
+                        IL_0097:  call       "System.Threading.Tasks.Task<int> Program.<<Main>$>g__GetInt|0_0()"
+                        IL_009c:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                        IL_00a1:  stloc.2
+                        IL_00a2:  ldloca.s   V_2
+                        IL_00a4:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+                        IL_00a9:  brtrue.s   IL_00e7
+                        IL_00ab:  ldarg.0
+                        IL_00ac:  ldc.i4.1
+                        IL_00ad:  dup
+                        IL_00ae:  stloc.0
+                        IL_00af:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_00b4:  ldarg.0
+                        IL_00b5:  ldloc.2
+                        IL_00b6:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_00bb:  ldarg.0
+                        IL_00bc:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                        IL_00c1:  ldloca.s   V_2
+                        IL_00c3:  ldarg.0
+                        IL_00c4:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)"
+                        IL_00c9:  leave.s    IL_013b
+                        IL_00cb:  ldarg.0
+                        IL_00cc:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_00d1:  stloc.2
+                        IL_00d2:  ldarg.0
+                        IL_00d3:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_00d8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+                        IL_00de:  ldarg.0
+                        IL_00df:  ldc.i4.m1
+                        IL_00e0:  dup
+                        IL_00e1:  stloc.0
+                        IL_00e2:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_00e7:  ldloca.s   V_2
+                        IL_00e9:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                        IL_00ee:  stloc.1
+                        IL_00ef:  ldarg.0
+                        IL_00f0:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_00f5:  ldc.i4.1
+                        IL_00f6:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer, int>(ref Buffer, int)"
+                        IL_00fb:  ldloc.1
+                        IL_00fc:  stind.i4
+                        IL_00fd:  ldarg.0
+                        IL_00fe:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_0103:  ldc.i4.1
+                        IL_0104:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer, int>(ref Buffer, int)"
+                        IL_0109:  ldind.i4
+                        IL_010a:  call       "void System.Console.Write(int)"
+                        IL_010f:  leave.s    IL_0128
+                      }
+                      catch System.Exception
+                      {
+                        IL_0111:  stloc.3
+                        IL_0112:  ldarg.0
+                        IL_0113:  ldc.i4.s   -2
+                        IL_0115:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_011a:  ldarg.0
+                        IL_011b:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                        IL_0120:  ldloc.3
+                        IL_0121:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                        IL_0126:  leave.s    IL_013b
+                      }
+                      IL_0128:  ldarg.0
+                      IL_0129:  ldc.i4.s   -2
+                      IL_012b:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                      IL_0130:  ldarg.0
+                      IL_0131:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                      IL_0136:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+                      IL_013b:  ret
+                    }
+                    """);
+            }
         }
     }
 }

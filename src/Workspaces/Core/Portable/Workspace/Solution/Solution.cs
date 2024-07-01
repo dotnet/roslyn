@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -58,9 +59,10 @@ public partial class Solution
         Workspace workspace,
         SolutionInfo.SolutionAttributes solutionAttributes,
         SolutionOptionSet options,
-        IReadOnlyList<AnalyzerReference> analyzerReferences)
+        IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
-                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
                   workspace.PartialSemanticsEnabled))
     {
     }
@@ -499,6 +501,12 @@ public partial class Solution
 
         return WithCompilationState(_compilationState.WithProjectParseOptions(projectId, options));
     }
+
+    /// <summary>
+    /// Create a new solution instance updated to use the specified <see cref="FallbackAnalyzerOptions"/>.
+    /// </summary>
+    internal Solution WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => WithCompilationState(_compilationState.WithFallbackAnalyzerOptions(options));
 
     /// <summary>
     /// Create a new solution instance with the project specified updated to have
@@ -1181,14 +1189,11 @@ public partial class Solution
     /// specified.
     /// </summary>
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
-        => WithDocumentTexts([(documentId, text, mode)]);
+        => WithDocumentTexts([(documentId, text)], mode);
 
-    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts)
-        => WithDocumentTexts(texts.SelectAsArray(t => (t.documentId, t.text, PreservationMode.PreserveValue)));
-
-    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        foreach (var (documentId, text, mode) in texts)
+        foreach (var (documentId, text) in texts)
         {
             CheckContainsDocument(documentId);
 
@@ -1199,7 +1204,7 @@ public partial class Solution
                 throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentTexts(texts));
+        return WithCompilationState(_compilationState.WithDocumentTexts(texts, mode));
     }
 
     /// <summary>
@@ -1312,31 +1317,30 @@ public partial class Solution
     /// rooted by the specified syntax node.
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
-        => WithDocumentSyntaxRoots([(documentId, root, mode)]);
+        => WithDocumentSyntaxRoots([(documentId, root)], mode);
 
     /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
-    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots)
-        => WithDocumentSyntaxRoots(syntaxRoots.SelectAsArray(t => (t.documentId, t.root, PreservationMode.PreserveValue)));
-
-    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
-    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        foreach (var (documentId, root, mode) in syntaxRoots)
+        if (!mode.IsValid())
+            throw new ArgumentOutOfRangeException(nameof(mode));
+
+        foreach (var (documentId, root) in syntaxRoots)
         {
             CheckContainsDocument(documentId);
 
             if (root == null)
                 throw new ArgumentNullException(nameof(root));
-
-            if (!mode.IsValid())
-                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots));
+        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
     internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer));
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source
@@ -1579,8 +1583,9 @@ public partial class Solution
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
         => WithCompilationState(_compilationState.WithFrozenSourceGeneratedDocuments(documents));
 
-    internal Solution WithSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap, CancellationToken cancellationToken)
-        => WithCompilationState(_compilationState.WithSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap, cancellationToken));
+    /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
+    internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)
+        => WithCompilationState(_compilationState.UpdateSpecificSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap));
 
     /// <summary>
     /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
@@ -1635,6 +1640,14 @@ public partial class Solution
     /// Analyzer references associated with the solution.
     /// </summary>
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
+
+    /// <summary>
+    /// Fallback analyzer config options by language. The set of languages does not need to match the set of languages of projects included in the current solution snapshot
+    /// since these options can be updated independently of the projects contained in the solution.
+    /// Generally, the host is responsible for keeping these options up-to-date with whatever option store it maintains
+    /// and for making sure fallback options are available in the solution for all languages the host supports.
+    /// </summary>
+    internal ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions => SolutionState.FallbackAnalyzerOptions;
 
     /// <summary>
     /// Creates a new solution instance with the specified <paramref name="options"/>.

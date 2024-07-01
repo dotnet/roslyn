@@ -281,10 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lazyVariableSlotAllocator is null);
                 Debug.Assert(stateMachineTypeOpt is null);
                 Debug.Assert(codeCoverageSpans.IsEmpty);
-                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
-                Debug.Assert(lambdaRuntimeRudeEditsBuilder.IsEmpty());
-                Debug.Assert(closureDebugInfoBuilder.IsEmpty());
-                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
+                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty);
+                Debug.Assert(lambdaRuntimeRudeEditsBuilder.IsEmpty);
+                Debug.Assert(closureDebugInfoBuilder.IsEmpty);
+                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty);
 
                 lambdaDebugInfoBuilder.Free();
                 lambdaRuntimeRudeEditsBuilder.Free();

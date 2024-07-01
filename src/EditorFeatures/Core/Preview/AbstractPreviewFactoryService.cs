@@ -11,13 +11,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
     IThreadingContext threadingContext,
     ITextBufferFactoryService textBufferFactoryService,
+    ITextBufferCloneService textBufferCloneService,
     IContentTypeRegistryService contentTypeRegistryService,
     IProjectionBufferFactoryService projectionBufferFactoryService,
     EditorOptionsService editorOptionsService,
@@ -48,12 +49,18 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
     private const double DefaultZoomLevel = 0.75;
     private readonly ITextViewRoleSet _previewRoleSet = previewRoleSet;
     private readonly ITextBufferFactoryService _textBufferFactoryService = textBufferFactoryService;
+    private readonly ITextBufferCloneService _textBufferCloneService = textBufferCloneService;
     private readonly IContentTypeRegistryService _contentTypeRegistryService = contentTypeRegistryService;
     private readonly IProjectionBufferFactoryService _projectionBufferFactoryService = projectionBufferFactoryService;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
     private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
     private readonly IDifferenceBufferFactoryService _differenceBufferService = differenceBufferService;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService = textDocumentFactoryService;
+
+    private static readonly StringDifferenceOptions s_differenceOptions = new()
+    {
+        DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
+    };
 
     protected readonly IThreadingContext ThreadingContext = threadingContext;
 
@@ -637,7 +644,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
     }
 
-    private async ValueTask<ITextBuffer> CreateTextBufferCoreAsync(TextDocument document, IContentType? contentType, CancellationToken cancellationToken)
+    private async ValueTask<ITextBuffer> CreateTextBufferCoreAsync(TextDocument document, IContentType contentType, CancellationToken cancellationToken)
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -645,7 +652,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         var text = await document.State.GetTextAsync(cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-        var buffer = _textBufferFactoryService.CreateTextBuffer(text.ToString(), contentType);
+        var buffer = _textBufferCloneService.Clone(text, contentType);
 
         // Associate buffer with a text document with random file path to satisfy extensibility points expecting absolute file path.
         _textDocumentFactoryService.CreateTextDocument(buffer, Path.GetTempFileName());
@@ -777,10 +784,8 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
 
         diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
-        return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
-        {
-            DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
-        });
+
+        return diffService.DiffSourceTexts(oldText, newText, s_differenceOptions);
     }
 
     private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)

@@ -4,14 +4,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -201,11 +198,9 @@ public class EditorTestHostDocument : TestHostDocument
 
     private void Update(string newText)
     {
-        using (var edit = this.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
-        {
-            edit.Replace(new Span(0, this.GetTextBuffer().CurrentSnapshot.Length), newText);
-            edit.Apply();
-        }
+        using var edit = this.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+        edit.Replace(new Span(0, this.GetTextBuffer().CurrentSnapshot.Length), newText);
+        edit.Apply();
     }
 
     internal void CloseTextView()
@@ -220,17 +215,15 @@ public class EditorTestHostDocument : TestHostDocument
     internal void Update(SourceText newText)
     {
         var buffer = GetTextBuffer();
-        using (var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
+        using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+        var oldText = buffer.CurrentSnapshot.AsText();
+        var changes = newText.GetTextChanges(oldText);
+
+        foreach (var change in changes)
         {
-            var oldText = buffer.CurrentSnapshot.AsText();
-            var changes = newText.GetTextChanges(oldText);
-
-            foreach (var change in changes)
-            {
-                edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-            }
-
-            edit.Apply();
+            edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
         }
+
+        edit.Apply();
     }
 }

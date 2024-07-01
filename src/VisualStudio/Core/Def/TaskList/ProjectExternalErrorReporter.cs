@@ -15,12 +15,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -33,26 +33,26 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     internal static readonly ImmutableArray<string> CompilerDiagnosticCustomTags = [WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry];
 
     private readonly ProjectId _projectId;
+
+    /// <summary>
+    /// Passed to the error reporting service to allow current project error list filters to work.
+    /// </summary>
+    private readonly Guid _projectHierarchyGuid;
     private readonly string _errorCodePrefix;
     private readonly string _language;
 
     private readonly VisualStudioWorkspaceImpl _workspace;
 
-    [Obsolete("This is a compatibility shim for F#; please do not use it.")]
-    public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
-        : this(projectId, errorCodePrefix, LanguageNames.FSharp, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
-    {
-    }
-
     private DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _workspace.ExternalErrorDiagnosticUpdateSource.AnalyzerInfoCache;
 
-    public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
+    public ProjectExternalErrorReporter(ProjectId projectId, Guid projectHierarchyGuid, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
     {
         Debug.Assert(projectId != null);
         Debug.Assert(errorCodePrefix != null);
         Debug.Assert(workspace != null);
 
         _projectId = projectId;
+        _projectHierarchyGuid = projectHierarchyGuid;
         _errorCodePrefix = errorCodePrefix;
         _language = language;
         _workspace = workspace;
@@ -82,8 +82,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     public int AddNewErrors(IVsEnumExternalErrors pErrors)
     {
-        var projectErrors = new HashSet<DiagnosticData>();
-        var documentErrorsMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
+        using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
 
         var errors = new ExternalError[1];
         var project = _workspace.CurrentSolution.GetProject(_projectId);
@@ -95,13 +94,12 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                 var diagnostic = TryCreateDocumentDiagnosticItem(error);
                 if (diagnostic != null)
                 {
-                    var diagnostics = documentErrorsMap.GetOrAdd(diagnostic.DocumentId, _ => new HashSet<DiagnosticData>());
-                    diagnostics.Add(diagnostic);
+                    allDiagnostics.Add(diagnostic);
                     continue;
                 }
             }
 
-            projectErrors.Add(GetDiagnosticData(
+            allDiagnostics.Add(GetDiagnosticData(
                 documentId: null,
                 _projectId,
                 _workspace,
@@ -113,7 +111,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                 AnalyzerInfoCache));
         }
 
-        DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
+        DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, allDiagnostics.ToImmutableAndClear());
         return VSConstants.S_OK;
     }
 
@@ -252,14 +250,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                 new LinePosition(iEndLine, iEndColumn)),
                 AnalyzerInfoCache);
 
-        if (documentId == null)
-        {
-            DiagnosticProvider.AddNewErrors(_projectId, diagnostic);
-        }
-        else
-        {
-            DiagnosticProvider.AddNewErrors(documentId, diagnostic);
-        }
+        DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
     }
 
     public int ClearErrors()

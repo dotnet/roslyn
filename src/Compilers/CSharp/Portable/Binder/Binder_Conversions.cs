@@ -454,15 +454,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     diagnostics.ReportUseSite(elementField, syntax);
 
-                    Symbol? unsafeAsMethod = null;
-
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {
                         if (CheckValueKind(syntax, source, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                         {
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T, diagnostics, syntax: syntax);
-                            unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
                         }
                         else
                         {
@@ -476,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (CheckValueKind(syntax, source, BindValueKind.RefersToLocation | BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                         {
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
-                            unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
                         }
                         else
                         {
@@ -484,12 +482,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
-                    {
-                        method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(source.Type), elementField.TypeWithAnnotations)).
-                            CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, syntax.GetLocation(), diagnostics));
-                    }
+                    CheckInlineArrayTypeIsSupported(syntax, source.Type, elementField.Type, diagnostics);
                 }
+            }
+        }
+
+        private static void CheckInlineArrayTypeIsSupported(SyntaxNode syntax, TypeSymbol inlineArrayType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        {
+            if (elementType.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadTypeArgument, syntax, elementType);
+            }
+            else if (inlineArrayType.IsRestrictedType())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadTypeArgument, syntax, inlineArrayType);
             }
         }
 
@@ -702,6 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics);
                     builder.Add(convertedElement!);
                 }
+                conversion.MarkUnderlyingConversionsChecked();
             }
 
             return new BoundCollectionExpression(
@@ -1448,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
 
-        private void GenerateImplicitConversionErrorForCollectionExpression(
+        internal void GenerateImplicitConversionErrorForCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
@@ -1638,7 +1645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool targetTyped = conversionIfTargetTyped is { };
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
-            ImmutableArray<Conversion> underlyingConversions = conversionIfTargetTyped.GetValueOrDefault().UnderlyingConversions;
+            var conversion = conversionIfTargetTyped.GetValueOrDefault();
+            ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
             var condition = source.Condition;
             hasErrors |= source.HasErrors || destination.IsErrorType();
 
@@ -1650,6 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetTyped
                 ? CreateConversion(source.Alternative.Syntax, source.Alternative, underlyingConversions[1], isCast: false, conversionGroupOpt: null, destination, diagnostics)
                 : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
+            conversion.MarkUnderlyingConversionsChecked();
             var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
             hasErrors |= constantValue?.IsBad == true;
             if (targetTyped && !destination.IsErrorType() && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureTargetTypedConditional))
@@ -1689,6 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
             }
+            conversion.MarkUnderlyingConversionsChecked();
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
@@ -1717,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     syntax,
-                    source,
+                    BindToNaturalType(source, diagnostics),
                     conversion,
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,

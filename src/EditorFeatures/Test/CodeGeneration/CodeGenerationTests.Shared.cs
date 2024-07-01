@@ -9,18 +9,18 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration;
+
+public partial class CodeGenerationTests
 {
-    public partial class CodeGenerationTests
+    [UseExportProvider]
+    public class Shared
     {
-        [UseExportProvider]
-        public class Shared
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+        public async Task TestSorting()
         {
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public async Task TestSorting()
-            {
-                var initial = "namespace [|N|] { }";
-                var generationSource = @"
+            var initial = "namespace [|N|] { }";
+            var generationSource = @"
 using System;
 
 namespace N
@@ -134,7 +134,7 @@ namespace N
         public string FAccessE;
     }
 }";
-                var expected = @"namespace N
+            var expected = @"namespace N
 {
     public class C
     {
@@ -342,12 +342,12 @@ namespace N
         private delegate void DAccessA();
     }
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    context: new CodeGenerationContext(generateMethodBodies: false),
-                    forceLanguage: LanguageNames.CSharp);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+                context: new CodeGenerationContext(generateMethodBodies: false),
+                forceLanguage: LanguageNames.CSharp);
 
-                initial = "Namespace [|N|] \n End Namespace";
-                expected = @"Namespace N
+            initial = "Namespace [|N|] \n End Namespace";
+            expected = @"Namespace N
     Public Class C
         Public Const FConst As String
         Public Shared FStatic As String
@@ -509,79 +509,79 @@ namespace N
         Private Delegate Sub DAccessA()
     End Class
 End Namespace";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    context: new CodeGenerationContext(generateMethodBodies: false),
-                    forceLanguage: LanguageNames.VisualBasic);
-            }
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+                context: new CodeGenerationContext(generateMethodBodies: false),
+                forceLanguage: LanguageNames.VisualBasic);
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public async Task TestSortingDefaultTypeMemberAccessibility1()
-            {
-                var generationSource = "public class [|C|] { private string B; public string C; }";
-                var initial = "public class [|C|] { string A; }";
-                var expected = @"public class C {
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+        public async Task TestSortingDefaultTypeMemberAccessibility1()
+        {
+            var generationSource = "public class [|C|] { private string B; public string C; }";
+            var initial = "public class [|C|] { string A; }";
+            var expected = @"public class C {
     public string C;
     string A;
     private string B;
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
-                initial = "public struct [|S|] { string A; }";
-                expected = @"public struct S {
+            initial = "public struct [|S|] { string A; }";
+            expected = @"public struct S {
     public string C;
     string A;
     private string B;
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
-                initial = "Public Class [|C|] \n Dim A As String \n End Class";
-                expected = @"Public Class C
+            initial = "Public Class [|C|] \n Dim A As String \n End Class";
+            expected = @"Public Class C
     Public C As String
     Dim A As String
     Private B As String
 End Class";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
-                initial = "Public Module [|M|] \n Dim A As String \n End Module";
-                expected = @"Public Module M
+            initial = "Public Module [|M|] \n Dim A As String \n End Module";
+            expected = @"Public Module M
     Public C As String
     Dim A As String
     Private B As String
 End Module";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
-                initial = "Public Structure [|S|] \n Dim A As String \n End Structure";
-                expected = @"Public Structure S 
+            initial = "Public Structure [|S|] \n Dim A As String \n End Structure";
+            expected = @"Public Structure S 
  Dim A As String
     Public C As String
     Private B As String
 End Structure";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
-            }
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public async Task TestDefaultTypeMemberAccessibility2()
-            {
-                var codeGenOptionNoBody = new CodeGenerationContext(generateMethodBodies: false);
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+        public async Task TestDefaultTypeMemberAccessibility2()
+        {
+            var codeGenOptionNoBody = new CodeGenerationContext(generateMethodBodies: false);
 
-                var generationSource = "public class [|C|] { private void B(){} public void C(){}  }";
-                var initial = "public interface [|I|] { void A(); }";
-                var expected = @"public interface I { void A();
+            var generationSource = "public class [|C|] { private void B(){} public void C(){}  }";
+            var initial = "public interface [|I|] { void A(); }";
+            var expected = @"public interface I { void A();
     void B();
     void C();
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, context: codeGenOptionNoBody);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, context: codeGenOptionNoBody);
 
-                initial = "Public Interface [|I|] \n Sub A() \n End Interface";
-                expected = @"Public Interface I 
+            initial = "Public Interface [|I|] \n Sub A() \n End Interface";
+            expected = @"Public Interface I 
  Sub A()
     Sub B()
     Sub C()
 End Interface";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, context: codeGenOptionNoBody);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, context: codeGenOptionNoBody);
 
-                initial = "Public Class [|C|] \n Sub A() \n End Sub \n End Class";
-                expected = @"Public Class C 
+            initial = "Public Class [|C|] \n Sub A() \n End Sub \n End Class";
+            expected = @"Public Class C 
  Sub A() 
  End Sub
 
@@ -591,10 +591,10 @@ End Interface";
     Private Sub B()
     End Sub
 End Class";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
-                initial = "Public Module [|M|] \n Sub A() \n End Sub \n End Module";
-                expected = @"Public Module M 
+            initial = "Public Module [|M|] \n Sub A() \n End Sub \n End Module";
+            expected = @"Public Module M 
  Sub A() 
  End Sub
 
@@ -604,63 +604,63 @@ End Class";
     Private Sub B()
     End Sub
 End Module";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
-            }
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public async Task TestDefaultNamespaceMemberAccessibility1()
-            {
-                var generationSource = "internal class [|B|]{}";
-                var initial = "namespace [|N|] { class A{} }";
-                var expected = @"namespace N { class A{}
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+        public async Task TestDefaultNamespaceMemberAccessibility1()
+        {
+            var generationSource = "internal class [|B|]{}";
+            var initial = "namespace [|N|] { class A{} }";
+            var expected = @"namespace N { class A{}
 
     internal class B
     {
     }
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
 
-                initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
-                expected = @"Namespace N 
+            initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
+            expected = @"Namespace N 
  Class A 
  End Class
 
     Friend Class B
     End Class
 End Namespace";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
-            }
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public async Task TestDefaultNamespaceMemberAccessibility2()
-            {
-                var generationSource = "public class [|C|]{}";
-                var initial = "namespace [|N|] { class A{} }";
-                var expected = "namespace N { public class C { } class A{} }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+        public async Task TestDefaultNamespaceMemberAccessibility2()
+        {
+            var generationSource = "public class [|C|]{}";
+            var initial = "namespace [|N|] { class A{} }";
+            var expected = "namespace N { public class C { } class A{} }";
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
 
-                initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
-                expected = @"Namespace N
+            initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
+            expected = @"Namespace N
     Public Class C
     End Class
 
     Class A 
  End Class 
  End Namespace";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
-            }
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-            public async Task TestDocumentationComment()
-            {
-                var generationSource = @"
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestDocumentationComment()
+        {
+            var generationSource = @"
 public class [|C|]
 {
     /// <summary>When in need, a documented method is a friend, indeed.</summary>
     public C() { }
 }";
-                var initial = "public class [|C|] { }";
-                var expected = @"public class C
+            var initial = "public class [|C|] { }";
+            var expected = @"public class C
 {
     /// 
     /// <member name=""M:C.#ctor"">
@@ -669,15 +669,15 @@ public class [|C|]
     /// 
     public C();
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    context: new CodeGenerationContext(generateMethodBodies: false, generateDocumentationComments: true),
-                    onlyGenerateMembers: true);
-            }
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+                context: new CodeGenerationContext(generateMethodBodies: false, generateDocumentationComments: true),
+                onlyGenerateMembers: true);
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public async Task TestModifiers()
-            {
-                var generationSource = @"
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task TestModifiers()
+        {
+            var generationSource = @"
 namespace [|N|]
 {
     public class A 
@@ -696,8 +696,8 @@ namespace [|N|]
     }
 }";
 
-                var initial = "namespace [|N|] { }";
-                var expected = @"namespace N {
+            var initial = "namespace [|N|] { }";
+            var expected = @"namespace N {
     namespace N
     {
         public class A
@@ -717,11 +717,11 @@ namespace [|N|]
         }
     }
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    context: new CodeGenerationContext(generateMethodBodies: false));
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+                context: new CodeGenerationContext(generateMethodBodies: false));
 
-                var initialVB = "Namespace [|N|] End Namespace";
-                var expectedVB = @"Namespace N End NamespaceNamespace N
+            var initialVB = "Namespace [|N|] End Namespace";
+            var expectedVB = @"Namespace N End NamespaceNamespace N
         Public Class A
             Public Shared ReadOnly Property Property1 As String
             Public Overridable ReadOnly Property [Property] As String
@@ -734,9 +734,8 @@ namespace [|N|]
             Public NotOverridable Overrides Sub Method1()
         End Class
     End Namespace";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initialVB, expectedVB,
-                    context: new CodeGenerationContext(generateMethodBodies: false));
-            }
+            await TestGenerateFromSourceSymbolAsync(generationSource, initialVB, expectedVB,
+                context: new CodeGenerationContext(generateMethodBodies: false));
         }
     }
 }

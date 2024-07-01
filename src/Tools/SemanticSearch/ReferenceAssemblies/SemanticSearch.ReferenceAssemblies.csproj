@@ -5,6 +5,7 @@
 
     <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BuildTaskTfm>
     <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
+    <_BuildTaskAssemblyFile>$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll</_BuildTaskAssemblyFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +27,7 @@
     in subsequent builds because the task assembly can't be written by the
     next build.
   -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll" TaskFactory="TaskHostFactory" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" />
 
   <Target Name="_CalculateFilteredReferenceAssembliesInputsAndOutputs" DependsOnTargets="ResolveAssemblyReferences">
     <PropertyGroup>
@@ -49,7 +50,7 @@
     </ItemGroup>
   </Target>
   
-  <Target Name="GenerateFilteredReferenceAssemblies" BeforeTargets="CoreCompile" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
+  <Target Name="GenerateFilteredReferenceAssemblies" Condition="Exists('$(_BuildTaskAssemblyFile)')" BeforeTargets="CoreCompile" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
 
     <MakeDir Directories="$(_OutputDir)" />
     <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" />

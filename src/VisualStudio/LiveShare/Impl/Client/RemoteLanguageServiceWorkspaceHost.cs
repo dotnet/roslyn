@@ -12,10 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
-using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -92,13 +89,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         public async Task EnsureProjectsLoadedAsync(CancellationToken cancellationToken)
         {
-            using (var token = cancellationToken.Register(() =>
+            using var token = cancellationToken.Register(() =>
             {
                 _projectsLoadedTaskCompletionSource.SetCanceled();
-            }))
-            {
-                await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
-            }
+            });
+            await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
         }
 
         private async Task LoadRoslynPackageAsync(CancellationToken cancellationToken)

@@ -22,7 +22,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DeclareAsNullable), Shared]
-internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     // We want to distinguish different situations:
     // 1. local null assignments: `return null;`, `local = null;`, `parameter = null;` (high confidence that the null is introduced deliberately and the API should be updated)
@@ -31,12 +33,6 @@ internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFix
     private const string AssigningNullLiteralLocallyEquivalenceKey = nameof(AssigningNullLiteralLocallyEquivalenceKey);
     private const string AssigningNullLiteralRemotelyEquivalenceKey = nameof(AssigningNullLiteralRemotelyEquivalenceKey);
     private const string ConditionalOperatorEquivalenceKey = nameof(ConditionalOperatorEquivalenceKey);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpDeclareAsNullableCodeFixProvider()
-    {
-    }
 
     // warning CS8603: Possible null reference return.
     // warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -48,49 +44,31 @@ internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFix
     {
         var cancellationToken = context.CancellationToken;
 
-        var model = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var node = context.Diagnostics.First().Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-        var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node, cancellationToken);
+        var declarationTypeToFix = await TryGetDeclarationTypeToFixAsync(
+            context.Document, model: null, node, cancellationToken).ConfigureAwait(false);
         if (declarationTypeToFix == null)
             return;
 
-        RegisterCodeFix(context, CSharpCodeFixesResources.Declare_as_nullable, GetEquivalenceKey(node, model));
+        RegisterCodeFix(context, CSharpCodeFixesResources.Declare_as_nullable, GetEquivalenceKey(node));
     }
 
-    private static string GetEquivalenceKey(SyntaxNode node, SemanticModel model)
+    private static string GetEquivalenceKey(SyntaxNode node)
     {
-        return IsRemoteApiUsage(node, model)
-            ? AssigningNullLiteralRemotelyEquivalenceKey
-            : node.IsKind(SyntaxKind.ConditionalAccessExpression)
-                ? ConditionalOperatorEquivalenceKey
-                : AssigningNullLiteralLocallyEquivalenceKey;
+        // M(null) could be used in a test
+        if (node.Parent is ArgumentSyntax)
+            return AssigningNullLiteralRemotelyEquivalenceKey;
 
-        static bool IsRemoteApiUsage(SyntaxNode node, SemanticModel model)
-        {
-            if (node.IsParentKind(SyntaxKind.Argument))
-            {
-                // M(null) could be used in a test
-                return true;
-            }
+        // x.field could be used in a test
+        if (node.Parent is AssignmentExpressionSyntax)
+            return AssigningNullLiteralRemotelyEquivalenceKey;
 
-            if (node.Parent is AssignmentExpressionSyntax assignment)
-            {
-                var symbol = model.GetSymbolInfo(assignment.Left).Symbol;
-                if (symbol is IFieldSymbol)
-                {
-                    // x.field could be used in a test
-                    return true;
-                }
-                else if (symbol is IPropertySymbol)
-                {
-                    // x.Property could be used in a test
-                    return true;
-                }
-            }
+        if (node.IsKind(SyntaxKind.ConditionalAccessExpression))
+            return ConditionalOperatorEquivalenceKey;
 
-            return false;
-        }
+        // Default for everything else.  Can create more categories here in the future if we need to.
+        return AssigningNullLiteralLocallyEquivalenceKey;
     }
 
     protected override async Task FixAllAsync(
@@ -108,20 +86,22 @@ internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFix
         foreach (var diagnostic in diagnostics)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            MakeDeclarationNullable(editor, model, node, alreadyHandled, cancellationToken);
+            await MakeDeclarationNullableAsync(
+                document, model, editor, node, alreadyHandled, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string? equivalenceKey, CancellationToken cancellationToken)
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
     {
         var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-        return equivalenceKey == GetEquivalenceKey(node, model);
+        return equivalenceKey == GetEquivalenceKey(node);
     }
 
-    private static void MakeDeclarationNullable(
-        SyntaxEditor editor, SemanticModel model, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, CancellationToken cancellationToken)
+    private static async Task MakeDeclarationNullableAsync(
+        Document document, SemanticModel model, SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, CancellationToken cancellationToken)
     {
-        var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node, cancellationToken);
+        var declarationTypeToFix = await TryGetDeclarationTypeToFixAsync(
+            document, model, node, cancellationToken).ConfigureAwait(false);
         if (declarationTypeToFix != null && alreadyHandled.Add(declarationTypeToFix))
         {
             var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix.WithoutTrivia()).WithTriviaFrom(declarationTypeToFix);
@@ -129,8 +109,8 @@ internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFix
         }
     }
 
-    private static TypeSyntax? TryGetDeclarationTypeToFix(
-        SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+    private static async Task<TypeSyntax?> TryGetDeclarationTypeToFixAsync(
+        Document document, SemanticModel? model, SyntaxNode node, CancellationToken cancellationToken)
     {
         if (!IsExpressionSupported(node))
             return null;
@@ -186,6 +166,8 @@ internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFix
             return variableDeclaration.Variables.Count == 1 ? variableDeclaration.Type : null;
         }
 
+        model ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
         // x = null;
         if (node.Parent is AssignmentExpressionSyntax assignment)
         {
@@ -234,6 +216,7 @@ internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFix
             var symbol = model.GetSymbolInfo(invocation.Expression, cancellationToken).Symbol;
             if (symbol is not IMethodSymbol method || method.PartialImplementationPart is not null)
             {
+                // https://github.com/dotnet/roslyn/issues/73772: should we also bail out on a partial property?
                 // We don't handle partial methods yet
                 return null;
             }
