@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>`params` collections</description></item>
         /// <item><description>ref/unsafe in iterators/async</description></item>
         /// <item><description>`allows ref struct` constraint</description></item>
+        /// <item><description>Partial properties</description></item>
         /// </list>
         /// </summary>
         CSharp13 = 1300,
