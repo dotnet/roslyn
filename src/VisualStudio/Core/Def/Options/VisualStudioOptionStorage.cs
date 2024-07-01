@@ -165,6 +165,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_prefer_simple_using_statement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimpleUsingStatement")},
         {"csharp_prefer_static_local_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferStaticLocalFunction")},
         {"csharp_prefer_static_anonymous_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferStaticAnonymousFunction")},
+        {"csharp_prefer_system_threading_lock",  new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSystemThreadingLock")},
         {"csharp_preferred_modifier_order", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredModifierOrder")},
         {"csharp_preserve_single_line_blocks", new RoamingProfileStorage("TextEditor.CSharp.Specific.WrappingPreserveSingleLine")},
         {"csharp_preserve_single_line_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine")},
