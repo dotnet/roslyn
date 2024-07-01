@@ -28,11 +28,13 @@ internal sealed class CSharpEditorInlineRenameService(
 {
     private const int NumberOfContextLines = 5;
 
+    public override bool IsRenameContextSupported => true;
+
     /// <summary>
     /// Uses semantic information of renamed symbol to produce a map containing contextual information for use in Copilot rename feature
     /// </summary>
     /// <returns>Map where key indicates the kind of semantic information, and value is an array of relevant code snippets.</returns>
-    protected override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextCoreAsync(
+    public override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(
         IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<TextSpan>.GetInstance(out var seen);

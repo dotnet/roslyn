@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             _renameService = renameService;
         }
 
-        public bool IsRenameContextSupported => true;
+        public bool IsRenameContextSupported => false;
 
         public Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
         {
