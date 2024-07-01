@@ -22,8 +22,8 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
     where TExpressionSyntax : SyntaxNode
 {
     /// <summary>
-    /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix,
-    /// but logs telemetry
+    /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix, but
+    /// logs telemetry.
     /// </summary>
     private const int MaximumConversionOptions = 3;
 
@@ -31,9 +31,9 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
     protected abstract void GetPartsOfCastOrConversionExpression(TExpressionSyntax expression, out SyntaxNode type, out TExpressionSyntax castedExpression);
 
     /// <summary>
-    /// Output the current type information of the target node and the conversion type(s) that the target node is
-    /// going to be cast by. Implicit downcast can appear on Variable Declaration, Return Statement, Function
-    /// Invocation, Attribute
+    /// Output the current type information of the target node and the conversion type(s) that the target node is going
+    /// to be cast by. Implicit downcast can appear on Variable Declaration, Return Statement, Function Invocation,
+    /// Attribute
     /// <para/>
     /// For example:
     /// Base b; Derived d = [||]b;
@@ -42,15 +42,26 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
     /// </summary>
     /// <param name="diagnosticId">The Id of diagnostic</param>
     /// <param name="spanNode">the innermost node that contains the span</param>
-    /// <param name="potentialConversionTypes"> Output (target expression, potential conversion type) pairs</param>
     /// <returns>
-    /// True, if there is at least one potential conversion pair, and they are assigned to
-    /// "potentialConversionTypes" False, if there is no potential conversion pair.
+    /// Output (target expression, potential conversion type) pairs.
     /// </returns>
-    protected abstract bool TryGetTargetTypeInfo(
+    protected ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> GetPotentialTargetTypes(
         Document document, SemanticModel semanticModel, SyntaxNode root,
-        string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken,
-        out ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes);
+        string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)>.GetInstance(out var candidates);
+
+        this.AddPotentialTargetTypes(document, semanticModel, root, diagnosticId, spanNode, candidates, cancellationToken);
+        candidates.RemoveDuplicates();
+
+        return FilterValidPotentialConversionTypes(document, semanticModel, candidates);
+    }
+
+    protected abstract void AddPotentialTargetTypes(
+        Document document, SemanticModel semanticModel, SyntaxNode root,
+        string diagnosticId, TExpressionSyntax spanNode,
+        ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)> candidates,
+        CancellationToken cancellationToken);
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -66,41 +77,40 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
         if (spanNode == null)
             return;
 
-        var hasSolution = TryGetTargetTypeInfo(document,
-            semanticModel, root, diagnostic.Id, spanNode, cancellationToken,
-            out var potentialConversionTypes);
-        if (!hasSolution)
-            return;
+        var potentialConversionTypes = GetPotentialTargetTypes(
+            document, semanticModel, root, diagnostic.Id, spanNode, cancellationToken);
 
         if (potentialConversionTypes.Length == 1)
         {
             RegisterCodeFix(context, CodeFixesResources.Add_explicit_cast, nameof(CodeFixesResources.Add_explicit_cast));
-            return;
         }
-
-        using var actions = TemporaryArray<CodeAction>.Empty;
-
-        // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
-        for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
+        else if (potentialConversionTypes.Length > 1)
         {
-            var targetNode = potentialConversionTypes[i].node;
-            var conversionType = potentialConversionTypes[i].type;
-            var title = GetSubItemName(semanticModel, targetNode.SpanStart, conversionType);
+            using var actions = TemporaryArray<CodeAction>.Empty;
 
-            actions.Add(CodeAction.Create(
-                title,
-                cancellationToken =>
-                {
-                    var (finalTarget, replacement) = ApplyFix(document, semanticModel, targetNode, conversionType, cancellationToken);
+            // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
+            foreach (var (targetNode, conversionType) in potentialConversionTypes)
+            {
+                var title = GetSubItemName(semanticModel, targetNode.SpanStart, conversionType);
 
-                    return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(finalTarget, replacement)));
-                },
-                title));
+                actions.Add(CodeAction.Create(
+                    title,
+                    cancellationToken =>
+                    {
+                        var (finalTarget, replacement) = ApplyFix(document, semanticModel, targetNode, conversionType, cancellationToken);
+
+                        return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(finalTarget, replacement)));
+                    },
+                    title));
+
+                if (actions.Count == MaximumConversionOptions)
+                    break;
+            }
+
+            context.RegisterCodeFix(
+                CodeAction.Create(CodeFixesResources.Add_explicit_cast, actions.ToImmutableAndClear(), isInlinable: false),
+                context.Diagnostics);
         }
-
-        context.RegisterCodeFix(
-            CodeAction.Create(CodeFixesResources.Add_explicit_cast, actions.ToImmutableAndClear(), isInlinable: false),
-            context.Diagnostics);
     }
 
     private (SyntaxNode finalTarget, SyntaxNode finalReplacement) ApplyFix(
@@ -145,20 +155,17 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
             conversionType.ToMinimalDisplayString(semanticModel, position));
     }
 
-    protected static ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
+    private static ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
         Document document,
         SemanticModel semanticModel,
-        ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)> mutablePotentialConversionTypes)
+        ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)> candidates)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
-        using var _ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var validPotentialConversionTypes);
-        foreach (var conversionTuple in mutablePotentialConversionTypes)
+        using var _ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(candidates.Count, out var validPotentialConversionTypes);
+        foreach (var (targetNode, targetNodeConversionType) in candidates)
         {
-            var targetNode = conversionTuple.node;
-            var targetNodeConversionType = conversionTuple.type;
-
             // For cases like object creation expression. for example:
             // Derived d = [||]new Base();
             // It is always invalid except the target node has explicit conversion operator or is numeric.
@@ -168,10 +175,9 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
                 continue;
             }
 
-            validPotentialConversionTypes.Add(conversionTuple);
+            validPotentialConversionTypes.Add((targetNode, targetNodeConversionType));
         }
 
-        validPotentialConversionTypes.RemoveDuplicates();
         return validPotentialConversionTypes.ToImmutableAndClear();
     }
 
@@ -208,8 +214,9 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
             (semanticModel, root, spanNode) =>
             {
                 // All diagnostics have the same error code
-                if (TryGetTargetTypeInfo(document, semanticModel, root, diagnostics[0].Id, spanNode, cancellationToken, out var potentialConversionTypes) &&
-                    potentialConversionTypes.Length == 1)
+                var potentialConversionTypes = GetPotentialTargetTypes(
+                    document, semanticModel, root, diagnostics[0].Id, spanNode, cancellationToken);
+                if (potentialConversionTypes.Length == 1)
                 {
                     var (newTarget, newReplacement) = ApplyFix(document, semanticModel, potentialConversionTypes[0].node, potentialConversionTypes[0].type, cancellationToken);
                     return root.ReplaceNode(newTarget, newReplacement);

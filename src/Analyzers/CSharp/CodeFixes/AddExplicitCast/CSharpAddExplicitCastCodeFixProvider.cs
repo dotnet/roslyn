@@ -47,26 +47,23 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
     protected override ExpressionSyntax Cast(ExpressionSyntax expression, ITypeSymbol type)
         => expression.Cast(type);
 
-    protected override bool TryGetTargetTypeInfo(
+    protected override void AddPotentialTargetTypes(
         Document document,
         SemanticModel semanticModel,
         SyntaxNode root,
         string diagnosticId,
         ExpressionSyntax spanNode,
-        CancellationToken cancellationToken,
-        out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
+        ArrayBuilder<(ExpressionSyntax node, ITypeSymbol type)> candidates,
+        CancellationToken cancellationToken)
     {
-        potentialConversionTypes = [];
-        using var _ = ArrayBuilder<(ExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
-
         if (diagnosticId == CS0266)
         {
             var inferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
             var conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault: false, cancellationToken);
             if (conversionType is null)
-                return false;
+                return;
 
-            mutablePotentialConversionTypes.Add((spanNode, conversionType));
+            candidates.Add((spanNode, conversionType));
         }
         else if (diagnosticId == CS1503)
         {
@@ -75,7 +72,7 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
                 && argumentList.Parent is SyntaxNode invocationNode)
             {
                 // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
-                mutablePotentialConversionTypes.AddRange(_argumentFixer.GetPotentialConversionTypes(
+                candidates.AddRange(_argumentFixer.GetPotentialConversionTypes(
                     document, semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
             }
             else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
@@ -83,14 +80,10 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
                 && attributeArgumentList.Parent is AttributeSyntax attributeNode)
             {
                 // attribute node
-                mutablePotentialConversionTypes.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
+                candidates.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
                     document, semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
             }
         }
-
-        // clear up duplicate types
-        potentialConversionTypes = FilterValidPotentialConversionTypes(document, semanticModel, mutablePotentialConversionTypes);
-        return !potentialConversionTypes.IsEmpty;
     }
 
     protected override (SyntaxNode finalTarget, SyntaxNode finalReplacement) Cast(

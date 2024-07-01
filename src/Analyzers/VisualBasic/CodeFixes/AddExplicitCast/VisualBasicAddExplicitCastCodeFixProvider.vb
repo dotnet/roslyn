@@ -53,16 +53,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return expression.Cast(type, isResultPredefinedCast:=Nothing)
         End Function
 
-        Protected Overrides Function TryGetTargetTypeInfo(
+        Protected Overrides Sub AddPotentialTargetTypes(
                 document As Document,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,
                 diagnosticId As String,
                 spanNode As ExpressionSyntax,
-                cancellationToken As CancellationToken,
-                ByRef potentialConversionTypes As ImmutableArray(Of (ExpressionSyntax, ITypeSymbol))) As Boolean
-            potentialConversionTypes = ImmutableArray(Of (ExpressionSyntax, ITypeSymbol)).Empty
-            Dim mutablePotentialConversionTypes = ArrayBuilder(Of (ExpressionSyntax, ITypeSymbol)).GetInstance()
+                candidates As ArrayBuilder(Of (node As ExpressionSyntax, type As ITypeSymbol)),
+                cancellationToken As CancellationToken)
 
             Select Case diagnosticId
                 Case BC30512, BC42016
@@ -72,14 +70,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         Dim argumentList = DirectCast(argument.Parent, ArgumentListSyntax)
                         Dim invocationNode = argumentList.Parent
 
-                        mutablePotentialConversionTypes.AddRange(_fixer.GetPotentialConversionTypes(
+                        candidates.AddRange(_fixer.GetPotentialConversionTypes(
                             document, semanticModel, root, argument, argumentList, invocationNode, cancellationToken))
                     Else
                         ' spanNode is a right expression in assignment operation
                         Dim inferenceService = document.GetRequiredLanguageService(Of ITypeInferenceService)()
                         Dim conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault:=False,
                             cancellationToken)
-                        mutablePotentialConversionTypes.Add((spanNode, conversionType))
+                        candidates.Add((spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
                     Dim invocationExpressionNode = spanNode.GetAncestors(Of InvocationExpressionSyntax).FirstOrDefault(
@@ -90,18 +88,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
                     ' Collect available cast pairs without target argument
                     If invocationExpressionNode IsNot Nothing Then
-                        mutablePotentialConversionTypes.AddRange(
+                        candidates.AddRange(
                             GetPotentialConversionTypesWithInvocationNode(document, semanticModel, root, invocationExpressionNode, cancellationToken))
                     ElseIf attributeNode IsNot Nothing Then
-                        mutablePotentialConversionTypes.AddRange(
+                        candidates.AddRange(
                             GetPotentialConversionTypesWithInvocationNode(document, semanticModel, root, attributeNode, cancellationToken))
                     End If
             End Select
-
-            ' clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(document, semanticModel, mutablePotentialConversionTypes)
-            Return Not potentialConversionTypes.IsEmpty
-        End Function
+        End Sub
 
         ''' <summary>
         ''' Find the first argument that need to be cast
@@ -113,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         ''' </returns>
         Private Shared Function GetTargetArgument(
                 document As Document,
-                SemanticModel As SemanticModel,
+                semanticModel As SemanticModel,
                 parameters As ImmutableArray(Of IParameterSymbol),
                 arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As ArgumentSyntax
             If parameters.Length = 0 Then
@@ -144,14 +138,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 If parameters(parameterIndex).IsParams Then
                     Dim paramsType = TryCast(parameterType, IArrayTypeSymbol)
                     If paramsType IsNot Nothing Then
-                        Dim conversion = SemanticModel.ClassifyConversion(argumentExpression, paramsType.ElementType)
+                        Dim conversion = semanticModel.ClassifyConversion(argumentExpression, paramsType.ElementType)
                         If conversion.Exists AndAlso Not conversion.IsIdentity Then
                             Return arguments(i)
                         End If
                     End If
                 End If
 
-                Dim argumentConversion = SemanticModel.ClassifyConversion(argumentExpression, parameterType)
+                Dim argumentConversion = semanticModel.ClassifyConversion(argumentExpression, parameterType)
                 If argumentConversion.Exists AndAlso Not argumentConversion.IsIdentity Then
                     Return arguments(i)
                 End If
