@@ -3318,7 +3318,7 @@ public partial class AddExplicitCastTests(ITestOutputHelper logger)
                 {
                     int a = 0;
                     double b = 0;
-                    a = ((int)(b += 1));
+                    a = (int)(b += 1);
                 }
             }
             """);

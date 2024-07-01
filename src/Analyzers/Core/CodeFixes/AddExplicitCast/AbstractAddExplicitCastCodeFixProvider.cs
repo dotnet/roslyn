@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
@@ -123,26 +123,39 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
-        // if the node we're about to cast already has a cast, replace that cast if both are reference-identity downcasts.
-        if (syntaxFacts.IsCastExpression(targetNode) || syntaxFacts.IsConversionExpression(targetNode))
+        var (currentTarget, currentReplacement) = ApplyFixWorker();
+
+        // If the original target was surrounded by parentheses, we can consider trying to remove that as well.
+        if (syntaxFacts.IsParenthesizedExpression(currentTarget.Parent))
         {
-            GetPartsOfCastOrConversionExpression(targetNode, out var castTypeNode, out var castedExpression);
-
-            var castType = semanticModel.GetTypeInfo(castTypeNode, cancellationToken).Type;
-            if (castType != null)
-            {
-                var firstConversion = semanticFacts.ClassifyConversion(semanticModel, castedExpression, castType);
-                var secondConversion = semanticModel.Compilation.ClassifyCommonConversion(castType, conversionType);
-
-                if (firstConversion is { IsImplicit: false, IsReference: true } or { IsIdentity: true } &&
-                    secondConversion is { IsImplicit: false, IsReference: true })
-                {
-                    return (targetNode, this.Cast(castedExpression, conversionType).WithTriviaFrom(targetNode));
-                }
-            }
+            return (currentTarget.Parent, currentTarget.Parent.ReplaceNode(currentTarget, currentReplacement).WithAdditionalAnnotations(Simplifier.Annotation));
         }
 
-        return Cast(semanticModel, targetNode, conversionType);
+        return (currentTarget, currentReplacement);
+
+        (SyntaxNode finalTarget, SyntaxNode finalReplacement) ApplyFixWorker()
+        {
+            // if the node we're about to cast already has a cast, replace that cast if both are reference-identity downcasts.
+            if (syntaxFacts.IsCastExpression(targetNode) || syntaxFacts.IsConversionExpression(targetNode))
+            {
+                GetPartsOfCastOrConversionExpression(targetNode, out var castTypeNode, out var castedExpression);
+
+                var castType = semanticModel.GetTypeInfo(castTypeNode, cancellationToken).Type;
+                if (castType != null)
+                {
+                    var firstConversion = semanticFacts.ClassifyConversion(semanticModel, castedExpression, castType);
+                    var secondConversion = semanticModel.Compilation.ClassifyCommonConversion(castType, conversionType);
+
+                    if (firstConversion is { IsImplicit: false, IsReference: true } or { IsIdentity: true } &&
+                        secondConversion is { IsImplicit: false, IsReference: true })
+                    {
+                        return (targetNode, this.Cast(castedExpression, conversionType).WithTriviaFrom(targetNode));
+                    }
+                }
+            }
+
+            return Cast(semanticModel, targetNode, conversionType);
+        }
     }
 
     protected virtual (SyntaxNode finalTarget, SyntaxNode finalReplacement) Cast(SemanticModel semanticModel, TExpressionSyntax targetNode, ITypeSymbol conversionType)
