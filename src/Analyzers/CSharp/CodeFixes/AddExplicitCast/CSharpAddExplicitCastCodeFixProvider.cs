@@ -13,11 +13,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
-internal sealed partial class CSharpAddExplicitCastCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
     : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
 {
     /// <summary>
@@ -30,16 +33,8 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider
     /// </summary>
     private const string CS1503 = nameof(CS1503);
 
-    private readonly ArgumentFixer _argumentFixer;
-    private readonly AttributeArgumentFixer _attributeArgumentFixer;
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpAddExplicitCastCodeFixProvider()
-    {
-        _argumentFixer = new ArgumentFixer();
-        _attributeArgumentFixer = new AttributeArgumentFixer();
-    }
+    private readonly ArgumentFixer _argumentFixer = new();
+    private readonly AttributeArgumentFixer _attributeArgumentFixer = new();
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS0266, CS1503];
 
@@ -97,5 +92,33 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider
         // clear up duplicate types
         potentialConversionTypes = FilterValidPotentialConversionTypes(document, semanticModel, mutablePotentialConversionTypes);
         return !potentialConversionTypes.IsEmpty;
+    }
+
+    protected override bool TryLanguageSpecificFix(
+        SemanticModel semanticModel, SyntaxNode currentRoot, ExpressionSyntax targetNode, CancellationToken cancellationToken, [NotNullWhen(true)] out SyntaxNode? replacement)
+    {
+        replacement = null;
+
+        // The compiler is very ambiguous with assignment expressions `(a += b)`.  An error on it may be an error on the
+        // entire expression or on the RHS of the assignment. Have to reverse engineer what it is doing here.
+        if (targetNode is AssignmentExpressionSyntax assignmentExpression &&
+            assignmentExpression.IsCompoundAssignExpression())
+        {
+            var leftType = semanticModel.GetTypeInfo(assignmentExpression.Left).Type;
+            var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right).Type;
+
+            if (leftType != null && rightType != null)
+            {
+                var conversion = semanticModel.Compilation.ClassifyConversion(rightType, leftType);
+                if (conversion.Exists && conversion.IsExplicit)
+                {
+                    replacement = currentRoot.ReplaceNode(
+                        assignmentExpression.Right,
+                        this.Cast(assignmentExpression.Right, leftType));
+                }
+            }
+        }
+
+        return replacement != null;
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
         string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken,
         out ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes);
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
@@ -128,15 +129,26 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
                     return currentRoot.ReplaceNode(
                         targetNode,
                         this.Cast((TExpressionSyntax)castedExpression, conversionType)
-                            .WithTriviaFrom(targetNode)
-                            .WithAdditionalAnnotations(Simplifier.Annotation));
+                            .WithTriviaFrom(targetNode));
                 }
             }
+        }
+        else if (TryLanguageSpecificFix(semanticModel, currentRoot, targetNode, cancellationToken, out var replacement))
+        {
+            return replacement;
         }
 
         return currentRoot.ReplaceNode(
             targetNode,
-            this.Cast(targetNode, conversionType).WithAdditionalAnnotations(Simplifier.Annotation));
+            this.Cast(targetNode, conversionType));
+    }
+
+    protected virtual bool TryLanguageSpecificFix(
+        SemanticModel semanticModel, SyntaxNode currentRoot, TExpressionSyntax targetNode, CancellationToken cancellationToken,
+        [NotNullWhen(true)] out SyntaxNode? replacement)
+    {
+        replacement = null;
+        return false;
     }
 
     private static string GetSubItemName(SemanticModel semanticModel, int position, ITypeSymbol conversionType)
@@ -190,7 +202,7 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
         return false;
     }
 
-    protected override async Task FixAllAsync(
+    protected sealed override async Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
