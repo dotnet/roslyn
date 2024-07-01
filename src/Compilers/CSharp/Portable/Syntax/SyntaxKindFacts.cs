@@ -991,6 +991,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.UsingKeyword;
                 case "class":
                     return SyntaxKind.ClassKeyword;
+                case "record":
+                    return SyntaxKind.RecordKeyword;
                 case "struct":
                     return SyntaxKind.StructKeyword;
                 case "interface":
