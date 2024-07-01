@@ -26,8 +26,7 @@ internal sealed class CSharpEditorInlineRenameService(
     [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
     IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
 {
-    private const int ContextTargetLineCount = 10;
-    private const int ContextTargetHalfLineCount = 5;
+    private const int NumberOfContextLines = 5;
 
     /// <summary>
     /// Uses semantic information of renamed symbol to produce a map containing contextual information for use in Copilot rename feature
@@ -121,10 +120,10 @@ internal sealed class CSharpEditorInlineRenameService(
 
             // If a well defined surrounding span was not computed or if the computed surrounding span was too large,
             // select a span that encompasses ContextTargetHalfLineCount lines above and ContextTargetHalfLineCount lines below the error squiggle.
-            if (surroundingSpanOfInterest is null || lineCount <= 0 || lineCount > ContextTargetLineCount)
+            if (surroundingSpanOfInterest is null || lineCount <= 0 || lineCount > NumberOfContextLines * 2)
             {
-                startLine = Math.Max(0, documentText.Lines.GetLineFromPosition(fallbackSpan.Start).LineNumber - ContextTargetHalfLineCount);
-                endLine = Math.Min(documentText.Lines.Count - 1, documentText.Lines.GetLineFromPosition(fallbackSpan.End).LineNumber + ContextTargetHalfLineCount);
+                startLine = Math.Max(0, documentText.Lines.GetLineFromPosition(fallbackSpan.Start).LineNumber - NumberOfContextLines);
+                endLine = Math.Min(documentText.Lines.Count - 1, documentText.Lines.GetLineFromPosition(fallbackSpan.End).LineNumber + NumberOfContextLines);
             }
 
             // If the start and end positions are not at the beginning and end of the start and end lines respectively,
