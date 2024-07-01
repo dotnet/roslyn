@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast;
 
@@ -38,7 +37,7 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS0266, CS1503];
 
-    protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression)
+    protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out ExpressionSyntax castedExpression)
     {
         var castExpression = (CastExpressionSyntax)expression;
         type = castExpression.Type;
@@ -94,11 +93,9 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
         return !potentialConversionTypes.IsEmpty;
     }
 
-    protected override bool TryLanguageSpecificFix(
-        SemanticModel semanticModel, SyntaxNode currentRoot, ExpressionSyntax targetNode, CancellationToken cancellationToken, [NotNullWhen(true)] out SyntaxNode? replacement)
+    protected override (SyntaxNode finalTarget, SyntaxNode finalReplacement) Cast(
+        SemanticModel semanticModel, ExpressionSyntax targetNode, ITypeSymbol conversionType)
     {
-        replacement = null;
-
         // The compiler is very ambiguous with assignment expressions `(a += b)`.  An error on it may be an error on the
         // entire expression or on the RHS of the assignment. Have to reverse engineer what it is doing here.
         if (targetNode is AssignmentExpressionSyntax assignmentExpression &&
@@ -112,13 +109,11 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
                 var conversion = semanticModel.Compilation.ClassifyConversion(rightType, leftType);
                 if (conversion.Exists && conversion.IsExplicit)
                 {
-                    replacement = currentRoot.ReplaceNode(
-                        assignmentExpression.Right,
-                        this.Cast(assignmentExpression.Right, leftType));
+                    return (assignmentExpression.Right, this.Cast(assignmentExpression.Right, leftType));
                 }
             }
         }
 
-        return replacement != null;
+        return base.Cast(semanticModel, targetNode, conversionType);
     }
 }

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
@@ -30,7 +28,7 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
     private const int MaximumConversionOptions = 3;
 
     protected abstract TExpressionSyntax Cast(TExpressionSyntax expression, ITypeSymbol type);
-    protected abstract void GetPartsOfCastOrConversionExpression(TExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression);
+    protected abstract void GetPartsOfCastOrConversionExpression(TExpressionSyntax expression, out SyntaxNode type, out TExpressionSyntax castedExpression);
 
     /// <summary>
     /// Output the current type information of the target node and the conversion type(s) that the target node is
@@ -91,8 +89,12 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
 
             actions.Add(CodeAction.Create(
                 title,
-                cancellationToken => Task.FromResult(document.WithSyntaxRoot(
-                    ApplyFix(document, semanticModel, root, targetNode, conversionType, cancellationToken))),
+                cancellationToken =>
+                {
+                    var (finalTarget, replacement) = ApplyFix(document, semanticModel, targetNode, conversionType, cancellationToken);
+
+                    return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(finalTarget, replacement)));
+                },
                 title));
         }
 
@@ -101,10 +103,9 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
             context.Diagnostics);
     }
 
-    private SyntaxNode ApplyFix(
+    private (SyntaxNode finalTarget, SyntaxNode finalReplacement) ApplyFix(
         Document document,
         SemanticModel semanticModel,
-        SyntaxNode currentRoot,
         TExpressionSyntax targetNode,
         ITypeSymbol conversionType,
         CancellationToken cancellationToken)
@@ -126,28 +127,22 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
                 if (firstConversion is { IsImplicit: false, IsReference: true } or { IsIdentity: true } &&
                     secondConversion is { IsImplicit: false, IsReference: true })
                 {
-                    return currentRoot.ReplaceNode(
-                        targetNode,
-                        this.Cast((TExpressionSyntax)castedExpression, conversionType)
-                            .WithTriviaFrom(targetNode));
+                    return (targetNode, this.Cast(castedExpression, conversionType).WithTriviaFrom(targetNode));
                 }
             }
         }
-        else if (TryLanguageSpecificFix(semanticModel, currentRoot, targetNode, cancellationToken, out var replacement))
-        {
-            return replacement;
-        }
 
-        return currentRoot.ReplaceNode(
-            targetNode,
-            this.Cast(targetNode, conversionType));
+        return Cast(semanticModel, targetNode, conversionType);
     }
+
+    protected virtual (SyntaxNode finalTarget, SyntaxNode finalReplacement) Cast(SemanticModel semanticModel, TExpressionSyntax targetNode, ITypeSymbol conversionType)
+        => (targetNode, this.Cast(targetNode, conversionType));
 
     protected virtual bool TryLanguageSpecificFix(
         SemanticModel semanticModel, SyntaxNode currentRoot, TExpressionSyntax targetNode, CancellationToken cancellationToken,
-        [NotNullWhen(true)] out SyntaxNode? replacement)
+        out (SyntaxNode finalTarget, SyntaxNode replacement) result)
     {
-        replacement = null;
+        result = default;
         return false;
     }
 
@@ -223,7 +218,7 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
                 if (TryGetTargetTypeInfo(document, semanticModel, root, diagnostics[0].Id, spanNode, cancellationToken, out var potentialConversionTypes) &&
                     potentialConversionTypes.Length == 1)
                 {
-                    return ApplyFix(document, semanticModel, root, potentialConversionTypes[0].node, potentialConversionTypes[0].type, cancellationToken);
+                    var (newTarget, newReplacement) = ApplyFix(document, semanticModel, root, potentialConversionTypes[0].node, potentialConversionTypes[0].type, cancellationToken);
                 }
 
                 return root;

@@ -14,7 +14,6 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddExplicitCast), [Shared]>
     Partial Friend NotInheritable Class VisualBasicAddExplicitCastCodeFixProvider
         Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax)
@@ -34,7 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC42016, BC30518, BC30519)
 
-        Protected Overrides Sub GetPartsOfCastOrConversionExpression(expression As ExpressionSyntax, ByRef type As SyntaxNode, ByRef castedExpression As SyntaxNode)
+        Protected Overrides Sub GetPartsOfCastOrConversionExpression(
+                expression As ExpressionSyntax,
+                ByRef type As SyntaxNode,
+                ByRef castedExpression As ExpressionSyntax)
             Dim directCastExpression = TryCast(expression, DirectCastExpressionSyntax)
             If directCastExpression IsNot Nothing Then
                 type = directCastExpression.Type
