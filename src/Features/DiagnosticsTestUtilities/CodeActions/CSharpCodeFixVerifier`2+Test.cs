@@ -16,6 +16,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Testing;
 
 #if !CODE_STYLE
 using Roslyn.Utilities;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
         {
             private readonly SharedVerifierState _sharedState;
 
