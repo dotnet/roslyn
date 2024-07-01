@@ -40,13 +40,16 @@ internal partial class SolutionCompilationState
         Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Updates the creation policy for this tracker.  A value of <see langword="true"/> will set this to <see
-        /// cref="CreationPolicy.Create"/> and <see langword="false"/> will set it to <see
-        /// cref="CreationPolicy.DoNotCreate"/>.
+        /// Updates the creation policy for this tracker.  Setting it to <see cref="CreationPolicy.Create"/>.
         /// </summary>
-        /// <param name="forceRegeneration">When switching to <paramref name="create"/>, this will force source
-        /// generated documents to be created.</param>
-        ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken);
+        /// <param name="forceRegeneration">Forces source generated documents to be created by dumping any existing <see
+        /// cref="GeneratorDriver"/> and rerunning generators from scratch for this tracker.</param>
+        ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration);
+
+        /// <summary>
+        /// Updates the creation policy for this tracker.  Setting it to <see cref="CreationPolicy.DoNotCreate"/>.
+        /// </summary>
+        ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken);
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

@@ -53,7 +53,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
 
     internal TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueService service, Type[]? additionalParts = null)
     {
-        var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(additionalParts), solutionTelemetryId: s_solutionTelemetryId);
+        var composition = FeaturesTestCompositions.Features
+            .AddParts(typeof(TestWorkspaceConfigurationService))
+            .AddParts(additionalParts);
+
+        var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
         solution = workspace.CurrentSolution;
         service = GetEditAndContinueService(workspace);
         return workspace;

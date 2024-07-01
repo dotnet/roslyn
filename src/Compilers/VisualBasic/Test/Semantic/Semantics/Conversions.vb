@@ -729,7 +729,10 @@ End Class
 
                                 Assert.True(gotException)
 
-                                Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
+                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
+                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                End If
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1290,7 +1293,10 @@ End Class
 
                                 Assert.True(gotException)
 
-                                Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
+                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
+                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                End If
                             End If
                         Else
                             Assert.NotNull(resultValue)

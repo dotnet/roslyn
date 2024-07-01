@@ -12,7 +12,8 @@
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- Publishing (only precompile binaries when building Release) -->
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</PublishReadyToRun>
+    <!-- Temporarily disable R2R until APIScan supports them https://github.com/dotnet/roslyn/issues/74135 -->
+    <!-- <PublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</PublishReadyToRun> -->
     <SelfContained>false</SelfContained>    
     <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>

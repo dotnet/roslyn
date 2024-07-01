@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
         }
 
-        private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
+        private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
             if (e.HasOption(static option =>
                     option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                     option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
                     option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
                     option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
-                    option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation)))
+                    option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation) ||
+                    option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)))
             {
                 EnqueueRefreshNotification(documentUri: null);
             }

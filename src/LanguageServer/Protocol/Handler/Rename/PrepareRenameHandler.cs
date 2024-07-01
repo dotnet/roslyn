@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -25,12 +25,12 @@ internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<LSP.Pr
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.PrepareRenameParams request)
         => request.TextDocument;
 
-    public async Task<LSP.Range?> HandleRequestAsync(LSP.PrepareRenameParams request, RequestContext context, CancellationToken cancellationToken)
-    {
-        var document = context.Document;
-        Contract.ThrowIfNull(document);
+    public Task<LSP.Range?> HandleRequestAsync(LSP.PrepareRenameParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetRenameRangeAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken);
 
-        var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+    internal static async Task<LSP.Range?> GetRenameRangeAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
+    {
+        var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
         var symbolicRenameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(
             document, position, cancellationToken).ConfigureAwait(false);

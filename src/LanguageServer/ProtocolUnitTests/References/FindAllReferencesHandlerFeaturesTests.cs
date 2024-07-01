@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,7 +18,7 @@ public class FindAllReferencesHandlerFeaturesTests : AbstractLanguageServerProto
     {
     }
 
-    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocol
+    protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
         .AddParts(typeof(TestDocumentTrackingService))
         .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -45,7 +44,7 @@ class B
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.ClientCapabilities());
 
-        var results = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync<LSP.Location>(testLspServer, testLspServer.GetLocations("caret").First());
+        var results = await FindAllReferencesHandlerTests.RunFindAllReferencesNonVSAsync(testLspServer, testLspServer.GetLocations("caret").First());
         AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result));
     }
 }

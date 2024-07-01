@@ -211,7 +211,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             {
                 SetBaseType(this.Compilation.ExceptionType());
             }
-            else if (syntaxFacts.IsAttributeName(NameOrMemberAccessExpression))
+            else if (syntaxFacts.IsNameOfAttribute(NameOrMemberAccessExpression))
             {
                 SetBaseType(this.Compilation.AttributeType());
             }

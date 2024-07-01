@@ -9,6 +9,10 @@ using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeStyle;
 
+/// <summary>
+/// Public representation of a code style option value. Should only be used for public API.
+/// Internally the value is represented by <see cref="ICodeStyleOption2"/>.
+/// </summary>
 internal interface ICodeStyleOption
 {
     XElement ToXElement();

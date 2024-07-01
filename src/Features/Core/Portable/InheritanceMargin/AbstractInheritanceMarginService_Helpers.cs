@@ -92,6 +92,13 @@ internal abstract partial class AbstractInheritanceMarginService
 
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
+                // Make sure the identifier declaration's span is within the spanToSearch.
+                // This is important because for example, for a class with big body, when the tagger is asking for the tag within the body of the class,
+                // we don't want to return the tag of the class identifier.
+                var declarationToken = GetDeclarationToken(memberDeclarationNode);
+                if (!spanToSearch.Contains(declarationToken.Span))
+                    continue;
+
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
                 if (member == null || !CanHaveInheritanceTarget(member))
                     continue;
@@ -104,7 +111,8 @@ internal abstract partial class AbstractInheritanceMarginService
                 // All the symbols here are declared in the same document, they should belong to the same project.
                 // So here it is enough to get the project once.
                 project ??= mappingResult.Project;
-                builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                builder.Add((mappingResult.Symbol,
+                    sourceText.Lines.GetLineFromPosition(declarationToken.SpanStart).LineNumber));
             }
 
             if (project != null)
