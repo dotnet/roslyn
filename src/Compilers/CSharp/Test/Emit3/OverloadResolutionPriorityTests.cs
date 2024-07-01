@@ -1692,8 +1692,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                 int this[string s] { get; set; }
             }
 
-            publir class C : I
-
+            public class C : I
             {
                 [OverloadResolutionPriority(1)]
                 void I.M(object o) => throw null;
