@@ -5327,5 +5327,125 @@ public static class Extensions
 }";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123123");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_01()
+        {
+            var source = """
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (var r in new E(arr))
+                {
+                    r.V.F++;
+                }
+
+                foreach (var v in arr) Console.Write(v.F);
+
+                ref struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public R Current => new(ref arr[i - 1]);
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                ref struct R(ref V v)
+                {
+                    public ref V V = ref v;
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "111").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_02()
+        {
+            var source = """
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (var r in new E(arr))
+                {
+                    r.V.F += 2;
+                }
+
+                foreach (var v in arr) Console.Write(v.F);
+
+                ref struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public R Current => new(ref arr[i - 1]);
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                ref struct R(ref V v)
+                {
+                    public ref V V = ref v;
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "222").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_03()
+        {
+            var source = """
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (var r in new E(arr))
+                {
+                    r.V.S.Inc();
+                }
+
+                foreach (var v in arr) Console.Write(v.S.F);
+
+                ref struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public R Current => new(ref arr[i - 1]);
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                ref struct R(ref V v)
+                {
+                    public ref V V = ref v;
+                }
+
+                struct V
+                {
+                    public S S;
+                }
+
+                struct S
+                {
+                    public int F;
+                    public void Inc() => F++;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "111").VerifyDiagnostics();
+        }
     }
 }

@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (fieldSymbol.IsStatic ||
                 !fieldSymbol.ContainingType.IsValueType ||
+                fieldSymbol.RefKind is RefKind.Ref ||
                 receiver == null) // receiver may be null in error cases
             {
                 return false;

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3135,6 +3136,105 @@ struct A : System.IDisposable
                     verifier.VerifyDiagnostics();
                 }
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_01()
+        {
+            var source = """
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F++;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public ref V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_02()
+        {
+            var source = """
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F += 2;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public ref V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "2").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_03()
+        {
+            var source = """
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.S.Inc();
+                }
+
+                Console.Write(v.S.F);
+
+                ref struct R(ref V v)
+                {
+                    public ref V V = ref v;
+                    public void Dispose() { }
+                }
+                                
+                struct V
+                {
+                    public S S;
+                }
+
+                struct S
+                {
+                    public int F;
+                    public void Inc() => F++;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
         }
     }
 }
