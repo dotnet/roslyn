@@ -453,7 +453,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Conversion_Array_Span_Implicit_SemanticModel_01(
+    public void Conversion_Array_Span_Implicit_SemanticModel(
         [CombinatorialValues("Span", "ReadOnlySpan")] string destination)
     {
         var source = $$"""
@@ -483,7 +483,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
-    public void Conversion_Array_Span_Implicit_SemanticModel_02()
+    public void Conversion_Array_Span_Explicit_SemanticModel()
     {
         var source = """
             using System;
@@ -1673,52 +1673,56 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<string[]>", "I<System.ReadOnlySpan<object>>").WithLocation(5, 49));
     }
 
-    [Fact]
-    public void Conversion_Array_ReadOnlySpan_Interface_Invariant()
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Interface_Invariant(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
     {
-        var source = """
+        var source = $$"""
             using System;
 
             class C
             {
-                ReadOnlySpan<I<object>> M(I<string>[] x) => x;
+                {{type}}<I<object>> M(I<string>[] x)
+                    => x;
             }
 
             interface I<T> { }
             """;
         CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (5,49): error CS0029: Cannot implicitly convert type 'I<string>[]' to 'System.ReadOnlySpan<I<object>>'
-            //     ReadOnlySpan<I<object>> M(I<string>[] x) => x;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I<string>[]", "System.ReadOnlySpan<I<object>>").WithLocation(5, 49));
+            // (6,12): error CS0029: Cannot implicitly convert type 'I<string>[]' to 'System.Span<I<object>>'
+            //         => x;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12));
 
         var expectedDiagnostics = new[]
         {
-            // (5,49): error CS0266: Cannot implicitly convert type 'I<string>[]' to 'System.ReadOnlySpan<I<object>>'. An explicit conversion exists (are you missing a cast?)
-            //     ReadOnlySpan<I<object>> M(I<string>[] x) => x;
-            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<string>[]", "System.ReadOnlySpan<I<object>>").WithLocation(5, 49)
+            // (6,12): error CS0266: Cannot implicitly convert type 'I<string>[]' to 'System.Span<I<object>>'. An explicit conversion exists (are you missing a cast?)
+            //         => x;
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
-    [Fact]
-    public void Conversion_Array_ReadOnlySpan_Interface_Cast()
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Interface_Cast(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
     {
-        var source = """
+        var source = $$"""
             using System;
 
             class C
             {
-                ReadOnlySpan<I<object>> M(I<string>[] x) => (ReadOnlySpan<I<object>>)x;
+                {{type}}<I<object>> M(I<string>[] x)
+                    => ({{type}}<I<object>>)x;
             }
 
             interface I<T> { }
             """;
         CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (5,49): error CS0030: Cannot convert type 'I<string>[]' to 'System.ReadOnlySpan<I<object>>'
-            //     ReadOnlySpan<I<object>> M(I<string>[] x) => (ReadOnlySpan<I<object>>)x;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<I<object>>)x").WithArguments("I<string>[]", "System.ReadOnlySpan<I<object>>").WithLocation(5, 49));
+            // (6,12): error CS0030: Cannot convert type 'I<string>[]' to 'System.Span<I<object>>'
+            //         => (Span<I<object>>)x;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, $"({type}<I<object>>)x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12));
 
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
@@ -1726,13 +1730,13 @@ public class FirstClassSpanTests : CSharpTestBase
         comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-        verifier.VerifyIL("C.M", """
+        verifier.VerifyIL("C.M", $$"""
             {
               // Code size       12 (0xc)
               .maxstack  1
               IL_0000:  ldarg.1
               IL_0001:  castclass  "I<object>[]"
-              IL_0006:  call       "System.ReadOnlySpan<I<object>> System.ReadOnlySpan<I<object>>.op_Implicit(I<object>[])"
+              IL_0006:  call       "System.{{type}}<I<object>> System.{{type}}<I<object>>.op_Implicit(I<object>[])"
               IL_000b:  ret
             }
             """);
@@ -2577,9 +2581,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000b:  ret
             }
             """);
-
-        // Note: although a breaking change, the previous would fail with a runtime exception
-        // (Span's constructor checks that the element types are identical).
 
         var expectedDiagnostics = new[]
         {
