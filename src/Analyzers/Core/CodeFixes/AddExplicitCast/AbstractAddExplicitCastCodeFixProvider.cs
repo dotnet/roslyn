@@ -138,14 +138,6 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
     protected virtual (SyntaxNode finalTarget, SyntaxNode finalReplacement) Cast(SemanticModel semanticModel, TExpressionSyntax targetNode, ITypeSymbol conversionType)
         => (targetNode, this.Cast(targetNode, conversionType));
 
-    protected virtual bool TryLanguageSpecificFix(
-        SemanticModel semanticModel, SyntaxNode currentRoot, TExpressionSyntax targetNode, CancellationToken cancellationToken,
-        out (SyntaxNode finalTarget, SyntaxNode replacement) result)
-    {
-        result = default;
-        return false;
-    }
-
     private static string GetSubItemName(SemanticModel semanticModel, int position, ITypeSymbol conversionType)
     {
         return string.Format(
@@ -179,7 +171,8 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
             validPotentialConversionTypes.Add(conversionTuple);
         }
 
-        return validPotentialConversionTypes.Distinct().ToImmutableArray();
+        validPotentialConversionTypes.RemoveDuplicates();
+        return validPotentialConversionTypes.ToImmutableAndClear();
     }
 
     protected static bool FindCorrespondingParameterByName(
@@ -218,7 +211,8 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
                 if (TryGetTargetTypeInfo(document, semanticModel, root, diagnostics[0].Id, spanNode, cancellationToken, out var potentialConversionTypes) &&
                     potentialConversionTypes.Length == 1)
                 {
-                    var (newTarget, newReplacement) = ApplyFix(document, semanticModel, root, potentialConversionTypes[0].node, potentialConversionTypes[0].type, cancellationToken);
+                    var (newTarget, newReplacement) = ApplyFix(document, semanticModel, potentialConversionTypes[0].node, potentialConversionTypes[0].type, cancellationToken);
+                    return root.ReplaceNode(newTarget, newReplacement);
                 }
 
                 return root;
