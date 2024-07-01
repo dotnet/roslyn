@@ -2047,6 +2047,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private const int MaxLambdaExpressionDepthForErrorRecovery = 2;
+
+        private static int NestedLambdaExpressionDepth(SyntaxNode syntax)
+        {
+            int n = 0;
+            while (syntax is { })
+            {
+                if (syntax.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.AnonymousMethodExpression)
+                {
+                    n++;
+                }
+                syntax = syntax.Parent;
+            }
+            return n;
+        }
+
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
             int argumentCount = analyzedArguments.Arguments.Count;
@@ -2073,7 +2089,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Just assume we're not in an expression tree for the purposes of error recovery.
                                 _ = unboundArgument.Bind(delegateType, isExpressionTree: false);
                             }
-                            else
+                            else if (NestedLambdaExpressionDepth(unboundArgument.Syntax) <= MaxLambdaExpressionDepthForErrorRecovery &&
+                                !unboundArgument.HasBoundForErrorRecovery)
                             {
                                 // bind the argument against each applicable parameter
                                 foreach (var parameterList in parameterListList)
