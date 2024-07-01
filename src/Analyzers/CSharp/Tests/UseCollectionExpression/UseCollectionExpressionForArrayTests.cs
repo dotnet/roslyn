@@ -5521,8 +5521,7 @@ public class UseCollectionExpressionForArrayTests
             FixedCode = """
                 class C
                 {
-                    int[] i = 
-                    [];
+                    int[] i = [];
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,

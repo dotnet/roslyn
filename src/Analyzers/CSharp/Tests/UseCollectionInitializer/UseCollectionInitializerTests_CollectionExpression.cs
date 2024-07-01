@@ -2938,8 +2938,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = 
-                    [];
+                    List<int> c = [];
                 }
             }
             """);
@@ -3029,7 +3028,6 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c =
-
                         [];
                 }
             }
@@ -3062,7 +3060,6 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c =
-
                         [];
                 }
             }
@@ -3093,8 +3090,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = 
-                        [];
+                    List<int> c = [];
                 }
             }
             """);
