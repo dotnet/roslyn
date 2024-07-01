@@ -721,6 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics);
                     builder.Add(convertedElement!);
                 }
+                conversion.MarkUnderlyingConversionsChecked();
             }
 
             return new BoundCollectionExpression(
@@ -1467,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
 
-        private void GenerateImplicitConversionErrorForCollectionExpression(
+        internal void GenerateImplicitConversionErrorForCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
@@ -1657,7 +1658,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool targetTyped = conversionIfTargetTyped is { };
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
-            ImmutableArray<Conversion> underlyingConversions = conversionIfTargetTyped.GetValueOrDefault().UnderlyingConversions;
+            var conversion = conversionIfTargetTyped.GetValueOrDefault();
+            ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
             var condition = source.Condition;
             hasErrors |= source.HasErrors || destination.IsErrorType();
 
@@ -1669,6 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetTyped
                 ? CreateConversion(source.Alternative.Syntax, source.Alternative, underlyingConversions[1], isCast: false, conversionGroupOpt: null, destination, diagnostics)
                 : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
+            conversion.MarkUnderlyingConversionsChecked();
             var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
             hasErrors |= constantValue?.IsBad == true;
             if (targetTyped && !destination.IsErrorType() && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureTargetTypedConditional))
@@ -1708,6 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
             }
+            conversion.MarkUnderlyingConversionsChecked();
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
@@ -1736,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     syntax,
-                    source,
+                    BindToNaturalType(source, diagnostics),
                     conversion,
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,

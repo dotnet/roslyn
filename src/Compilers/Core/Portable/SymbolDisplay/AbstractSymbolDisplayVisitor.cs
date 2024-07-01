@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         {
             Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-            var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+            var constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue);
 
             var result = constantValueULong;
 
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                     var field = (IFieldSymbol)member;
                     if (field.HasConstantValue)
                     {
-                        var enumField = new EnumField(field.Name, EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType), field);
+                        var enumField = new EnumField(field.Name, underlyingSpecialType.ConvertUnderlyingValueToUInt64(field.ConstantValue), field);
                         enumFields.Add(enumField);
                     }
                 }
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         {
             Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-            var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+            var constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue);
 
             var enumFields = ArrayBuilder<EnumField>.GetInstance();
             GetSortedEnumFields(enumType, enumFields);

@@ -200,7 +200,7 @@ End Module")
                 clientDir: Path.GetDirectoryName(typeof(CommonCompiler).Assembly.Location),
                 workingDir: currentDirectory.Path,
                 sdkDir: sdkDir,
-                tempDir: BuildServerConnection.GetTempPath(currentDirectory.Path));
+                tempDir: Path.GetTempPath());
 
             var (result, output) = UseTextWriter(redirectEncoding, writer => ApplyEnvironmentVariables(additionalEnvironmentVars, () => client.RunCompilation(arguments, buildPaths, writer)));
             Assert.Equal(shouldRunOnServer, result.RanOnServer);

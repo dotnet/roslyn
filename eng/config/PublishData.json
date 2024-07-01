@@ -204,7 +204,6 @@
       ],
       "vsBranch": "rel/d17.10",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.10]"
     },
     "release/dev17.11": {
@@ -212,10 +211,9 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.11",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.11 P1]"
+      "insertionTitlePrefix": "[d17.11 P3]"
     },
     "main": {
       "nugetKind": [
@@ -224,8 +222,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.11 P2]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.12 P1]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [

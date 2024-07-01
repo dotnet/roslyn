@@ -6,19 +6,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+public partial class AddUsingTests_Razor : AbstractAddUsingTests
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public partial class AddUsingTests_Razor : AbstractAddUsingTests
+    [Theory, CombinatorialData]
+    public async Task TestAddIntoHiddenRegionWithModernSpanMapper(TestHost host)
     {
-        [Theory, CombinatorialData]
-        public async Task TestAddIntoHiddenRegionWithModernSpanMapper(TestHost host)
-        {
-            await TestAsync(
-    @"#line hidden
+        await TestAsync(
+@"#line hidden
 using System.Collections.Generic;
 #line default
 
@@ -29,7 +28,7 @@ class Program
         [|DateTime|] d;
     }
 }",
-    @"#line hidden
+@"#line hidden
 using System;
 using System.Collections.Generic;
 #line default
@@ -41,11 +40,10 @@ class Program
         DateTime d;
     }
 }", host);
-        }
+    }
 
-        private protected override IDocumentServiceProvider GetDocumentServiceProvider()
-        {
-            return new TestDocumentServiceProvider(supportsMappingImportDirectives: true);
-        }
+    private protected override IDocumentServiceProvider GetDocumentServiceProvider()
+    {
+        return new TestDocumentServiceProvider(supportsMappingImportDirectives: true);
     }
 }

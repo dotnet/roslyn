@@ -11,20 +11,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline;
@@ -320,10 +320,12 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
                 newItems: newViewModelItems);
         }
 
-        // Now create an interval tree out of the view models.  This will allow us to easily find the intersecting
-        // view models given any position in the file with any particular text snapshot.
-        var intervalTree = SimpleIntervalTree.Create(new IntervalIntrospector(), Array.Empty<DocumentSymbolDataViewModel>());
-        AddToIntervalTree(newViewModelItems);
+        // Now create an interval tree out of the view models.  This will allow us to easily find the intersecting view
+        // models given any position in the file with any particular text snapshot.
+        using var _ = SegmentedListPool.GetPooledList<DocumentSymbolDataViewModel>(out var models);
+        AddAllModels(newViewModelItems, models);
+        var intervalTree = ImmutableIntervalTree<DocumentSymbolDataViewModel>.CreateFromUnsorted(
+            new IntervalIntrospector(), models);
 
         var newViewState = new DocumentOutlineViewState(
             newTextSnapshot,
@@ -350,12 +352,12 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
 
         return;
 
-        void AddToIntervalTree(ImmutableArray<DocumentSymbolDataViewModel> viewModels)
+        static void AddAllModels(ImmutableArray<DocumentSymbolDataViewModel> viewModels, SegmentedList<DocumentSymbolDataViewModel> result)
         {
             foreach (var model in viewModels)
             {
-                intervalTree.AddIntervalInPlace(model);
-                AddToIntervalTree(model.Children);
+                result.Add(model);
+                AddAllModels(model.Children, result);
             }
         }
 
@@ -464,7 +466,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         {
             // Treat the caret as if it has length 1.  That way if it is in between two items, it will naturally
             // only intersect right the item on the right of it.
-            var overlappingModels = modelTree.GetIntervalsThatOverlapWith(
+            var overlappingModels = modelTree.Algorithms.GetIntervalsThatOverlapWith(
                 caretPosition.Position, 1, new IntervalIntrospector());
 
             if (overlappingModels.Length == 0)

@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -20,21 +18,21 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+public class CSharpKeywordHighlighting : AbstractEditorTest
 {
-    public class CSharpKeywordHighlighting : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    public CSharpKeywordHighlighting()
+        : base(nameof(CSharpKeywordHighlighting))
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+    }
 
-        public CSharpKeywordHighlighting()
-            : base(nameof(CSharpKeywordHighlighting))
-        {
-        }
-
-        [IdeFact]
-        public async Task Foreach()
-        {
-            var input = @"class C
+    [IdeFact]
+    public async Task Foreach()
+    {
+        var input = @"class C
 {
     void M()
     {
@@ -42,20 +40,20 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
     }
 }";
 
-            MarkupTestFile.GetSpans(input, out var text, out var spans);
+        MarkupTestFile.GetSpans(input, out var text, out var spans);
 
-            await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 
-            await VerifyAsync("foreach", spans, HangMitigatingCancellationToken);
-            await VerifyAsync("break", spans, HangMitigatingCancellationToken);
-            await VerifyAsync("continue", spans, HangMitigatingCancellationToken);
-            await VerifyAsync("in", ImmutableArray.Create<TextSpan>(), HangMitigatingCancellationToken);
-        }
+        await VerifyAsync("foreach", spans, HangMitigatingCancellationToken);
+        await VerifyAsync("break", spans, HangMitigatingCancellationToken);
+        await VerifyAsync("continue", spans, HangMitigatingCancellationToken);
+        await VerifyAsync("in", ImmutableArray.Create<TextSpan>(), HangMitigatingCancellationToken);
+    }
 
-        [IdeFact]
-        public async Task PreprocessorConditionals()
-        {
-            var input = @"
+    [IdeFact]
+    public async Task PreprocessorConditionals()
+    {
+        var input = @"
 #define Debug
 #undef Trace
 class PurchaseTransaction
@@ -72,22 +70,22 @@ class PurchaseTransaction
         CommitHelper();
     }
 }";
-            MarkupTestFile.GetSpans(
-                input,
-                out var text,
-                out IDictionary<string, ImmutableArray<TextSpan>> spans);
+        MarkupTestFile.GetSpans(
+            input,
+            out var text,
+            out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
-            await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 
-            await VerifyAsync("#if", spans["if"], HangMitigatingCancellationToken);
-            await VerifyAsync("#else", spans["else"], HangMitigatingCancellationToken);
-            await VerifyAsync("#endif", spans["else"], HangMitigatingCancellationToken);
-        }
+        await VerifyAsync("#if", spans["if"], HangMitigatingCancellationToken);
+        await VerifyAsync("#else", spans["else"], HangMitigatingCancellationToken);
+        await VerifyAsync("#endif", spans["else"], HangMitigatingCancellationToken);
+    }
 
-        [IdeFact]
-        public async Task PreprocessorRegions()
-        {
-            var input = @"
+    [IdeFact]
+    public async Task PreprocessorRegions()
+    {
+        var input = @"
 class C
 {
     [|#region|] Main
@@ -97,30 +95,29 @@ class C
     [|#endregion|]
 }";
 
-            MarkupTestFile.GetSpans(input, out var text, out var spans);
+        MarkupTestFile.GetSpans(input, out var text, out var spans);
 
-            await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 
-            await VerifyAsync("#region", spans, HangMitigatingCancellationToken);
-            await VerifyAsync("#endregion", spans, HangMitigatingCancellationToken);
-        }
+        await VerifyAsync("#region", spans, HangMitigatingCancellationToken);
+        await VerifyAsync("#endregion", spans, HangMitigatingCancellationToken);
+    }
 
-        private async Task VerifyAsync(string marker, ImmutableArray<TextSpan> expectedCount, CancellationToken cancellationToken)
-        {
-            await TestServices.Editor.PlaceCaretAsync(marker, charsOffset: -1, cancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                [
-                    FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawlerLegacy,
-                    FeatureAttribute.DiagnosticService,
-                    FeatureAttribute.Classification,
-                    FeatureAttribute.KeywordHighlighting,
-                ],
-                cancellationToken);
+    private async Task VerifyAsync(string marker, ImmutableArray<TextSpan> expectedCount, CancellationToken cancellationToken)
+    {
+        await TestServices.Editor.PlaceCaretAsync(marker, charsOffset: -1, cancellationToken);
+        await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+            [
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawlerLegacy,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification,
+                FeatureAttribute.KeywordHighlighting,
+            ],
+            cancellationToken);
 
-            var tags = await TestServices.Editor.GetTagsAsync<ITextMarkerTag>(cancellationToken);
-            var tagSpans = tags.SelectAsArray(tag => tag.Tag.Type == KeywordHighlightTag.TagId, tag => tag.Span.Span.ToTextSpan());
-            Assert.Equal(expectedCount.AsEnumerable(), tagSpans.AsEnumerable());
-        }
+        var tags = await TestServices.Editor.GetTagsAsync<ITextMarkerTag>(cancellationToken);
+        var tagSpans = tags.SelectAsArray(tag => tag.Tag.Type == KeywordHighlightTag.TagId, tag => tag.Span.Span.ToTextSpan());
+        Assert.Equal(expectedCount.AsEnumerable(), tagSpans.AsEnumerable());
     }
 }

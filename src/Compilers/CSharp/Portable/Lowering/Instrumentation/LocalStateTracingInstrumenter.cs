@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isMethodBody)
                 {
-                    Debug.Assert(_lazyPreviousContextVariables?.IsEmpty() != false);
+                    Debug.Assert(_lazyPreviousContextVariables?.IsEmpty != false);
                     _lazyPreviousContextVariables?.Free();
                     _lazyPreviousContextVariables = null;
                 }

@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
         private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option == Enabled || e.Option == SizeInMegabytes)
+            if (e.HasOption(static option => option.Equals(Enabled) || option.Equals(SizeInMegabytes)))
             {
                 RefreshFromSettings();
             }

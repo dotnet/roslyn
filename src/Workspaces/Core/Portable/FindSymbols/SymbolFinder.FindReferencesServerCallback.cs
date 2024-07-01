@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -69,6 +70,7 @@ public static partial class SymbolFinder
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(references.Length, out var rehydrated);
+
             foreach (var (serializableSymbolGroup, serializableSymbol, reference) in references)
             {
                 SymbolGroup? symbolGroup;
@@ -94,8 +96,7 @@ public static partial class SymbolFinder
                 rehydrated.Add((symbolGroup, symbol, referenceLocation));
             }
 
-            if (rehydrated.Count > 0)
-                await progress.OnReferencesFoundAsync(rehydrated.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
+            await progress.OnReferencesFoundAsync(rehydrated.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

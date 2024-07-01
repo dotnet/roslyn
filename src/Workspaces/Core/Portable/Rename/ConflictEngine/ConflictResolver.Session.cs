@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -506,9 +505,13 @@ internal static partial class ConflictResolver
         private IEnumerable<(SyntaxNodeOrToken syntax, RenameActionAnnotation annotation)> GetNodesOrTokensToCheckForConflicts(
             SyntaxNode syntaxRoot)
         {
-            return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
-                .Where(_renameAnnotations.HasAnnotations<RenameActionAnnotation>)
-                .Select(s => (s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
+            foreach (var nodeOrToken in syntaxRoot.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind))
+            {
+                var annotation = _renameAnnotations.GetAnnotations<RenameActionAnnotation>(nodeOrToken).FirstOrDefault();
+
+                if (annotation != null)
+                    yield return (nodeOrToken, annotation);
+            }
         }
 
         private async Task<bool> CheckForConflictAsync(

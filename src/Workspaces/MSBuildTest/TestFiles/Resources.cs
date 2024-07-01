@@ -28,20 +28,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
 
         private static byte[] LoadBytes(string name)
         {
-            using (var resourceStream = GetResourceStream(name))
-            {
-                var bytes = new byte[resourceStream.Length];
-                resourceStream.Read(bytes, 0, (int)resourceStream.Length);
-                return bytes;
-            }
+            using var resourceStream = GetResourceStream(name);
+            var bytes = new byte[resourceStream.Length];
+            resourceStream.Read(bytes, 0, (int)resourceStream.Length);
+            return bytes;
         }
 
         private static string LoadText(string name)
         {
-            using (var streamReader = new StreamReader(GetResourceStream(name)))
-            {
-                return streamReader.ReadToEnd();
-            }
+            using var streamReader = new StreamReader(GetResourceStream(name));
+            return streamReader.ReadToEnd();
         }
 
         private static readonly Func<string, byte[]> s_bytesLoader = LoadBytes;

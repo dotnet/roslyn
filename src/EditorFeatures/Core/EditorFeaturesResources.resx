@@ -613,6 +613,12 @@ Do you want to proceed?</value>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
   </data>
+  <data name="_0_declarations_and_interceptors" xml:space="preserve">
+    <value>'{0}' declarations and interceptors</value>
+  </data>
+  <data name="_0_intercepted_locations" xml:space="preserve">
+    <value>'{0}' intercepted locations</value>
+  </data>
   <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
     <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
     <comment>For screenreaders. {0} is the identifier being renamed.</comment>

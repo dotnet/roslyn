@@ -3,11 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.QuickInfo;
@@ -62,6 +58,13 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
         if (quickInfoSession is null)
         {
             throw new InvalidOperationException("QuickInfoSession is null");
+        }
+
+        OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLink();
+
+        if (editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.HasComments)
+        {
+            OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLinkWithDocComments();
         }
 
         return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;

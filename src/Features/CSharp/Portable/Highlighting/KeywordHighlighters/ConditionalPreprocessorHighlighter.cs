@@ -15,14 +15,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class ConditionalPreprocessorHighlighter : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ConditionalPreprocessorHighlighter() : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ConditionalPreprocessorHighlighter()
-    {
-    }
-
     protected override void AddHighlights(
         DirectiveTriviaSyntax directive, List<TextSpan> highlights, CancellationToken cancellationToken)
     {

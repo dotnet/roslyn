@@ -324,6 +324,26 @@ class C : System.IAsyncDisposable
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
                 );
+
+            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8107: Feature 'asynchronous using' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9),
+                // (6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
+                // (6,22): error CS8107: Feature 'pattern-based disposal' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "var x = new C()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 22)
+                );
+
+            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // 0.cs(6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
+                );
         }
 
         [Fact]
@@ -2645,13 +2665,9 @@ public class C
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
-                // (6,22): error CS0122: 'C.DisposeAsync()' is inaccessible due to its protection level
+                // 0.cs(6,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAccess, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
-                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
-                );
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -3518,6 +3534,222 @@ ref struct C
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_WithInterfaceImplementation()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+await using var x = new Class1();
+
+internal class Class1 : IAsyncDisposable
+{
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write("DISPOSED");
+        await Task.Yield();
+    }
+}
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+            CompileAndVerify(comp, expectedOutput: "DISPOSED").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_NoInterfaceImplementation()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+await using var x = new Class1();
+
+internal class Class1 { }
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (5,1): error CS8410: 'Class1': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new Class1();").WithArguments("Class1").WithLocation(5, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_WithInterfaceImplementation_UseSite()
+        {
+            // We attempt to bind pattern-based disposal (and collect diagnostics)
+            // then we bind to the IAsyncDisposable interface, which reports a use-site error
+            // and so we add the collected diagnostics
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+internal class Class1 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        throw null;
+    }
+
+    public async Task MethodWithCompilerError()
+    {
+        await using var x = new Class1();
+    }
+}
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    public struct ValueTask
+    {
+        public Awaiter GetAwaiter() => null;
+        public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+        {
+            public void OnCompleted(Action a) { }
+            public bool IsCompleted => true;
+            public void GetResult() { }
+        }
+    }
+}
+""";
+
+            var ilSrc = """
+.class interface public auto ansi abstract beforefieldinit System.IAsyncDisposable
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = ( 01 00 02 68 69 00 00 )
+    .method public hidebysig newslot abstract virtual instance valuetype [mscorlib]System.Threading.Tasks.ValueTask DisposeAsync () cil managed 
+    {
+    }
+}
+""";
+            var comp = CreateCompilationWithIL(source, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                // internal class Class1 : IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Class1").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 16),
+                // (5,25): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                // internal class Class1 : IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 25),
+                // (7,15): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //     ValueTask IAsyncDisposable.DisposeAsync()
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(7, 15),
+                // (7,32): error CS0539: 'Class1.DisposeAsync()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     ValueTask IAsyncDisposable.DisposeAsync()
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "DisposeAsync").WithArguments("Class1.DisposeAsync()").WithLocation(7, 32),
+                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //         await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
+                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //         await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
+        public void PatternBasedFails_AwaitUsing_08()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+struct S2 : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable
+{
+    ValueTask IMyAsyncDisposable1.DisposeAsync() => throw null;
+    ValueTask IMyAsyncDisposable2.DisposeAsync() => throw null;
+
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable, new()
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2066463")]
+        public void PatternBasedFails_AwaitUsing_Private()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+await using var service = new Service1();
+
+public sealed class Service1 : IAsyncDisposable
+{
+    private Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write("ran");
+        return new ValueTask(DisposeAsync());
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "ran" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
     }
 }

@@ -15,2468 +15,2467 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity;
+
+public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
 {
-    public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
+    protected internal override string GetLanguage() => LanguageNames.CSharp;
+
+    protected override ParseOptions GetScriptOptions() => Options.Script;
+
+    internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
     {
-        protected internal override string GetLanguage() => LanguageNames.CSharp;
+        return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
+                    new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
+    }
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class NoneConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    {
+        protected override int CodeActionIndex => 0;
 
-        internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_None()
         {
-            return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = none
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class NoneConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_None()
         {
-            protected override int CodeActionIndex => 0;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_None()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                dotnet_style_object_initializer = true:suggestion    ; Comment2
+                dotnet_diagnostic.IDE0017.severity = suggestion    ;; Comment3
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                dotnet_style_object_initializer = true:none    ; Comment2
+                dotnet_diagnostic.IDE0017.severity = none    ;; Comment3
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = none
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_None()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    dotnet_style_object_initializer = true:suggestion    ; Comment2
-                    dotnet_diagnostic.IDE0017.severity = suggestion    ;; Comment3
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    dotnet_style_object_initializer = true:none    ; Comment2
-                    dotnet_diagnostic.IDE0017.severity = none    ;; Comment3
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidHeader_None()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-
-                    [*.{cs,vb}]
-
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = none
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact]
-            public async Task ConfigureEditorconfig_MaintainOption_None()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_style_object_initializer = true:suggestion
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_style_object_initializer = true:none
-                    dotnet_diagnostic.IDE0017.severity = none
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidRule_None()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializerr = true:suggestion
-                    dotnet_diagnostic.IDE0017.severityyy = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializerr = true:suggestion
-                    dotnet_diagnostic.IDE0017.severityyy = suggestion
-
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = none
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class SilentConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidHeader_None()
         {
-            protected override int CodeActionIndex => 1;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_Silent()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                dotnet_diagnostic.IDE0017.severity = suggestion
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                [*.{cs,vb}]
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = none
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_Silent()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.IDE0017.severity = silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class SuggestionConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+        [Fact]
+        public async Task ConfigureEditorconfig_MaintainOption_None()
         {
-            protected override int CodeActionIndex => 2;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_Suggestion()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                dotnet_style_object_initializer = true:suggestion
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                dotnet_style_object_initializer = true:none
+                dotnet_diagnostic.IDE0017.severity = none
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_Suggestion()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
-
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:suggestion
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class WarningConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidRule_None()
         {
-            protected override int CodeActionIndex => 3;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_Warning()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializerr = true:suggestion
+                dotnet_diagnostic.IDE0017.severityyy = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializerr = true:suggestion
+                dotnet_diagnostic.IDE0017.severityyy = suggestion
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = none
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+    }
 
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_Warning()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class SilentConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    {
+        protected override int CodeActionIndex => 1;
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_Silent()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class ErrorConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_Silent()
         {
-            protected override int CodeActionIndex => 4;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_diagnostic.IDE0017.severity = silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+    }
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class SuggestionConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    {
+        protected override int CodeActionIndex => 2;
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_RuleExists_CodeStyleBased_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_Suggestion()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:error
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_SeverityBased_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_Suggestion()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:suggestion
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+    }
 
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_CodeStyleAndSeverityBased_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class WarningConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    {
+        protected override int CodeActionIndex => 3;
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_Warning()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:suggestion
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = new Customer();
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidHeader_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_Warning()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    dotnet_diagnostic.IDE0017.severity = suggestion
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    [*.{cs,vb}]
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+    }
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class ErrorConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    {
+        protected override int CodeActionIndex => 4;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidRule_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializerr = true:warning
-                    dotnet_diagnostic.IDE0017.severityyy = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializerr = true:warning
-                    dotnet_diagnostic.IDE0017.severityyy = suggestion
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_ConcreteHeader_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\File.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_RuleExists_CodeStyleBased_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:error
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_NestedDirectory_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_SeverityBased_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_NestedDirectoryNestedHeader_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_CodeStyleAndSeverityBased_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolder/File.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:suggestion
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = new Customer();
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolder/File.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_NestedDirectoryIncorrectHeader_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidHeader_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolderr/File.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolderr/File.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = warning
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                dotnet_diagnostic.IDE0017.severity = suggestion
 
-                    [*.{cs,vb}]
+                [*.{cs,vb}]
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_IncorrectExtension_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidRule_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializerr = true:warning
+                dotnet_diagnostic.IDE0017.severityyy = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializerr = true:warning
+                dotnet_diagnostic.IDE0017.severityyy = suggestion
 
-                    [*.{cs,vb}]
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_HeaderRegex_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_ConcreteHeader_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Parent*r/Fil*.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Parent*r/Fil*.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_HeaderAllFiles_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_NestedDirectory_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_MultipleHeaders_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_NestedDirectoryNestedHeader_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
-                    dotnet_diagnostic.IDE0017.severity = warning
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolder/File.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    [File.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-
-                    [cs.vb]
-                    dotnet_diagnostic.IDE0017.severity = warning
-
-                    [test.test]
-                    dotnet_diagnostic.IDE0017.severity = warning
-
-                    [WrongName.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
-
-                    [WrongName2.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/File.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
-                    dotnet_diagnostic.IDE0017.severity = warning
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolder/File.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    [File.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-                    [cs.vb]
-                    dotnet_diagnostic.IDE0017.severity = warning
-
-                    [test.test]
-                    dotnet_diagnostic.IDE0017.severity = warning
-
-                    [WrongName.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
-
-                    [WrongName2.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_RegexPartialMatch_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/Program.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_NestedDirectoryIncorrectHeader_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[gram.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolderr/File.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\ParentFolder/Program.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[gram.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[ParentFolderr/File.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = warning
 
-                    [*.{cs,vb}]
+                [*.{cs,vb}]
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_VerifyCaseInsensitive_Warning()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\PARENTfoldeR/ProGRAM.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_IncorrectExtension_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[PROgram.cs]
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\PARENTfoldeR/ProGRAM.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[PROgram.cs]
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                [*.{cs,vb}]
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_DuplicateRule_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    class Program1
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_HeaderRegex_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Parent*r/Fil*.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    [Program.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Parent*r/Fil*.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    [Program.cs]
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_HeaderAllFiles_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
-                    dotnet_style_qualification_for_field = false:silent
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    [*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
-                    dotnet_style_qualification_for_field = false:silent
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-                    [*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_MultipleHeaders_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
+                dotnet_diagnostic.IDE0017.severity = warning
 
-                    [*.{cs,vb}]
-                    dotnet_style_qualification_for_field = false:silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                [File.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    class Program1
+                [cs.vb]
+                dotnet_diagnostic.IDE0017.severity = warning
+
+                [test.test]
+                dotnet_diagnostic.IDE0017.severity = warning
+
+                [WrongName.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
+
+                [WrongName2.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/File.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[File.vb]
+                dotnet_diagnostic.IDE0017.severity = warning
 
-                    [*.{cs,vb}]
-                    dotnet_style_qualification_for_field = false:silent
+                [File.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                [cs.vb]
+                dotnet_diagnostic.IDE0017.severity = warning
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                [test.test]
+                dotnet_diagnostic.IDE0017.severity = warning
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_DotFileName_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program/Test.file.cs">
-                    class Program1
+                [WrongName.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
+
+                [WrongName2.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_RegexPartialMatch_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/Program.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Test.file.cs]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[gram.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_style_object_initializer = true:warning
-                    dotnet_diagnostic.IDE0017.severity = warning
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program/Test.file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\ParentFolder/Program.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
                         {
-                            // dotnet_style_object_initializer = true
-                            var obj = new Customer() { _age = 21 };
 
-                            // dotnet_style_object_initializer = false
-                            Customer obj2 = [|new Customer()|];
-                            obj2._age = 21;
-                        }
-
-                        internal class Customer
-                        {
-                            public int _age;
-
-                            public Customer()
-                            {
-
-                            }
                         }
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Test.file.cs]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[gram.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
 
-                    # IDE0017: Simplify object initialization
-                    dotnet_style_object_initializer = true:error
-                    dotnet_diagnostic.IDE0017.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                [*.{cs,vb}]
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_VerifyCaseInsensitive_Warning()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\PARENTfoldeR/ProGRAM.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[PROgram.cs]
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\PARENTfoldeR/ProGRAM.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[PROgram.cs]
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_DuplicateRule_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+
+                [Program.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+
+                [Program.cs]
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+                dotnet_style_qualification_for_field = false:silent
+
+                [*.cs]
+                csharp_style_expression_bodied_methods = false:silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{cs,vb}]
+                dotnet_style_qualification_for_field = false:silent
+
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+
+                [*.cs]
+                csharp_style_expression_bodied_methods = false:silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_expression_bodied_methods = false:silent
+
+                [*.{cs,vb}]
+                dotnet_style_qualification_for_field = false:silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_expression_bodied_methods = false:silent
+
+                [*.{cs,vb}]
+                dotnet_style_qualification_for_field = false:silent
+
+                # IDE0017: Simplify object initialization
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_DotFileName_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program/Test.file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Test.file.cs]
+
+                # IDE0017: Simplify object initialization
+                dotnet_style_object_initializer = true:warning
+                dotnet_diagnostic.IDE0017.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program/Test.file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // dotnet_style_object_initializer = true
+                        var obj = new Customer() { _age = 21 };
+
+                        // dotnet_style_object_initializer = false
+                        Customer obj2 = [|new Customer()|];
+                        obj2._age = 21;
+                    }
+
+                    internal class Customer
+                    {
+                        public int _age;
+
+                        public Customer()
+                        {
+
+                        }
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[Test.file.cs]
+
+                # IDE0017: Simplify object initialization
+                dotnet_style_object_initializer = true:error
+                dotnet_diagnostic.IDE0017.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
     }
 }

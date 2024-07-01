@@ -294,25 +294,23 @@ language: LanguageNames.CSharp);
                 language: LanguageNames.CSharp)
                 .WithAnalyzerConfigDocuments([docInfo]);
 
-            using (var ws = new AdhocWorkspace())
-            {
-                ws.AddProject(projInfo);
-                var doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
-                Assert.False(doc.TryGetText(out var currentText));
+            using var ws = new AdhocWorkspace();
+            ws.AddProject(projInfo);
+            var doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+            Assert.False(doc.TryGetText(out var currentText));
 
-                ws.OpenAnalyzerConfigDocument(docInfo.Id);
+            ws.OpenAnalyzerConfigDocument(docInfo.Id);
 
-                doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
-                Assert.True(doc.TryGetText(out currentText));
-                Assert.True(doc.TryGetTextVersion(out var currentVersion));
-                Assert.Same(text, currentText);
-                Assert.Equal(version, currentVersion);
+            doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+            Assert.True(doc.TryGetText(out currentText));
+            Assert.True(doc.TryGetTextVersion(out var currentVersion));
+            Assert.Same(text, currentText);
+            Assert.Equal(version, currentVersion);
 
-                ws.CloseAnalyzerConfigDocument(docInfo.Id);
+            ws.CloseAnalyzerConfigDocument(docInfo.Id);
 
-                doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
-                Assert.False(doc.TryGetText(out currentText));
-            }
+            doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+            Assert.False(doc.TryGetText(out currentText));
         }
 
         [Fact]
