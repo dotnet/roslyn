@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,6 +28,8 @@ internal sealed class CSharpEditorInlineRenameService(
     IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
 {
     private const int NumberOfContextLines = 5;
+    private const int MaxDefinitionCount = 10;
+    private const int MaxReferenceCount = 50;
 
     public override bool IsRenameContextSupported => true;
 
@@ -42,7 +45,7 @@ internal sealed class CSharpEditorInlineRenameService(
         using var _3 = ArrayBuilder<string>.GetInstance(out var references);
         using var _4 = ArrayBuilder<string>.GetInstance(out var docComments);
 
-        foreach (var renameDefinition in inlineRenameInfo.DefinitionLocations)
+        foreach (var renameDefinition in inlineRenameInfo.DefinitionLocations.Take(MaxDefinitionCount))
         {
             // Find largest snippet of code that represents the definition
             var containingStatementOrDeclarationSpan =
@@ -68,7 +71,7 @@ internal sealed class CSharpEditorInlineRenameService(
             AddSpanOfInterest(documentText, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
         }
 
-        foreach (var renameLocation in inlineRenameLocationSet.Locations)
+        foreach (var renameLocation in inlineRenameLocationSet.Locations.Take(MaxReferenceCount))
         {
             // Find largest snippet of code that represents the reference
             var containingStatementOrDeclarationSpan =
