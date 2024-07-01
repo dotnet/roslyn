@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -113,6 +114,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException($"{severityText} {fullMessage}");
                 };
             }
+        }
+
+        public void SetAnalyzerFallbackOptions(string language, params (string name, string value)[] options)
+        {
+            SetCurrentSolution(
+                s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(language,
+                    StructuredAnalyzerConfigOptions.Create(
+                        new DictionaryAnalyzerConfigOptions(
+                            options.Select(static o => KeyValuePairUtil.Create(o.name, o.value)).ToImmutableDictionary())))),
+                changeKind: WorkspaceChangeKind.SolutionChanged);
+        }
+
+        internal void SetAnalyzerFallbackOptions(OptionsCollection options)
+        {
+            SetCurrentSolution(
+                s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(options.LanguageName, options.ToAnalyzerConfigOptions())),
+                changeKind: WorkspaceChangeKind.SolutionChanged);
         }
 
         private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
