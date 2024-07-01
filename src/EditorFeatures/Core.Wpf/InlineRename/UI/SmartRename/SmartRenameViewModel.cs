@@ -70,7 +70,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// <summary>
     /// Determines whether smart rename gets semantic context to augment the request for suggested names.
     /// </summary>
-    public bool IsUsingContext { get; }
+    public bool IsUsingSemanticContext { get; }
 
     private string? _selectedSuggestedName;
 
@@ -127,7 +127,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         SetupTelemetry();
 
         this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
-        this.IsUsingContext = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsContext);
+        this.IsUsingSemanticContext = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsContext);
         // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
         this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         if (this.IsAutomaticSuggestionsEnabled)
@@ -159,9 +159,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         if (isAutomaticOnInitialization)
         {
-            // ConfigureAwait(true) to stay on the UI thread;
-            // WPF view is bound to _smartRenameSession properties and so they must be updated on the UI thread.
-            await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
+            await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         if (cancellationToken.IsCancellationRequested || _isDisposed)
@@ -169,7 +168,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             return;
         }
 
-        if (IsUsingContext)
+        if (IsUsingSemanticContext)
         {
             var document = this.BaseViewModel.Session.TriggerDocument;
             var smartRenameContext = ImmutableDictionary<string, string[]>.Empty;
@@ -177,48 +176,52 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             if (editorRenameService.IsRenameContextSupported)
             {
                 var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
-                    .ConfigureAwait(true);
+                    .ConfigureAwait(false);
                 var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
-                    .ConfigureAwait(true);
+                    .ConfigureAwait(false);
                 smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
                     context
                     .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
             }
 
             _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
-                .ConfigureAwait(true);
+                .ConfigureAwait(false);
         }
         else
         {
             _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken)
-                .ConfigureAwait(true);
+                .ConfigureAwait(false);
         }
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-        // _smartRenameSession.SuggestedNames is a normal list. We need to convert it to ObservableCollection to bind to UI Element.
-        if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
+        _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
-            var textInputBackup = BaseViewModel.IdentifierText;
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            SuggestedNames.Clear();
-            // Set limit of 3 results
-            foreach (var name in _smartRenameSession.SuggestedNames.Take(3))
+            // _smartRenameSession.SuggestedNames is a normal list. We need to convert it to ObservableCollection to bind to UI Element.
+            if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
             {
-                SuggestedNames.Add(name);
+                var textInputBackup = BaseViewModel.IdentifierText;
+
+                SuggestedNames.Clear();
+                // Set limit of 3 results
+                foreach (var name in _smartRenameSession.SuggestedNames.Take(3))
+                {
+                    SuggestedNames.Add(name);
+                }
+
+                // Changing the list may have changed the text in the text box. We need to restore it.
+                BaseViewModel.IdentifierText = textInputBackup;
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
+                return;
             }
 
-            // Changing the list may have changed the text in the text box. We need to restore it.
-            BaseViewModel.IdentifierText = textInputBackup;
-
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
-            return;
-        }
-
-        // For the rest of the property, like HasSuggestions, IsAvailable and etc. Just forward it has changed to subscriber
-        PropertyChanged?.Invoke(this, e);
+            // For the rest of the property, like HasSuggestions, IsAvailable and etc. Just forward it has changed to subscriber
+            PropertyChanged?.Invoke(this, e);
+        });
     }
 
     public string? ScrollSuggestions(string currentIdentifier, bool down)
