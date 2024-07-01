@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    [CompilerTrait(CompilerFeature.RefLifetime)]
     public class InlineArrayTests : CompilingTestBase
     {
         public const string InlineArrayAttributeDefinition =

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.Patterns)]
+    [CompilerTrait(CompilerFeature.Patterns, CompilerFeature.RefLifetime)]
     public class PatternMatchingTests : PatternMatchingTestBase
     {
         [Fact]
