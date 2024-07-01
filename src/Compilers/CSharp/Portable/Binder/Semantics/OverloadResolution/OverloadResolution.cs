@@ -1178,7 +1178,7 @@ outerDefault:
 
             ParameterSymbol final = member.GetParameters().Last();
             if ((final.IsParamsArray && final.Type.IsSZArray()) ||
-                (final.IsParamsCollection && !final.Type.IsSZArray() &&
+                (final.IsParamsCollection && !final.Type.IsSZArray() && !binder.InExpressionTree &&
                  (binder.Compilation.LanguageVersion > LanguageVersion.CSharp12 || member.ContainingModule == binder.Compilation.SourceModule)))
             {
                 return TryInferParamsCollectionIterationType(binder, final.OriginalDefinition.Type, out definitionElementType);
