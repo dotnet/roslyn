@@ -1730,7 +1730,7 @@ outerDefault:
             }
 
             // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
-            if (results.All(r => r.LeastOverriddenMember.GetOverloadResolutionPriority() == 0))
+            if (results.All(r => getOverloadResolutionPriority(r) == 0))
             {
                 // All default, nothing to do
                 return;
@@ -1744,8 +1744,8 @@ outerDefault:
                 var containingType = result.LeastOverriddenMember.ContainingType;
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
-                    var previousOverloadResolutionPriority = previousResults.First().LeastOverriddenMember.GetOverloadResolutionPriority();
-                    var currentOverloadResolutionPriority = result.LeastOverriddenMember.GetOverloadResolutionPriority();
+                    var previousOverloadResolutionPriority = getOverloadResolutionPriority(previousResults.First());
+                    var currentOverloadResolutionPriority = getOverloadResolutionPriority(result);
 
                     if (currentOverloadResolutionPriority > previousOverloadResolutionPriority)
                     {
@@ -1759,7 +1759,7 @@ outerDefault:
                     else
                     {
                         removedMembers = true;
-                        Debug.Assert(previousResults.All(r => r.LeastOverriddenMember.GetOverloadResolutionPriority() > currentOverloadResolutionPriority));
+                        Debug.Assert(previousResults.All(r => getOverloadResolutionPriority(r) == previousOverloadResolutionPriority));
                     }
                 }
                 else
@@ -1781,6 +1781,8 @@ outerDefault:
                 results.AddRange(resultsForType);
             }
             resultsByContainingType.Free();
+
+            static int getOverloadResolutionPriority(MemberResolutionResult<TMember> result) => result.LeastOverriddenMember.GetOverloadResolutionPriority();
         }
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

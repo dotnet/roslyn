@@ -2351,5 +2351,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotApplyOverloadResolutionPriorityToOverride = 9500,
         ERR_CannotApplyOverloadResolutionPriorityToNonIndexer = 9501,
         ERR_CannotApplyOverloadResolutionPriorityToAccessor = 9502,
+        ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation = 9503,
     }
 }

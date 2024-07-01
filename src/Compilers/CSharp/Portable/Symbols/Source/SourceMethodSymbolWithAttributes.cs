@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (this is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
                     {
-                        // Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
+                        // Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
                         return (null, null);
                     }
 
@@ -383,19 +383,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
 
-                        if (hasAnyDiagnostics)
+                        if (!hasAnyDiagnostics)
                         {
-                            attributeData = null;
-                            boundAttribute = null;
+                            return (attributeData, boundAttribute);
                         }
                     }
-                    else
-                    {
-                        attributeData = null;
-                        boundAttribute = null;
-                    }
 
-                    return (attributeData, boundAttribute);
+                    return (null, null);
                 }
             }
 
@@ -640,17 +634,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
-                if (this.OverriddenMethod is not null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt);
-                }
-
                 MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
 
                 if (this is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
                 {
-                    // Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
                     diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, arguments.AttributeSyntaxOpt);
+                }
+                else if (this.OverriddenMethod is not null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt);
+                }
+                else if (this.IsExplicitInterfaceImplementation)
+                {
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, arguments.AttributeSyntaxOpt);
                 }
             }
             else

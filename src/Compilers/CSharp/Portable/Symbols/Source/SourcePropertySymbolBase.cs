@@ -1281,19 +1281,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.GetOrCreateData<PropertyEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
 
-                    if (hasAnyDiagnostics)
+                    if (!hasAnyDiagnostics)
                     {
-                        attributeData = null;
-                        boundAttribute = null;
+                        return (attributeData, boundAttribute);
                     }
                 }
-                else
-                {
-                    attributeData = null;
-                    boundAttribute = null;
-                }
 
-                return (attributeData, boundAttribute);
+                return (null, null);
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -1416,13 +1410,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!IsIndexer)
                 {
-                    // Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.
                     diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToNonIndexer, arguments.AttributeSyntaxOpt.Location);
                 }
                 else if (IsOverride)
                 {
-                    // Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
                     diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt.Location);
+                }
+                else if (IsExplicitInterfaceImplementation)
+                {
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, arguments.AttributeSyntaxOpt.Location);
                 }
             }
         }

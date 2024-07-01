@@ -7976,13 +7976,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <!-- PROTOTYPE: Condense -->
   <data name="ERR_CannotApplyOverloadResolutionPriorityToOverride" xml:space="preserve">
-    <value>Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.</value>
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</value>
   </data>
   <data name="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer" xml:space="preserve">
-    <value>Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</value>
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</value>
   </data>
   <data name="ERR_CannotApplyOverloadResolutionPriorityToAccessor" xml:space="preserve">
-    <value>Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</value>
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.</value>
   </data>
   <data name="IDS_OverloadResolutionPriority" xml:space="preserve">
     <value>overload resolution priority</value>

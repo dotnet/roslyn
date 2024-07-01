@@ -333,18 +333,23 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToAccessor">
-        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</source>
-        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an accessor method.</target>
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer">
-        <source>Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</source>
-        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</target>
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
-        <source>Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
-        <target state="new">Cannot put 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
