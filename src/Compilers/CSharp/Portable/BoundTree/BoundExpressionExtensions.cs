@@ -78,6 +78,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Returns the RefKind of an expression
+        /// if the expression represents a symbol, the RefKind of the symbol is returned
+        /// if the expression is a "by-ref" expression like conditional operator or InlineArrayAccess the RefKind is calculated and returned
+        /// otherwise this function returns RefKind.None 
+        /// </summary>
+        public static RefKind GetRefKindEx(this BoundExpression node)
+        {
+            switch (node.Kind)
+            {
+                case BoundKind.ConditionalOperator:
+                    {
+                        var conditionalOperator = (BoundConditionalOperator)node;
+                        if (!conditionalOperator.IsRef)
+                        {
+                            return RefKind.None;
+                        }
+                        //the ref kind of the entire expression is ref readonly if the ref kind of the consequence
+                        //or the alternative is ref readonly otherwise it just by ref (not readonly)
+                        //
+                        //without this check we loose the readonly specifier
+                        //See Binder.CheckValueKind
+                        if (tryGetReadOnlyRefKind(conditionalOperator.Consequence) is { } readOnlyRefKindOfConsequence)
+                        {
+                            return readOnlyRefKindOfConsequence;
+                        }
+                        if (tryGetReadOnlyRefKind(conditionalOperator.Alternative) is { } readOnlyRefKindOfAlternative)
+                        {
+                            return readOnlyRefKindOfAlternative;
+                        }
+                        return RefKind.Ref;
+
+                        static RefKind? tryGetReadOnlyRefKind(BoundExpression expression)
+                        {
+                            switch (expression.GetRefKindEx())
+                            {
+                                case RefKind.Ref:
+                                case RefKind.Out:
+                                    return null;
+                                case RefKind.RefReadOnlyParameter:
+                                case RefKind.RefReadOnly: //same as RefKind.In
+                                case RefKindExtensions.StrictIn:
+                                    return RefKind.RefReadOnly;
+                                case RefKind.None:
+                                    return null; //could be e.g. a throw expression
+                                case var unhandled:
+                                    Debug.Assert(false, $"unhandled refKind: {unhandled}");
+                                    return RefKind.RefReadOnly;
+                            }
+                        }
+                    }
+                default:
+                    return GetRefKind(node);
+            }
+        }
+
         public static bool IsLiteralNull(this BoundExpression node)
         {
             return node is { Kind: BoundKind.Literal, ConstantValueOpt: { Discriminator: ConstantValueTypeDiscriminator.Null } };
