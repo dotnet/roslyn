@@ -1730,6 +1730,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
             public class C
             {
+                [OverloadResolutionPriority(1)]
                 public C(object o) => throw null;
                 public C(string s) => System.Console.Write(1);
 
@@ -1737,7 +1738,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                 public void M(object o) => throw null;
                 public void M(string s) => System.Console.Write(2);
 
-
+                [OverloadResolutionPriority(1)]
                 public int this[object o]
                 {
                     get => throw null;
