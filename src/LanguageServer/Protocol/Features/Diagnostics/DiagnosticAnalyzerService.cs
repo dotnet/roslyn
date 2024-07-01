@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnosticsRefresher = diagnosticsRefresher;
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
 
-            globalOptions.AddOptionChangedHandler(this, (_, e) =>
+            globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
             {
                 if (e.HasOption(IsGlobalOptionAffectingDiagnostics))
                 {

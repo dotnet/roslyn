@@ -322,10 +322,10 @@ internal static class CodeStyleOptions2
                 return $"{value}{CodeStyleHelpers.GetEditorConfigStringNotificationPart(option, defaultValue)}";
             }));
 
-    internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = new(
+    internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreatePerLanguageOption(
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
         "dotnet_prefer_system_hash_code",
-        IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
-        group: CodeStyleOptionGroups.ExpressionLevelPreferences);
+        defaultValue: new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion));
 
     public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreatePerLanguageOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,

@@ -14,30 +14,9 @@ using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options;
 
-internal static partial class EditorConfigFileGenerator
+internal static partial class NamingStylePreferencesEditorConfigSerializer
 {
-    public static void AppendNamingStylePreferencesToEditorConfig(IEnumerable<NamingRule> namingRules, StringBuilder editorconfig, string? language = null)
-    {
-        var symbolSpecifications = namingRules.Select(x => x.SymbolSpecification).ToImmutableArray();
-        var namingStyles = namingRules.Select(x => x.NamingStyle).ToImmutableArray();
-        var serializedNamingRules = namingRules.Select(x => new SerializableNamingRule()
-        {
-            EnforcementLevel = x.EnforcementLevel,
-            NamingStyleID = x.NamingStyle.ID,
-            SymbolSpecificationID = x.SymbolSpecification.ID
-        }).ToImmutableArray();
-
-        language ??= LanguageNames.CSharp;
-
-        AppendNamingStylePreferencesToEditorConfig(
-            symbolSpecifications,
-            namingStyles,
-            serializedNamingRules,
-            language,
-            editorconfig);
-    }
-
-    public static void AppendNamingStylePreferencesToEditorConfig(NamingStylePreferences namingStylePreferences, string language, StringBuilder editorconfig)
+    public static void AppendToEditorConfig(this NamingStylePreferences namingStylePreferences, string language, StringBuilder editorconfig)
     {
         AppendNamingStylePreferencesToEditorConfig(
             namingStylePreferences.SymbolSpecifications,

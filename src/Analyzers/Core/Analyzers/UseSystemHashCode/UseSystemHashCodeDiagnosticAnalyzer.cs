@@ -69,7 +69,7 @@ internal class UseSystemHashCodeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDia
         // We've got multiple members to hash, or multiple statements that can be reduced at this point.
         Debug.Assert(elementCount >= 2 || statements.Length >= 2);
 
-        var option = context.Options.GetIdeOptions().PreferSystemHashCode;
+        var option = context.Options.GetAnalyzerOptions(operation.Syntax.SyntaxTree).PreferSystemHashCode;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

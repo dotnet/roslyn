@@ -92,10 +92,10 @@ public class GlobalOptionsTests
         public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
             => throw new NotImplementedException();
 
-        public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
             => throw new NotImplementedException();
 
-        public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
             => throw new NotImplementedException();
 
         #endregion

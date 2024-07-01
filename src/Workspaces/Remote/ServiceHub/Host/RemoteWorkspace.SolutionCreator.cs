@@ -88,6 +88,12 @@ namespace Microsoft.CodeAnalysis.Remote
                             AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                     }
 
+                    if (oldSolutionChecksums.FallbackAnalyzerOptions != newSolutionChecksums.FallbackAnalyzerOptions)
+                    {
+                        solution = solution.WithFallbackAnalyzerOptions(await _assetProvider.GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(
+                            AssetPathKind.SolutionFallbackAnalyzerOptions, newSolutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false));
+                    }
+
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
                         newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue &&
                         !newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes.IsDefault)

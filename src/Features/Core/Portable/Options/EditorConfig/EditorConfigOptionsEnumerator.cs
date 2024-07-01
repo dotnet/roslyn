@@ -9,9 +9,12 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.ValidateFormatString;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -32,7 +35,11 @@ internal sealed class EditorConfigOptionsEnumerator(
 
         if (includeUnsupported)
         {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.UndocumentedOptions);
+            // note: the feature string is ignored for unsupported options:
+            yield return ("unsupported", FormattingOptions2.UndocumentedOptions);
+            yield return ("unsupported", JsonDetectionOptionsStorage.UnsupportedOptions);
+            yield return ("unsupported", FormatStringValidationOptionStorage.UnsupportedOptions);
+            yield return ("unsupported", RegexOptionsStorage.UnsupportedOptions);
         }
 
         yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.EditorConfigOptions.AddRange(CodeStyleOptions2.EditorConfigOptions));
