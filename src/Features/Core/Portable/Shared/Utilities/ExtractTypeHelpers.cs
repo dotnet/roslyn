@@ -84,8 +84,7 @@ internal static class ExtractTypeHelpers
         var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
             new CodeGenerationSolutionContext(
                 newDocument.Project.Solution,
-                context,
-                fallbackOptions),
+                context),
             newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
             newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
             cancellationToken).ConfigureAwait(false);

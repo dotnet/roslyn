@@ -72,16 +72,10 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     public string FileHeaderTemplate => GetOption(CodeStyleOptions2.FileHeaderTemplate);
 
     public TValue GetOption<TValue>(PerLanguageOption2<TValue> option)
-        => _options.GetOption(option, language);
+        => options.GetOption(option, language);
 
     private TValue GetOption<TValue>(Option2<TValue> option)
         => options.GetOption(option);
-
-    private IdeCodeStyleOptions FallbackCodeStyleOptions
-        => _fallbackOptions.CodeStyleOptions ?? IdeCodeStyleOptions.CommonDefaults;
-
-    private SimplifierOptions FallbackSimplifierOptions
-        => _fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierOptions.CommonDefaults;
 
     internal IOptionsReader GetAnalyzerConfigOptions()
         => options;

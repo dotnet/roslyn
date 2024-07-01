@@ -299,8 +299,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     newSolution,
-                    new CodeGenerationContext(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
-                    _fallbackOptions),
+                    new CodeGenerationContext(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()))),
                 enclosingNamespace,
                 rootNamespaceOrType,
                 _cancellationToken).ConfigureAwait(false);
@@ -398,8 +397,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     solution,
-                    new CodeGenerationContext(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span)),
-                    _fallbackOptions),
+                    new CodeGenerationContext(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span))),
                 enclosingNamespace,
                 namedType,
                 _cancellationToken).ConfigureAwait(false);
@@ -445,8 +443,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     solution,
-                    new CodeGenerationContext(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
-                    _fallbackOptions),
+                    new CodeGenerationContext(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3)),
                 enclosingNamespaceGeneratedTypeToAddAndLocation.Item1,
                 enclosingNamespaceGeneratedTypeToAddAndLocation.Item2,
                 _cancellationToken).ConfigureAwait(false);
@@ -560,8 +557,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     solution,
-                    new CodeGenerationContext(contextLocation: _state.SimpleName.GetLocation()),
-                    _fallbackOptions),
+                    new CodeGenerationContext(contextLocation: _state.SimpleName.GetLocation())),
                 _state.TypeToGenerateInOpt,
                 namedType,
                 _cancellationToken)

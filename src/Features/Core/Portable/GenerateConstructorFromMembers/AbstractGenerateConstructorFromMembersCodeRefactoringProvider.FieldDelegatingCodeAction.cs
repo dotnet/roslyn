@@ -72,8 +72,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
                     _document.Project.Solution,
                     new CodeGenerationContext(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: afterThisLocation),
-                    _fallbackOptions),
+                        afterThisLocation: afterThisLocation)),
                 _state.ContainingType,
                 members,
                 cancellationToken).ConfigureAwait(false);

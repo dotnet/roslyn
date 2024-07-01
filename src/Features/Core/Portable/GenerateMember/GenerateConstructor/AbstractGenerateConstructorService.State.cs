@@ -597,8 +597,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             var context = new CodeGenerationSolutionContext(
                 document.Project.Solution,
-                new CodeGenerationContext(Token.GetLocation()),
-                _fallbackOptions);
+                new CodeGenerationContext(Token.GetLocation()));
 
             return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
                 context,
@@ -646,8 +645,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    new CodeGenerationContext(Token.GetLocation()),
-                    _fallbackOptions),
+                    new CodeGenerationContext(Token.GetLocation())),
                 TypeToGenerateIn,
                 provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
                     semanticModel,
