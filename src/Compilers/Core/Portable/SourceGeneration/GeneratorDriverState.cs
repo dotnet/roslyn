@@ -102,11 +102,6 @@ namespace Microsoft.CodeAnalysis
         // https://github.com/dotnet/roslyn/issues/72129: Change from field to property once issue is addressed
         internal readonly bool TrackIncrementalSteps;
 
-        /// <summary>
-        /// Tracks if the <see cref="ParseOptions"/> have been changed meaning post init trees will need to be re-parsed.
-        /// </summary>
-        internal readonly bool ParseOptionsChanged;
-
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,

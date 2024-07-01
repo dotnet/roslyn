@@ -126,6 +126,6 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<(string Key, string Value)> HostOutputs { get; }
 
-        internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(t => t.Tree.Options != parseOptions);
+        internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
     }
 }
