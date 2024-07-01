@@ -108,9 +108,7 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
             {
                 var conversion = semanticModel.Compilation.ClassifyConversion(rightType, leftType);
                 if (conversion.Exists && conversion.IsExplicit)
-                {
                     return (assignmentExpression.Right, this.Cast(assignmentExpression.Right, leftType));
-                }
             }
         }
 
