@@ -170,8 +170,7 @@ internal class WorkspaceProject : IWorkspaceProject
             }
         }
 
-        // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830960
-        _project.CompilationOutputAssemblyFilePath = _project.OutputFilePath;
+        _project.CompilationOutputAssemblyFilePath = _project.CompilationOutputAssemblyFilePath;
 
         string? GetFullyQualifiedPath(string? propertyValue)
         {

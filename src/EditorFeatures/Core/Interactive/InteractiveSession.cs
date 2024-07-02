@@ -294,7 +294,7 @@ internal sealed class InteractiveSession : IDisposable
                     name: name,
                     assemblyName: name,
                     language: languageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm: SourceHashAlgorithms.Default,
                     isSubmission: true),
                 compilationOptions: compilationOptions,

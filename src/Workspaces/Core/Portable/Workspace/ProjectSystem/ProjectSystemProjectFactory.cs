@@ -108,7 +108,7 @@ internal sealed class ProjectSystemProjectFactory
                 name: projectSystemName,
                 assemblyName,
                 language,
-                compilationOutputFilePaths: default, // will be updated when command line is set
+                compilationOutputInfo: new(creationInfo.CompilationOutputAssemblyFilePath), // will be updated when command line is set
                 SourceHashAlgorithms.Default, // will be updated when command line is set
                 filePath: creationInfo.FilePath,
                 telemetryId: creationInfo.TelemetryId),
