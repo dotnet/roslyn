@@ -201,7 +201,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         var markFieldPrivate = field.DeclaredAccessibility != Accessibility.Private;
         var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, document, declarationAnnotation, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
 

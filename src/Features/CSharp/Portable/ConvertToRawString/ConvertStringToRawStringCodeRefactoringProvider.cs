@@ -77,7 +77,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
             return;
 
         var options = context.Options;
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(options, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         if (!CanConvert(parsedDocument, parentExpression, formattingOptions, out var convertParams, out var provider, cancellationToken))
@@ -90,7 +90,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
             context.RegisterRefactoring(
                 CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_raw_string,
-                    cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.SingleLine, options, provider, cancellationToken),
+                    cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.SingleLine, provider, cancellationToken),
                     s_kindToEquivalenceKeyMap[ConvertToRawKind.SingleLine],
                     priority),
                 token.Span);
@@ -100,7 +100,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
             context.RegisterRefactoring(
                 CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_raw_string,
-                    cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.MultiLineIndented, options, provider, cancellationToken),
+                    cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.MultiLineIndented, provider, cancellationToken),
                     s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineIndented],
                     priority),
                 token.Span);
@@ -110,7 +110,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
-                        cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, options, provider, cancellationToken),
+                        cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, provider, cancellationToken),
                         s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineWithoutLeadingWhitespace],
                         priority),
                     token.Span);
@@ -122,11 +122,10 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         Document document,
         ExpressionSyntax expression,
         ConvertToRawKind kind,
-        CodeActionOptionsProvider optionsProvider,
         IConvertStringProvider provider,
         CancellationToken cancellationToken)
     {
-        var options = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
@@ -146,7 +145,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         Debug.Assert(equivalenceKey != null);
         var kind = s_kindToEquivalenceKeyMap[equivalenceKey];
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         foreach (var fixSpan in fixAllSpans)

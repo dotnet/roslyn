@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Simplification;
 #endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -23,25 +22,17 @@ internal sealed record class IdeAnalyzerOptions
 
     [DataMember] public bool CrashOnAnalyzerException { get; init; } = false;
 
-    /// <summary>
-    /// Default values for <see cref="CleanCodeGenerationOptions"/>, or null if not available (the project language does not support these options).
-    /// </summary>
-    [DataMember] public CleanCodeGenerationOptions? CleanCodeGenerationOptions { get; init; } = null;
-
-    /// <summary>
-    /// Default values for <see cref="IdeCodeStyleOptions"/>, or null if not available (the project language does not support these options).
-    /// </summary>
-    [DataMember] public IdeCodeStyleOptions? CodeStyleOptions { get; init; } = null;
-
-    public CodeCleanupOptions? CleanupOptions => CleanCodeGenerationOptions?.CleanupOptions;
-    public CodeGenerationOptions? GenerationOptions => CleanCodeGenerationOptions?.GenerationOptions;
-
 #if !CODE_STYLE
+    /// <summary>
+    /// Currently needed to implement <see cref="IBuiltInAnalyzer.OpenFileOnly(SimplifierOptions?)"/>.
+    /// Should be removed: https://github.com/dotnet/roslyn/issues/74048
+    /// </summary>
+    [DataMember] public SimplifierOptions? SimplifierOptions { get; init; } = null;
+
     public static IdeAnalyzerOptions GetDefault(LanguageServices languageServices)
         => new()
         {
-            CleanCodeGenerationOptions = CodeGeneration.CleanCodeGenerationOptions.GetDefault(languageServices),
-            CodeStyleOptions = IdeCodeStyleOptions.GetDefault(languageServices),
+            SimplifierOptions = SimplifierOptions.GetDefault(languageServices),
         };
 #endif
 }

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim options = Await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim options = Await _document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim newNode = Await GetNewNodeAsync(_document, _node, options, cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(_node, newNode)

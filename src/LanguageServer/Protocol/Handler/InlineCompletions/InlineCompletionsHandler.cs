@@ -137,7 +137,7 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
         }
 
         // Use the formatting options specified by the client to format the snippet.
-        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
         var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, document, sourceText, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
