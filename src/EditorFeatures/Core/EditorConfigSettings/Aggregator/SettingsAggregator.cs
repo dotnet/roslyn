@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
@@ -76,30 +78,25 @@ internal partial class SettingsAggregator : ISettingsAggregator
 
     private static ISettingsProviderFactory<T> GetOptionsProviderFactory<T>(Workspace workspace)
     {
-        var providers = new List<ISettingsProviderFactory<T>>();
+        using var providers = TemporaryArray<ISettingsProviderFactory<T>>.Empty;
+
         var commonProvider = workspace.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
         providers.Add(commonProvider);
-        var solution = workspace.CurrentSolution;
-        var supportsCSharp = solution.Projects.Any(p => p.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
-        var supportsVisualBasic = solution.Projects.Any(p => p.Language.Equals(LanguageNames.VisualBasic, StringComparison.OrdinalIgnoreCase));
-        if (supportsCSharp)
-        {
-            TryAddProviderForLanguage(LanguageNames.CSharp, workspace, providers);
-        }
 
-        if (supportsVisualBasic)
-        {
-            TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);
-        }
+        var projectCountByLanguage = workspace.CurrentSolution.SolutionState.ProjectCountByLanguage;
 
-        return new CombinedOptionsProviderFactory<T>([.. providers]);
+        TryAddProviderForLanguage(LanguageNames.CSharp);
+        TryAddProviderForLanguage(LanguageNames.VisualBasic);
 
-        static void TryAddProviderForLanguage(string language, Workspace workspace, List<ISettingsProviderFactory<T>> providers)
+        return new CombinedOptionsProviderFactory<T>(providers.ToImmutableAndClear());
+
+        void TryAddProviderForLanguage(string language)
         {
-            var provider = workspace.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
-            if (provider is not null)
+            if (projectCountByLanguage.ContainsKey(language))
             {
-                providers.Add(provider);
+                var provider = workspace.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
+                if (provider != null)
+                    providers.Add(provider);
             }
         }
     }
