@@ -98,20 +98,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Perform overload resolution on the given method group, with the given arguments and
         // names. The names can be null if no names were supplied to any arguments.
-        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, bool dynamicResolution, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, bool dynamicResolution, bool isEarlyAttributeBinding, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!dynamicResolution || arguments.HasDynamicArgument);
 
             var results = result.ResultsBuilder;
 
             // First, attempt overload resolution not getting complete results.
-            PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: false, dynamicResolution: dynamicResolution, ref useSiteInfo);
+            PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: false, dynamicResolution: dynamicResolution, isEarlyAttributeBinding, ref useSiteInfo);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: true, dynamicResolution: dynamicResolution, ref useSiteInfo);
+                PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: true, dynamicResolution: dynamicResolution, isEarlyAttributeBinding, ref useSiteInfo);
             }
         }
 
@@ -361,6 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((options & Options.DynamicResolution) == 0)
             {
+                RemoveLowerPriorityMembers(results);
+
                 // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified,
                 // SPEC: the method invocation is ambiguous, and a binding-time error occurs.
 
@@ -1603,6 +1605,7 @@ outerDefault:
             AnalyzedArguments arguments,
             bool completeResults,
             bool dynamicResolution,
+            bool isEarlyAttributeBinding,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: The instance constructor to invoke is determined using the overload resolution 
@@ -1620,6 +1623,16 @@ outerDefault:
 
             if (!dynamicResolution)
             {
+                if (!isEarlyAttributeBinding)
+                {
+                    // If we're still decoding early attributes, we can get into a cycle here where we attempt to decode early attributes,
+                    // which causes overload resolution, which causes us to attempt to decode early attributes, etc. Concretely, this means
+                    // that OverloadResolutionPriorityAttribute won't affect early bound attributes, so you can't use OverloadResolutionPriorityAttribute
+                    // to adjust what constructor of OverloadResolutionPriorityAttribute is chosen. See `CycleOnOverloadResolutionPriorityConstructor_02` for
+                    // an example.
+                    RemoveLowerPriorityMembers(results);
+                }
+
                 // The best method of the set of candidate methods is identified. If a single best
                 // method cannot be identified, the method invocation is ambiguous, and a binding-time
                 // error occurs. 
@@ -1696,6 +1709,80 @@ outerDefault:
             }
 
             return currentBestIndex;
+        }
+
+        private static void RemoveLowerPriorityMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
+            where TMember : Symbol
+        {
+            // - Then, the reduced set of candidate members is grouped by declaring type. Within each group:
+            //     - Candidate function members are ordered by *overload_resolution_priority*.
+            //     - All members that have a lower *overload_resolution_priority* than the highest found within its declaring type group are removed.
+            // - The reduced groups are then recombined into the final set of applicable candidate function members.
+
+            switch (results)
+            {
+                // Can't prune anything unless there's at least 2 candidates
+                case []:
+                case [_]:
+                // We only look at methods and indexers, so if this isn't one of those scenarios, we don't need to do anything.
+                case [{ Member: not (MethodSymbol or PropertySymbol { IsIndexer: true }) }, _, ..]:
+                    return;
+            }
+
+            // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
+            if (results.All(r => getOverloadResolutionPriority(r) == 0))
+            {
+                // All default, nothing to do
+                return;
+            }
+
+            bool removedMembers = false;
+            var resultsByContainingType = PooledDictionary<NamedTypeSymbol, OneOrMany<MemberResolutionResult<TMember>>>.GetInstance();
+
+            foreach (var result in results)
+            {
+                var containingType = result.LeastOverriddenMember.ContainingType;
+                if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
+                {
+                    var previousOverloadResolutionPriority = getOverloadResolutionPriority(previousResults.First());
+                    var currentOverloadResolutionPriority = getOverloadResolutionPriority(result);
+
+                    if (currentOverloadResolutionPriority > previousOverloadResolutionPriority)
+                    {
+                        removedMembers = true;
+                        resultsByContainingType[containingType] = OneOrMany.Create(result);
+                    }
+                    else if (currentOverloadResolutionPriority == previousOverloadResolutionPriority)
+                    {
+                        resultsByContainingType[containingType] = previousResults.Add(result);
+                    }
+                    else
+                    {
+                        removedMembers = true;
+                        Debug.Assert(previousResults.All(r => getOverloadResolutionPriority(r) == previousOverloadResolutionPriority));
+                    }
+                }
+                else
+                {
+                    resultsByContainingType.Add(containingType, OneOrMany.Create(result));
+                }
+            }
+
+            if (!removedMembers)
+            {
+                // No changes, so we can just return
+                resultsByContainingType.Free();
+                return;
+            }
+
+            results.Clear();
+            foreach (var (_, resultsForType) in resultsByContainingType)
+            {
+                results.AddRange(resultsForType);
+            }
+            resultsByContainingType.Free();
+
+            static int getOverloadResolutionPriority(MemberResolutionResult<TMember> result) => result.LeastOverriddenMember.GetOverloadResolutionPriority();
         }
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

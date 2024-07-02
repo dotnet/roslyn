@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // w = IsSetsRequiredMembersPopulated. 1 bit.
             // x = IsUnscopedRef. 1 bit.
             // y = IsUnscopedRefPopulated. 1 bit.
-            // 2 bits remain for future purposes.
+            // z = OverloadResolutionPriorityPopulated. 1 bit.
+            // 1 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
             private const int IsUnscopedRefBit = 0x1 << 29;
             private const int IsUnscopedRefPopulatedBit = 0x1 << 30;
+            private const int OverloadResolutionPriorityPopulatedBit = 0x1 << 31;
 
             private int _bits;
 
@@ -146,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
             public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
             public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
+            public bool IsOverloadResolutionPriorityPopulated => (_bits & OverloadResolutionPriorityPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -268,6 +271,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
+
+            public void SetIsOverloadResolutionPriorityPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, OverloadResolutionPriorityPopulatedBit);
+            }
         }
 
         /// <summary>
@@ -287,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
             public MethodSymbol _lazyExplicitClassOverride;
+            public int _lazyOverloadResolutionPriority;
         }
 
         private UncommonFields CreateUncommonFields()
@@ -1672,6 +1681,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             builderArgument = _containingType.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.AsyncMethodBuilderAttribute);
             return builderArgument is not null;
+        }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            if (!_packedFlags.IsOverloadResolutionPriorityPopulated)
+            {
+                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority))
+                {
+                    Interlocked.CompareExchange(ref AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0);
+                }
+#if DEBUG
+                else
+                {
+                    // 0 is the default if nothing is present in metadata, and we don't care about preserving the difference between "not present" and "set to the default value".
+                    Debug.Assert(_uncommonFields is null or { _lazyOverloadResolutionPriority: 0 });
+                }
+#endif
+
+                _packedFlags.SetIsOverloadResolutionPriorityPopulated();
+            }
+
+            return _uncommonFields?._lazyOverloadResolutionPriority;
         }
     }
 }

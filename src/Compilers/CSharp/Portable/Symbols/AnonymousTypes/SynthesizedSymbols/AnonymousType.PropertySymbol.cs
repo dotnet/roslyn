@@ -201,6 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _backingField; }
             }
 
+            internal override int? TryGetOverloadResolutionPriority() => null;
+
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if (obj == null)

@@ -1186,6 +1186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsNullableAnalysisEnabled();
 
+        /// <summary>
+        /// Gets the resolution priority of this method, 0 if not set.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this method from early attribute binding, cycles will occur.
+        /// </remarks>
+        internal int OverloadResolutionPriority => TryGetOverloadResolutionPriority() ?? 0;
+
+        internal abstract int? TryGetOverloadResolutionPriority();
+
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.HasDeclarativeSecurity => HasDeclarativeSecurity;

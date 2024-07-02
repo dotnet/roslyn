@@ -94,6 +94,18 @@ namespace Roslyn.Utilities
                IsEmpty ? OneOrMany.Create(item) :
                OneOrMany.Create(_many.Add(item));
 
+        public void AddRangeTo(ArrayBuilder<T> builder)
+        {
+            if (HasOneItem)
+            {
+                builder.Add(_one);
+            }
+            else
+            {
+                builder.AddRange(_many);
+            }
+        }
+
         public bool Contains(T item)
             => HasOneItem ? EqualityComparer<T>.Default.Equals(item, _one) : _many.Contains(item);
 

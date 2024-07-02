@@ -2346,5 +2346,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
         //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+
+        // PROTOTYPE: Condense
+        ERR_CannotApplyOverloadResolutionPriorityToOverride = 9500,
+        ERR_CannotApplyOverloadResolutionPriorityToNonIndexer = 9501,
+        ERR_CannotApplyOverloadResolutionPriorityToAccessor = 9502,
+        ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation = 9503,
     }
 }

@@ -489,5 +489,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription UnscopedRefAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "UnscopedRefAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InlineArrayAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InlineArrayAttribute", s_signatures_HasThis_Void_Int32_Only);
         internal static readonly AttributeDescription CollectionBuilderAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CollectionBuilderAttribute", s_signaturesOfCollectionBuilderAttribute);
+        internal static readonly AttributeDescription OverloadResolutionPriorityAttribute = new AttributeDescription("System.Runtime.CompilerServices", "OverloadResolutionPriorityAttribute", s_signatures_HasThis_Void_Int32_Only);
     }
 }

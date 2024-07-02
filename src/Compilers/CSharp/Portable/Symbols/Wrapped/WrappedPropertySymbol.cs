@@ -188,5 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingProperty.HasRuntimeSpecialName;
             }
         }
+
+        internal override int? TryGetOverloadResolutionPriority() => _underlyingProperty.OverloadResolutionPriority;
     }
 }

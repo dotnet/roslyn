@@ -634,6 +634,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items, length);
         }
 
+#if COMPILERCORE
+        public void AddRange(OneOrMany<T> items)
+        {
+            items.AddRangeTo(this);
+        }
+#endif
+
         public void Clip(int limit)
         {
             Debug.Assert(limit <= Count);

@@ -369,6 +369,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // diagnostics that might later get thrown away as possible when binding method calls.
                     return (null, null);
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+                {
+                    if (this is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                    {
+                        // Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+                        return (null, null);
+                    }
+
+                    (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+
+                    if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
+                    {
+                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
+
+                        if (!hasAnyDiagnostics)
+                        {
+                            return (attributeData, boundAttribute);
+                        }
+                    }
+
+                    return (null, null);
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -609,6 +631,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
                 DecodeInterceptsLocationAttribute(arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+            {
+                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+
+                if (this is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                {
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, arguments.AttributeSyntaxOpt);
+                }
+                else if (this.OverriddenMethod is not null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt);
+                }
+                else if (this.IsExplicitInterfaceImplementation)
+                {
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, arguments.AttributeSyntaxOpt);
+                }
             }
             else
             {
@@ -1707,5 +1748,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
         }
+
+        internal override int? TryGetOverloadResolutionPriority()
+            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
     }
 }

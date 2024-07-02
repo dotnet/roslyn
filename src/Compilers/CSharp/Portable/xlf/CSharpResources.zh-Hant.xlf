@@ -332,6 +332,26 @@
         <target state="translated">沒有明確傳回型別的匿名方法上不允許 AsyncMethodBuilder 屬性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToAccessor">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToNonIndexer">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">輸入字串無法轉換成對等的 UTF-8 位元組表示法。{0}</target>
@@ -2585,6 +2605,11 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
