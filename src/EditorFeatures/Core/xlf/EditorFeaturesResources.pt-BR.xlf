@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="AI_generated_content_may_be_inaccurate">
-        <source>AI-generated content may be inaccurate</source>
-        <target state="translated">O conteúdo gerado por IA pode ser impreciso</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
         <source>An error occurred while generating documentation for this code.</source>
         <target state="translated">Ocorreu um erro ao gerar a documentação para este código.</target>
@@ -30,6 +25,21 @@
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Computando informações de 'Encapsular Campo'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot pensando...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Descrever com o Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -67,19 +77,14 @@
         <target state="translated">Filtrar</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Gerar resumo com o Copilot (pode ser impreciso)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">Obter ajuda para '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot">
-        <source>GitHub Copilot</source>
-        <target state="translated">GitHub Copilot</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot_thinking">
-        <source>GitHub Copilot thinking...</source>
-        <target state="translated">GitHub Copilot pensando...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -327,11 +332,6 @@
         <target state="translated">Executar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_an_AI_generated_summary_of_this_code">
-        <source>Show an AI generated summary of this code</source>
-        <target state="translated">Mostrar um resumo deste código gerado por IA</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">Dividir o comentário</target>
@@ -350,11 +350,6 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">Tamanho da Tabulação</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Tell_me_more">
-        <source>Tell me more</source>
-        <target state="translated">Conte-me mais</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
@@ -644,7 +639,7 @@
       </trans-unit>
       <trans-unit id="_0_intercepted_locations">
         <source>'{0}' intercepted locations</source>
-        <target state="new">'{0}' intercepted locations</target>
+        <target state="translated">Locais "{0}" interceptados</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
