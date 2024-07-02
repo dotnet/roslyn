@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
         // used to protect access to the following mutable state
-        private readonly NonReentrantLock _dataGuard = new();
+        private readonly SemaphoreSlim _dataGuard = new(initialCount: 1);
 
         internal MSBuildProjectLoader(
             SolutionServices solutionServices,

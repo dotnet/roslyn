@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly SolutionServices _solutionServices;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly Dictionary<string, string> _extensionToLanguageMap;
-        private readonly NonReentrantLock _dataGuard;
+        private readonly SemaphoreSlim _dataGuard;
 
         public ProjectFileExtensionRegistry(SolutionServices solutionServices, DiagnosticReporter diagnosticReporter)
         {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 { "vbproj", LanguageNames.VisualBasic }
             };
 
-            _dataGuard = new NonReentrantLock();
+            _dataGuard = new SemaphoreSlim(initialCount: 1);
         }
 
         /// <summary>
