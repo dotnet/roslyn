@@ -87,16 +87,6 @@ internal sealed class GlobalNotificationRemoteDeliveryService : IDisposable
             return previousTask.Result;
         }
 
-        var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
-        if (client == null)
-        {
-            return previousTask.Result;
-        }
-
-        _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
-            (service, cancellationToken) => service.OnGlobalOperationStartedAsync(cancellationToken),
-            _cancellationToken).ConfigureAwait(false);
-
         return GlobalNotificationState.Started;
     }
 
@@ -121,16 +111,6 @@ internal sealed class GlobalNotificationRemoteDeliveryService : IDisposable
         {
             return previousTask.Result;
         }
-
-        var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
-        if (client == null)
-        {
-            return previousTask.Result;
-        }
-
-        _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
-            (service, cancellationToken) => service.OnGlobalOperationStoppedAsync(cancellationToken),
-            _cancellationToken).ConfigureAwait(false);
 
         // Mark that we're stopped now.
         return GlobalNotificationState.NotStarted;
