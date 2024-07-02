@@ -53,3 +53,25 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitRefStruc
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FieldExpression = 8757 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ValueExpression = 8758 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ValueKeyword = 8451 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitValueExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax! node) -> TResult?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax! node) -> TResult?
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitValueExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax! node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitValueExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax! node) -> void
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FieldExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ValueExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ValueExpression(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FieldExpression(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
+override Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
+override Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+override Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.WithToken(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax.WithToken(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.ValueExpressionSyntax!
