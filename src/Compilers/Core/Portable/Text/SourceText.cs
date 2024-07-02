@@ -463,6 +463,24 @@ namespace Microsoft.CodeAnalysis.Text
         public abstract char this[int position] { get; }
 
         /// <summary>
+        /// Validates the arguments passed to <see cref="CopyTo"/> against the published contract.
+        /// </summary>
+        private protected void ValidateCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
+        {
+            if (destination is null)
+                throw new ArgumentNullException(nameof(destination));
+
+            if (sourceIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex));
+
+            if (destinationIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(destinationIndex));
+
+            if (count < 0 || count > Length - sourceIndex || count > destination.Length - destinationIndex)
+                throw new ArgumentOutOfRangeException(nameof(count));
+        }
+
+        /// <summary>
         /// Copy a range of characters from this SourceText to a destination array.
         /// </summary>
         public abstract void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count);
@@ -483,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal void CheckSubSpan(TextSpan span)
+        private protected void ValidateSubSpan(TextSpan span)
         {
             Debug.Assert(0 <= span.Start && span.Start <= span.End);
 
@@ -498,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public virtual SourceText GetSubText(TextSpan span)
         {
-            CheckSubSpan(span);
+            ValidateSubSpan(span);
 
             int spanLength = span.Length;
             if (spanLength == 0)
@@ -535,10 +553,18 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        private protected void ValidateWriteArguments(TextWriter writer, TextSpan span)
+        {
+            if (writer is null)
+                throw new ArgumentNullException(nameof(writer));
+
+            ValidateSubSpan(span);
+        }
+
         /// <summary>
         /// Write this <see cref="SourceText"/> to a text writer.
         /// </summary>
-        public void Write(TextWriter textWriter, CancellationToken cancellationToken = default(CancellationToken))
+        public void Write(TextWriter textWriter, CancellationToken cancellationToken = default)
         {
             this.Write(textWriter, new TextSpan(0, this.Length), cancellationToken);
         }
@@ -546,9 +572,12 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Write a span of text to a text writer.
         /// </summary>
-        public virtual void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
         {
-            CheckSubSpan(span);
+            ValidateWriteArguments(writer, span);
+
+            if (span.Length == 0)
+                return;
 
             var buffer = s_charArrayPool.Allocate();
             try
@@ -697,7 +726,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public virtual string ToString(TextSpan span)
         {
-            CheckSubSpan(span);
+            ValidateSubSpan(span);
+
+            if (span.Length == 0)
+                return string.Empty;
 
             // default implementation constructs text using CopyTo
             var builder = PooledStringBuilder.GetInstance();

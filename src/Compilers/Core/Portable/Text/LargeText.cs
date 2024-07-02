@@ -155,6 +155,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
+
             if (count == 0)
             {
                 return;
@@ -179,12 +181,9 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
         {
-            if (span.Start < 0 || span.Start > _length || span.End > _length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(span));
-            }
+            ValidateWriteArguments(writer, span);
 
             int count = span.Length;
             if (count == 0)
