@@ -45,7 +45,7 @@ internal abstract class AbstractAssetProvider
             cancellationToken).ConfigureAwait(false);
 
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
-        var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
+        var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
 
         // Fetch the projects in parallel.
         var projects = await Task.WhenAll(projectsTasks).ConfigureAwait(false);
