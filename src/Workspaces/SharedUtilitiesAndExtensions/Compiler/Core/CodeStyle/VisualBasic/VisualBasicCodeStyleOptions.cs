@@ -51,5 +51,5 @@ internal sealed class VisualBasicCodeStyleOptions
         VisualBasicIdeCodeStyleOptions.Default.UnusedValueAssignment,
         CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
-    public static ImmutableArray<IOption2> AllOptions => s_allOptionsBuilder.ToImmutable();
+    public static ImmutableArray<IOption2> EditorConfigOptions => s_allOptionsBuilder.ToImmutable();
 }

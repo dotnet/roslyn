@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
 internal static partial class CSharpCodeStyleOptions
 {
-    private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
+    private static readonly ImmutableArray<IOption2>.Builder s_editorConfigOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
     private static Option2<CodeStyleOption2<T>> CreateOption<T>(
         OptionGroup group,
         string name,
         CodeStyleOption2<T> defaultValue,
         Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
-        => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, LanguageNames.CSharp, serializerFactory);
+        => s_editorConfigOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, LanguageNames.CSharp, serializerFactory);
 
     public static readonly Option2<CodeStyleOption2<bool>> VarForBuiltInTypes = CreateOption(
         CSharpCodeStyleOptionGroups.VarPreferences, "csharp_style_var_for_built_in_types",
@@ -179,6 +179,11 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_style_prefer_local_over_anonymous_function",
         CSharpIdeCodeStyleOptions.Default.PreferLocalOverAnonymousFunction);
 
+    public static readonly Option2<CodeStyleOption2<bool>> PreferSystemThreadingLock = CreateOption(
+        CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+        "csharp_prefer_system_threading_lock",
+        CSharpIdeCodeStyleOptions.Default.PreferSystemThreadingLock);
+
     public static readonly Option2<CodeStyleOption2<bool>> PreferTupleSwap = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_tuple_swap",
         CSharpIdeCodeStyleOptions.Default.PreferTupleSwap);
@@ -261,7 +266,10 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_style_prefer_primary_constructors",
         CSharpIdeCodeStyleOptions.Default.PreferPrimaryConstructors);
 
-    internal static readonly ImmutableArray<IOption2> AllOptions = s_allOptionsBuilder.ToImmutable();
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = s_editorConfigOptionsBuilder.ToImmutable();
 }
 
 internal static class CSharpCodeStyleOptionGroups

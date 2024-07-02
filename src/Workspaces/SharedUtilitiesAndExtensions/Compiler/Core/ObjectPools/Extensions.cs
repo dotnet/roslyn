@@ -64,10 +64,18 @@ internal static class SharedPoolExtensions
         return pooledObject;
     }
 
-    public static PooledObject<HashSet<TItem>> GetPooledObject<TItem>(this ObjectPool<HashSet<TItem>> pool, out HashSet<TItem> list)
+    public static PooledObject<HashSet<TItem>> GetPooledObject<TItem>(this ObjectPool<HashSet<TItem>> pool, out HashSet<TItem> set)
     {
         var pooledObject = PooledObject<HashSet<TItem>>.Create(pool);
-        list = pooledObject.Object;
+        set = pooledObject.Object;
+        return pooledObject;
+    }
+
+    public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool, out Dictionary<TKey, TValue> dictionary)
+        where TKey : notnull
+    {
+        var pooledObject = PooledObject<Dictionary<TKey, TValue>>.Create(pool);
+        dictionary = pooledObject.Object;
         return pooledObject;
     }
 

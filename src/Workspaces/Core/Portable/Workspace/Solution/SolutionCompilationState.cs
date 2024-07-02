@@ -776,6 +776,10 @@ internal sealed partial class SolutionCompilationState
         return UpdateAnalyzerConfigDocumentState(this.SolutionState.WithAnalyzerConfigDocumentText(documentId, text, mode));
     }
 
+    /// <inheritdoc cref="SolutionState.WithFallbackAnalyzerOptions(ImmutableDictionary{string, StructuredAnalyzerConfigOptions})"/>
+    public SolutionCompilationState WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => Branch(SolutionState.WithFallbackAnalyzerOptions(options));
+
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
     public SolutionCompilationState WithDocumentText(
         DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
@@ -1262,7 +1266,7 @@ internal sealed partial class SolutionCompilationState
     /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
     /// </summary>
     public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
-        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
@@ -1270,8 +1274,6 @@ internal sealed partial class SolutionCompilationState
 
         foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions.Map)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var currentExecutionVersion = versionMapBuilder[projectId];
 
             // Nothing to do if already at this version.
@@ -1289,7 +1291,7 @@ internal sealed partial class SolutionCompilationState
                 // if the major version has changed then we also want to drop the generator driver so that we're rerun
                 // generators from scratch.
                 var forceRegeneration = currentExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
-                var newTracker = existingTracker.WithCreationPolicy(create: true, forceRegeneration, cancellationToken);
+                var newTracker = existingTracker.WithCreateCreationPolicy(forceRegeneration);
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
@@ -1325,7 +1327,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithCreationPolicy(create: false, forceRegeneration: false, cancellationToken);
+            var newTracker = oldTracker.WithDoNotCreateCreationPolicy(cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 

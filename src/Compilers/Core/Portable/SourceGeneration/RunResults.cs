@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyDiagnostics.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDiagnostics, Results.SelectMany(r => r.Diagnostics).ToImmutableArray());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDiagnostics, Results.Where(r => !r.Diagnostics.IsDefaultOrEmpty).SelectMany(r => r.Diagnostics).ToImmutableArray());
                 }
                 return _lazyDiagnostics;
             }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyGeneratedTrees.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyGeneratedTrees, Results.SelectMany(r => r.GeneratedSources.Select(g => g.SyntaxTree)).ToImmutableArray());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyGeneratedTrees, Results.Where(r => !r.GeneratedSources.IsDefaultOrEmpty).SelectMany(r => r.GeneratedSources.Select(g => g.SyntaxTree)).ToImmutableArray());
                 }
                 return _lazyGeneratedTrees;
             }

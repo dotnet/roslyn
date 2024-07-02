@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var targetFrameworkIdentifier = project.ReadPropertyString(PropertyNames.TargetFrameworkIdentifier);
 
+            var targetFrameworkVersion = project.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
+
             var docs = project.GetDocuments()
                 .Where(IsNotTemporaryGeneratedFile)
                 .Select(MakeDocumentFileInfo)
@@ -178,6 +180,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
+                targetFrameworkVersion,
                 projectAssetsFilePath,
                 commandLineArgs,
                 docs,

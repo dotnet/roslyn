@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Navigation
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Navigation
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Text
@@ -62,13 +61,32 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 expectedLocations.Sort()
 
+                Dim expectedPresenterLocations = workspace.Documents.
+                    Where(Function(d) d.AnnotatedSpans.ContainsKey("PresenterLocation")).
+                    Select(Function(d) (d.Id, spans:=d.AnnotatedSpans("PresenterLocation")))
+
                 Dim context = presenter.Context
                 If expectedResult Then
                     If expectedLocations.Count = 0 Then
-                        ' if there is not expected locations, it means symbol navigation is used
-                        Assert.True(mockSymbolNavigationService._triedNavigationToSymbol, "a navigation took place")
-                        Assert.Null(mockDocumentNavigationService._documentId)
-                        Assert.False(presenterCalled)
+                        If expectedPresenterLocations.Any() Then
+                            ' multiple results shown in the streaming presenter.
+                            Assert.True(presenterCalled)
+
+                            Dim presenterReferences = context.GetReferences()
+
+                            Assert.Equal(presenterReferences.Length, expectedPresenterLocations.Sum(Function(t) t.spans.Length))
+
+                            For Each tuple In expectedPresenterLocations
+                                For Each sourceSpan In tuple.spans
+                                    Assert.True(presenterReferences.Any(Function(r) r.SourceSpan.Document.Id = tuple.Id AndAlso r.SourceSpan.SourceSpan = sourceSpan))
+                                Next
+                            Next
+                        Else
+                            ' if there is not expected locations, it means symbol navigation is used
+                            Assert.True(mockSymbolNavigationService._triedNavigationToSymbol, "a navigation took place")
+                            Assert.Null(mockDocumentNavigationService._documentId)
+                            Assert.False(presenterCalled)
+                        End If
                     Else
                         Assert.False(mockSymbolNavigationService._triedNavigationToSymbol)
 
@@ -113,7 +131,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                     Assert.Null(mockDocumentNavigationService._documentId)
                     Assert.False(presenterCalled)
                 End If
-
             End Using
         End Function
     End Class

@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>
-        <target state="translated">Meldung</target>
+        <target state="translated">Nachricht</target>
         <note />
       </trans-unit>
       <trans-unit id="No_test_methods_found_in_requested_range">

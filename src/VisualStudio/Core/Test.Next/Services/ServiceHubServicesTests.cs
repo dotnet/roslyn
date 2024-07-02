@@ -250,11 +250,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
-            var solution = Populate(workspace.CurrentSolution);
-
             // verify initial setup
-            await workspace.ChangeSolutionAsync(solution);
-            solution = workspace.CurrentSolution;
+            workspace.SetCurrentSolution(Populate, WorkspaceChangeKind.SolutionChanged);
+            var solution = workspace.CurrentSolution;
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
 
@@ -284,20 +282,25 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             using var workspace = CreateWorkspace();
 
-            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
-            var remoteWorkspace = client.GetRemoteWorkspace();
+            ProjectId projectId1 = null;
+            ProjectId projectId2 = null;
+
+            workspace.SetCurrentSolution(solution =>
+            {
+                solution = AddProject(solution, LanguageNames.CSharp, documents: [], additionalDocuments: [], p2pReferences: []);
+                solution = AddProject(solution, LanguageNames.CSharp, documents: [], additionalDocuments: [], p2pReferences: []);
+
+                projectId1 = solution.Projects.Single(p => p.Name == "Project0").Id;
+                projectId2 = solution.Projects.Single(p => p.Name == "Project1").Id;
+
+                // Start with projectId1 -> projectId2
+                return solution.AddProjectReference(projectId1, new ProjectReference(projectId2));
+            }, WorkspaceChangeKind.SolutionChanged);
 
             var solution = workspace.CurrentSolution;
-            solution = AddProject(solution, LanguageNames.CSharp, documents: [], additionalDocuments: [], p2pReferences: []);
-            var projectId1 = solution.ProjectIds.Single();
-            solution = AddProject(solution, LanguageNames.CSharp, documents: [], additionalDocuments: [], p2pReferences: []);
-            var projectId2 = solution.ProjectIds.Where(id => id != projectId1).Single();
 
-            var project1ToProject2 = new ProjectReference(projectId2);
-            var project2ToProject1 = new ProjectReference(projectId1);
-
-            // Start with projectId1 -> projectId2
-            solution = solution.AddProjectReference(projectId1, project1ToProject2);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+            var remoteWorkspace = client.GetRemoteWorkspace();
 
             // verify initial setup
             await UpdatePrimaryWorkspace(client, solution);
@@ -308,9 +311,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
 
             // reverse project references and incrementally update
-            solution = solution.RemoveProjectReference(projectId1, project1ToProject2);
-            solution = solution.AddProjectReference(projectId2, project2ToProject1);
-            await workspace.ChangeSolutionAsync(solution);
+            workspace.SetCurrentSolution(solution =>
+            {
+                solution = solution.RemoveProjectReference(projectId1, new ProjectReference(projectId2));
+                return solution.AddProjectReference(projectId2, new ProjectReference(projectId1));
+            }, WorkspaceChangeKind.SolutionChanged);
+
             solution = workspace.CurrentSolution;
             await UpdatePrimaryWorkspace(client, solution);
 
@@ -319,9 +325,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
 
             // reverse project references again and incrementally update
-            solution = solution.RemoveProjectReference(projectId2, project2ToProject1);
-            solution = solution.AddProjectReference(projectId1, project1ToProject2);
-            await workspace.ChangeSolutionAsync(solution);
+            workspace.SetCurrentSolution(solution =>
+            {
+                solution = solution.RemoveProjectReference(projectId2, new ProjectReference(projectId1));
+                return solution.AddProjectReference(projectId1, new ProjectReference(projectId2));
+            }, WorkspaceChangeKind.SolutionChanged);
+
             solution = workspace.CurrentSolution;
             await UpdatePrimaryWorkspace(client, solution);
 

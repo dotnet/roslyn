@@ -50,6 +50,7 @@ using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
+using COMAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.COMAsyncServiceProvider;
 using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
@@ -455,7 +456,8 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         ErrorHandler.ThrowOnFailure(vsView.GetBuffer(out var textLines));
         ErrorHandler.ThrowOnFailure(textLines.GetLanguageServiceID(out var languageServiceGuid));
 
-        var languageService = await ((AsyncServiceProvider)AsyncServiceProvider.GlobalProvider).QueryServiceAsync(languageServiceGuid).WithCancellation(cancellationToken);
+        var comServiceProvider = await GetRequiredGlobalServiceAsync<SAsyncServiceProvider, COMAsyncServiceProvider.IAsyncServiceProvider>(cancellationToken);
+        var languageService = await new AsyncServiceProvider(comServiceProvider).QueryServiceAsync(languageServiceGuid).WithCancellation(cancellationToken);
         Assumes.Present(languageService);
 
         var languageContextProvider = (IVsLanguageContextProvider)languageService;

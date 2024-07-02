@@ -564,4 +564,7 @@ public class Document : TextDocument
         var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
         return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
     }
+
+    internal ValueTask<ImmutableArray<byte>> GetContentHashAsync(CancellationToken cancellationToken)
+        => this.DocumentState.GetContentHashAsync(cancellationToken);
 }

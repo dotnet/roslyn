@@ -5,6 +5,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,8 +30,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private readonly IGlobalOptionService _globalOptionService;
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
-
+    private CancellationTokenSource? _cancellationTokenSource;
+    private bool _isDisposed;
+    private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private Task _getSuggestionsTask = Task.CompletedTask;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -48,8 +50,20 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
     public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
-    public bool IsUsingResultPanel { get; set; }
-    public bool IsUsingDropdown { get; set; }
+
+    /// <summary>
+    /// Determines whether smart rename is in automatic mode (if <c>true</c>) or explicit mode (if <c>false</c>).
+    /// The mode is assigned based on feature flag / options.
+    /// </summary>
+    public bool SupportsAutomaticSuggestions { get; }
+
+    /// <summary>
+    /// When smart rename is in automatic mode and <see cref="SupportsAutomaticSuggestions"/> is set,
+    /// developer gets to control whether the requests are made automatically on initialization.
+    /// Developer can toggle this option using the keyboard shortcut or button click,
+    /// both of which are handled in <see cref="ToggleOrTriggerSuggestions"/>."/>
+    /// </summary>
+    public bool IsAutomaticSuggestionsEnabled { get; private set; }
 
     private string? _selectedSuggestedName;
 
@@ -70,38 +84,19 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
     }
 
-    public bool IsSuggestionsPanelCollapsed
-    {
-        get => IsUsingDropdown || _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
-        set
-        {
-            if (value != IsSuggestionsPanelCollapsed)
-            {
-                _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, value);
-                NotifyPropertyChanged(nameof(IsSuggestionsPanelCollapsed));
-                NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
-            }
-        }
-    }
-
-    public bool IsSuggestionsPanelExpanded
-    {
-        get => IsUsingResultPanel && !IsSuggestionsPanelCollapsed;
-    }
+    public bool IsSuggestionsPanelExpanded => HasSuggestions;
 
     public string GetSuggestionsTooltip
-        => IsUsingDropdown
-        ? EditorFeaturesWpfResources.Get_AI_suggestions
-        : EditorFeaturesWpfResources.Toggle_AI_suggestions;
+        => SupportsAutomaticSuggestions
+            ? EditorFeaturesWpfResources.Toggle_AI_suggestions
+            : EditorFeaturesWpfResources.Get_AI_suggestions;
 
     public string SubmitTextOverride
-        => IsUsingDropdown
-        ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
-        : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
+        => SupportsAutomaticSuggestions
+            ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview
+            : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion;
 
     public static string GeneratingSuggestionsLabel => EditorFeaturesWpfResources.Generating_suggestions;
-
-    public ICommand GetSuggestionsCommand { get; }
 
     public SmartRenameViewModel(
         IGlobalOptionService globalOptionService,
@@ -119,39 +114,54 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
 
         BaseViewModel = baseViewModel;
+        BaseViewModel.PropertyChanged += IdentifierTextPropertyChanged;
         this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
-        GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
-
-        var getSuggestionsAutomatically = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
-        IsUsingResultPanel = getSuggestionsAutomatically;
-        IsUsingDropdown = !IsUsingResultPanel;
         SetupTelemetry();
-        if (IsUsingResultPanel && IsSuggestionsPanelExpanded)
+
+        this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
+        this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+        if (this.IsAutomaticSuggestionsEnabled)
         {
-            OnGetSuggestionsCommandExecute();
+            this.FetchSuggestions(isAutomaticOnInitialization: true);
         }
     }
 
-    private void OnGetSuggestionsCommandExecute()
+    private void FetchSuggestions(bool isAutomaticOnInitialization)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (IsUsingResultPanel && SuggestedNames.Count > 0)
+        if (this.SuggestedNames.Count > 0 || _isDisposed)
         {
-            // Don't get suggestions again in the automatic scenario
+            // Don't get suggestions again
             return;
         }
+
         if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
         {
             var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
             var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-            if (IsUsingDropdown && _suggestionsDropdownTelemetry is not null)
-            {
-                _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
-            }
-
-            _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = new CancellationTokenSource();
+            _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
+    }
+
+    private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
+    {
+        if (isAutomaticOnInitialization)
+        {
+            // ConfigureAwait(true) to stay on the UI thread;
+            // WPF view is bound to _smartRenameSession properties and so they must be updated on the UI thread.
+            await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken).ConfigureAwait(true);
+        }
+
+        if (cancellationToken.IsCancellationRequested || _isDisposed)
+        {
+            return;
+        }
+        _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken).ConfigureAwait(true);
+        return;
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -163,20 +173,16 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             var textInputBackup = BaseViewModel.IdentifierText;
 
             SuggestedNames.Clear();
-            var count = 0;
-            foreach (var name in _smartRenameSession.SuggestedNames)
+            // Set limit of 3 results
+            foreach (var name in _smartRenameSession.SuggestedNames.Take(3))
             {
-                if (++count > 3 && IsUsingResultPanel)
-                {
-                    // Set limit of 3 results when using the result panel
-                    break;
-                }
                 SuggestedNames.Add(name);
             }
 
             // Changing the list may have changed the text in the text box. We need to restore it.
             BaseViewModel.IdentifierText = textInputBackup;
 
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
             return;
         }
 
@@ -203,7 +209,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Cancel()
     {
-        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource?.Cancel();
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnCancel();
         PostTelemetry(isCommit: false);
@@ -218,11 +224,47 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Dispose()
     {
+        _isDisposed = true;
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
+        BaseViewModel.PropertyChanged -= IdentifierTextPropertyChanged;
         _smartRenameSession.Dispose();
-        _cancellationTokenSource.Dispose();
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+    }
+
+    /// <summary>
+    /// When smart rename operates in explicit mode, this method gets the suggestions.
+    /// When smart rename operates in automatic mode, this method toggles the automatic suggestions, 
+    /// and gets the suggestions if it was just enabled.
+    /// </summary>
+    public void ToggleOrTriggerSuggestions()
+    {
+        if (this.SupportsAutomaticSuggestions)
+        {
+            this.IsAutomaticSuggestionsEnabled = !this.IsAutomaticSuggestionsEnabled;
+            if (this.IsAutomaticSuggestionsEnabled)
+            {
+                this.FetchSuggestions(isAutomaticOnInitialization: false);
+            }
+
+            NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
+            // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
+            _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);
+        }
+        else
+        {
+            this.FetchSuggestions(isAutomaticOnInitialization: false);
+        }
     }
 
     private void NotifyPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    private void IdentifierTextPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
+        {
+            _cancellationTokenSource?.Cancel();
+        }
+    }
 }

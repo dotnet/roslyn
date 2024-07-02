@@ -1088,7 +1088,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 document = _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+                    var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
                     return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
                 });
             }

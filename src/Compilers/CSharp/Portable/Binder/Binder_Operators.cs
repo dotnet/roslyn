@@ -3517,7 +3517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (targetType is TypeParameterSymbol { AllowsRefLikeType: true })
                         {
-                            if (!operandType.IsRefLikeType && operandType is not TypeParameterSymbol)
+                            if (!operandType.IsErrorOrRefLikeOrAllowsRefLikeType())
                             {
                                 return null;
                             }

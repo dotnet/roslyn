@@ -82,6 +82,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options, I
     public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment => GetOption(CSharpCodeStyleOptions.UnusedValueAssignment, FallbackCodeStyleOptions.UnusedValueAssignment);
     public CodeStyleOption2<bool> PreferMethodGroupConversion => GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, FallbackCodeStyleOptions.PreferMethodGroupConversion);
     public CodeStyleOption2<bool> PreferPrimaryConstructors => GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors, FallbackCodeStyleOptions.PreferPrimaryConstructors);
+    public CodeStyleOption2<bool> PreferSystemThreadingLock => GetOption(CSharpCodeStyleOptions.PreferSystemThreadingLock, FallbackCodeStyleOptions.PreferSystemThreadingLock);
 
     // CodeGenerationOptions
 
