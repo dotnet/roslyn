@@ -44,7 +44,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     var span = diagnostic.Location.SourceSpan;
                     var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                        document, span, fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                        document, span, [diagnostic], cancellationToken).ConfigureAwait(false);
                     var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                     if (removeSuppressionFix != null)
                     {
