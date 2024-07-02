@@ -9,7 +9,6 @@ Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -259,109 +258,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 #Disable Warning RS0005
                 context.RegisterCodeFix(CodeAction.Create("FIX_TEST1111", Function(ct) Task.FromResult(context.Document.WithSyntaxRoot(root))), context.Diagnostics)
 #Enable Warning RS0005
-            End Function
-        End Class
-
-        <Fact>
-        Public Async Function TestCopilotCodeAnalysisServiceWithoutSyntaxTree() As Task
-            Dim workspaceDefinition =
-            <Workspace>
-                <Project Language="NoCompilation" AssemblyName="TestAssembly" CommonReferencesPortable="true">
-                    <Document>
-                        var x = {}; // e.g., TypeScript code or anything else that doesn't support compilations
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
-                GetType(NoCompilationContentTypeDefinitions),
-                GetType(NoCompilationContentTypeLanguageService),
-                GetType(NoCompilationCopilotCodeAnalysisService))
-
-            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=composition)
-
-                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-                Dim diagnosticsXml =
-                    <Diagnostics>
-                        <Error Id=<%= "TestId" %>
-                            MappedFile=<%= document.Name %> MappedLine="0" MappedColumn="0"
-                            OriginalFile=<%= document.Name %> OriginalLine="0" OriginalColumn="0"
-                            Message=<%= "Test Message" %>/>
-                    </Diagnostics>
-                Dim diagnostics = DiagnosticProviderTests.GetExpectedDiagnostics(workspace, diagnosticsXml)
-
-                Dim copilotCodeAnalysisService = document.Project.Services.GetService(Of ICopilotCodeAnalysisService)()
-                Dim noCompilationCopilotCodeAnalysisService = DirectCast(copilotCodeAnalysisService, NoCompilationCopilotCodeAnalysisService)
-
-                NoCompilationCopilotCodeAnalysisService.Diagnostics = diagnostics.SelectAsArray(Of Diagnostic)(
-                        Function(d) d.ToDiagnosticAsync(document.Project, CancellationToken.None).Result)
-                Dim codefixService = workspace.ExportProvider.GetExportedValue(Of ICodeFixService)
-
-                ' Make sure we don't crash
-                Dim unused = Await codefixService.GetMostSevereFixAsync(
-                    document, Text.TextSpan.FromBounds(0, 0), New DefaultCodeActionRequestPriorityProvider(), CodeActionOptions.DefaultProvider, CancellationToken.None)
-            End Using
-        End Function
-
-        <ExportLanguageService(GetType(ICopilotOptionsService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
-        Private Class NoCompilationCopilotOptionsService
-            Implements ICopilotOptionsService
-
-            <ImportingConstructor>
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
-
-            Public Function IsRefineOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsRefineOptionEnabledAsync
-                Return Task.FromResult(True)
-            End Function
-
-            Public Function IsCodeAnalysisOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsCodeAnalysisOptionEnabledAsync
-                Return Task.FromResult(True)
-            End Function
-
-            Public Function IsOnTheFlyDocsOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsOnTheFlyDocsOptionEnabledASync
-                Return Task.FromResult(True)
-            End Function
-        End Class
-
-        <ExportLanguageService(GetType(ICopilotCodeAnalysisService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
-        Private Class NoCompilationCopilotCodeAnalysisService
-            Implements ICopilotCodeAnalysisService
-
-            <ImportingConstructor>
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
-
-            Public Shared Property Diagnostics As ImmutableArray(Of Diagnostic) = ImmutableArray(Of Diagnostic).Empty
-
-            Public Function IsAvailableAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAvailableAsync
-                Return Task.FromResult(True)
-            End Function
-
-            Public Function GetAvailablePromptTitlesAsync(document As Document, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements ICopilotCodeAnalysisService.GetAvailablePromptTitlesAsync
-                Return Task.FromResult(ImmutableArray.Create("Title"))
-            End Function
-
-            Public Function AnalyzeDocumentAsync(document As Document, span As TextSpan?, promptTitle As String, cancellationToken As CancellationToken) As Task Implements ICopilotCodeAnalysisService.AnalyzeDocumentAsync
-                Return Task.CompletedTask
-            End Function
-
-            Public Function GetCachedDocumentDiagnosticsAsync(document As Document, span As TextSpan?, promptTitles As ImmutableArray(Of String), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of Diagnostic)) Implements ICopilotCodeAnalysisService.GetCachedDocumentDiagnosticsAsync
-                Return Task.FromResult(Diagnostics)
-            End Function
-
-            Public Function StartRefinementSessionAsync(oldDocument As Document, newDocument As Document, primaryDiagnostic As Diagnostic, cancellationToken As CancellationToken) As Task Implements ICopilotCodeAnalysisService.StartRefinementSessionAsync
-                Return Task.CompletedTask
-            End Function
-
-            Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
-                Return Task.FromResult("")
-            End Function
-
-            Public Function IsAnyExclusionAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAnyExclusionAsync
-                Return Task.FromResult(False)
             End Function
         End Class
     End Class

@@ -27,11 +27,6 @@
         <target state="translated">'{0}' uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_Copilot_suggestion">
-        <source>Apply Copilot suggestion</source>
-        <target state="translated">Copilot önerisini uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Oluşturucu başlatıcı tercihlerinde iki nokta üst üste işaretinden sonra boş satır uygula (deneysel)</target>
@@ -250,11 +245,6 @@
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
         <target state="translated">Uyarı: Geçici değişkeni satır içinde belirtmek kod anlamını değişebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
-        <source>Warning: AI suggestions might be inaccurate.</source>
-        <target state="translated">Uyarı: Yapay zeka önerileri yanlış olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">

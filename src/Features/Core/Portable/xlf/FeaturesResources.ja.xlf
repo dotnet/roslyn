@@ -320,11 +320,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">アクセス不可能な未実装のメンバーが基底クラスに含まれています</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">組み込みの Copilot の分析</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">C# および Visual Basic の参照</target>

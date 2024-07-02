@@ -17,7 +17,6 @@ internal static class FeatureAttribute
     public const string CodeLens = nameof(CodeLens);
     public const string CodeModel = nameof(CodeModel);
     public const string CompletionSet = nameof(CompletionSet);
-    public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string DesignerAttributes = nameof(DesignerAttributes);
     public const string DiagnosticService = nameof(DiagnosticService);
     public const string DocumentOutline = nameof(DocumentOutline);
