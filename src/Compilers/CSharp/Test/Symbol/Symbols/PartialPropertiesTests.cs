@@ -4805,23 +4805,23 @@ public partial class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int P { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(3, 24),
-                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "13.0").WithLocation(3, 24),
+                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int P { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(4, 24),
-                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "13.0").WithLocation(4, 24),
+                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int this[int i] { get; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(6, 24),
-                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "13.0").WithLocation(6, 24),
+                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int this[int i] { get => i; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(7, 24));
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "13.0").WithLocation(7, 24));
         }
 
         [Fact]

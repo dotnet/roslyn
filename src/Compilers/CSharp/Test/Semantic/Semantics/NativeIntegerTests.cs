@@ -4369,20 +4369,26 @@ unsafe class Program
         yield return sizeof(nuint);
     }
 }";
-            var expectedDiagnostics = new[]
-            {
-                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,22): error CS8773: Feature 'ref and unsafe in async and iterator methods' is not available in C# 9.0. Please use language version 13.0 or greater.
                 //         yield return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22),
-                // (7,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22),
+                // (7,22): error CS8773: Feature 'ref and unsafe in async and iterator methods' is not available in C# 9.0. Please use language version 13.0 or greater.
                 //         yield return sizeof(nuint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nuint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 22)
-            };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "sizeof(nuint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22)
+                );
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22),
+                // (7,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         yield return sizeof(nuint);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "sizeof(nuint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22)
+               );
 
-            expectedDiagnostics = new[]
+            var expectedDiagnostics = new[]
             {
                 // (6,22): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         yield return sizeof(nint);
@@ -4392,7 +4398,7 @@ unsafe class Program
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nuint)").WithArguments("nuint").WithLocation(7, 22)
             };
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 

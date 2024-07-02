@@ -772,6 +772,11 @@
         <target state="translated">La fonctionnalité « {0} » n’est pas disponible en C# 12.0. Veuillez utiliser la version de langage {1} ou une version ultérieure.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">La fonctionnalité '{0}' n'est pas disponible en C# 8.0. Utilisez la version de langage {1} ou une version ultérieure.</target>

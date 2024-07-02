@@ -60,6 +60,7 @@ internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeF
         "CS9058",
         "CS9194",
         "CS9202",
+        "CS9260",
     ];
 
     public override string UpgradeThisProjectResource => CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0;
