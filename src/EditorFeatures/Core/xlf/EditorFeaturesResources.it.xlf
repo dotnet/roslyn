@@ -29,17 +29,17 @@
       </trans-unit>
       <trans-unit id="Copilot">
         <source>Copilot</source>
-        <target state="new">Copilot</target>
+        <target state="translated">Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Copilot_thinking">
         <source>Copilot thinking...</source>
-        <target state="new">Copilot thinking...</target>
+        <target state="translated">Elaborazione di Copilot in corso...</target>
         <note />
       </trans-unit>
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
-        <target state="new">Describe with Copilot</target>
+        <target state="translated">Descrivi con Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Generate_summary_with_Copilot">
         <source>Generate summary with Copilot (might be inaccurate)</source>
-        <target state="new">Generate summary with Copilot (might be inaccurate)</target>
+        <target state="translated">Genera riepilogo con Copilot (potrebbe non essere accurato)</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
@@ -639,7 +639,7 @@
       </trans-unit>
       <trans-unit id="_0_intercepted_locations">
         <source>'{0}' intercepted locations</source>
-        <target state="new">'{0}' intercepted locations</target>
+        <target state="translated">'{0}' posizioni intercettate</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
