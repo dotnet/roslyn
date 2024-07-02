@@ -103,7 +103,14 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // Static members cannot have an implicit this receiver
-            if (symbol != null && symbol.IsStatic && instance.WasCompilerGenerated && instance.Kind == BoundKind.ThisReference)
+            if (symbol?.IsStatic == true && instance.WasCompilerGenerated && instance.Kind == BoundKind.ThisReference)
+            {
+                return null;
+            }
+
+            // Local functions are not invoked on receivers from a language point of view, and thus we do not expose
+            // a receiver for them.
+            if (symbol is MethodSymbol { MethodKind: MethodKind.LocalFunction })
             {
                 return null;
             }
