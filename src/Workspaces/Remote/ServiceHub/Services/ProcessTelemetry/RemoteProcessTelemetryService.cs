@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (diagnosticAnalyzerPerformanceTracker != null)
                 {
                     // We know in the remote layer that this type must exist.
-                    var globalOperationNotificationService = services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
-                    _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
+                    _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, _shutdownCancellationSource.Token);
                 }
 
                 return ValueTaskFactory.CompletedTask;
