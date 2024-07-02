@@ -244,7 +244,7 @@ public static partial class Simplifier
     internal static async Task<Document> ReduceAsync(
         Document document, ImmutableArray<AbstractReducer> reducers, CancellationToken cancellationToken)
     {
-        var options = await document.GetSimplifierOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         return await document.GetRequiredLanguageService<ISimplificationService>()
             .ReduceAsync(document, [root.FullSpan], options,
@@ -256,7 +256,7 @@ public static partial class Simplifier
     {
         optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplificationService = document.Project.Solution.Services.GetRequiredLanguageService<ISimplificationService>(document.Project.Language);
-        return simplificationService.GetSimplifierOptions(optionSet, fallbackOptions: null);
+        return simplificationService.GetSimplifierOptions(optionSet);
     }
 #pragma warning restore
 }

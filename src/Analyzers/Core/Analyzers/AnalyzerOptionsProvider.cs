@@ -49,7 +49,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInDeclaration);
 
     public SimplifierOptions GetSimplifierOptions(ISimplification simplification)
-        => simplification.GetSimplifierOptions(_options, _fallbackOptions.CleanupOptions?.SimplifierOptions);
+        => simplification.GetSimplifierOptions(_options);
 
     // SyntaxFormattingOptions
 
