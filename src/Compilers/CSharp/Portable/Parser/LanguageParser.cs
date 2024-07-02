@@ -7223,18 +7223,79 @@ done:;
                     case ParseTypeMode.AfterIs:
                     case ParseTypeMode.DefinitePattern:
                     case ParseTypeMode.AsExpression:
-                        // These contexts might be a type that is at the end of an expression. In these contexts we only
-                        // permit the nullable qualifier if it is followed by a token that could not start an
-                        // expression, because for backward compatibility we want to consider a `?` token as part of the
-                        // `?:` operator if possible.
+                        // We are currently after `?` token after a nullable type pattern and need to decide how to
+                        // parse what we see next.  In the case of an identifier (e.g. `x ? a` there are two ways we can
+                        // see things
                         //
-                        // Similarly, if we have `T?[]` we do want to treat that as an array of nullables (following
-                        // existing parsing), not a conditional that returns a list.
+                        // 1. As a start of conditional expression, e.g. `var a = obj is string ? a : b`
+                        // 2. As a designation of a nullable-typed pattern, e.g. `if (obj is string? str)`
+                        //
+                        // Since nullable types (no matter reference or value types) are not valid in patterns by
+                        // default we are biased towards the first option and consider case 2 only for error recovery
+                        // purposes (if we parse here as nullable type pattern an error will be reported during
+                        // binding). This condition checks for simple cases, where we better use option 2 and parse a
+                        // nullable-typed pattern
+                        if (IsTrueIdentifier(this.CurrentToken))
+                        {
+                            // In a non-async method, `await` is a simple identifier.  However, if we see `x ? await`
+                            // it's almost certainly the start of an `await expression` in a conditional expression
+                            // (e.g. `x is Y ? await ...`), not a nullable type pattern (since users would not use
+                            // 'await' as the name of a variable).  So just treat this as a conditional expression.
+                            // Similarly, `async` can start a simple lambda in a conditional expression
+                            // (e.g. `x is Y ? async a => ...`). The correct behavior is to treat `async` as a keyword
+                            if (this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.AwaitKeyword)
+                                return false;
+
+                            var nextTokenKind = PeekToken(1).Kind;
+
+                            // These token either 100% end a pattern or start a new one:
+
+                            // A literal token starts a new pattern. Can occur in list pattern with missing separation
+                            // `,`.  For example, in `x is [int[]? arr 5]` we'd prefer to parse this as a missing `,`
+                            // after `arr`
+                            if (SyntaxFacts.IsLiteral(nextTokenKind))
+                                return true;
+
+                            // A predefined type is basically the same case: `x is [string[]? slice char ch]`. We'd
+                            // prefer to parse this as a missing `,` after `slice`.
+                            if (SyntaxFacts.IsPredefinedType(nextTokenKind))
+                                return true;
+
+                            // `)`, `]` and `}` obviously end a pattern.  For example:
+                            // `if (x is int? i)`, `indexable[x is string? s]`, `x is { Prop: Type? typeVar }`
+                            if (nextTokenKind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken or SyntaxKind.CloseBraceToken)
+                                return true;
+
+                            // `{` starts a new pattern.  For example: `x is A? { ...`. Note, that `[` and `(` are not
+                            // in the list because they can start an invocation/indexer
+                            if (nextTokenKind == SyntaxKind.OpenBraceToken)
+                                return true;
+
+                            // `,` ends a pattern in list/property pattern.  For example `x is { Prop1: Type1? type, Prop2: Type2 }` or
+                            // `x is [Type1? type, ...]`
+                            if (nextTokenKind == SyntaxKind.CommaToken)
+                                return true;
+
+                            // `;` ends a pattern if it finishes an expression statement: var y = x is bool? b;
+                            if (nextTokenKind == SyntaxKind.SemicolonToken)
+                                return true;
+
+                            // EndOfFileToken is obviously the end of parsing. We are better parsing a pattern rather
+                            // than an unfinished conditional expression
+                            if (nextTokenKind == SyntaxKind.EndOfFileToken)
+                                return true;
+
+                            return false;
+                        }
+
+                        // If nothing from above worked permit the nullable qualifier if it is followed by a token that
+                        // could not start an expression. If we have `T?[]` we do want to treat that as an array of
+                        // nullables (following existing parsing), not a conditional that returns a list.
                         return !CanStartExpression() || this.CurrentToken.Kind is SyntaxKind.OpenBracketToken;
                     case ParseTypeMode.NewExpression:
-                        // A nullable qualifier is permitted as part of the type in a `new` expression.
-                        // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
-                        // Similarly `new int? {}` is allowed.
+                        // A nullable qualifier is permitted as part of the type in a `new` expression. e.g. `new
+                        // int?()` is allowed.  It creates a null value of type `Nullable<int>`. Similarly `new int? {}`
+                        // is allowed.
                         return
                             this.CurrentToken.Kind is SyntaxKind.OpenParenToken or   // ctor parameters
                                                       SyntaxKind.OpenBracketToken or   // array type
