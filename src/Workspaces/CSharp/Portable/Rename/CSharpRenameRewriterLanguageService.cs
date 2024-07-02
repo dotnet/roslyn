@@ -159,15 +159,12 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
 
             var isInConflictLambdaBody = false;
             var lambdas = node.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax);
-            if (lambdas.Count() != 0)
+            foreach (var lambda in lambdas)
             {
-                foreach (var lambda in lambdas)
+                if (_conflictLocations.Any(cf => cf.Contains(lambda.Span)))
                 {
-                    if (_conflictLocations.Any(cf => cf.Contains(lambda.Span)))
-                    {
-                        isInConflictLambdaBody = true;
-                        break;
-                    }
+                    isInConflictLambdaBody = true;
+                    break;
                 }
             }
 
@@ -298,7 +295,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
             RoslynDebug.Assert(_speculativeModel != null, "expanding a syntax node which cannot be speculated?");
 
             var oldSpan = originalNode.Span;
-            var expandParameter = originalNode.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax).Count() == 0;
+            var expandParameter = !originalNode.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax).Any();
 
             newNode = _simplificationService.Expand(newNode,
                                                                 _speculativeModel,

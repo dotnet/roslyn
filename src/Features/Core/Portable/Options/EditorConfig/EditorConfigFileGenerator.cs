@@ -45,7 +45,7 @@ internal static partial class EditorConfigFileGenerator
 
         if (configOptions.TryGetOption(new OptionKey2(NamingStyleOptions.NamingPreferences, language), out NamingStylePreferences namingStylePreferences))
         {
-            AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
+            namingStylePreferences.AppendToEditorConfig(language, editorconfig);
         }
 
         return editorconfig.ToString();

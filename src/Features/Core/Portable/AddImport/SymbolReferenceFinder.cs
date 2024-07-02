@@ -151,7 +151,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // Has to be a simple identifier or generic name.
             syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
-            inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
+            inAttributeContext = syntaxFacts.IsNameOfAttribute(nameNode);
             hasIncompleteParentMember = nameNode?.Parent?.RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
             looksGeneric = syntaxFacts.LooksGeneric(nameNode);
         }

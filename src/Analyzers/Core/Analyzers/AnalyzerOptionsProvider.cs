@@ -78,6 +78,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     public CodeStyleOption2<bool> PreferConditionalExpressionOverReturn => GetOption(CodeStyleOptions2.PreferConditionalExpressionOverReturn, FallbackCodeStyleOptions.PreferConditionalExpressionOverReturn);
     public CodeStyleOption2<bool> PreferCompoundAssignment => GetOption(CodeStyleOptions2.PreferCompoundAssignment, FallbackCodeStyleOptions.PreferCompoundAssignment);
     public CodeStyleOption2<bool> PreferSimplifiedInterpolation => GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, FallbackCodeStyleOptions.PreferSimplifiedInterpolation);
+    public CodeStyleOption2<bool> PreferSystemHashCode => GetOption(CodeStyleOptions2.PreferSystemHashCode);
     public CodeStyleOption2<UnusedParametersPreference> UnusedParameters => GetOption(CodeStyleOptions2.UnusedParameters, FallbackCodeStyleOptions.UnusedParameters);
     public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCodeStyleOptions.AccessibilityModifiersRequired);
     public CodeStyleOption2<bool> PreferReadonly => GetOption(CodeStyleOptions2.PreferReadonly, FallbackCodeStyleOptions.PreferReadonly);
@@ -95,6 +96,9 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetOption(option, defaultValue);
+
+    public TValue GetOption<TValue>(PerLanguageOption2<TValue> option)
+        => _options.GetOption(option, _language);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
         => _options.GetOption(option, _language, defaultValue);
