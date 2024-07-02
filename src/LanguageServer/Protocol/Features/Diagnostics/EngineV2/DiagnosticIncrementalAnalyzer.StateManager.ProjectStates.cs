@@ -63,14 +63,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private ProjectAnalyzerStateSets GetOrCreateProjectStateSets(Project project)
-            {
-                // if we can't use cached one, we will create a new analyzer map. which is a bit of waste since
-                // we will create new StateSet for all analyzers. but since this only happens when project analyzer references
-                // are changed, I believe it is acceptable to have a bit of waste for simplicity.
-                return TryGetProjectStateSets(project) ?? CreateProjectStateSets(project);
-            }
-
-            private ProjectAnalyzerStateSets GetOrUpdateProjectStateSets(Project project)
                 => TryGetProjectStateSets(project) ?? UpdateProjectStateSets(project);
 
             /// <summary>
@@ -100,17 +92,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             private ProjectAnalyzerStateSets UpdateProjectStateSets(Project project)
             {
-                var projectStateSets = CreateProjectStateSets(project);
+                ProjectAnalyzerReferenceChangedEventArgs? analyzerReferenceChangedEventArgs = null;
+                ProjectAnalyzerStateSets projectStateSets;
 
-                RaiseProjectAnalyzerReferenceChangedIfNeeded(project, projectStateSets.MapPerReferences, projectStateSets.StateSetMap);
+                // This code is called concurrently for a project, so the lock prevents duplicated effort calculating StateSets.
+                lock (_projectAnalyzerStateMapLock)
+                {
+                    var oldProjectStateSets = TryGetProjectStateSets(project);
 
-                // update cache. 
-                _projectAnalyzerStateMap[project.Id] = projectStateSets;
+                    if (oldProjectStateSets != null)
+                    {
+                        // Someone calculated the value while we waited on the lock, we can use that
+                        projectStateSets = oldProjectStateSets.Value;
+                    }
+                    else
+                    {
+                        projectStateSets = CreateProjectStateSets(project);
+
+                        analyzerReferenceChangedEventArgs = GetProjectAnalyzerReferenceChangedEventArgs(project, projectStateSets.MapPerReferences, projectStateSets.StateSetMap);
+
+                        // update cache. 
+                        _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectStateSets);
+                    }
+                }
+
+                if (analyzerReferenceChangedEventArgs != null)
+                    RaiseProjectAnalyzerReferenceChanged(analyzerReferenceChangedEventArgs);
 
                 return projectStateSets;
             }
 
-            private void RaiseProjectAnalyzerReferenceChangedIfNeeded(
+            private ProjectAnalyzerReferenceChangedEventArgs? GetProjectAnalyzerReferenceChangedEventArgs(
                 Project project,
                 ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference,
                 ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
@@ -120,13 +132,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // no previous references and we still don't have any references
                     if (newMap.Count == 0)
                     {
-                        return;
+                        return null;
                     }
 
                     // new reference added
-                    RaiseProjectAnalyzerReferenceChanged(
-                        new ProjectAnalyzerReferenceChangedEventArgs(project, newMap.Values.ToImmutableArrayOrEmpty(), []));
-                    return;
+                    return new ProjectAnalyzerReferenceChangedEventArgs(project, newMap.Values.ToImmutableArrayOrEmpty(), []);
                 }
 
                 Debug.Assert(!entry.AnalyzerReferences.Equals(project.AnalyzerReferences));
@@ -138,11 +148,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // nothing has changed
                 if (addedStates.Length == 0 && removedStates.Length == 0)
                 {
-                    return;
+                    return null;
                 }
 
-                RaiseProjectAnalyzerReferenceChanged(
-                    new ProjectAnalyzerReferenceChangedEventArgs(project, addedStates, removedStates));
+                return new ProjectAnalyzerReferenceChangedEventArgs(project, addedStates, removedStates);
             }
 
             private static ImmutableArray<StateSet> DiffStateSets(

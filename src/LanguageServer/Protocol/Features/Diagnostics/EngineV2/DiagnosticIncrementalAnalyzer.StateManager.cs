@@ -31,7 +31,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference.
             /// </summary>
-            private readonly ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
+            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
+
+            /// <summary>
+            /// Lock around updating _projectAnalyzerStateMap. This lock is used in UpdateProjectStateSets to avoid
+            /// duplicated calculations for a project.
+            /// </summary>
+            private readonly object _projectAnalyzerStateMapLock = new();
 
             /// <summary>
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
@@ -44,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _analyzerInfoCache = analyzerInfoCache;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
-                _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
+                _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
             }
 
             /// <summary>
@@ -79,33 +85,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
             /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
-            /// It will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
-            /// 
-            /// since this has a side-effect, this should never be called concurrently. and incremental analyzer (solution crawler) should guarantee that.
+            /// it will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
             /// </summary>
-            public ImmutableArray<StateSet> GetOrUpdateStateSets(Project project)
-            {
-                var projectStateSets = GetOrUpdateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.AddRange(projectStateSets.StateSetMap.Values);
-            }
-
-            /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
-            /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
-            /// It will create new <see cref="StateSet"/>s for the <see cref="Project"/>.
-            /// Unlike <see cref="GetOrUpdateStateSets(Project)"/>, this has no side effect.
-            /// </summary>
-            public IEnumerable<StateSet> GetOrCreateStateSets(Project project)
+            public ImmutableArray<StateSet> GetOrCreateStateSets(Project project)
             {
                 var projectStateSets = GetOrCreateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.AddRange(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
             /// Return <see cref="StateSet"/> for the given <see cref="DiagnosticAnalyzer"/> in the context of <see cref="Project"/>.
             /// This will either return already created <see cref="StateSet"/> for the specific snapshot of <see cref="Project"/> or
-            /// It will create new <see cref="StateSet"/> for the <see cref="Project"/>.
-            /// This will not have any side effect.
+            /// it will create new <see cref="StateSet"/> for the <see cref="Project"/>. and update internal state.
             /// </summary>
             public StateSet? GetOrCreateStateSet(Project project, DiagnosticAnalyzer analyzer)
             {
@@ -132,7 +123,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     removed |= stateSet.OnProjectRemoved(projectId);
                 }
 
-                _projectAnalyzerStateMap.TryRemove(projectId, out _);
+                lock (_projectAnalyzerStateMap)
+                {
+                    _projectAnalyzerStateMap = _projectAnalyzerStateMap.Remove(projectId);
+                }
+
                 return removed;
             }
 
