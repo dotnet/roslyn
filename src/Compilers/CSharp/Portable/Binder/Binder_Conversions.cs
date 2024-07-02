@@ -486,18 +486,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.IsSpan)
                 {
+                    Debug.Assert(destination.OriginalDefinition.IsSpan() || destination.OriginalDefinition.IsReadOnlySpan());
+
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureFirstClassSpan, diagnostics);
+
                     // PROTOTYPE: Check runtime APIs used for other span conversions once they are implemented.
-                    if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                    // NOTE: Span conversions do not use well-known types because they are "conversions from type" and hence don't have access to Compilation.
+                    if (TryFindImplicitOperatorFromArray(destination.OriginalDefinition) is { } method)
                     {
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, diagnostics, syntax: syntax);
+                        diagnostics.ReportUseSite(method, syntax);
                     }
                     else
                     {
-                        Debug.Assert(destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_Span_T__op_Implicit_Array, diagnostics, syntax: syntax);
+                        Error(diagnostics,
+                            ErrorCode.ERR_MissingPredefinedMember,
+                            syntax,
+                            destination.OriginalDefinition,
+                            WellKnownMemberNames.ImplicitConversionName);
                     }
                 }
             }
+        }
+
+        internal static MethodSymbol? TryFindImplicitOperatorFromArray(TypeSymbol type)
+        {
+            var members = type.GetMembers(WellKnownMemberNames.ImplicitConversionName);
+            MethodSymbol? result = null;
+            foreach (var member in members)
+            {
+                if (member is MethodSymbol
+                    {
+                        ParameterCount: 1,
+                        Arity: 0,
+                        IsStatic: true,
+                        DeclaredAccessibility: Accessibility.Public,
+                        Parameters: [{ Type: ArrayTypeSymbol { IsSZArray: true, ElementType: TypeParameterSymbol } }]
+                    } method)
+                {
+                    if (result is not null)
+                    {
+                        // Ambiguous method found.
+                        return null;
+                    }
+
+                    result = method;
+                }
+            }
+
+            return result;
         }
 
         private static void CheckInlineArrayTypeIsSupported(SyntaxNode syntax, TypeSymbol inlineArrayType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)

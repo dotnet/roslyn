@@ -20,8 +20,7 @@ namespace System.IO.Hashing.Tests
         public void Hash_InvalidInputs_Throws()
         {
             Assert.Throws<ArgumentNullException>("source", () => XxHash128.Hash(null));
-            // PROTOTYPE: Should make this work with `null` instead of `default(byte[])`.
-            Assert.Throws<ArgumentNullException>("source", () => XxHash128.Hash(default(byte[]), 42));
+            Assert.Throws<ArgumentNullException>("source", () => XxHash128.Hash(null, 42));
 
             Assert.Throws<ArgumentException>("destination", () => XxHash128.Hash(new byte[] { 1, 2, 3 }, new byte[7]));
         }
