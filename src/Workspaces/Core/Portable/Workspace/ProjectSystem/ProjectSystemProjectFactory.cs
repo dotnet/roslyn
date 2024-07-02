@@ -94,7 +94,8 @@ internal sealed class ProjectSystemProjectFactory
             assemblyName,
             creationInfo.CompilationOptions,
             creationInfo.FilePath,
-            creationInfo.ParseOptions);
+            creationInfo.ParseOptions,
+            creationInfo.CompilationOutputAssemblyFilePath);
 
         var versionStamp = creationInfo.FilePath != null
             ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -107,7 +108,7 @@ internal sealed class ProjectSystemProjectFactory
                 name: projectSystemName,
                 assemblyName,
                 language,
-                compilationOutputFilePaths: default, // will be updated when command line is set
+                compilationOutputInfo: new(creationInfo.CompilationOutputAssemblyFilePath),
                 SourceHashAlgorithms.Default, // will be updated when command line is set
                 filePath: creationInfo.FilePath,
                 telemetryId: creationInfo.TelemetryId),

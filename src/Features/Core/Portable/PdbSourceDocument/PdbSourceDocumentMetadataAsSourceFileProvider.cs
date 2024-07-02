@@ -293,7 +293,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
                 name: $"{assemblyName} ({assemblyVersion})",
                 assemblyName: assemblyName,
                 language: languageName,
-                compilationOutputFilePaths: default,
+                compilationOutputInfo: default,
                 checksumAlgorithm: checksumAlgorithm),
             compilationOptions: compilationOptions,
             parseOptions: parseOptions,
