@@ -477,6 +477,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arrayLength; i++)
             {
                 var element = VisitExpression((BoundExpression)elements[i]);
+
+                //the span is already defaulted - we can skip default value assignments
+                if (element.IsDefaultValue())
+                {
+                    continue;
+                }
                 var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
                 var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
