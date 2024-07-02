@@ -24,21 +24,19 @@ internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
 
     internal sealed class MetadataService : IMetadataService
     {
-        private readonly IDocumentationProviderService _documentationProviderService;
+        private readonly MetadataReferenceCache _metadataCache;
 
         public MetadataService(IDocumentationProviderService documentationProviderService)
         {
-            _documentationProviderService = documentationProviderService;
+            _metadataCache = new MetadataReferenceCache((path, properties) =>
+                MetadataReference.CreateFromFile(path, properties, documentationProviderService.GetDocumentationProvider(path)));
         }
 
         public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
         {
-            // HACK: right now the FileWatchedPortableExecutableReferenceFactory in Roslyn presumes that each time it calls IMetadataService
-            // it gets a unique instance back; the default MetadataService at the workspace layer has a cache to encourage sharing, but that
-            // breaks the assumption.
             try
             {
-                return MetadataReference.CreateFromFile(resolvedPath, properties, _documentationProviderService.GetDocumentationProvider(resolvedPath));
+                return (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
             }
             catch (IOException ex)
             {
