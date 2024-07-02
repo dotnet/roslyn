@@ -92,7 +92,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
 
         void TryAddProviderForLanguage(string language)
         {
-            if (projectCountByLanguage.TryGetValue(language, out var languageCount) && languageCount > 0)
+            if (projectCountByLanguage.ContainsKey(language))
             {
                 var provider = workspace.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
                 if (provider != null)
