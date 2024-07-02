@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
@@ -71,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (diagnosticAnalyzerPerformanceTracker != null)
                 {
                     // We know in the remote layer that this type must exist.
-                    var globalOperationNotificationService = services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
-                    _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
+                    _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, _shutdownCancellationSource.Token);
                 }
 
                 return ValueTaskFactory.CompletedTask;

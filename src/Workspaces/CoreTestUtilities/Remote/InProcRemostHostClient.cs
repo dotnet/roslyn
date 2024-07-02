@@ -191,7 +191,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
                 RegisterRemoteBrokeredService(new RemoteFullyQualifyService.Factory());
-                RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteKeepAliveService.Factory());
                 RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
