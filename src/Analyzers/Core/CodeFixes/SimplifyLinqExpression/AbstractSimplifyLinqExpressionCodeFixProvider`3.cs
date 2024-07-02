@@ -34,7 +34,7 @@ internal abstract class AbstractSimplifyLinqExpressionCodeFixProvider<TInvocatio
     protected override Task FixAllAsync(Document document,
                                         ImmutableArray<Diagnostic> diagnostics,
                                         SyntaxEditor editor,
-                                        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+                                        CancellationToken cancellationToken)
     {
         var root = editor.OriginalRoot;
         var expressionsToReWrite = diagnostics.Select(d => GetInvocation(root, d)).OrderByDescending(i => i.SpanStart);

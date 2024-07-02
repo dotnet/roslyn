@@ -31,19 +31,19 @@ internal sealed class ConsecutiveStatementPlacementCodeFixProvider() : CodeFixPr
         var diagnostic = context.Diagnostics.First();
         context.RegisterCodeFix(CodeAction.Create(
             CodeFixesResources.Add_blank_line_after_block,
-            c => UpdateDocumentAsync(document, diagnostic, context.GetOptionsProvider(), c),
+            c => UpdateDocumentAsync(document, diagnostic, c),
             nameof(CodeFixesResources.Add_blank_line_after_block)),
             context.Diagnostics);
         return Task.CompletedTask;
     }
 
-    private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        => FixAllAsync(document, [diagnostic], fallbackOptions, cancellationToken);
+    private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        => FixAllAsync(document, [diagnostic], cancellationToken);
 
-    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
         var endOfLineTrivia = generator.EndOfLine(options.NewLine);
@@ -57,5 +57,5 @@ internal sealed class ConsecutiveStatementPlacementCodeFixProvider() : CodeFixPr
     }
 
     public override FixAllProvider GetFixAllProvider()
-        => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false));
+        => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
 }

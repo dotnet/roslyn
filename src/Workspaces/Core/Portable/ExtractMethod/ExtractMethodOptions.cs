@@ -60,9 +60,9 @@ internal static class ExtractMethodGenerationOptionsProviders
 
         return new ExtractMethodGenerationOptions()
         {
-            CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.Value.CodeGenerationOptions, cancellationToken).ConfigureAwait(false),
+            CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false),
             ExtractOptions = fallbackOptions.Value.ExtractOptions,
-            CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions.Value.CodeCleanupOptions, cancellationToken).ConfigureAwait(false),
+            CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false),
         };
     }
 

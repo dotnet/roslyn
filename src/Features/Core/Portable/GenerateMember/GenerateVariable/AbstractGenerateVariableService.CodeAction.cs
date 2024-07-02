@@ -59,8 +59,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 new CodeGenerationContext(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation()),
-                _fallbackOptions);
+                    contextLocation: _state.IdentifierToken.GetLocation()));
 
             if (_generateProperty)
             {

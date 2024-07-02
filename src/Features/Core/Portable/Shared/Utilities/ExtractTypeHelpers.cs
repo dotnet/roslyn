@@ -33,7 +33,7 @@ internal static class ExtractTypeHelpers
         var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Services);
 
         var context = new CodeGenerationContext(generateMethodBodies: true);
-        var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
         var newTypeNode = info.Service.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, info, cancellationToken)
             .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
@@ -84,13 +84,12 @@ internal static class ExtractTypeHelpers
         var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
             new CodeGenerationSolutionContext(
                 newDocument.Project.Solution,
-                context,
-                fallbackOptions),
+                context),
             newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
             newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
             cancellationToken).ConfigureAwait(false);
 
-        var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
         if (formattingService is not null)

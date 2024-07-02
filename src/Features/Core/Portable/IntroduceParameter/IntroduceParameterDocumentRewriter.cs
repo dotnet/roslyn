@@ -443,7 +443,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         private async Task<SyntaxNode> CreateMethodDeclarationAsync(SyntaxNode newStatement, ImmutableArray<IParameterSymbol>? validParameters,
             string? newMethodIdentifier, ITypeSymbol? typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
         {
-            var info = await _originalDocument.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _originalDocument.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
             var newMethod = isTrampoline
                 ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: [newStatement], returnType: typeSymbol)

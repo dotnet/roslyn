@@ -18,8 +18,8 @@ internal sealed record class VisualBasicSimplifierOptions : SimplifierOptions, I
     {
     }
 
-    public VisualBasicSimplifierOptions(IOptionsReader options, VisualBasicSimplifierOptions? fallbackOptions)
-        : base(options, fallbackOptions ?? Default, LanguageNames.VisualBasic)
+    public VisualBasicSimplifierOptions(IOptionsReader options)
+        : base(options, LanguageNames.VisualBasic)
     {
     }
 }

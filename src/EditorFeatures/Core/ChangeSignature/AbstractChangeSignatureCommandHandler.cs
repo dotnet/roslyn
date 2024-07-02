@@ -87,7 +87,6 @@ internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<
                 document,
                 caretPoint.Value.Position,
                 restrictToDeclarations: false,
-                _globalOptions.CreateProvider(),
                 cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
             // UI thread bound operation to show the change signature dialog.

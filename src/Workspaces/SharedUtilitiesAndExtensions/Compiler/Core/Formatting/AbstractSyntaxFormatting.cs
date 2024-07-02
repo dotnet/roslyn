@@ -21,7 +21,7 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
     private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
 
     public abstract SyntaxFormattingOptions DefaultOptions { get; }
-    public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions);
+    public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options);
 
     public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 

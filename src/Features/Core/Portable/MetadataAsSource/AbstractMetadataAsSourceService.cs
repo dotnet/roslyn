@@ -38,8 +38,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
                 generateMethodBodies: false,
                 generateDocumentationComments: true,
                 mergeAttributes: false,
-                autoInsertionLocation: false),
-                CodeAndImportGenerationOptions.GetDefault(document.Project.Services).CreateProvider());
+                autoInsertionLocation: false));
 
         // Add the interface of the symbol to the top of the root namespace
         document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(

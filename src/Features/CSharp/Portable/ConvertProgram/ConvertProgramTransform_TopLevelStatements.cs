@@ -27,7 +27,7 @@ using static SyntaxFactory;
 internal static partial class ConvertProgramTransform
 {
     public static async Task<Document> ConvertToTopLevelStatementsAsync(
-        Document document, MethodDeclarationSyntax methodDeclaration, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
         var typeDeclaration = (TypeDeclarationSyntax?)methodDeclaration.Parent;
         Contract.ThrowIfNull(typeDeclaration); // checked by analyzer
@@ -45,7 +45,7 @@ internal static partial class ConvertProgramTransform
 
         // We were parented by a namespace.  Add using statements to bring in all the symbols that were
         // previously visible within the namespace.  Then remove any that we don't need once we've done that.
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         document = await AddUsingDirectivesAsync(
             document, rootWithGlobalStatements, namespaceDeclaration, cleanupOptions, cancellationToken).ConfigureAwait(false);

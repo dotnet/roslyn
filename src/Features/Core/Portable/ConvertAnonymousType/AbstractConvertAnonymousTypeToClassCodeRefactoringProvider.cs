@@ -129,8 +129,8 @@ internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvid
             sortMembers: false,
             autoInsertionLocation: false);
 
-        var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Then, actually insert the new class in the appropriate container.
         var container = anonymousObject.GetAncestor<TNamespaceDeclarationSyntax>() ?? root;

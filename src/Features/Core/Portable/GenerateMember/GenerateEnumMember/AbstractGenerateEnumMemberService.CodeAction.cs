@@ -38,8 +38,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
                 new CodeGenerationSolutionContext(
                     _document.Project.Solution,
                     new CodeGenerationContext(
-                        contextLocation: _state.IdentifierToken.GetLocation()),
-                    _fallbackOptions),
+                        contextLocation: _state.IdentifierToken.GetLocation())),
                 _state.TypeToGenerateIn,
                 CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,

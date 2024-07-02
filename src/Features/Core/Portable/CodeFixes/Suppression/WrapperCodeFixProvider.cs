@@ -26,14 +26,14 @@ internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressi
         var documentDiagnostics = diagnostics.Where(d => d.Location.IsInSource).ToImmutableArray();
         if (!documentDiagnostics.IsEmpty)
         {
-            var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.Options, context.CancellationToken).ConfigureAwait(false);
+            var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
             RegisterSuppressionFixes(context, suppressionFixes);
         }
 
         var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
         if (!projectDiagnostics.IsEmpty)
         {
-            var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.Options, context.CancellationToken).ConfigureAwait(false);
+            var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
             RegisterSuppressionFixes(context, suppressionFixes);
         }
     }

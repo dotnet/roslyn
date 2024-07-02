@@ -143,7 +143,7 @@ internal sealed class RenamedSpansTracker
         }
     }
 
-    internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CancellationToken cancellationToken)
     {
         foreach (var documentId in documentIds)
         {
@@ -153,7 +153,7 @@ internal sealed class RenamedSpansTracker
 
                 if (replacementTextValid)
                 {
-                    var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                     document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
                     document = await Formatter.FormatAsync(document, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);

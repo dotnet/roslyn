@@ -34,7 +34,7 @@ internal partial class AbstractSuppressionCodeFixProvider
             return CodeAction.Create(
                 ((CodeAction)pragmaActions[0]).Title,
                 createChangedDocument: ct =>
-                    BatchPragmaFixesAsync(suppressionFixProvider, document, pragmaActions, pragmaDiagnostics, fixAllState.CodeActionOptionsProvider, cancellationToken),
+                    BatchPragmaFixesAsync(suppressionFixProvider, document, pragmaActions, pragmaDiagnostics, cancellationToken),
                 equivalenceKey: fixAllState.CodeActionEquivalenceKey);
         }
 
@@ -43,7 +43,6 @@ internal partial class AbstractSuppressionCodeFixProvider
             Document document,
             ImmutableArray<IPragmaBasedCodeAction> pragmaActions,
             ImmutableArray<Diagnostic> diagnostics,
-            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // We apply all the pragma suppression fixes sequentially.
@@ -86,7 +85,7 @@ internal partial class AbstractSuppressionCodeFixProvider
                     properties: diagnostic.Properties,
                     isSuppressed: diagnostic.IsSuppressed);
 
-                var newSuppressionFixes = await suppressionFixProvider.GetFixesAsync(currentDocument, currentDiagnosticSpan, [diagnostic], fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var newSuppressionFixes = await suppressionFixProvider.GetFixesAsync(currentDocument, currentDiagnosticSpan, [diagnostic], cancellationToken).ConfigureAwait(false);
                 var newSuppressionFix = newSuppressionFixes.SingleOrDefault();
                 if (newSuppressionFix != null)
                 {

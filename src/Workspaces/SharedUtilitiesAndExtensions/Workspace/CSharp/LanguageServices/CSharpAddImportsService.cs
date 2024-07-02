@@ -33,8 +33,8 @@ internal sealed class CSharpAddImportsService : AbstractAddImportsService<
     protected override string Language
         => LanguageNames.CSharp;
 
-    public override CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue)
-        => configOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, fallbackValue);
+    public override CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions)
+        => configOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
 
     // C# doesn't have global imports.
     protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator)

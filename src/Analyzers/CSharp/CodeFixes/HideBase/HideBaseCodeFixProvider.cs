@@ -46,6 +46,6 @@ internal partial class HideBaseCodeFixProvider : CodeFixProvider
         if (originalNode == null)
             return;
 
-        context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode, context.GetOptionsProvider()), context.Diagnostics);
+        context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
     }
 }

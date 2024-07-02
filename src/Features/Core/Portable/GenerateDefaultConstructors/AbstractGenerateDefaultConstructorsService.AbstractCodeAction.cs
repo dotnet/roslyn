@@ -22,20 +22,17 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
         private readonly Document _document;
         private readonly State _state;
         private readonly string _title;
-        private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
         protected AbstractCodeAction(
             Document document,
             State state,
             IList<IMethodSymbol> constructors,
-            string title,
-            CodeAndImportGenerationOptionsProvider fallbackOptions)
+            string title)
         {
             _document = document;
             _state = state;
             _constructors = constructors;
             _title = title;
-            _fallbackOptions = fallbackOptions;
         }
 
         public override string Title => _title;
@@ -46,8 +43,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
             var result = await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
                     _document.Project.Solution,
-                    CodeGenerationContext.Default,
-                    _fallbackOptions),
+                    CodeGenerationContext.Default),
                 _state.ClassType,
                 _constructors.Select(CreateConstructorDefinition),
                 cancellationToken).ConfigureAwait(false);

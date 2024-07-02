@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim generatedTree = Await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim generatedNode = generatedTree.GetAnnotatedNodes(GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
-            Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(False)
+            Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
             Dim indentSize = formattingOptions.IndentationSize
 
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End If
 
             Dim simplifierOptions = Await newDocument.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim formattingOptions = Await newDocument.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(False)
+            Dim formattingOptions = Await newDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
 
             newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, simplifierOptions, cancellationToken).ConfigureAwait(False)
 

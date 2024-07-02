@@ -17,31 +17,13 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct;
 
 internal interface IRemoteConvertTupleToStructCodeRefactoringService
 {
-    internal interface ICallback : IRemoteOptionsCallback<CleanCodeGenerationOptions>
-    {
-    }
-
     ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
         Checksum solutionChecksum,
-        RemoteServiceCallbackId callbackId,
         DocumentId documentId,
         TextSpan span,
         Scope scope,
         bool isRecord,
         CancellationToken cancellationToken);
-}
-
-[ExportRemoteServiceCallbackDispatcher(typeof(IRemoteConvertTupleToStructCodeRefactoringService)), Shared]
-internal sealed class RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteConvertTupleToStructCodeRefactoringService.ICallback
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher()
-    {
-    }
-
-    public ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
-        => ((RemoteOptionsProvider<CleanCodeGenerationOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
 }
 
 [DataContract]

@@ -14,18 +14,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteEncapsulateFieldService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback)
+    internal sealed class RemoteEncapsulateFieldService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
         : BrokeredServiceBase(arguments), IRemoteEncapsulateFieldService
     {
-        internal sealed class Factory : FactoryBase<IRemoteEncapsulateFieldService, IRemoteEncapsulateFieldService.ICallback>
+        internal sealed class Factory : FactoryBase<IRemoteEncapsulateFieldService>
         {
-            protected override IRemoteEncapsulateFieldService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback)
-                => new RemoteEncapsulateFieldService(arguments, callback);
+            protected override IRemoteEncapsulateFieldService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteEncapsulateFieldService(arguments);
         }
 
         public ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
             Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
             bool updateReferences,
@@ -48,10 +47,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
-                var fallbackOptions = GetClientOptionsProvider<CleanCodeGenerationOptions, IRemoteEncapsulateFieldService.ICallback>(callback, callbackId).ToCleanCodeGenerationOptionsProvider();
 
                 var newSolution = await service.EncapsulateFieldsAsync(
-                    document, fields.ToImmutable(), fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
+                    document, fields.ToImmutable(), updateReferences, cancellationToken).ConfigureAwait(false);
 
                 return await RemoteUtilities.GetDocumentTextChangesAsync(
                     solution, newSolution, cancellationToken).ConfigureAwait(false);

@@ -220,7 +220,7 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         // If the user is performing a fix-all, then fix up all the issues we see. i.e.
         // add missing cases and missing 'default' cases for any switches we reported an

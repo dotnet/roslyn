@@ -20,7 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
             Private ReadOnly _node As SyntaxNode
             Private ReadOnly _title As String
             Private ReadOnly _modifier As SyntaxKind
-            Private ReadOnly _fallbackOptions As SyntaxFormattingOptionsProvider
 
             Public Overrides ReadOnly Property Title As String
                 Get
@@ -34,17 +33,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 End Get
             End Property
 
-            Public Sub New(document As Document, node As SyntaxNode, title As String, modifier As SyntaxKind, fallbackOptions As SyntaxFormattingOptionsProvider)
+            Public Sub New(document As Document, node As SyntaxNode, title As String, modifier As SyntaxKind)
                 _document = document
                 _node = node
                 _title = title
                 _modifier = modifier
-                _fallbackOptions = fallbackOptions
             End Sub
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim options = Await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim options = Await _document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim newNode = Await GetNewNodeAsync(_document, _node, options, cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(_node, newNode)

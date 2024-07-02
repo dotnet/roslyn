@@ -43,13 +43,12 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         IFieldSymbol propertyBackingField,
         string desiredGetMethodName,
         string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         if (propertyDeclarationNode is not PropertyDeclarationSyntax propertyDeclaration)
             return [];
 
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var languageVersion = syntaxTree.Options.LanguageVersion();
 

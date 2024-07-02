@@ -76,8 +76,7 @@ internal partial class GenerateOverridesCodeRefactoringProvider
                     _document.Project.Solution,
                     new CodeGenerationContext(
                         afterThisLocation: afterThisLocation,
-                        contextLocation: syntaxTree.GetLocation(_textSpan)),
-                    _fallbackOptions),
+                        contextLocation: syntaxTree.GetLocation(_textSpan))),
                 _containingType,
                 members,
                 cancellationToken).ConfigureAwait(false);

@@ -76,7 +76,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             Solution solution, DocumentId sourceDocumentId, DocumentId documentWithMovedTypeId)
         {
             var documentWithMovedType = solution.GetRequiredDocument(documentWithMovedTypeId);
-            var documentWithMovedTypeFormattingOptions = await documentWithMovedType.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+            var documentWithMovedTypeFormattingOptions = await documentWithMovedType.GetSyntaxFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = documentWithMovedType.GetRequiredLanguageService<ISyntaxFactsService>();
             var removeUnnecessaryImports = documentWithMovedType.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
@@ -95,7 +95,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
             // Now remove any unnecessary imports from the original doc that moved to the new doc.
             var sourceDocument = solution.GetRequiredDocument(sourceDocumentId);
-            var sourceDocumentFormattingOptions = await sourceDocument.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+            var sourceDocumentFormattingOptions = await sourceDocument.GetSyntaxFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
             sourceDocument = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(
                 sourceDocument,
                 n => movedImports.Contains(i => syntaxFacts.AreEquivalent(i, n)),
@@ -158,7 +158,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// </summary>
         private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
         {
-            var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+            var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
             var insertFinalNewLine = documentFormattingOptions.InsertFinalNewLine;
             if (insertFinalNewLine)
             {
@@ -169,7 +169,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 if (endOfFileToken.LeadingTrivia.IsEmpty() &&
                     !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
                 {
-                    var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+                    var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
                     var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
                     var endOfLine = generator.EndOfLine(lineFormattingOptions.NewLine);
                     return modifiedRoot.ReplaceToken(

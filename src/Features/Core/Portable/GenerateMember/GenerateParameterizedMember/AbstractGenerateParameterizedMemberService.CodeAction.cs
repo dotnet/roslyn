@@ -78,8 +78,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                         _document.Project.Solution,
                         new CodeGenerationContext(
                             afterThisLocation: _state.IdentifierToken.GetLocation(),
-                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
-                        _fallbackOptions),
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
                     _state.TypeToGenerateIn,
                     property,
                     cancellationToken).ConfigureAwait(false);
@@ -95,8 +94,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                        _document.Project.Solution,
                        new CodeGenerationContext(
                            afterThisLocation: _state.Location,
-                           generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
-                       _fallbackOptions),
+                           generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
                     _state.TypeToGenerateIn,
                     method,
                     cancellationToken)

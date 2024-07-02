@@ -18,83 +18,61 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
         ''' </summary>
         Private ReadOnly _options As IOptionsReader
 
-        ''' <summary>
-        ''' Fallback options - the default options in Code Style layer.
-        ''' </summary>
-        Private ReadOnly _fallbackOptions As IdeAnalyzerOptions
-
-        Public Sub New(options As IOptionsReader, fallbackOptions As IdeAnalyzerOptions)
+        Public Sub New(options As IOptionsReader)
             _options = options
-            _fallbackOptions = fallbackOptions
-        End Sub
-
-        Public Sub New(options As IOptionsReader, fallbackOptions As AnalyzerOptions)
-            MyClass.New(options, fallbackOptions.GetIdeOptions())
         End Sub
 
         Public Function GetSimplifierOptions() As VisualBasicSimplifierOptions
-            Return New VisualBasicSimplifierOptions(_options, FallbackSimplifierOptions)
+            Return New VisualBasicSimplifierOptions(_options)
         End Function
 
         Public ReadOnly Property PreferredModifierOrder As CodeStyleOption2(Of String)
             Get
-                Return GetOption(VisualBasicCodeStyleOptions.PreferredModifierOrder, FallbackCodeStyleOptions.PreferredModifierOrder)
+                Return GetOption(VisualBasicCodeStyleOptions.PreferredModifierOrder)
             End Get
         End Property
 
         Public ReadOnly Property PreferIsNotExpression As CodeStyleOption2(Of Boolean)
             Get
-                Return GetOption(VisualBasicCodeStyleOptions.PreferIsNotExpression, FallbackCodeStyleOptions.PreferIsNotExpression)
+                Return GetOption(VisualBasicCodeStyleOptions.PreferIsNotExpression)
             End Get
         End Property
 
         Public ReadOnly Property PreferSimplifiedObjectCreation As CodeStyleOption2(Of Boolean)
             Get
-                Return GetOption(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, FallbackCodeStyleOptions.PreferSimplifiedObjectCreation)
+                Return GetOption(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation)
             End Get
         End Property
 
         Public ReadOnly Property UnusedValueExpressionStatement As CodeStyleOption2(Of UnusedValuePreference)
             Get
-                Return GetOption(VisualBasicCodeStyleOptions.UnusedValueExpressionStatement, FallbackCodeStyleOptions.UnusedValueExpressionStatement)
+                Return GetOption(VisualBasicCodeStyleOptions.UnusedValueExpressionStatement)
             End Get
         End Property
 
         Public ReadOnly Property UnusedValueAssignment As CodeStyleOption2(Of UnusedValuePreference)
             Get
-                Return GetOption(VisualBasicCodeStyleOptions.UnusedValueAssignment, FallbackCodeStyleOptions.UnusedValueAssignment)
+                Return GetOption(VisualBasicCodeStyleOptions.UnusedValueAssignment)
             End Get
         End Property
 
-        Private Function GetOption(Of TValue)([option] As Option2(Of CodeStyleOption2(Of TValue)), defaultValue As CodeStyleOption2(Of TValue)) As CodeStyleOption2(Of TValue)
-            Return _options.GetOption([option], defaultValue)
+        Private Function GetOption(Of TValue)([option] As Option2(Of CodeStyleOption2(Of TValue))) As CodeStyleOption2(Of TValue)
+            Return _options.GetOption([option])
         End Function
 
-        Private ReadOnly Property FallbackSimplifierOptions As VisualBasicSimplifierOptions
-            Get
-                Return If(DirectCast(_fallbackOptions.CleanupOptions?.SimplifierOptions, VisualBasicSimplifierOptions), VisualBasicSimplifierOptions.Default)
-            End Get
-        End Property
-
-        Private ReadOnly Property FallbackCodeStyleOptions As VisualBasicIdeCodeStyleOptions
-            Get
-                Return If(DirectCast(_fallbackOptions.CodeStyleOptions, VisualBasicIdeCodeStyleOptions), VisualBasicIdeCodeStyleOptions.Default)
-            End Get
-        End Property
-
         Public Shared Narrowing Operator CType(provider As AnalyzerOptionsProvider) As VisualBasicAnalyzerOptionsProvider
-            Return New VisualBasicAnalyzerOptionsProvider(provider.GetAnalyzerConfigOptions(), provider.GetFallbackOptions())
+            Return New VisualBasicAnalyzerOptionsProvider(provider.GetAnalyzerConfigOptions())
         End Operator
 
         Public Shared Widening Operator CType(provider As VisualBasicAnalyzerOptionsProvider) As AnalyzerOptionsProvider
-            Return New AnalyzerOptionsProvider(provider._options, LanguageNames.VisualBasic, provider._fallbackOptions)
+            Return New AnalyzerOptionsProvider(provider._options, LanguageNames.VisualBasic)
         End Operator
     End Structure
 
     Friend Module VisualBasicAnalyzerOptionsProviders
         <Extension>
         Public Function GetVisualBasicAnalyzerOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicAnalyzerOptionsProvider
-            Return New VisualBasicAnalyzerOptionsProvider(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), options)
+            Return New VisualBasicAnalyzerOptionsProvider(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader())
         End Function
 
         <Extension>

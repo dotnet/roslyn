@@ -115,8 +115,8 @@ internal sealed partial class LightweightRenameLocations
             renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
     }
 
-    public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, nonConflictSymbolKeys, fallbackOptions, cancellationToken);
+    public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CancellationToken cancellationToken)
+        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, nonConflictSymbolKeys, cancellationToken);
 
     public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)
         => new(

@@ -292,7 +292,6 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         SyntaxNode potentiallyUpdatedNode,
         SyntaxNode originalNode,
         SignatureChange signaturePermutation,
-        LineFormattingOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
@@ -308,7 +307,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
                 or SyntaxKind.StructDeclaration
                 or SyntaxKind.ClassDeclaration)
         {
-            var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, cancellationToken).ConfigureAwait(false);
             if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
             {
                 updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
@@ -767,7 +766,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     }
 
     private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(
-        Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, LineFormattingOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, CancellationToken cancellationToken)
     {
         if (!node.HasLeadingTrivia)
         {
@@ -785,7 +784,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             return [];
         }
 
-        var options = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options);
     }
 

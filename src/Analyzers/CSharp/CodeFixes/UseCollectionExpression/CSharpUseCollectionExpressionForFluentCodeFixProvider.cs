@@ -43,7 +43,6 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         InvocationExpressionSyntax invocationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -69,7 +68,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = await GetArgumentsAsync(document, fallbackOptions, analysisResult.Matches, cancellationToken).ConfigureAwait(false);
+        var arguments = await GetArgumentsAsync(document, analysisResult.Matches, cancellationToken).ConfigureAwait(false);
 
         var argumentListTrailingTrivia = analysisResult.ExistingInitializer is null
             ? default
@@ -90,7 +89,6 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
-            fallbackOptions,
             dummyObjectCreation,
             matches,
             static o => o.Initializer,
@@ -139,7 +137,6 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         static async Task<SeparatedSyntaxList<ArgumentSyntax>> GetArgumentsAsync(
             Document document,
-            CodeActionOptionsProvider fallbackOptions,
             ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches,
             CancellationToken cancellationToken)
         {
@@ -150,8 +147,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 #if CODE_STYLE
             var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
 #else
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-                fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);

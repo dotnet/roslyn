@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
@@ -17,9 +16,5 @@ internal static class Rename
         => PrepareRenameHandler.GetRenameRangeAsync(document, linePosition, cancellationToken);
 
     public static Task<WorkspaceEdit?> GetRenameEditAsync(Document document, LinePosition linePosition, string newName, CancellationToken cancellationToken)
-    {
-        var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
-
-        return RenameHandler.GetRenameEditAsync(globalOptions, document, linePosition, newName, cancellationToken);
-    }
+        => RenameHandler.GetRenameEditAsync(document, linePosition, newName, cancellationToken);
 }

@@ -33,19 +33,15 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
     protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
     protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
 
-    public AddImportPlacementOptions GetAddImportOptions(IOptionsReader configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
-    {
-        fallbackOptions ??= AddImportPlacementOptions.Default;
-
-        return new()
+    public AddImportPlacementOptions GetAddImportOptions(IOptionsReader configOptions, bool allowInHiddenRegions)
+        => new()
         {
-            PlaceSystemNamespaceFirst = configOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, Language, fallbackOptions.PlaceSystemNamespaceFirst),
-            UsingDirectivePlacement = GetUsingDirectivePlacementCodeStyleOption(configOptions, fallbackOptions.UsingDirectivePlacement),
+            PlaceSystemNamespaceFirst = configOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, Language),
+            UsingDirectivePlacement = GetUsingDirectivePlacementCodeStyleOption(configOptions),
             AllowInHiddenRegions = allowInHiddenRegions
         };
-    }
 
-    public abstract CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue);
+    public abstract CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions);
 
     private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
     private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;

@@ -5,11 +5,8 @@
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -31,25 +28,18 @@ internal interface DocumentFormattingOptionsProvider
 
 internal static class DocumentFormattingOptionsProviders
 {
-    public static DocumentFormattingOptions GetDocumentFormattingOptions(this IOptionsReader options, DocumentFormattingOptions? fallbackOptions)
-    {
-        fallbackOptions ??= DocumentFormattingOptions.Default;
-
-        return new()
+    public static DocumentFormattingOptions GetDocumentFormattingOptions(this IOptionsReader options)
+        => new()
         {
-            FileHeaderTemplate = options.GetOption(CodeStyleOptions2.FileHeaderTemplate, fallbackOptions.FileHeaderTemplate),
-            InsertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine, fallbackOptions.InsertFinalNewLine)
+            FileHeaderTemplate = options.GetOption(CodeStyleOptions2.FileHeaderTemplate),
+            InsertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine)
         };
-    }
 
 #if !CODE_STYLE
-    public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, DocumentFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetDocumentFormattingOptions(fallbackOptions);
+        return configOptions.GetDocumentFormattingOptions();
     }
-
-    public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, DocumentFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await document.GetDocumentFormattingOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

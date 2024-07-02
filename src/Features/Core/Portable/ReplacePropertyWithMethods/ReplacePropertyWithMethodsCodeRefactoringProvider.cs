@@ -373,7 +373,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                 property, declaration,
                 definitionToBackingField.GetValueOrDefault(property),
                 desiredGetMethodName, desiredSetMethodName,
-                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // Properly make the members fit within an interface if that's what

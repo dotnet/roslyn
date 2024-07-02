@@ -366,7 +366,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
 
         var editor = new SyntaxEditor(root, updatedSolution.Services);
 
-        var codeGenerationOptions = await updatedDocument.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var codeGenerationOptions = await updatedDocument.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parseOptions = syntaxTree.Options;
 
         // First replace all the get methods with properties.

@@ -153,7 +153,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 sortMembers: false,
                 autoInsertionLocation: false);
 
-            var info = await document.GetCodeGenerationInfoAsync(context, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
             var typeDeclarationWithAllMembers = info.Service.AddMembers(
                 typeDeclarationWithCoreMembers,

@@ -35,7 +35,7 @@ internal class ConvertToProgramMainCodeFixProvider : SyntaxEditorBasedCodeFixPro
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var priority = options.PreferTopLevelStatements.Notification.Severity == ReportDiagnostic.Hidden
             ? CodeActionPriority.Low
             : CodeActionPriority.Default;
@@ -44,9 +44,9 @@ internal class ConvertToProgramMainCodeFixProvider : SyntaxEditorBasedCodeFixPro
     }
 
     protected override async Task FixAllAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
         var fixedDocument = await ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
         var fixedRoot = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

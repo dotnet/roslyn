@@ -241,7 +241,7 @@ internal static class ConvertToRecordEngine
             }
         }
 
-        var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var optionsProvider = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
         var lineFormattingOptions = optionsProvider.GetLineFormattingOptions();
 
         var modifiedClassTrivia = GetModifiedClassTrivia(

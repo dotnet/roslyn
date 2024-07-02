@@ -34,9 +34,9 @@ internal record CodeGenerationOptions
     {
     }
 
-    private protected CodeGenerationOptions(IOptionsReader options, CodeGenerationOptions fallbackOptions, string language)
+    private protected CodeGenerationOptions(IOptionsReader options, string language)
     {
-        NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle);
+        NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language);
     }
 
 #if !CODE_STYLE
@@ -102,37 +102,34 @@ internal interface CodeAndImportGenerationOptionsProvider :
 internal static class CodeGenerationOptionsProviders
 {
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
-        => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
+    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices)
+        => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options);
 
-    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CodeAndImportGenerationOptions? fallbackOptions)
+    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
         => new()
         {
-            GenerationOptions = options.GetCodeGenerationOptions(languageServices, fallbackOptions?.GenerationOptions),
-            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions)
+            GenerationOptions = options.GetCodeGenerationOptions(languageServices),
+            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions)
         };
 
-    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CleanCodeGenerationOptions? fallbackOptions)
+    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
         => new()
         {
-            GenerationOptions = options.GetCodeGenerationOptions(languageServices, fallbackOptions?.GenerationOptions),
-            CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.CleanupOptions)
+            GenerationOptions = options.GetCodeGenerationOptions(languageServices),
+            CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions)
         };
 
-    public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions);
+        return configOptions.GetCodeGenerationOptions(document.Project.Services);
     }
 
-    public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-
-    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(document.Project.ParseOptions);
 
-        var options = await GetCodeGenerationOptionsAsync(document, fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await GetCodeGenerationOptionsAsync(document, cancellationToken).ConfigureAwait(false);
         var service = document.Project.Services.GetRequiredService<ICodeGenerationService>();
         return service.GetInfo(context, options, document.Project.ParseOptions);
     }

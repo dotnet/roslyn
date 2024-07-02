@@ -779,7 +779,7 @@ internal class CSharpGenerateTypeService :
                 return updatedSolution;
             }
 
-            var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
             var addedCompilationRoot = compilationRoot.AddUsingDirectives([usingDirective], addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
         }

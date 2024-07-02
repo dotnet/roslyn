@@ -616,7 +616,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         // references to the type inside it's new namespace
         var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
-        var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithAddedImports = await AddImportsInContainersAsync(
             document,
@@ -660,7 +660,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, fallbackOptions, cancellationToken)
                 .ConfigureAwait(false);
 
-        var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithAdditionalImports = await AddImportsInContainersAsync(
             documentWithRefFixed,
@@ -741,7 +741,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
                 }
             }
 
-            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Use a dummy import node to figure out which container the new import will be added to.
             var container = addImportService.GetImportContainer(root, refNode, dummyImport, addImportsOptions);
@@ -789,7 +789,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
                 var result = await RemoveUnnecessaryImportsWorkerAsync(
                     doc,
                     CreateImports(doc, names, withFormatterAnnotation: false),
-                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
                 callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },
@@ -801,12 +800,11 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         async static Task<Document> RemoveUnnecessaryImportsWorkerAsync(
             Document doc,
             IEnumerable<SyntaxNode> importsToRemove,
-            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken token)
         {
             var removeImportService = doc.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
-            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(fallbackOptions, token).ConfigureAwait(false);
+            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(token).ConfigureAwait(false);
 
             return await removeImportService.RemoveUnnecessaryImportsAsync(
                 doc,

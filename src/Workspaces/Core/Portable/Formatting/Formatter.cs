@@ -90,7 +90,7 @@ public static class Formatter
 
     internal static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions? options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
     {
-        options ??= await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        options ??= await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var services = document.Project.Solution.Services;
         return document.WithSyntaxRoot(Format(root, spans, services, options, rules, cancellationToken));
@@ -318,7 +318,7 @@ public static class Formatter
     internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
     {
         var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-        return syntaxFormattingService.GetFormattingOptions(optionSet ?? workspace.CurrentSolution.Options, fallbackOptions: null);
+        return syntaxFormattingService.GetFormattingOptions(optionSet ?? workspace.CurrentSolution.Options);
     }
 
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
@@ -332,13 +332,13 @@ public static class Formatter
         var syntaxFormattingService = document.GetLanguageService<ISyntaxFormattingService>();
         if (syntaxFormattingService != null)
         {
-            syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(optionSet, fallbackOptions: null);
+            syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(optionSet);
             lineFormattingOptions = syntaxFormattingOptions.LineFormatting;
         }
         else
         {
             syntaxFormattingOptions = null;
-            lineFormattingOptions = optionSet.GetLineFormattingOptions(document.Project.Language, fallbackOptions: null);
+            lineFormattingOptions = optionSet.GetLineFormattingOptions(document.Project.Language);
         }
 
         return (syntaxFormattingOptions, lineFormattingOptions);

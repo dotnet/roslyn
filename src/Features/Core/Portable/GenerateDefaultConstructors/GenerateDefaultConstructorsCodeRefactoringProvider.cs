@@ -46,7 +46,7 @@ internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactor
 
         var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
         var actions = await service.GenerateDefaultConstructorsAsync(
-            document, textSpan, context.Options, forRefactoring: true, cancellationToken).ConfigureAwait(false);
+            document, textSpan, forRefactoring: true, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
     }
 }

@@ -72,8 +72,8 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
                 await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
             }
 
-            var info = await _document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var newTypeDeclaration = info.Service.AddMembers(_typeDeclaration, methods, info, cancellationToken);
 
@@ -118,7 +118,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         {
             var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
-            var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
             return newDocument;
