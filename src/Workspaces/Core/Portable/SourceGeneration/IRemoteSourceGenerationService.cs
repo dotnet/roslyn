@@ -12,10 +12,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
 
+[DataContract]
 internal readonly record struct RegularCompilationTrackerSourceGenerationInfo(
-    SourceGeneratedDocumentIdentity DocumentIdentity,
-    SourceGeneratedDocumentContentIdentity ContentIdentity,
-    DateTime GenerationDateTime);
+    [property: DataMember(Order = 0)] SourceGeneratedDocumentIdentity DocumentIdentity,
+    [property: DataMember(Order = 1)] SourceGeneratedDocumentContentIdentity ContentIdentity,
+    [property: DataMember(Order = 2)] DateTime GenerationDateTime);
 
 internal interface IRemoteSourceGenerationService
 {
