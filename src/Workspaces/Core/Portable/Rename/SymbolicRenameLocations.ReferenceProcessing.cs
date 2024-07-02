@@ -130,15 +130,7 @@ internal sealed partial class SymbolicRenameLocations
 
         private static bool IsPropertyGeneratedFromPrimaryConstructorParameter(
             ISymbol propertySymbol, ISymbol parameterSymbol, CancellationToken cancellationToken)
-        {
-            if (parameterSymbol is IParameterSymbol parameter)
-            {
-                var generatedPropertySymbol = parameter.GetAssociatedSynthesizedRecordProperty(cancellationToken);
-                return propertySymbol.Equals(generatedPropertySymbol);
-            }
-
-            return false;
-        }
+            => parameterSymbol is IParameterSymbol parameter && propertySymbol.Equals(parameter.GetAssociatedSynthesizedRecordProperty(cancellationToken));
 
         private static async Task<bool> IsPropertyAccessorOrAnOverrideAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
