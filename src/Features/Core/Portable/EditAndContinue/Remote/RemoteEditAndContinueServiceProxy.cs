@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -130,25 +131,28 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         if (client == null)
         {
             var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
-            return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
+            using var disposable = new ReferenceCountedDisposable<IDisposable>(LocalConnection.Instance);
+            // RemoteDebuggingSessionProxy will add its own refcount to 'disposable'.
+            return new RemoteDebuggingSessionProxy(solution.Services, disposable, sessionId);
         }
 
         // need to keep the providers alive until the session ends:
-        var connection = client.CreateConnection<IRemoteEditAndContinueService>(
-            callbackTarget: new DebuggingSessionCallback(debuggerService, sourceTextProvider));
+        //
+        // Wrap with a ref-counted-disposable here to ensure we clean this up properly if we don't transfer ownership to the RemoteDebuggingSessionProxy.
+        using var connection = new ReferenceCountedDisposable<RemoteServiceConnection<IRemoteEditAndContinueService>>(
+            client.CreateConnection<IRemoteEditAndContinueService>(
+                callbackTarget: new DebuggingSessionCallback(debuggerService, sourceTextProvider)));
 
-        var sessionIdOpt = await connection.TryInvokeAsync(
+        var sessionIdOpt = await connection.Target.TryInvokeAsync(
             solution,
             async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
 
-        if (sessionIdOpt.HasValue)
-        {
-            return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
-        }
+        if (!sessionIdOpt.HasValue)
+            return null;
 
-        connection.Dispose();
-        return null;
+        // Pass the connection to the RemoteDebuggingSessionProxy which will add its own refcount to it.
+        return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
     }
 
     public async ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
