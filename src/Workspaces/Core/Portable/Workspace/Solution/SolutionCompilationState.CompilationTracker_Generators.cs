@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    private partial class CompilationTracker : ICompilationTracker
+    private partial class RegularCompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo nextGeneratorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
             CreationPolicy creationPolicy,
@@ -96,7 +96,8 @@ internal partial class SolutionCompilationState
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, projectId, cancellationToken),
+                (service, solutionChecksum, cancellationToken) => service.GetRegularCompilationTrackerSourceGenerationInfoAsync(
+                    solutionChecksum, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!infosOpt.HasValue)
@@ -158,7 +159,7 @@ internal partial class SolutionCompilationState
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
+                (service, solutionChecksum, cancellationToken) => service.GetRegularCompilationTrackerContentsAsync(
                     solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
