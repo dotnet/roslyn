@@ -64,16 +64,13 @@ internal interface SyntaxFormattingOptionsProvider :
 internal static partial class SyntaxFormattingOptionsProviders
 {
 #if !CODE_STYLE
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, LanguageServices languageServices, SyntaxFormattingOptions? fallbackOptions)
-        => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options, fallbackOptions);
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, LanguageServices languageServices)
+        => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options);
 
-    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetSyntaxFormattingOptions(document.Project.Services, fallbackOptions);
+        return configOptions.GetSyntaxFormattingOptions(document.Project.Services);
     }
-
-    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetSyntaxFormattingOptionsAsync(document, await ((OptionsProvider<SyntaxFormattingOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

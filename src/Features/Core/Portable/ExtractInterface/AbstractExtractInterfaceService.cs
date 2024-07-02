@@ -273,7 +273,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
         var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
         var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
         var service = document.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();

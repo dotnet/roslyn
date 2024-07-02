@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
                     .Add(FormattingOptions2.NewLine.Definition.ConfigName, FormattingOptions2.NewLine.Definition.Serializer.Serialize(fallbackLineFormattingOptions.NewLine)))));
 
             return new OmniSharpSyntaxFormattingOptionsWrapper(
-                optionsWithFallback.GetSyntaxFormattingOptions(document.Project.Services, fallbackOptions: null));
+                optionsWithFallback.GetSyntaxFormattingOptions(document.Project.Services));
         }
     }
 }

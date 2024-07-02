@@ -77,7 +77,7 @@ internal class VisualStudioExtractClassOptionsService : IExtractClassOptionsServ
             ? string.Empty
             : selectedType.ContainingNamespace.ToDisplayString();
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, selectedType, membersInType, cancellationToken);
 
         var viewModel = new ExtractClassViewModel(

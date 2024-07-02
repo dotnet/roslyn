@@ -187,7 +187,7 @@ internal class OrganizeDocumentCommandHandler(
             async (document, cancellationToken) =>
             {
                 var formattingOptions = document.SupportsSyntaxTree
-                    ? await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false)
+                    ? await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false)
                     : null;
 
                 var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
