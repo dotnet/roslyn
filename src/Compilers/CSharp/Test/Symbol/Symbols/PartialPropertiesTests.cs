@@ -1512,10 +1512,10 @@ public partial class C
                 // (6,17): error CS0274: Cannot specify accessibility modifiers for both accessors of the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyAccessMods, "P2").WithArguments("C.P2").WithLocation(6, 17),
-                // (6,30): error CS0273: The accessibility modifier of the 'C.P2.get' accessor must be more restrictive than the property or indexer 'C.P2'       
+                // (6,30): error CS0273: The accessibility modifier of the 'C.P2.get' accessor must be more restrictive than the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("C.P2.get", "C.P2").WithLocation(6, 30),
-                // (6,43): error CS0273: The accessibility modifier of the 'C.P2.set' accessor must be more restrictive than the property or indexer 'C.P2'       
+                // (6,43): error CS0273: The accessibility modifier of the 'C.P2.set' accessor must be more restrictive than the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "set").WithArguments("C.P2.set", "C.P2").WithLocation(6, 43),
                 // (11,17): error CS8799: Both partial member declarations must have identical accessibility modifiers.
@@ -1524,6 +1524,9 @@ public partial class C
                 // (11,30): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "get").WithLocation(11, 30),
+                // (11,48): error CS0501: 'C.P1.set' must declare a body because it is not marked abstract, extern, or partial
+                //     partial int P1 { private get => 1; private set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.P1.set").WithLocation(11, 48),
                 // (11,48): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "set").WithLocation(11, 48));
@@ -4972,6 +4975,30 @@ public partial class C
             // This is consistent with partial methods.
             Assert.Equal("SourceFile(Program.cs[52..53))", defSymbol.Locations.Single().ToString());
             Assert.Equal("SourceFile(Program.cs[97..98))", implSymbol.Locations.Single().ToString());
+        }
+
+        [Fact]
+        public void OnlyOneAccessorHasBodyOnImplementation()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int Prop1 { get; set; }
+                    public partial int Prop1 { get => 1; set; }
+                    
+                    public partial int Prop2 { get; set; }
+                    public partial int Prop2 { get; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,42): error CS0501: 'C.Prop1.set' must declare a body because it is not marked abstract, extern, or partial
+                //     public partial int Prop1 { get => 1; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Prop1.set").WithLocation(4, 42),
+                // (7,32): error CS0501: 'C.Prop2.get' must declare a body because it is not marked abstract, extern, or partial
+                //     public partial int Prop2 { get; set { } }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.Prop2.get").WithLocation(7, 32));
         }
     }
 }
