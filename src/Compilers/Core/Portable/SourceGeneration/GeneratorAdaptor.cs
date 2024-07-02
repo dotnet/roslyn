@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class SourceGeneratorAdaptor : IIncrementalGenerator
     {
+        /// <summary>
+        /// A dummy extension that is used to indicate this adaptor was created outside of the driver.
+        /// </summary>
+        public const string DummySourceExtension = ".dummy";
+
         private readonly string _sourceExtension;
 
         internal ISourceGenerator SourceGenerator { get; }
@@ -27,6 +32,11 @@ namespace Microsoft.CodeAnalysis
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            // We don't currently have any APIs that accept IIncrementalGenerator directly (even in construction we wrap and unwrap them)
+            // so it should be impossible to get here with a wrapper that was created via ISourceGenerator.AsIncrementalGenerator.
+            // If we ever do have such an API, we will need to make sure that the source extension is updated as part of adding it to the driver.
+            Debug.Assert(_sourceExtension != DummySourceExtension);
+
             GeneratorInitializationContext generatorInitContext = new GeneratorInitializationContext(CancellationToken.None);
             SourceGenerator.Initialize(generatorInitContext);
 
