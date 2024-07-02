@@ -7909,10 +7909,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked)
+        private Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked, bool forceFromExpression = false)
         {
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            bool useExpression = sourceType is null || UseExpressionForConversion(sourceExpression);
+            bool useExpression = forceFromExpression || sourceType is null || UseExpressionForConversion(sourceExpression);
             if (extensionMethodThisArgument)
             {
                 return conversions.ClassifyImplicitExtensionMethodThisArgConversion(
@@ -8891,10 +8891,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.InlineArray:
-                case ConversionKind.ImplicitSpan:
                     if (checkConversion)
                     {
                         conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
+                    break;
+
+                case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
+                    if (checkConversion)
+                    {
+                        var previousKind = conversion.Kind;
+                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false,
+                            // Span conversion is "from expression".
+                            // PROTOTYPE: Should it be "from type" instead?
+                            forceFromExpression: true);
+                        Debug.Assert(!conversion.Exists || conversion.Kind == previousKind);
                         canConvertNestedNullability = conversion.Exists;
                     }
                     break;

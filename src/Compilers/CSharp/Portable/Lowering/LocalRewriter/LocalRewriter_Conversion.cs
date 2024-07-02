@@ -615,6 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
                     {
                         var spanType = (NamedTypeSymbol)rewrittenType;
 

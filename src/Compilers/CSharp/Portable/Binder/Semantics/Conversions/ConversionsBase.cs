@@ -848,6 +848,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ExplicitDynamic;
             }
 
+            if (HasExplicitSpanConversion(source, destination, ref useSiteInfo))
+            {
+                return Conversion.ExplicitSpan;
+            }
+
             return Conversion.NoConversion;
         }
 
@@ -995,6 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.ConditionalExpression:
+                case ConversionKind.ImplicitSpan:
                     return true;
 
                 default:
@@ -1903,7 +1909,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpressionOpt is null || Compilation is not null);
-            Debug.Assert(sourceExpressionOpt == null || (object)sourceExpressionOpt.Type == sourceType);
+            // PROTOTYPE: Revert `TypeSymbol.Equals(...)` to `(object)sourceExpressionOpt.Type == sourceType` when implicit span is a "conversion from type".
+            Debug.Assert(sourceExpressionOpt == null || TypeSymbol.Equals(sourceExpressionOpt.Type, sourceType, TypeCompareKind.ConsiderEverything));
             Debug.Assert((object)destination != null);
 
             if ((object)sourceType != null)
@@ -3921,7 +3928,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HasImplicitSpanConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+#nullable enable
+        private bool HasImplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // PROTOTYPE: Is it fine that this conversion does not exists when Compilation is null?
             if (Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != true)
@@ -3959,6 +3967,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return HasIdentityConversionInternal(source.Type, destination.Type) &&
                     HasTopLevelNullabilityIdentityConversion(source, destination);
+            }
+        }
+
+        /// <remarks>
+        /// This does not check implicit span conversions, that should be done by the caller.
+        /// </remarks>
+        private bool HasExplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // PROTOTYPE: Is it fine that this conversion does not exists when Compilation is null?
+            if (Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != true)
+            {
+                return false;
+            }
+
+            // SPEC: From any single-dimensional `array_type` with element type `Ti`
+            // to `System.Span<Ui>` or `System.ReadOnlySpan<Ui>`
+            // provided an explicit reference conversion exists from `Ti` to `Ui`.
+            if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType } &&
+                (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
+                 destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)))
+            {
+                var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                return HasIdentityOrReferenceConversion(elementType.Type, spanElementType.Type, ref useSiteInfo) &&
+                    HasTopLevelNullabilityIdentityConversion(elementType, spanElementType);
+            }
+
+            return false;
+        }
+
+        private bool IgnoreUserDefinedSpanConversions(TypeSymbol? source, TypeSymbol? target)
+        {
+            if (source is null || target is null)
+            {
+                return false;
+            }
+
+            // PROTOTYPE: Is it fine that this check is not performed when Compilation is null?
+            return Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) == true &&
+                (ignoreUserDefinedSpanConversionsInOneDirection(Compilation, source, target) ||
+                ignoreUserDefinedSpanConversionsInOneDirection(Compilation, target, source));
+
+            static bool ignoreUserDefinedSpanConversionsInOneDirection(CSharpCompilation compilation, TypeSymbol a, TypeSymbol b)
+            {
+                // SPEC: User-defined conversions are not considered when converting between
+                // SPEC: - any single-dimensional `array_type` and `System.Span<T>`/`System.ReadOnlySpan<T>`
+                if (a is ArrayTypeSymbol { IsSZArray: true } &&
+                    (b.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
+                    b.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)))
+                {
+                    return true;
+                }
+
+                // PROTOTYPE: - any combination of `System.Span<T>`/`System.ReadOnlySpan<T>`
+                // PROTOTYPE: - `string` and `System.ReadOnlySpan<char>`
+
+                return false;
             }
         }
     }

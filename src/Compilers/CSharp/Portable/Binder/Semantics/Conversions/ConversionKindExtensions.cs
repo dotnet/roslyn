@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExplicitPointerToInteger:
                 case ExplicitIntegerToPointer:
                 case IntPtr:
+                case ExplicitSpan:
                     return false;
 
                 default:

@@ -63,27 +63,39 @@ public class FirstClassSpanTests : CSharpTestBase
             //     public static string Join(string separator, params ReadOnlySpan<string> values) => "span";
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "params ReadOnlySpan<string> values").WithArguments("params collections").WithLocation(13, 49));
 
-        var expectedOutput = "array";
+        var expectedDiagnostics = new[]
+        {
+            // (7,65): error CS0121: The call is ambiguous between the following methods or properties: 'StringExtensions.Join(string, params string[])' and 'StringExtensions.Join(string, params ReadOnlySpan<string>)'
+            //     public static string M(StringValues sv) => StringExtensions.Join(",", sv);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Join").WithArguments("StringExtensions.Join(string, params string[])", "StringExtensions.Join(string, params System.ReadOnlySpan<string>)").WithLocation(7, 65)
+        };
 
-        var expectedIl = """
-            {
-              // Code size       17 (0x11)
-              .maxstack  2
-              IL_0000:  ldstr      ","
-              IL_0005:  ldarg.0
-              IL_0006:  call       "string[] StringValues.op_Implicit(StringValues)"
-              IL_000b:  call       "string StringExtensions.Join(string, params string[])"
-              IL_0010:  ret
-            }
-            """;
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
 
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
+        // PROTOTYPE: Need to consider "implicit span conversion" in "better conversion target" for this to work.
 
-        comp = CreateCompilationWithSpan(source);
-        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
+        //var expectedOutput = "array";
+
+        //var expectedIl = """
+        //    {
+        //      // Code size       17 (0x11)
+        //      .maxstack  2
+        //      IL_0000:  ldstr      ","
+        //      IL_0005:  ldarg.0
+        //      IL_0006:  call       "string[] StringValues.op_Implicit(StringValues)"
+        //      IL_000b:  call       "string StringExtensions.Join(string, params string[])"
+        //      IL_0010:  ret
+        //    }
+        //    """;
+
+        //var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        //var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        //verifier.VerifyIL("C.M", expectedIl);
+
+        //comp = CreateCompilationWithSpan(source);
+        //verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        //verifier.VerifyIL("C.M", expectedIl);
     }
 
     [Fact]
@@ -441,7 +453,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Conversion_Array_Span_Implicit_SemanticModel_01(
+    public void Conversion_Array_Span_Implicit_SemanticModel(
         [CombinatorialValues("Span", "ReadOnlySpan")] string destination)
     {
         var source = $$"""
@@ -471,7 +483,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
-    public void Conversion_Array_Span_Implicit_SemanticModel_02()
+    public void Conversion_Array_Span_Explicit_SemanticModel()
     {
         var source = """
             using System;
@@ -497,7 +509,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
             var op = (IConversionOperation)model.GetOperation(cast)!;
             var conv = op.GetConversion();
-            Assert.Equal(ConversionKind.ImplicitSpan, conv.Kind);
+            Assert.Equal(ConversionKind.ExplicitSpan, conv.Kind);
 
             model.VerifyOperationTree(cast, """
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<T>) (Syntax: '(ReadOnlySpan<T>)x')
@@ -513,16 +525,13 @@ public class FirstClassSpanTests : CSharpTestBase
 
             var op = (IConversionOperation)model.GetOperation(cast)!;
             var conv = op.GetConversion();
-            Assert.Equal(ConversionKind.ExplicitUserDefined, conv.Kind);
+            Assert.Equal(ConversionKind.ExplicitSpan, conv.Kind);
 
             model.VerifyOperationTree(cast, """
-                IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.ReadOnlySpan<U> System.ReadOnlySpan<U>.op_Implicit(U[] array)) (OperationKind.Conversion, Type: System.ReadOnlySpan<U>) (Syntax: '(ReadOnlySpan<U>)x')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.ReadOnlySpan<U> System.ReadOnlySpan<U>.op_Implicit(U[] array))
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<U>) (Syntax: '(ReadOnlySpan<U>)x')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: U[], IsImplicit) (Syntax: 'x')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                      Operand:
-                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
                 """);
         }
     }
@@ -542,7 +551,6 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("int[]", "System.Span<string>").WithLocation(3, 41));
     }
 
-    // PROTOTYPE: Revisit all nullable analysis tests.
     [Fact]
     public void Conversion_Array_Span_Implicit_NullableAnalysis()
     {
@@ -582,12 +590,21 @@ public class FirstClassSpanTests : CSharpTestBase
             // (6,39): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'Span<string>'.
             //     Span<string> M2(string?[] arg) => arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "System.Span<string>").WithLocation(6, 39),
+            // (7,39): warning CS8619: Nullability of reference types in value of type 'string[]' doesn't match target type 'Span<string?>'.
+            //     Span<string?> M3(string[] arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string[]", "System.Span<string?>").WithLocation(7, 39),
+            // (10,39): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'Span<string>'.
+            //     Span<string> M5(string?[] arg) => (Span<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string>)arg").WithArguments("string?[]", "System.Span<string>").WithLocation(10, 39),
             // (11,39): warning CS8619: Nullability of reference types in value of type 'Span<string?>' doesn't match target type 'Span<string>'.
             //     Span<string> M6(string?[] arg) => (Span<string?>)arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string?>)arg").WithArguments("System.Span<string?>", "System.Span<string>").WithLocation(11, 39),
             // (12,39): warning CS8619: Nullability of reference types in value of type 'Span<string>' doesn't match target type 'Span<string?>'.
             //     Span<string?> M7(string[] arg) => (Span<string>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string>)arg").WithArguments("System.Span<string>", "System.Span<string?>").WithLocation(12, 39)
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string>)arg").WithArguments("System.Span<string>", "System.Span<string?>").WithLocation(12, 39),
+            // (13,39): warning CS8619: Nullability of reference types in value of type 'string[]' doesn't match target type 'Span<string?>'.
+            //     Span<string?> M8(string[] arg) => (Span<string?>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string?>)arg").WithArguments("string[]", "System.Span<string?>").WithLocation(13, 39)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -606,11 +623,10 @@ public class FirstClassSpanTests : CSharpTestBase
                 ReadOnlySpan<string> M2(string?[] arg) => arg;
                 ReadOnlySpan<string?> M3(string[] arg) => arg;
                 ReadOnlySpan<string?> M4(string?[] arg) => arg;
-                ReadOnlySpan<string> M5(string?[] arg) => arg;
-                ReadOnlySpan<object> M6(string?[] arg) => arg;
+                ReadOnlySpan<object> M5(string?[] arg) => arg;
 
-                ReadOnlySpan<string> M7(string?[] arg) => (ReadOnlySpan<string>)arg;
-                ReadOnlySpan<string> M8(object?[] arg) => (ReadOnlySpan<string>)arg;
+                ReadOnlySpan<string> M6(string?[] arg) => (ReadOnlySpan<string>)arg;
+                ReadOnlySpan<string> M7(object?[] arg) => (ReadOnlySpan<string>)arg;
             }
             """;
 
@@ -618,33 +634,30 @@ public class FirstClassSpanTests : CSharpTestBase
             // (6,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
             //     ReadOnlySpan<string> M2(string?[] arg) => arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "string[]").WithLocation(6, 47),
-            // (9,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
-            //     ReadOnlySpan<string> M5(string?[] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "string[]").WithLocation(9, 47),
-            // (10,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'object[]'.
-            //     ReadOnlySpan<object> M6(string?[] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "object[]").WithLocation(10, 47),
-            // (12,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
-            //     ReadOnlySpan<string> M7(string?[] arg) => (ReadOnlySpan<string>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("string?[]", "string[]").WithLocation(12, 47),
-            // (13,47): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'string[]'.
-            //     ReadOnlySpan<string> M8(object?[] arg) => (ReadOnlySpan<string>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "string[]").WithLocation(13, 47));
+            // (9,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'object[]'.
+            //     ReadOnlySpan<object> M5(string?[] arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "object[]").WithLocation(9, 47),
+            // (11,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
+            //     ReadOnlySpan<string> M6(string?[] arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("string?[]", "string[]").WithLocation(11, 47),
+            // (12,47): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'string[]'.
+            //     ReadOnlySpan<string> M7(object?[] arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "string[]").WithLocation(12, 47));
 
         var expectedDiagnostics = new[]
         {
             // (6,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'ReadOnlySpan<string>'.
             //     ReadOnlySpan<string> M2(string?[] arg) => arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "System.ReadOnlySpan<string>").WithLocation(6, 47),
-            // (9,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'ReadOnlySpan<string>'.
-            //     ReadOnlySpan<string> M5(string?[] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "System.ReadOnlySpan<string>").WithLocation(9, 47),
-            // (10,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'ReadOnlySpan<object>'.
-            //     ReadOnlySpan<object> M6(string?[] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "System.ReadOnlySpan<object>").WithLocation(10, 47),
-            // (13,47): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'string[]'.
-            //     ReadOnlySpan<string> M8(object?[] arg) => (ReadOnlySpan<string>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "string[]").WithLocation(13, 47)
+            // (9,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'ReadOnlySpan<object>'.
+            //     ReadOnlySpan<object> M5(string?[] arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[]", "System.ReadOnlySpan<object>").WithLocation(9, 47),
+            // (11,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M6(string?[] arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("string?[]", "System.ReadOnlySpan<string>").WithLocation(11, 47),
+            // (12,47): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M7(object?[] arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "System.ReadOnlySpan<string>").WithLocation(12, 47)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -680,7 +693,13 @@ public class FirstClassSpanTests : CSharpTestBase
         {
             // (6,43): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'Span<string[]>'.
             //     Span<string[]> M2(string?[][] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "System.Span<string[]>").WithLocation(6, 43)
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "System.Span<string[]>").WithLocation(6, 43),
+            // (7,43): warning CS8619: Nullability of reference types in value of type 'string[][]' doesn't match target type 'Span<string?[]>'.
+            //     Span<string?[]> M3(string[][] arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string[][]", "System.Span<string?[]>").WithLocation(7, 43),
+            // (10,43): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'Span<string[]>'.
+            //     Span<string[]> M5(string?[][] arg) => (Span<string[]>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string[]>)arg").WithArguments("string?[][]", "System.Span<string[]>").WithLocation(10, 43)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -699,11 +718,10 @@ public class FirstClassSpanTests : CSharpTestBase
                 ReadOnlySpan<string[]> M2(string?[][] arg) => arg;
                 ReadOnlySpan<string?[]> M3(string[][] arg) => arg;
                 ReadOnlySpan<string?[]> M4(string?[][] arg) => arg;
-                ReadOnlySpan<string[]> M5(string?[][] arg) => arg;
-                ReadOnlySpan<object[]> M6(string?[][] arg) => arg;
+                ReadOnlySpan<object[]> M5(string?[][] arg) => arg;
 
-                ReadOnlySpan<string[]> M7(string?[][] arg) => (ReadOnlySpan<string[]>)arg;
-                ReadOnlySpan<string[]> M8(object?[][] arg) => (ReadOnlySpan<string[]>)arg;
+                ReadOnlySpan<string[]> M6(string?[][] arg) => (ReadOnlySpan<string[]>)arg;
+                ReadOnlySpan<string[]> M7(object?[][] arg) => (ReadOnlySpan<string[]>)arg;
             }
             """;
 
@@ -711,33 +729,27 @@ public class FirstClassSpanTests : CSharpTestBase
             // (6,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'string[][]'.
             //     ReadOnlySpan<string[]> M2(string?[][] arg) => arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "string[][]").WithLocation(6, 51),
-            // (9,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'string[][]'.
-            //     ReadOnlySpan<string[]> M5(string?[][] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "string[][]").WithLocation(9, 51),
-            // (10,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'object[][]'.
-            //     ReadOnlySpan<object[]> M6(string?[][] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "object[][]").WithLocation(10, 51),
-            // (12,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'string[][]'.
-            //     ReadOnlySpan<string[]> M7(string?[][] arg) => (ReadOnlySpan<string[]>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string[]>)arg").WithArguments("string?[][]", "string[][]").WithLocation(12, 51),
-            // (13,51): warning CS8619: Nullability of reference types in value of type 'object?[][]' doesn't match target type 'string[][]'.
-            //     ReadOnlySpan<string[]> M8(object?[][] arg) => (ReadOnlySpan<string[]>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string[]>)arg").WithArguments("object?[][]", "string[][]").WithLocation(13, 51));
+            // (9,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'object[][]'.
+            //     ReadOnlySpan<object[]> M5(string?[][] arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "object[][]").WithLocation(9, 51),
+            // (11,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'string[][]'.
+            //     ReadOnlySpan<string[]> M6(string?[][] arg) => (ReadOnlySpan<string[]>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string[]>)arg").WithArguments("string?[][]", "string[][]").WithLocation(11, 51),
+            // (12,51): warning CS8619: Nullability of reference types in value of type 'object?[][]' doesn't match target type 'string[][]'.
+            //     ReadOnlySpan<string[]> M7(object?[][] arg) => (ReadOnlySpan<string[]>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string[]>)arg").WithArguments("object?[][]", "string[][]").WithLocation(12, 51));
 
         var expectedDiagnostics = new[]
         {
             // (6,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'ReadOnlySpan<string[]>'.
             //     ReadOnlySpan<string[]> M2(string?[][] arg) => arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "System.ReadOnlySpan<string[]>").WithLocation(6, 51),
-            // (9,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'ReadOnlySpan<string[]>'.
-            //     ReadOnlySpan<string[]> M5(string?[][] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "System.ReadOnlySpan<string[]>").WithLocation(9, 51),
-            // (10,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'ReadOnlySpan<object[]>'.
-            //     ReadOnlySpan<object[]> M6(string?[][] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "System.ReadOnlySpan<object[]>").WithLocation(10, 51),
-            // (13,51): warning CS8619: Nullability of reference types in value of type 'object?[][]' doesn't match target type 'string[][]'.
-            //     ReadOnlySpan<string[]> M8(object?[][] arg) => (ReadOnlySpan<string[]>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string[]>)arg").WithArguments("object?[][]", "string[][]").WithLocation(13, 51)
+            // (9,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'ReadOnlySpan<object[]>'.
+            //     ReadOnlySpan<object[]> M5(string?[][] arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("string?[][]", "System.ReadOnlySpan<object[]>").WithLocation(9, 51),
+            // (11,51): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'ReadOnlySpan<string[]>'.
+            //     ReadOnlySpan<string[]> M6(string?[][] arg) => (ReadOnlySpan<string[]>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string[]>)arg").WithArguments("string?[][]", "System.ReadOnlySpan<string[]>").WithLocation(11, 51)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -788,11 +800,10 @@ public class FirstClassSpanTests : CSharpTestBase
                 ReadOnlySpan<S<string>> M2(S<string?>[] arg) => arg;
                 ReadOnlySpan<S<string?>> M3(S<string>[] arg) => arg;
                 ReadOnlySpan<S<string?>> M4(S<string?>[] arg) => arg;
-                ReadOnlySpan<S<string>> M5(S<string?>[] arg) => arg;
-                ReadOnlySpan<S<object>> M6(S<string?>[] arg) => arg;
+                ReadOnlySpan<S<object>> M5(S<string?>[] arg) => arg;
 
-                ReadOnlySpan<S<string>> M7(S<string?>[] arg) => (ReadOnlySpan<S<string>>)arg;
-                ReadOnlySpan<S<string>> M8(S<object?>[] arg) => (ReadOnlySpan<S<string>>)arg;
+                ReadOnlySpan<S<string>> M6(S<string?>[] arg) => (ReadOnlySpan<S<string>>)arg;
+                ReadOnlySpan<S<string>> M7(S<object?>[] arg) => (ReadOnlySpan<S<string>>)arg;
             }
             struct S<T> { }
             """;
@@ -803,18 +814,15 @@ public class FirstClassSpanTests : CSharpTestBase
             // (7,53): warning CS8619: Nullability of reference types in value of type 'S<string>[]' doesn't match target type 'S<string?>[]'.
             //     ReadOnlySpan<S<string?>> M3(S<string>[] arg) => arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("S<string>[]", targetType("string?")).WithLocation(7, 53),
-            // (9,53): warning CS8619: Nullability of reference types in value of type 'S<string?>[]' doesn't match target type 'S<string>[]'.
-            //     ReadOnlySpan<S<string>> M5(S<string?>[] arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("S<string?>[]", targetType("string")).WithLocation(9, 53),
-            // (10,53): error CS0029: Cannot implicitly convert type 'S<string?>[]' to 'System.ReadOnlySpan<S<object>>'
-            //     ReadOnlySpan<S<object>> M6(S<string?>[] arg) => arg;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("S<string?>[]", "System.ReadOnlySpan<S<object>>").WithLocation(10, 53),
-            // (12,53): warning CS8619: Nullability of reference types in value of type 'S<string?>[]' doesn't match target type 'S<string>[]'.
-            //     ReadOnlySpan<S<string>> M7(S<string?>[] arg) => (ReadOnlySpan<S<string>>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<S<string>>)arg").WithArguments("S<string?>[]", targetType("string")).WithLocation(12, 53),
-            // (13,53): error CS0030: Cannot convert type 'S<object?>[]' to 'System.ReadOnlySpan<S<string>>'
-            //     ReadOnlySpan<S<string>> M8(S<object?>[] arg) => (ReadOnlySpan<S<string>>)arg;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<S<string>>)arg").WithArguments("S<object?>[]", "System.ReadOnlySpan<S<string>>").WithLocation(13, 53));
+            // (9,53): error CS0029: Cannot implicitly convert type 'S<string?>[]' to 'System.ReadOnlySpan<S<object>>'
+            //     ReadOnlySpan<S<object>> M5(S<string?>[] arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("S<string?>[]", "System.ReadOnlySpan<S<object>>").WithLocation(9, 53),
+            // (11,53): warning CS8619: Nullability of reference types in value of type 'S<string?>[]' doesn't match target type 'S<string>[]'.
+            //     ReadOnlySpan<S<string>> M6(S<string?>[] arg) => (ReadOnlySpan<S<string>>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<S<string>>)arg").WithArguments("S<string?>[]", targetType("string")).WithLocation(11, 53),
+            // (12,53): error CS0030: Cannot convert type 'S<object?>[]' to 'System.ReadOnlySpan<S<string>>'
+            //     ReadOnlySpan<S<string>> M7(S<object?>[] arg) => (ReadOnlySpan<S<string>>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<S<string>>)arg").WithArguments("S<object?>[]", "System.ReadOnlySpan<S<string>>").WithLocation(12, 53));
 
         string targetType(string inner)
             => langVersion > LanguageVersion.CSharp12 ? $"System.ReadOnlySpan<S<{inner}>>" : $"S<{inner}>[]";
@@ -1117,8 +1125,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string[])arg").WithArguments("System.ReadOnlySpan<object>", "string[]").WithLocation(6, 54));
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void Conversion_Array_Span_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
+    [Fact]
+    public void Conversion_Array_Span_Opposite_Explicit_UserDefined()
     {
         var source = """
             class C
@@ -1134,7 +1142,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular12);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -1145,6 +1153,16 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
+
+        var expectedDiagnostics = new[]
+        {
+            // (3,39): error CS0030: Cannot convert type 'System.Span<int>' to 'int[]'
+            //      int[] M(System.Span<int> arg) => (int[])arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int[])arg").WithArguments("System.Span<int>", "int[]").WithLocation(3, 39)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -1211,27 +1229,30 @@ public class FirstClassSpanTests : CSharpTestBase
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
-              // Code size       38 (0x26)
-              .maxstack  2
+              // Code size       45 (0x2d)
+              .maxstack  5
               .locals init (object[] V_0)
               IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  stloc.0
-              IL_0003:  ldloc.0
-              IL_0004:  call       "System.Span<object> System.Span<object>.op_Implicit(object[])"
-              IL_0009:  call       "void C.M1(params System.Span<object>)"
-              IL_000e:  ldarg.0
-              IL_000f:  ldarg.1
-              IL_0010:  stloc.0
-              IL_0011:  ldloc.0
-              IL_0012:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
-              IL_0017:  call       "void C.M2(params System.ReadOnlySpan<object>)"
-              IL_001c:  ldarg.0
-              IL_001d:  ldarg.1
-              IL_001e:  stloc.0
-              IL_001f:  ldloc.0
-              IL_0020:  call       "void C.M3(params object[])"
-              IL_0025:  ret
+              IL_0001:  ldc.i4.1
+              IL_0002:  newarr     "object"
+              IL_0007:  dup
+              IL_0008:  ldc.i4.0
+              IL_0009:  ldarg.1
+              IL_000a:  stelem.ref
+              IL_000b:  newobj     "System.Span<object>..ctor(object[])"
+              IL_0010:  call       "void C.M1(params System.Span<object>)"
+              IL_0015:  ldarg.0
+              IL_0016:  ldarg.1
+              IL_0017:  stloc.0
+              IL_0018:  ldloc.0
+              IL_0019:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
+              IL_001e:  call       "void C.M2(params System.ReadOnlySpan<object>)"
+              IL_0023:  ldarg.0
+              IL_0024:  ldarg.1
+              IL_0025:  stloc.0
+              IL_0026:  ldloc.0
+              IL_0027:  call       "void C.M3(params object[])"
+              IL_002c:  ret
             }
             """);
     }
@@ -1652,23 +1673,73 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<string[]>", "I<System.ReadOnlySpan<object>>").WithLocation(5, 49));
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void Conversion_Array_ReadOnlySpan_Interface_Invariant(LanguageVersion langVersion)
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Interface_Invariant(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
     {
-        var source = """
+        var source = $$"""
             using System;
 
             class C
             {
-                ReadOnlySpan<I<object>> M(I<string>[] x) => x;
+                {{type}}<I<object>> M(I<string>[] x)
+                    => x;
             }
 
             interface I<T> { }
             """;
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
-            // (5,49): error CS0029: Cannot implicitly convert type 'I<string>[]' to 'System.ReadOnlySpan<I<object>>'
-            //     ReadOnlySpan<I<object>> M(I<string>[] x) => x;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I<string>[]", "System.ReadOnlySpan<I<object>>").WithLocation(5, 49));
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (6,12): error CS0029: Cannot implicitly convert type 'I<string>[]' to 'System.Span<I<object>>'
+            //         => x;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,12): error CS0266: Cannot implicitly convert type 'I<string>[]' to 'System.Span<I<object>>'. An explicit conversion exists (are you missing a cast?)
+            //         => x;
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Interface_Cast(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                {{type}}<I<object>> M(I<string>[] x)
+                    => ({{type}}<I<object>>)x;
+            }
+
+            interface I<T> { }
+            """;
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (6,12): error CS0030: Cannot convert type 'I<string>[]' to 'System.Span<I<object>>'
+            //         => (Span<I<object>>)x;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, $"({type}<I<object>>)x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12));
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", $$"""
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  castclass  "I<object>[]"
+              IL_0006:  call       "System.{{type}}<I<object>> System.{{type}}<I<object>>.op_Implicit(I<object>[])"
+              IL_000b:  ret
+            }
+            """);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -1804,10 +1875,10 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T[]", "System.ReadOnlySpan<T?>").WithLocation(5, 34));
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("where U : T")]
-    public void Conversion_Array_Span_Variance_01(string constraints)
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Variance_01(
+        [CombinatorialValues("", "where U : T")] string constraints,
+        [CombinatorialLangVersions] LanguageVersion langVersion)
     {
         var source = $$"""
             using System;
@@ -1819,7 +1890,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 Span<U> F4(T[] x) => (Span<U>)x;
             }
             """;
-        CreateCompilationWithSpan(source).VerifyDiagnostics(
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
             // (4,34): error CS0029: Cannot implicitly convert type 'T[]' to 'System.ReadOnlySpan<U>'
             //     ReadOnlySpan<U> F1(T[] x) => x;
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T[]", "System.ReadOnlySpan<U>").WithLocation(4, 34),
@@ -1834,9 +1905,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<U>)x").WithArguments("T[]", "System.Span<U>").WithLocation(7, 26));
     }
 
-    // PROTOTYPE: User-defined conversions should not be considered? Note: this is not the only test affected. In particular, nullable analysis tests should be revisited.
-    [Fact]
-    public void Conversion_Array_Span_Variance_02()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Variance_02(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -1850,7 +1920,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 Span<U> F4(T[] x) => (Span<U>)x;
             }
             """;
-        CreateCompilationWithSpan(source).VerifyDiagnostics(
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
             // (6,34): error CS0266: Cannot implicitly convert type 'T[]' to 'System.ReadOnlySpan<U>'. An explicit conversion exists (are you missing a cast?)
             //     ReadOnlySpan<U> F1(T[] x) => x;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T[]", "System.ReadOnlySpan<U>").WithLocation(6, 34),
@@ -1874,7 +1944,20 @@ public class FirstClassSpanTests : CSharpTestBase
                 Span<U> F4(T[] x) => (Span<U>)x;
             }
             """;
-        CreateCompilationWithSpan(source).VerifyDiagnostics();
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+
+        // Note: although a breaking change, the previous would fail with a runtime exception
+        // (Span's constructor checks that the element types are identical).
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,26): error CS0266: Cannot implicitly convert type 'T[]' to 'System.Span<U>'. An explicit conversion exists (are you missing a cast?)
+            //     Span<U> F3(T[] x) => x;
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T[]", "System.Span<U>").WithLocation(8, 26)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1915,6 +1998,78 @@ public class FirstClassSpanTests : CSharpTestBase
 
         comp = CreateCompilationWithSpan(source);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_ThroughUserImplicit_Cast_01(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string destination,
+        [CombinatorialValues("implicit", "explicit")] string op)
+    {
+        var source = $$"""
+            using System;
+
+            D.M(({{destination}}<int>)new C());
+
+            class C
+            {
+                public static {{op}} operator int[](C c) => new int[] { 4, 5, 6 };
+            }
+
+            static class D
+            {
+                public static void M({{destination}}<int> xs)
+                {
+                    foreach (var x in xs)
+                    {
+                        Console.Write(x);
+                    }
+                }
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (3,5): error CS0030: Cannot convert type 'C' to 'System.Span<int>'
+            // D.M((Span<int>)new C());
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, $"({destination}<int>)new C()").WithArguments("C", $"System.{destination}<int>").WithLocation(3, 5));
+
+        var expectedOutput = "456";
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_ThroughUserImplicit_Cast_02(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string destination,
+        [CombinatorialValues("implicit", "explicit")] string op,
+        [CombinatorialLangVersions] LanguageVersion langVersion)
+    {
+        var source = $$"""
+            using System;
+
+            D.M((int[])new C());
+
+            class C
+            {
+                public static {{op}} operator int[](C c) => new int[] { 4, 5, 6 };
+            }
+
+            static class D
+            {
+                public static void M({{destination}}<int> xs)
+                {
+                    foreach (var x in xs)
+                    {
+                        Console.Write(x);
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "456").VerifyDiagnostics();
     }
 
     [Fact]
@@ -2396,8 +2551,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string[])arg").WithArguments("System.ReadOnlySpan<object>", "string[]").WithLocation(6, 57));
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void Conversion_Array_Span_ExtensionMethodReceiver_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
+    [Fact]
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Opposite_Explicit_UserDefined()
     {
         var source = """
             static class C
@@ -2414,7 +2569,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular12);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -2426,6 +2581,16 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000b:  ret
             }
             """);
+
+        var expectedDiagnostics = new[]
+        {
+            // (3,45): error CS0030: Cannot convert type 'System.Span<int>' to 'int[]'
+            //     static void M(System.Span<int> arg) => ((int[])arg).E();
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int[])arg").WithArguments("System.Span<int>", "int[]").WithLocation(3, 45)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory]
@@ -2711,6 +2876,40 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_05()
+    {
+        var source = """
+            using System;
+
+            C.M(null);
+            C.M(default);
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
+
+        // PROTOTYPE: Need to consider "implicit span conversion" in "better conversion target" for this to work.
+
+        var expectedDiagnostics = new[]
+        {
+            // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(object[])' and 'C.M(ReadOnlySpan<object>)'
+            // C.M(null);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(object[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(3, 3),
+            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(object[])' and 'C.M(ReadOnlySpan<object>)'
+            // C.M(default);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(object[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(4, 3)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
     public void OverloadResolution_ReadOnlySpanVsArray_Params_01()
     {
         var source = """
@@ -2803,6 +3002,33 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "aa rSystem.Object[] ra ra").VerifyDiagnostics();
     }
 
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_Params_05()
+    {
+        var source = """
+            using System;
+
+            C.M(null);
+            C.M(default);
+
+            static class C
+            {
+                public static void M(params object[] x) => Console.Write(1);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(2);
+            }
+            """;
+
+        // PROTOTYPE: Need to consider "implicit span conversion" in "better conversion target" for this to work.
+
+        CreateCompilationWithSpan(source).VerifyDiagnostics(
+            // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(params ReadOnlySpan<object>)'
+            // C.M(null);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params object[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(3, 3),
+            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(params ReadOnlySpan<object>)'
+            // C.M(default);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params object[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(4, 3));
+    }
+
     [Theory, MemberData(nameof(LangVersions))]
     public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_01(LanguageVersion langVersion)
     {
@@ -2893,6 +3119,25 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_05(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            ((object[])null).M();
+            default(object[]).M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(1);
+                public static void M(this ReadOnlySpan<object> x) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
