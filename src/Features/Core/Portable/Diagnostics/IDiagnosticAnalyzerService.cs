@@ -98,26 +98,6 @@ internal interface IDiagnosticAnalyzerService
     Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Try to return up to date diagnostics for the given span for the document.
-    ///
-    /// It will return true if it was able to return all up-to-date diagnostics.
-    ///  otherwise, false indicating there are some missing diagnostics in the diagnostic list
-    ///  
-    /// This API will only force complete analyzers that support span based analysis, i.e. compiler analyzer and
-    /// <see cref="IBuiltInAnalyzer"/>s that support <see cref="DiagnosticAnalyzerCategory.SemanticSpanAnalysis"/>.
-    /// For the rest of the analyzers, it will only return diagnostics if the analyzer has already been executed.
-    /// Use <see cref="GetDiagnosticsForSpanAsync(TextDocument, TextSpan?, Func{string, bool}?, bool, bool, ICodeActionRequestPriorityProvider, DiagnosticKind, bool, CancellationToken)"/>
-    /// if you want to force complete all analyzers and get up-to-date diagnostics for all analyzers for the given span.
-    /// </summary>
-    Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
-        TextDocument document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic,
-        bool includeSuppressedDiagnostics,
-        ICodeActionRequestPriorityProvider priorityProvider,
-        DiagnosticKind diagnosticKind,
-        bool isExplicit,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Return up to date diagnostics for the given span for the document
     /// <para>
     /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.

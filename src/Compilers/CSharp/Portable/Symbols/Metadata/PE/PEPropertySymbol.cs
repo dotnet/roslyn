@@ -35,11 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly TypeWithAnnotations _propertyTypeWithAnnotations;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
-        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private Tuple<CultureInfo, string> _lazyDocComment;
-        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
-
-        private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+#nullable enable
+        private UncommonFields? _uncommonFields;
+#nullable disable
 
         // CONSIDER: the parameters could be computed lazily (as in PEMethodSymbol).
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the signature (as in PEMethodSymbol).
@@ -53,13 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |.........................|uu|rr|c|n|s|
+            // |....................c|o|d|uu|rr|c|n|s|
             //
             // s = special name flag. 1 bit
             // n = runtime special name flag. 1 bit
             // c = call methods directly flag. 1 bit
             // r = Required member. 2 bits (1 bit for value + 1 completion bit).
             // u = Unscoped ref. 2 bits (1 bit for value + 1 completion bit).
+            // d = Use site diagnostic flag. 1 bit
+            // o = Obsolete flag. 1 bit
+            // c = Custom attributes flag. 1 bit
             private const int IsSpecialNameFlag = 1 << 0;
             private const int IsRuntimeSpecialNameFlag = 1 << 1;
             private const int CallMethodsDirectlyFlag = 1 << 2;
@@ -67,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int RequiredMemberCompletionBit = 1 << 5;
             private const int HasUnscopedRefAttribute = 1 << 6;
             private const int UnscopedRefCompletionBit = 1 << 7;
+            private const int IsUseSiteDiagnosticPopulatedBit = 1 << 8;
+            private const int IsObsoleteAttributePopulatedBit = 1 << 9;
+            private const int IsCustomAttributesPopulatedBit = 1 << 10;
 
             private int _bits;
 
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
+            public readonly bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
             {
                 if ((_bits & RequiredMemberCompletionBit) != 0)
                 {
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public bool TryGetHasUnscopedRefAttribute(out bool hasUnscopedRefAttribute)
+            public readonly bool TryGetHasUnscopedRefAttribute(out bool hasUnscopedRefAttribute)
             {
                 if ((_bits & UnscopedRefCompletionBit) != 0)
                 {
@@ -113,9 +117,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            public bool IsSpecialName => (_bits & IsSpecialNameFlag) != 0;
-            public bool IsRuntimeSpecialName => (_bits & IsRuntimeSpecialNameFlag) != 0;
-            public bool CallMethodsDirectly => (_bits & CallMethodsDirectlyFlag) != 0;
+            public readonly bool IsSpecialName => (_bits & IsSpecialNameFlag) != 0;
+            public readonly bool IsRuntimeSpecialName => (_bits & IsRuntimeSpecialNameFlag) != 0;
+            public readonly bool CallMethodsDirectly => (_bits & CallMethodsDirectlyFlag) != 0;
+
+            public void SetUseSiteDiagnosticPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsUseSiteDiagnosticPopulatedBit);
+            }
+
+            public readonly bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
+
+            public void SetObsoleteAttributePopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsObsoleteAttributePopulatedBit);
+            }
+
+            public readonly bool IsObsoleteAttributePopulated => (_bits & IsObsoleteAttributePopulatedBit) != 0;
+
+            public void SetCustomAttributesPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsCustomAttributesPopulatedBit);
+            }
+
+            public readonly bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
+        }
+
+        private sealed class UncommonFields
+        {
+            public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+            public Tuple<CultureInfo, string> _lazyDocComment;
+            public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+            public ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
         }
 
         internal static PEPropertySymbol Create(
@@ -146,7 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (propEx != null || isBad)
             {
-                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result));
+                result.AccessUncommonFields()._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result));
+                result._flags.SetUseSiteDiagnosticPopulated();
             }
 
             return result;
@@ -201,7 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
-                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                AccessUncommonFields()._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                _flags.SetUseSiteDiagnosticPopulated();
             }
 
             var returnInfo = propertyParams[0];
@@ -275,6 +310,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return propertyParams.Any(p => (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(static m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute())) ||
                                                p.CustomModifiers.AnyRequired());
             }
+        }
+
+        private UncommonFields CreateUncommonFields()
+        {
+            var retVal = new UncommonFields();
+            if (!_flags.IsObsoleteAttributePopulated)
+            {
+                retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+            }
+
+            if (!_flags.IsUseSiteDiagnosticPopulated)
+            {
+                retVal._lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+            }
+
+            if (_flags.IsCustomAttributesPopulated)
+            {
+                retVal._lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
+            }
+
+            return retVal;
+        }
+
+        private UncommonFields AccessUncommonFields()
+        {
+            var retVal = _uncommonFields;
+            return retVal ?? InterlockedOperations.Initialize(ref _uncommonFields, CreateUncommonFields());
         }
 
         private bool MustCallMethodsDirectlyCore()
@@ -635,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (_lazyCustomAttributes.IsDefault)
+            if (!_flags.IsCustomAttributesPopulated)
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
@@ -646,10 +708,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                       out CustomAttributeHandle required,
                       AttributeDescription.RequiredMemberAttribute);
 
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                if (!attributes.IsEmpty)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyCustomAttributes, attributes);
+                }
+
+                _flags.SetCustomAttributesPopulated();
                 _flags.SetHasRequiredMemberAttribute(!required.IsNil);
             }
-            return _lazyCustomAttributes;
+
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields == null)
+            {
+                return ImmutableArray<CSharpAttributeData>.Empty;
+            }
+            else
+            {
+                var result = uncommonFields._lazyCustomAttributes;
+                if (result.IsDefault)
+                {
+                    result = ImmutableArray<CSharpAttributeData>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref uncommonFields._lazyCustomAttributes, result);
+                }
+
+                return result;
+            }
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
@@ -814,24 +897,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
+            return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref AccessUncommonFields()._lazyDocComment);
         }
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             AssemblySymbol primaryDependency = PrimaryDependency;
 
-            if (!_lazyCachedUseSiteInfo.IsInitialized)
+            if (!_flags.IsUseSiteDiagnosticPopulated)
             {
                 var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
                 var diag = deriveCompilerFeatureRequiredUseSiteInfo();
                 MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
                 result = result.AdjustDiagnosticInfo(diag);
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+
+                if (result.DiagnosticInfo is not null || !result.SecondaryDependencies.IsNullOrEmpty())
+                {
+                    AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitializeFromSentinel(PrimaryDependency, result);
+                }
+
+                _flags.SetUseSiteDiagnosticPopulated();
             }
 
-            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields == null)
+            {
+                return new UseSiteInfo<AssemblySymbol>(primaryDependency);
+            }
+            else
+            {
+                var result = uncommonFields._lazyCachedUseSiteInfo;
+                if (!result.IsInitialized)
+                {
+                    uncommonFields._lazyCachedUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency));
+                    result = uncommonFields._lazyCachedUseSiteInfo;
+                }
+
+                return result.ToUseSiteInfo(primaryDependency);
+            }
 
             DiagnosticInfo deriveCompilerFeatureRequiredUseSiteInfo()
             {
@@ -867,8 +971,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
-                return _lazyObsoleteAttributeData;
+                if (!_flags.IsObsoleteAttributePopulated)
+                {
+                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
+                    if (result != null)
+                    {
+                        result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
+                    }
+
+                    _flags.SetObsoleteAttributePopulated();
+                    return result;
+                }
+
+                var uncommonFields = _uncommonFields;
+                if (uncommonFields == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    var result = uncommonFields._lazyObsoleteAttributeData;
+                    return ReferenceEquals(result, ObsoleteAttributeData.Uninitialized)
+                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, initializedValue: null, ObsoleteAttributeData.Uninitialized)
+                        : result;
+                }
             }
         }
 

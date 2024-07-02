@@ -772,6 +772,11 @@
         <target state="translated">Funkce {0} není v jazyce C# 12.0 k dispozici. Použijte prosím jazykovou verzi {1} nebo vyšší.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkce {0} není v C# 8.0 dostupná. Použijte prosím jazykovou verzi {1} nebo větší.</target>

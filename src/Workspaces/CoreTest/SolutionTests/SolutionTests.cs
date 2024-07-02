@@ -44,20 +44,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class SolutionTests : TestBase
     {
 #nullable enable
+        private static readonly string s_projectDir = Path.GetDirectoryName(typeof(SolutionTests).Assembly.Location)!;
         private static readonly MetadataReference s_mscorlib = TestMetadata.Net451.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
-        private static Workspace CreateWorkspaceWithProjectAndDocuments()
+        private static Workspace CreateWorkspaceWithProjectAndDocuments(string? editorConfig = null)
         {
             var projectId = ProjectId.CreateNewId();
 
             var workspace = CreateWorkspace();
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
-                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
-                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default))
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj1.dll")))
+                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: Path.Combine(s_projectDir, "goo.cs"))
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default))
-                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")));
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From(editorConfig ?? "#empty", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: Path.Combine(s_projectDir, "editorcfg"))));
 
             return workspace;
         }
@@ -1705,6 +1706,67 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // removing a reference that's not in the list:
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(new TestAnalyzerReference()));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void FallbackAnalyzerOptions(bool isRoot)
+        {
+            using var workspace = CreateWorkspaceWithProjectAndDocuments(editorConfig: $"""
+                [*]
+                {(isRoot ? "root = true" : "")}
+                optionA = A
+                """);
+            var solution = workspace.CurrentSolution;
+
+            Assert.True(solution.FallbackAnalyzerOptions.IsEmpty);
+
+            var solution2 = solution.WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty
+                .Add(LanguageNames.CSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                    .Add("optionA", "fallbackA")
+                    .Add("optionB", "fallbackB")))));
+
+            TestOptionValues(solution2, expectedA: "A", expectedB: "fallbackB");
+
+            var solution3 = solution2.WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty
+               .Add(LanguageNames.CSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                   .Add("optionA", "fallbackX")
+                   .Add("optionB", "fallbackY")))));
+
+            TestOptionValues(solution3, expectedA: "A", expectedB: "fallbackY");
+
+            Assert.True(workspace.TryApplyChanges(solution3));
+            TestOptionValues(workspace.CurrentSolution, expectedA: "A", expectedB: "fallbackY");
+
+            var editorConfigContent = """
+                [*]
+                optionB = ec2
+                """;
+            var editorConfigId = DocumentId.CreateNewId(solution3.Projects.Single().Id);
+            var solution4 = solution3.AddAnalyzerConfigDocument(editorConfigId, "editorconfig2", SourceText.From(editorConfigContent), filePath: Path.Combine(s_projectDir, "editorconfig2"));
+
+            TestOptionValues(solution4, expectedA: "A", expectedB: "ec2");
+
+            static void TestOptionValues(Solution solution, string expectedA, string expectedB)
+            {
+                var project2 = solution.Projects.Single();
+
+                var projectOptions = project2.GetAnalyzerConfigOptions();
+                Assert.NotNull(projectOptions);
+
+                Assert.True(projectOptions!.Value.ConfigOptions.TryGetValue("optionA", out var value1));
+                Assert.Equal(expectedA, value1);
+
+                Assert.True(projectOptions!.Value.ConfigOptions.TryGetValue("optionB", out var value2));
+                Assert.Equal(expectedB, value2);
+
+                var sourcePathOptions = project2.State.GetAnalyzerOptionsForPath(Path.Combine(s_projectDir, "x.cs"), CancellationToken.None);
+                Assert.True(sourcePathOptions.ConfigOptions.TryGetValue("optionA", out var value3));
+                Assert.Equal(expectedA, value3);
+
+                Assert.True(sourcePathOptions.ConfigOptions.TryGetValue("optionB", out var value4));
+                Assert.Equal(expectedB, value4);
+            }
         }
 
         [Fact]
@@ -4301,6 +4363,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(2, solution.ProjectIds.Count);
+            Assert.Equal(2, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
             var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
@@ -4324,6 +4387,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(2, solution.ProjectIds.Count);
+            Assert.Equal(2, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             Assert.True(solution.GetProject(projectId1).ProjectReferences.Contains(p => p.ProjectId == projectId2));
 
@@ -4351,6 +4415,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(2, solution.ProjectIds.Count);
+            Assert.Equal(2, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             Assert.True(solution.GetProject(projectId2).ProjectReferences.Contains(p => p.ProjectId == projectId1));
 
@@ -4381,6 +4446,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(3, solution.ProjectIds.Count);
+            Assert.Equal(3, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             var compilation1New = await solution.GetProject(projectId1).GetCompilationAsync();
 
@@ -4411,6 +4477,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(3, solution.ProjectIds.Count);
+            Assert.Equal(3, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             var compilation1New = await solution.GetProject(projectId1).GetCompilationAsync();
 
@@ -4442,6 +4509,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(3, solution.ProjectIds.Count);
+            Assert.Equal(3, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             var compilation1New = await solution.GetProject(projectId1).GetCompilationAsync();
 
@@ -4493,6 +4561,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(3, solution.ProjectIds.Count);
+            Assert.Equal(3, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
             var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
@@ -4508,6 +4577,7 @@ class C
             solution = solution.RemoveProjects(projectsToRemove);
 
             Assert.Equal(1, solution.ProjectIds.Count);
+            Assert.Equal(1, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             Assert.Equal(projectId1, solution.ProjectIds.Single());
             var compilation1New = await solution.Projects.Single().GetCompilationAsync();
@@ -4536,6 +4606,7 @@ class C
             solution = solution.AddProjects(projects);
 
             Assert.Equal(3, solution.ProjectIds.Count);
+            Assert.Equal(3, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
             var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
@@ -4550,6 +4621,7 @@ class C
             solution = solution.RemoveProjects(projectsToRemove);
 
             Assert.Equal(1, solution.ProjectIds.Count);
+            Assert.Equal(1, solution.SolutionState.ProjectCountByLanguage[LanguageNames.CSharp]);
 
             Assert.Equal(projectId1, solution.ProjectIds.Single());
             var compilation1New = await solution.Projects.Single().GetCompilationAsync();
@@ -4580,6 +4652,57 @@ class C
             projectsToRemove.Add(projectId1);
 
             Assert.Throws<InvalidOperationException>(() => solution.RemoveProjects(projectsToRemove));
+        }
+
+        [Fact]
+        public void AddAndRemoveProjectsUpdatesLanguageCount()
+        {
+            using var workspace = CreateWorkspace(additionalParts: [typeof(NoCompilationLanguageService)]);
+            var solution = workspace.CurrentSolution;
+
+            var csProjectId = ProjectId.CreateNewId();
+            var vbProjectId = ProjectId.CreateNewId();
+
+            solution = solution.AddProjects(
+            [
+                ProjectInfo.Create(csProjectId, VersionStamp.Default, "CS1", "CS1", LanguageNames.CSharp),
+                ProjectInfo.Create(vbProjectId, VersionStamp.Default, "VB1", "VB1", LanguageNames.VisualBasic)
+            ]);
+
+            solution = solution
+                .AddProject("CS2", "CS2", LanguageNames.CSharp).Solution
+                .AddProject("NC1", "NC1", NoCompilationConstants.LanguageName).Solution;
+
+            AssertEx.SetEqual(
+            [
+                (LanguageNames.CSharp, 2),
+                (LanguageNames.VisualBasic, 1),
+                (NoCompilationConstants.LanguageName, 1)
+            ], solution.SolutionState.ProjectCountByLanguage.Select(e => (e.Key, e.Value)));
+
+            solution = solution.RemoveProject(csProjectId);
+            AssertEx.SetEqual(
+            [
+                (LanguageNames.CSharp, 1),
+                (LanguageNames.VisualBasic, 1),
+                (NoCompilationConstants.LanguageName, 1)
+            ], solution.SolutionState.ProjectCountByLanguage.Select(e => (e.Key, e.Value)));
+
+            solution = solution.RemoveProject(vbProjectId);
+            AssertEx.SetEqual(
+            [
+                (LanguageNames.CSharp, 1),
+                (NoCompilationConstants.LanguageName, 1)
+            ], solution.SolutionState.ProjectCountByLanguage.Select(e => (e.Key, e.Value)));
+
+            solution = solution.RemoveProject(solution.Projects.Single(p => p.Name == "CS2").Id);
+            AssertEx.SetEqual(
+            [
+                (NoCompilationConstants.LanguageName, 1)
+            ], solution.SolutionState.ProjectCountByLanguage.Select(e => (e.Key, e.Value)));
+
+            solution = solution.RemoveProject(solution.Projects.Single(p => p.Name == "NC1").Id);
+            Assert.Empty(solution.SolutionState.ProjectCountByLanguage);
         }
 
         private static void GetMultipleProjects(
@@ -4802,7 +4925,7 @@ class C
             Assert.Equal(appliedToDocument, documentOptionsViaSyntaxTree.TryGetValue("indent_style", out var value) == true && value == "tab");
 
             var projectOptions = document.Project.GetAnalyzerConfigOptions();
-            Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out value) == true && value == "tab");
+            Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptions.TryGetValue("indent_style", out value) == true && value == "tab");
         }
 
         [Fact]

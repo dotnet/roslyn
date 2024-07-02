@@ -704,7 +704,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         // perform expensive operations at once
                         var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                         {
-                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(CancellationToken.None).ConfigureAwait(false);
                             return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
                         });
 

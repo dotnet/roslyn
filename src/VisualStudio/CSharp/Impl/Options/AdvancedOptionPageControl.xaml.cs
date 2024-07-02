@@ -25,6 +25,8 @@ using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -41,6 +43,7 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -148,19 +151,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptionsStorage.Enabled);
             BindToOption(Fix_text_pasted_into_string_literals_experimental, StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
-            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
+            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
             BindToOption(Strike_out_obsolete_symbols, ClassificationOptionsStorage.ClassifyObsoleteSymbols, LanguageNames.CSharp);
 
             // Regular Expressions
             BindToOption(Colorize_regular_expressions, ClassificationOptionsStorage.ColorizeRegexPatterns, LanguageNames.CSharp);
-            BindToOption(Report_invalid_regular_expressions, IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, LanguageNames.CSharp);
+            BindToOption(Report_invalid_regular_expressions, RegexOptionsStorage.ReportInvalidRegexPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_regular_expression_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
             BindToOption(Show_completion_list, CompletionOptionsStorage.ProvideRegexCompletions, LanguageNames.CSharp);
 
             // Json
             BindToOption(Colorize_JSON_strings, ClassificationOptionsStorage.ColorizeJsonPatterns, LanguageNames.CSharp);
-            BindToOption(Report_invalid_JSON_strings, IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, LanguageNames.CSharp);
+            BindToOption(Report_invalid_JSON_strings, JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_JSON_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
 
             // Classifications

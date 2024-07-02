@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp13 = 1300 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 [RSEXPERIMENTAL002]Microsoft.CodeAnalysis.CSharp.InterceptableLocation
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Data.get -> string!
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetDisplayLocation() -> string!

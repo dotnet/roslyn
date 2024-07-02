@@ -97,7 +97,10 @@ public class IntentTestsBase
         OptionsCollection? options = null,
         string? intentData = null)
     {
-        options?.SetGlobalOptions(workspace.GlobalOptions);
+        if (options != null)
+        {
+            workspace.SetAnalyzerFallbackOptions(options);
+        }
 
         var intentSource = workspace.ExportProvider.GetExportedValue<IIntentSourceProvider>();
 
