@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -13,12 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
 {
     private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-    private readonly IGlobalOptionService _globalOptions;
 
-    protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices, IGlobalOptionService globalOptions)
+    protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
     {
         _refactorNotifyServices = refactorNotifyServices;
-        _globalOptions = globalOptions;
     }
 
     public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
@@ -28,6 +25,6 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
             return new FailureInlineRenameInfo(symbolicInfo.LocalizedErrorMessage);
 
         return new SymbolInlineRenameInfo(
-            _refactorNotifyServices, symbolicInfo, _globalOptions.CreateProvider(), cancellationToken);
+            _refactorNotifyServices, symbolicInfo, cancellationToken);
     }
 }

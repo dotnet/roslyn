@@ -98,9 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             get; set;
         }
 
-        internal IGlobalOptionService GlobalOptions
-            => State.ProjectCodeModelFactory.GlobalOptions;
-
         /// <summary>
         /// Internally, we store the DocumentId for the document that the FileCodeModel represents. If the underlying file
         /// is renamed, the DocumentId will become invalid because the Roslyn VS workspace treats file renames as a remove/add pair.
@@ -447,7 +444,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             => State.ThreadingContext.JoinableTaskFactory.Run(() =>
             {
                 return GetDocument()
-                    .GetCodeGenerationOptionsAsync(GlobalOptions, CancellationToken.None).AsTask();
+                    .GetCodeGenerationOptionsAsync(CancellationToken.None).AsTask();
             });
 
         internal Compilation GetCompilation()

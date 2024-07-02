@@ -90,7 +90,7 @@ public static class Formatter
 
     internal static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions? options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
     {
-        options ??= await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        options ??= await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var services = document.Project.Solution.Services;
         return document.WithSyntaxRoot(Format(root, spans, services, options, rules, cancellationToken));

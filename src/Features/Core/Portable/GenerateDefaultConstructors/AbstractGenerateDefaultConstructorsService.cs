@@ -28,7 +28,6 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
     public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
         Document document,
         TextSpan textSpan,
-        CodeAndImportGenerationOptionsProvider fallbackOptions,
         bool forRefactoring,
         CancellationToken cancellationToken)
     {
@@ -43,10 +42,10 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
                 if (state != null)
                 {
                     foreach (var constructor in state.UnimplementedConstructors)
-                        result.Add(new GenerateDefaultConstructorCodeAction(document, state, constructor, fallbackOptions));
+                        result.Add(new GenerateDefaultConstructorCodeAction(document, state, constructor));
 
                     if (state.UnimplementedConstructors.Length > 1)
-                        result.Add(new CodeActionAll(document, state, state.UnimplementedConstructors, fallbackOptions));
+                        result.Add(new CodeActionAll(document, state, state.UnimplementedConstructors));
                 }
             }
 

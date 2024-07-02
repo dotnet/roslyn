@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var service = document.GetRequiredLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
                 var fallbackOptions = GetClientOptionsProvider<CleanCodeGenerationOptions, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>(callback, callbackId).ToCleanCodeGenerationOptionsProvider();
 
-                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
+                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
 
                 var cleanedSolution = await CleanupAsync(solution, updatedSolution, fallbackOptions, cancellationToken).ConfigureAwait(false);
 

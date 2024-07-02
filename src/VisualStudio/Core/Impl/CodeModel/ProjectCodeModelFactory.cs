@@ -35,21 +35,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
-        public readonly IGlobalOptionService GlobalOptions;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCodeModelFactory(
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
-            GlobalOptions = globalOptions;
 
             Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
