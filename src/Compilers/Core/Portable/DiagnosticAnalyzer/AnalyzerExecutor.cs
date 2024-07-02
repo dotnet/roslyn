@@ -796,8 +796,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (startAction is CodeBlockStartAnalyzerAction<TLanguageKindEnum> codeBlockStartAction)
                 {
                     var codeBlockEndActions = blockEndActions as PooledHashSet<CodeBlockAnalyzerAction>;
-                    var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
-                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(startAction.Analyzer,
+                    var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(startAction.Analyzer);
+                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
                         codeBlockScope, declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, filterSpan, isGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
@@ -818,8 +818,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (startAction is OperationBlockStartAnalyzerAction operationBlockStartAction)
                     {
                         var operationBlockEndActions = blockEndActions as PooledHashSet<OperationBlockAnalyzerAction>;
-                        var operationBlockScope = new HostOperationBlockStartAnalysisScope();
-                        var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(startAction.Analyzer,
+                        var operationBlockScope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
+                        var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(
                             operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, AnalyzerOptions,
                             GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
 

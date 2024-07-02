@@ -286,10 +286,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum> : CodeBlockStartAnalysisContext<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
-        private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostCodeBlockStartAnalysisScope<TLanguageKindEnum> _scope;
 
-        internal AnalyzerCodeBlockStartAnalysisContext(DiagnosticAnalyzer analyzer,
+        internal AnalyzerCodeBlockStartAnalysisContext(
                                                        HostCodeBlockStartAnalysisScope<TLanguageKindEnum> scope,
                                                        SyntaxNode codeBlock,
                                                        ISymbol owningSymbol,
@@ -300,20 +299,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        CancellationToken cancellationToken)
             : base(codeBlock, owningSymbol, semanticModel, options, filterSpan, isGeneratedCode, cancellationToken)
         {
-            _analyzer = analyzer;
             _scope = scope;
         }
 
         public override void RegisterCodeBlockEndAction(Action<CodeBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterCodeBlockEndAction(_analyzer, action);
+            _scope.RegisterCodeBlockEndAction(action);
         }
 
         public override void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
-            _scope.RegisterSyntaxNodeAction(_analyzer, action, syntaxKinds);
+            _scope.RegisterSyntaxNodeAction(action, syntaxKinds);
         }
     }
 
@@ -322,10 +320,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class AnalyzerOperationBlockStartAnalysisContext : OperationBlockStartAnalysisContext
     {
-        private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostOperationBlockStartAnalysisScope _scope;
 
-        internal AnalyzerOperationBlockStartAnalysisContext(DiagnosticAnalyzer analyzer,
+        internal AnalyzerOperationBlockStartAnalysisContext(
                                                             HostOperationBlockStartAnalysisScope scope,
                                                             ImmutableArray<IOperation> operationBlocks,
                                                             ISymbol owningSymbol,
@@ -338,20 +335,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                             CancellationToken cancellationToken)
             : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, filterTree, filterSpan, isGeneratedCode, cancellationToken)
         {
-            _analyzer = analyzer;
             _scope = scope;
         }
 
         public override void RegisterOperationBlockEndAction(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterOperationBlockEndAction(_analyzer, action);
+            _scope.RegisterOperationBlockEndAction(action);
         }
 
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
-            _scope.RegisterOperationAction(_analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(action, operationKinds);
         }
     }
 
@@ -435,10 +431,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Scope for setting up analyzers for a code block, capable of retrieving the actions.
     /// </summary>
-    internal sealed class HostCodeBlockStartAnalysisScope<TLanguageKindEnum> where TLanguageKindEnum : struct
+    internal sealed class HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(DiagnosticAnalyzer analyzer) where TLanguageKindEnum : struct
     {
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> _syntaxNodeActions = ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.Empty;
+
+        private DiagnosticAnalyzer Analyzer { get; } = analyzer;
 
         public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions
         {
@@ -450,42 +448,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             get { return _syntaxNodeActions; }
         }
 
-        internal HostCodeBlockStartAnalysisScope()
+        public void RegisterCodeBlockEndAction(Action<CodeBlockAnalysisContext> action)
         {
+            _codeBlockEndActions = _codeBlockEndActions.Add(new CodeBlockAnalyzerAction(action, Analyzer));
         }
 
-        public void RegisterCodeBlockEndAction(DiagnosticAnalyzer analyzer, Action<CodeBlockAnalysisContext> action)
+        public void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
-            _codeBlockEndActions = _codeBlockEndActions.Add(new CodeBlockAnalyzerAction(action, analyzer));
-        }
-
-        public void RegisterSyntaxNodeAction(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
-        {
-            _syntaxNodeActions = _syntaxNodeActions.Add(new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, analyzer));
+            _syntaxNodeActions = _syntaxNodeActions.Add(new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, Analyzer));
         }
     }
 
-    internal sealed class HostOperationBlockStartAnalysisScope
+    internal sealed class HostOperationBlockStartAnalysisScope(DiagnosticAnalyzer analyzer)
     {
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
+
+        private DiagnosticAnalyzer Analyzer { get; } = analyzer;
 
         public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions => _operationBlockEndActions;
 
         public ImmutableArray<OperationAnalyzerAction> OperationActions => _operationActions;
 
-        internal HostOperationBlockStartAnalysisScope()
+        public void RegisterOperationBlockEndAction(Action<OperationBlockAnalysisContext> action)
         {
+            _operationBlockEndActions = _operationBlockEndActions.Add(new OperationBlockAnalyzerAction(action, Analyzer));
         }
 
-        public void RegisterOperationBlockEndAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
+        public void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            _operationBlockEndActions = _operationBlockEndActions.Add(new OperationBlockAnalyzerAction(action, analyzer));
-        }
-
-        public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
-        {
-            _operationActions = _operationActions.Add(new OperationAnalyzerAction(action, operationKinds, analyzer));
+            _operationActions = _operationActions.Add(new OperationAnalyzerAction(action, operationKinds, Analyzer));
         }
     }
 
