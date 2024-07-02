@@ -4045,7 +4045,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
                 // (24,17): warning CS0219: The variable 'value' is assigned but its value is never used
                 //             int value = 0; // CS0136
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "value").WithArguments("value").WithLocation(24, 17));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "value").WithArguments("value").WithLocation(24, 17),
+                // (25,15): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
+                //             M(value);
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(25, 15));
         }
 
         [Fact]
