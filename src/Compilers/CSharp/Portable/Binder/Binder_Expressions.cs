@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindFieldExpression((FieldExpressionSyntax)node, diagnostics);
 
                     case SyntaxKind.ValueExpression:
-                        return BindValueExpression((ValueExpressionSyntax)node, diagnostics);
+                        return BindValueExpression((ValueExpressionSyntax)node, invoked, diagnostics);
 
                     case SyntaxKind.AddAssignmentExpression:
                     case SyntaxKind.AndAssignmentExpression:
@@ -1466,14 +1466,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundFieldAccess(node, implicitReceiver, field, constantValueOpt: null);
         }
 
-        private BoundExpression BindValueExpression(ValueExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindValueExpression(ValueExpressionSyntax node, bool invoked, BindingDiagnosticBag diagnostics)
         {
+            // Report diagnostic if the value identifier does not bind to the implicit parameter.
+            if (!bindsToImplicitParameter(this, invoked))
+            {
+                ReportFieldOrValueContextualKeywordConflict(node, node.Token, diagnostics);
+            }
+
             var method = (MethodSymbol)ContainingMember();
             Debug.Assert(method.MethodKind is MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove);
             // PROTOTYPE: We're not applying any checks to this parameter reference. What checks do we
             // use for a parameter referenced by identifier, and which of those should be used here?
             var parameter = method.Parameters[^1];
             return new BoundParameter(node, parameter);
+
+            static bool bindsToImplicitParameter(Binder binder, bool invoked)
+            {
+                var lookupResult = LookupResult.GetInstance();
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                binder.LookupIdentifier(lookupResult, "value", arity: 0, invoked, ref useSiteInfo);
+                bool any = lookupResult.Symbols.Any(s => s is SynthesizedAccessorValueParameterSymbol { Name: "value" });
+                lookupResult.Free();
+                return any;
+            }
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
@@ -1806,6 +1822,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            LookupIdentifier(lookupResult, node.Identifier.ValueText, arity: node.Arity, invoked, useSiteInfo: ref useSiteInfo);
+        }
+
+        private void LookupIdentifier(LookupResult lookupResult, string name, int arity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
             {
@@ -1818,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
             }
 
-            this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: node.Arity, useSiteInfo: ref useSiteInfo, options: options);
+            this.LookupSymbolsWithFallback(lookupResult, name, arity, useSiteInfo: ref useSiteInfo, options: options);
         }
 
         /// <summary>
