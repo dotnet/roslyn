@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrCreateStateSets(project), project);
+                var stateSetsForProject = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+                var stateSets = GetStateSetsForFullSolutionAnalysis(stateSetsForProject, project);
 
                 // get driver only with active analyzers.
                 var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);

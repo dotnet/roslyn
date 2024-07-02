@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,8 +85,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  CancellationToken cancellationToken)
             {
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var stateSets = owner._stateManager
-                    .GetOrCreateStateSets(document.Project)
+                var unfilteredStateSets = await owner._stateManager
+                    .GetOrCreateStateSetsAsync(document.Project, cancellationToken)
+                    .ConfigureAwait(false);
+                var stateSets = unfilteredStateSets
                     .Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions))
                     .ToImmutableArray();
 
