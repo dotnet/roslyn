@@ -56,12 +56,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             "https://github.com/dotnet/roslyn/issues/26778",
             OftenCompletesSynchronously = true)]
         private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
-            DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor,
             CancellationToken cancellationToken)
         {
-            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(sessionScope.Analyzer);
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
         }
 
@@ -169,13 +168,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
+            if (sessionScope.GetAnalyzerActions().CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
-                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-                return compilationScope.GetAnalyzerActions(analyzer);
+                var compilationScope = await GetCompilationAnalysisScopeAsync(sessionScope, analyzerExecutor, cancellationToken).ConfigureAwait(false);
+                return compilationScope.GetAnalyzerActions();
             }
 
-            return sessionScope.GetAnalyzerActions(analyzer);
+            return sessionScope.GetAnalyzerActions();
         }
 
         /// <summary>
@@ -199,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (filteredSymbolStartActions.Length > 0)
                 {
                     var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, analyzer, filteredSymbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-                    return symbolScope.GetAnalyzerActions(analyzer);
+                    return symbolScope.GetAnalyzerActions();
                 }
             }
 
@@ -234,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async Task<bool> IsConcurrentAnalyzerAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-            return sessionScope.IsConcurrentAnalyzer(analyzer);
+            return sessionScope.IsConcurrentAnalyzer();
         }
 
         /// <summary>
@@ -244,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-            return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
+            return sessionScope.GetGeneratedCodeAnalysisFlags();
         }
 
         /// <summary>
