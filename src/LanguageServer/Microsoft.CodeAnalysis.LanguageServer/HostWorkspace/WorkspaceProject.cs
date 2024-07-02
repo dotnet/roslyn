@@ -160,6 +160,7 @@ internal class WorkspaceProject : IWorkspaceProject
             switch (name)
             {
                 case "AssemblyName": _project.AssemblyName = value; break;
+                case "IntermediateAssembly": _project.CompilationOutputAssemblyFilePath = GetFullyQualifiedPath(valueOrNull); break;
                 case "MaxSupportedLangVersion": _project.MaxLangVersion = value; break;
                 case "RootNamespace": _project.DefaultNamespace = valueOrNull; break;
                 case "RunAnalyzers": _project.RunAnalyzers = bool.Parse(valueOrNull ?? bool.TrueString); break;
@@ -169,8 +170,6 @@ internal class WorkspaceProject : IWorkspaceProject
                 case "TargetFrameworkIdentifier": _targetFrameworkManager.UpdateIdentifierForProject(_project.Id, valueOrNull); break;
             }
         }
-
-        _project.CompilationOutputAssemblyFilePath = _project.CompilationOutputAssemblyFilePath;
 
         string? GetFullyQualifiedPath(string? propertyValue)
         {
