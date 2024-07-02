@@ -190,6 +190,13 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
 
         private async Task SaveAsync(SourceText text, CancellationToken cancellationToken)
         {
+            // Don't actually attempt to save on non-Windows platforms.  On platforms like linux, memory mapped files
+            // may be a scarse resource that we can end up running out of.  We only need to persist to secondary storage
+            // for 32bit systems, and to enable cheap sharing of data with another process.  However, the latter use
+            // case only applies to VS on windows, so it's ok to not perform here.
+            if (!PlatformInformation.IsWindows)
+                return;
+
             Contract.ThrowIfFalse(_storageHandle == null); // Cannot save more than once
 
             var handle = await _storageService.WriteToTemporaryStorageAsync(text, cancellationToken).ConfigureAwait(false);
