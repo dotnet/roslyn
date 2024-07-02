@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -4170,17 +4169,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
-            // If either operand is bad, bail out preventing more cascading errors
-            if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
+            TypeSymbol leftType = leftOperand.Type;
+
+            // If left operand is bad, bail out immediately
+            if (leftOperand.HasAnyErrors)
             {
                 leftOperand = BindToTypeForErrorRecovery(leftOperand);
                 rightOperand = BindToTypeForErrorRecovery(rightOperand);
                 return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
             }
+            // If right operand is bad, make sure conversion is in place for better error recovery
+            else if (rightOperand.HasAnyErrors)
+            {
+                var rightOperandTargetType = leftType switch
+                {
+                    { IsReferenceType: true } or { IsValueType: false, TypeKind: TypeKind.TypeParameter } => leftType,
+                    { IsValueType: true } when leftType.IsNullableType() => leftType.GetNullableUnderlyingType(),
+                    _ => CreateErrorType()
+                };
+
+                var conversion = GenerateConversionForAssignment(rightOperandTargetType, rightOperand, diagnostics, ConversionForAssignmentFlags.CompoundAssignment);
+                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, conversion, rightOperandTargetType, hasErrors: true);
+            }
 
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
             // non-nullable value type of A is A0.
-            TypeSymbol leftType = leftOperand.Type;
             Debug.Assert((object)leftType != null);
 
             // If A is a non-nullable value type, a compile-time error occurs
