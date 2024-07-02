@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static DkmClrValue GetMemberValue(this DkmClrValue value, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)
         {
             // Note: GetMemberValue() may return special value when func-eval of properties is disabled.
-            return value.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
+            return value.GetMemberValue(member.MetadataName, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
         }
 
         internal static string Parenthesize(this string expr)

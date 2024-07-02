@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (closeBracketOffset >= 0 && closeBracketOffset + 1 < name.Length)
                 {
                     int c = name[closeBracketOffset + 1];
-                    if (c is >= '1' and <= '9' or >= 'a' and <= 'z') // Note '0' is not special.
+                    if (c is >= '1' and <= '9' or >= 'a' and <= 'z' or >= 'A' and <= 'Z') // Note '0' is not special.
                     {
                         kind = (GeneratedNameKind)c;
                         return true;

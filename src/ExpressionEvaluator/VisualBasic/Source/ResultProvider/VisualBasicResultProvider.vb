@@ -41,6 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return type.IsPredefinedType()
         End Function
 
+        Friend Overrides Function TryGetGeneratedMemberDisplay(metadataName As String, <Out> ByRef displayName As String) As Boolean
+            displayName = Nothing
+            Return False
+        End Function
     End Class
-
 End Namespace
