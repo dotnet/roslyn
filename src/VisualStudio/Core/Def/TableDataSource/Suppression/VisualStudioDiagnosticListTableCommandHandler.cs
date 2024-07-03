@@ -70,58 +70,6 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
         _tableControl = errorList?.TableControl;
     }
 
-    /// <summary>
-    /// Add a command handler and status query handler for a menu item
-    /// </summary>
-    private static OleMenuCommand AddCommand(
-        IMenuCommandService menuCommandService,
-        int commandId,
-        EventHandler invokeHandler,
-        EventHandler beforeQueryStatus)
-    {
-        var commandIdWithGroupId = new CommandID(Guids.RoslynGroupId, commandId);
-        var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, commandIdWithGroupId);
-        menuCommandService.AddCommand(command);
-        return command;
-    }
-
-    private void OnAddSuppressionsStatus(object sender, EventArgs e)
-    {
-        var command = (MenuCommand)sender;
-        command.Visible = _suppressionStateService.CanSuppressSelectedEntries;
-        command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
-    }
-
-    private void OnRemoveSuppressionsStatus(object sender, EventArgs e)
-    {
-        var command = (MenuCommand)sender;
-        command.Visible = _suppressionStateService.CanRemoveSuppressionsSelectedEntries;
-        command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
-    }
-
-    private void OnAddSuppressionsInSourceStatus(object sender, EventArgs e)
-    {
-        var command = (MenuCommand)sender;
-        command.Visible = _suppressionStateService.CanSuppressSelectedEntriesInSource;
-        command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
-    }
-
-    private void OnAddSuppressionsInSuppressionFileStatus(object sender, EventArgs e)
-    {
-        var command = (MenuCommand)sender;
-        command.Visible = _suppressionStateService.CanSuppressSelectedEntriesInSuppressionFiles;
-        command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
-    }
-
-    private void OnAddSuppressionsInSource(object sender, EventArgs e)
-        => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: true, projectHierarchy: null);
-
-    private void OnAddSuppressionsInSuppressionFile(object sender, EventArgs e)
-        => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: false, projectHierarchy: null);
-
-    private void OnRemoveSuppressions(object sender, EventArgs e)
-        => _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true, projectHierarchy: null);
-
     private async Task SetSeverityHandlerAsync(ReportDiagnostic reportDiagnostic, DiagnosticData selectedDiagnostic, Project project)
     {
         try
@@ -164,12 +112,5 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
             var diagnostic = await selectedDiagnostic.ToDiagnosticAsync(project, cancellationToken).ConfigureAwait(false);
             return await ConfigurationUpdater.ConfigureSeverityAsync(reportDiagnostic, diagnostic, project, cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    private bool TryGetPathToAnalyzerConfigDoc(DiagnosticData selectedDiagnostic, [NotNullWhen(true)] out Project? project, [NotNullWhen(true)] out string? pathToAnalyzerConfigDoc)
-    {
-        project = _workspace.CurrentSolution.GetProject(selectedDiagnostic.ProjectId);
-        pathToAnalyzerConfigDoc = project?.TryGetAnalyzerConfigPathForProjectConfiguration();
-        return pathToAnalyzerConfigDoc is not null;
     }
 }
