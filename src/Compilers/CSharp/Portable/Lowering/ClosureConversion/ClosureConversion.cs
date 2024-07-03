@@ -624,12 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // frame pointers are organized in a linked list.
                 return proxyField.Replacement(
                     syntax,
-                    static (frameType, arg) =>
-                    {
-                        var (syntax, @this) = arg;
-                        return @this.FramePointer(syntax, frameType);
-                    },
-                    (syntax, this));
+                    static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
+                    (syntax, self: this));
             }
 
             var localFrame = (LocalSymbol)framePointer;
@@ -786,11 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var left = proxy.Replacement(
                     syntax,
-                    static (frameType1, arg) =>
-                    {
-                        var (syntax, framePointer) = arg;
-                        return new BoundLocal(syntax, framePointer, null, framePointer.Type);
-                    },
+                    static (frameType1, arg) => new BoundLocal(arg.syntax, arg.framePointer, null, arg.framePointer.Type),
                     (syntax, framePointer));
 
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);

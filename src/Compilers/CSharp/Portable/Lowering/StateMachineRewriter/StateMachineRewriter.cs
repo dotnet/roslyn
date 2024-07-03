@@ -313,11 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftExpression = proxy.Replacement(
                         F.Syntax,
-                        static (frameType1, arg) =>
-                        {
-                            var (F, stateMachineVariable) = arg;
-                            return F.Local(stateMachineVariable);
-                        },
+                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
                         (F, stateMachineVariable));
 
                     bodyBuilder.Add(F.Assignment(leftExpression, F.This()));
@@ -331,11 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftExpression = proxy.Replacement(
                         F.Syntax,
-                        static (frameType1, arg) =>
-                        {
-                            var (F, stateMachineVariable) = arg;
-                            return F.Local(stateMachineVariable);
-                        },
+                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
                         (F, stateMachineVariable));
 
                     bodyBuilder.Add(F.Assignment(leftExpression, F.Parameter(parameter)));
@@ -475,11 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftExpression = proxy.Replacement(
                         F.Syntax,
-                        static (stateMachineType, arg) =>
-                        {
-                            var (F, resultVariable) = arg;
-                            return F.Local(resultVariable);
-                        },
+                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
                         (F, resultVariable));
 
                     var rightExpression = copySrc[method.ThisParameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
@@ -498,11 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // result.parameter
                     BoundExpression resultParameter = proxy.Replacement(
                         F.Syntax,
-                        static (stateMachineType, arg) =>
-                        {
-                            var (F, resultVariable) = arg;
-                            return F.Local(resultVariable);
-                        },
+                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
                         (F, resultVariable));
 
                     // this.parameterProxy
