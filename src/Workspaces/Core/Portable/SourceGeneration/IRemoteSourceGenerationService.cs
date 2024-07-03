@@ -29,7 +29,7 @@ internal interface IRemoteSourceGenerationService
     /// </summary>
     /// <param name="withFrozenSourceGeneratedDocuments">Controls if the caller wants frozen source generator documents
     /// included in the result, or if only the most underlying generated documents (produced by the real compiler <see
-    /// cref="GeneratorDriver"/> shoudl be included.</param>
+    /// cref="GeneratorDriver"/> should be included.</param>
     ValueTask<ImmutableArray<RegularCompilationTrackerSourceGenerationInfo>> GetSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
