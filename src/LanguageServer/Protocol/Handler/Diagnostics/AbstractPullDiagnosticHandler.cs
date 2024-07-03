@@ -405,7 +405,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             if (capabilities.HasVisualStudioLspCapability())
             {
                 var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
-                var informationService = project.Solution.Workspace.Services.GetRequiredService<IDiagnosticProjectInformationService>();
+                var informationService = project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
 
                 diagnostic.DiagnosticType = diagnosticData.Category;
                 diagnostic.ExpandedMessage = expandedMessage;
