@@ -622,7 +622,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, frame pointer local variables themselves can be "captured".  In that case
                 // the inner frames contain pointers to the enclosing frames.  That is, nested
                 // frame pointers are organized in a linked list.
-                return proxyField.Replacement(syntax, frameType => FramePointer(syntax, frameType));
+                return proxyField.Replacement(
+                    syntax,
+                    static (frameType, arg) =>
+                    {
+                        var (syntax, @this) = arg;
+                        return @this.FramePointer(syntax, frameType);
+                    },
+                    (syntax, this));
             }
 
             var localFrame = (LocalSymbol)framePointer;
@@ -777,7 +784,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
+                var left = proxy.Replacement(
+                    syntax,
+                    static (frameType1, arg) =>
+                    {
+                        var (syntax, framePointer) = arg;
+                        return new BoundLocal(syntax, framePointer, null, framePointer.Type);
+                    },
+                    (syntax, framePointer));
+
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
