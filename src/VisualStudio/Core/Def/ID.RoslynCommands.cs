@@ -36,13 +36,6 @@ internal static partial class ID
         public const int AddSuppressionsInSource = 0x011f;
         public const int AddSuppressionsInSuppressionFile = 0x0120;
         public const int RemoveSuppressions = 0x0121;
-        public const int ErrorListSetSeveritySubMenu = 0x0122;
-        public const int ErrorListSetSeverityError = 0x0124;
-        public const int ErrorListSetSeverityWarning = 0x0125;
-        public const int ErrorListSetSeverityInfo = 0x0126;
-        public const int ErrorListSetSeverityHidden = 0x0127;
-        public const int ErrorListSetSeverityNone = 0x0128;
-        public const int ErrorListSetSeverityDefault = 0x0129;
 
         // Analyze and Code Cleanup menu IDs
         public const int AnalysisScopeDefault = 0x0131;

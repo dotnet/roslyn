@@ -7,12 +7,10 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -25,7 +23,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
@@ -67,40 +64,10 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
         _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
     }
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
     {
         var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
-
-        // Add command handlers for bulk suppression commands.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
-        if (menuCommandService != null)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            AddErrorListSetSeverityMenuHandlers(menuCommandService);
-
-            // The Add/Remove suppression(s) have been moved to the VS code analysis layer, so we don't add the commands here.
-
-            // TODO: Figure out how to access menu commands registered by CodeAnalysisPackage and 
-            //       add the commands here if we cannot find the new command(s) in the code analysis layer.
-
-            // AddSuppressionsCommandHandlers(menuCommandService);
-        }
-    }
-
-    private void AddErrorListSetSeverityMenuHandlers(IMenuCommandService menuCommandService)
-    {
-        Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-
-        AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeveritySubMenu, delegate { }, OnErrorListSetSeveritySubMenuStatus);
-
-        // Severity menu items
-        AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityDefault, SetSeverityHandler, delegate { });
-        AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityError, SetSeverityHandler, delegate { });
-        AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityWarning, SetSeverityHandler, delegate { });
-        AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityInfo, SetSeverityHandler, delegate { });
-        AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityHidden, SetSeverityHandler, delegate { });
-        AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityNone, SetSeverityHandler, delegate { });
     }
 
     /// <summary>
@@ -155,41 +122,6 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
     private void OnRemoveSuppressions(object sender, EventArgs e)
         => _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true, projectHierarchy: null);
 
-    private void OnErrorListSetSeveritySubMenuStatus(object sender, EventArgs e)
-    {
-        // For now, we only enable the Set severity menu when a single configurable diagnostic is selected in the error list
-        // and we can update/create an editorconfig file for the configuration entry.
-        // In future, we can enable support for configuring in presence of multi-selection. 
-        var command = (MenuCommand)sender;
-        var selectedEntry = TryGetSingleSelectedEntry();
-        command.Visible = selectedEntry != null &&
-            !SuppressionHelpers.IsNotConfigurableDiagnostic(selectedEntry) &&
-            TryGetPathToAnalyzerConfigDoc(selectedEntry, out _, out _);
-        command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
-    }
-
-    private void SetSeverityHandler(object sender, EventArgs args)
-    {
-        var selectedItem = (MenuCommand)sender;
-        var reportDiagnostic = TryMapSelectedItemToReportDiagnostic(selectedItem);
-        if (reportDiagnostic == null)
-        {
-            return;
-        }
-
-        var selectedDiagnostic = TryGetSingleSelectedEntry();
-        if (selectedDiagnostic == null)
-        {
-            return;
-        }
-
-        if (TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project, out _))
-        {
-            // Fire and forget.
-            _ = SetSeverityHandlerAsync(reportDiagnostic.Value, selectedDiagnostic, project);
-        }
-    }
-
     private async Task SetSeverityHandlerAsync(ReportDiagnostic reportDiagnostic, DiagnosticData selectedDiagnostic, Project project)
     {
         try
@@ -234,34 +166,10 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
         }
     }
 
-    private static DiagnosticData? TryGetSingleSelectedEntry()
-    {
-        return null;
-    }
-
     private bool TryGetPathToAnalyzerConfigDoc(DiagnosticData selectedDiagnostic, [NotNullWhen(true)] out Project? project, [NotNullWhen(true)] out string? pathToAnalyzerConfigDoc)
     {
         project = _workspace.CurrentSolution.GetProject(selectedDiagnostic.ProjectId);
         pathToAnalyzerConfigDoc = project?.TryGetAnalyzerConfigPathForProjectConfiguration();
         return pathToAnalyzerConfigDoc is not null;
-    }
-
-    private static ReportDiagnostic? TryMapSelectedItemToReportDiagnostic(MenuCommand selectedItem)
-    {
-        if (selectedItem.CommandID.Guid == Guids.RoslynGroupId)
-        {
-            return selectedItem.CommandID.ID switch
-            {
-                ID.RoslynCommands.ErrorListSetSeverityDefault => ReportDiagnostic.Default,
-                ID.RoslynCommands.ErrorListSetSeverityError => ReportDiagnostic.Error,
-                ID.RoslynCommands.ErrorListSetSeverityWarning => ReportDiagnostic.Warn,
-                ID.RoslynCommands.ErrorListSetSeverityInfo => ReportDiagnostic.Info,
-                ID.RoslynCommands.ErrorListSetSeverityHidden => ReportDiagnostic.Hidden,
-                ID.RoslynCommands.ErrorListSetSeverityNone => ReportDiagnostic.Suppress,
-                _ => (ReportDiagnostic?)null
-            };
-        }
-
-        return null;
     }
 }
