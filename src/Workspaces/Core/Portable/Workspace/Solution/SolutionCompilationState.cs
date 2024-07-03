@@ -1029,23 +1029,15 @@ internal sealed partial class SolutionCompilationState
     /// <summary>
     /// Returns the generated document states for source generated documents.
     /// </summary>
-    public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-        ProjectState project, CancellationToken cancellationToken)
-    {
-        return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
-            : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
-    }
+    public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, cancellationToken);
 
-    /// <summary>
-    /// Equivalent to <see cref="GetSourceGeneratedDocumentStatesAsync"/>, but only returning from the underlying <see
-    /// cref="RegularCompilationTracker"/>.
-    /// </summary>
-    internal ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(
-        ProjectState project, CancellationToken cancellationToken)
+    /// <inheritdoc cref="GetSourceGeneratedDocumentStatesAsync(ProjectState, CancellationToken)"/>
+    public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
+        ProjectState project, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
@@ -1150,8 +1142,9 @@ internal sealed partial class SolutionCompilationState
             .Distinct()
             .ToImmutableArray();
 
-        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and it should be a
-        // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
+        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and
+        // it should be a WithFrozenSourceGeneratedDocumentsCompilationTracker. To undo the operation, we'll just
+        // restore the original CompilationTracker.
         var newTrackerMap = CreateCompilationTrackerMap(
             projectIdsToUnfreeze,
             this.SolutionState.GetProjectDependencyGraph(),
@@ -1160,7 +1153,11 @@ internal sealed partial class SolutionCompilationState
                 foreach (var projectId in projectIdsToUnfreeze)
                 {
                     Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
-                    var replacingItemTracker = (GeneratedFileReplacingCompilationTracker)existingTracker;
+                    // TODO(cyrusn): Is it possible to wrap an underlying tracker with multiple frozen document
+                    // compilation trackers?  Should we be unwrapping as much as we can here?  Or would that also be bad
+                    // given that we're basing what we want to unfreeze on the FrozenSourceGeneratedDocumentStates,
+                    // which may not represent those inner freezes.  Unclear.  There may be bugs here.
+                    var replacingItemTracker = (WithFrozenSourceGeneratedDocumentsCompilationTracker)existingTracker;
                     trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
                 }
             },
@@ -1245,7 +1242,7 @@ internal sealed partial class SolutionCompilationState
                         existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
                     }
 
-                    trackerMap[projectId] = new GeneratedFileReplacingCompilationTracker(existingTracker, new(documentStatesForProject));
+                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
                 }
             },
             (documentStatesByProjectId, this.SolutionState),
