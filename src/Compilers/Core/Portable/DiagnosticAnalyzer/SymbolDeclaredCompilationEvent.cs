@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class SymbolDeclaredCompilationEvent : CompilationEvent
     {
-        private ImmutableArray<SyntaxReference>? _lazyCachedDeclaringReferences;
+        private ImmutableArray<SyntaxReference> _lazyCachedDeclaringReferences;
 
         public SymbolDeclaredCompilationEvent(
             Compilation compilation,
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             SymbolInternal = symbolInternal;
             SemanticModelWithCachedBoundNodes = semanticModelWithCachedBoundNodes;
+            _lazyCachedDeclaringReferences = default(ImmutableArray<SyntaxReference>);
         }
 
         public ISymbol Symbol => SymbolInternal.GetISymbol();
@@ -37,12 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (!_lazyCachedDeclaringReferences.HasValue)
-                {
-                    _lazyCachedDeclaringReferences = Symbol.DeclaringSyntaxReferences;
-                }
-
-                return _lazyCachedDeclaringReferences.Value;
+                return InterlockedOperations.Initialize(
+                    ref _lazyCachedDeclaringReferences,
+                    static self => self.Symbol.DeclaringSyntaxReferences,
+                    this);
             }
         }
 
