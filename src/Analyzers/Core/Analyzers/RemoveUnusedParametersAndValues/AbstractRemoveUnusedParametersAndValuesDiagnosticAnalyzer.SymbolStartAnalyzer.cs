@@ -298,10 +298,12 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 if (method.MethodKind != MethodKind.Constructor)
                     return false;
 
-                if (!((method.Parameters is [var firstParameter, ..] && firstParameter == parameter) ||
-                    (method.Parameters is [_, var secondParameter, ..] && secondParameter == parameter)))
+                if (!(method.Parameters is [var firstParameter, ..] && firstParameter == parameter))
                 {
-                    return false;
+                    if (!(method.Parameters is [_, var secondParameter, ..] && secondParameter == parameter))
+                    {
+                        return false;
+                    }
                 }
 
                 if (!containingType.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, interpolatedStringHandlerAttributeType)))
