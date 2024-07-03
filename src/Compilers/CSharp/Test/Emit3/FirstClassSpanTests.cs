@@ -347,8 +347,31 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
     }
 
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Implicit_DifferentOperator(
+        [CombinatorialValues("int[]", "T[][]")] string parameterType)
+    {
+        var source = $$"""
+            using System;
+            Span<int> s = arr();
+            static int[] arr() => new int[] { 1, 2, 3 };
+
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                    public static implicit operator Span<T>({{parameterType}} array) => throw null;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,15): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
+            // Span<int> s = arr();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
+    }
+
     [Fact]
-    public void Conversion_Array_Span_Implicit_DifferentOperator()
+    public void Conversion_Array_Span_Implicit_ExplicitOperator()
     {
         var source = """
             using System;
@@ -359,7 +382,7 @@ public class FirstClassSpanTests : CSharpTestBase
             {
                 public readonly ref struct Span<T>
                 {
-                    public static implicit operator Span<T>(int[] array) => throw null;
+                    public static explicit operator Span<T>(T[] array) => throw null;
                 }
             }
             """;
@@ -367,6 +390,28 @@ public class FirstClassSpanTests : CSharpTestBase
             // (2,15): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
             // Span<int> s = arr();
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Explicit_ExplicitOperator()
+    {
+        var source = """
+            using System;
+            Span<int> s = (Span<int>)arr();
+            static int[] arr() => new int[] { 1, 2, 3 };
+
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                    public static explicit operator Span<T>(T[] array) => throw null;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,15): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // Span<int> s = (Span<int>)arr();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(Span<int>)arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
     }
 
     [Fact]
@@ -413,6 +458,61 @@ public class FirstClassSpanTests : CSharpTestBase
             // (1,5): error CS0570: 'Span<T>.implicit operator Span<T>(T[])' is not supported by the language
             // C.M(new int[] { 1, 2, 3 });
             Diagnostic(ErrorCode.ERR_BindToBogus, "new int[] { 1, 2, 3 }").WithArguments("System.Span<T>.implicit operator System.Span<T>(T[])").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Implicit_UnrecognizedModopt()
+    {
+        /*
+            public struct Span<T>
+            {
+                public static implicit operator modopt(A) Span<T>(T[] array) => throw null;
+            }
+            public class A { }
+            public static class C
+            {
+                public static void M(Span<int> s) { }
+            }
+         */
+        var ilSource = """
+            .class public sequential ansi sealed beforefieldinit System.Span`1<T> extends System.ValueType
+            {
+                .pack 0
+                .size 1
+                .method public hidebysig specialname static valuetype System.Span`1<!T> modopt(A) op_Implicit(!T[] 'array') cil managed
+                {
+                    .maxstack 1
+                    ret
+                }
+            }
+            .class public auto ansi sealed beforefieldinit A extends System.Object
+            {
+            }
+            .class public auto ansi abstract sealed beforefieldinit C extends System.Object
+            {
+                .method public hidebysig static void M(valuetype System.Span`1<int32> s) cil managed 
+                {
+                    .maxstack 1
+                    ret
+                }
+            }
+            """;
+        var source = """
+            C.M(arr());
+            static int[] arr() => new int[] { 1, 2, 3 };
+            """;
+        var comp = CreateCompilationWithIL(source, ilSource);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "int[] Program.<<Main>$>g__arr|0_0()"
+              IL_0005:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+              IL_000a:  call       "void C.M(System.Span<int>)"
+              IL_000f:  ret
+            }
+            """);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2776,6 +2876,45 @@ public class FirstClassSpanTests : CSharpTestBase
 
         // Reduce the extension method with array receiver.
         reduced = unreducedSymbol.ReduceExtensionMethod(arrayType);
+        Assert.Equal("void System.Span<System.Int32>.E()", reduced.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_Reduced_01_CSharp12()
+    {
+        var source = """
+            using System;
+            static class C
+            {
+                public static void M(int[] arg) => arg.E();
+                public static void E(this Span<int> arg) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (4,40): error CS1929: 'int[]' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<int>)' requires a receiver of type 'System.Span<int>'
+            //     public static void M(int[] arg) => arg.E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("int[]", "E", "C.E(System.Span<int>)", "System.Span<int>").WithLocation(4, 40));
+
+        var tree = comp.SyntaxTrees.Single();
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        Assert.Equal("arg.E()", invocation.ToString());
+
+        var model = comp.GetSemanticModel(tree);
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+
+        var methodSymbol = comp.GetMember<MethodSymbol>("C.E").GetPublicSymbol();
+        var spanType = methodSymbol.Parameters.Single().Type;
+        Assert.Equal("System.Span<System.Int32>", spanType.ToTestDisplayString());
+
+        // Reduce the extension method with Span receiver.
+        var reduced = methodSymbol.ReduceExtensionMethod(spanType);
+        Assert.Equal("void System.Span<System.Int32>.E()", reduced.ToTestDisplayString());
+
+        var arrayType = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol().Parameters.Single().Type;
+        Assert.Equal("System.Int32[]", arrayType.ToTestDisplayString());
+
+        // Reduce the extension method with array receiver.
+        reduced = methodSymbol.ReduceExtensionMethod(arrayType);
         Assert.Equal("void System.Span<System.Int32>.E()", reduced.ToTestDisplayString());
     }
 
