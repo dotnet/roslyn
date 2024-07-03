@@ -18,7 +18,7 @@ internal partial class SolutionCompilationState
     /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
     /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
     /// </summary>
-    private class GeneratedFileReplacingCompilationTracker : ICompilationTracker
+    private sealed class GeneratedFileReplacingCompilationTracker : ICompilationTracker
     {
         private readonly TextDocumentStates<SourceGeneratedDocumentState> _replacementDocumentStates;
 
@@ -183,6 +183,15 @@ internal partial class SolutionCompilationState
             }
 
             return newStates;
+        }
+
+        public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(
+            SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            // Just defer to the underlying tracker.  The caller only wants the innermost generated documents, not any
+            // frozen docs we'll overlay on top of it.  The caller will already know about those frozen documents and
+            // will do its own overlay on these results.
+            return this.UnderlyingTracker.GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken);
         }
 
         public Task<bool> HasSuccessfullyLoadedAsync(

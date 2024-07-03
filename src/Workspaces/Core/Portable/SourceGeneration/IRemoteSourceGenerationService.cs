@@ -12,6 +12,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
 
+[DataContract]
+internal readonly record struct RegularCompilationTrackerSourceGenerationInfo(
+    [property: DataMember(Order = 0)] SourceGeneratedDocumentIdentity DocumentIdentity,
+    [property: DataMember(Order = 1)] SourceGeneratedDocumentContentIdentity ContentIdentity,
+    [property: DataMember(Order = 2)] DateTime GenerationDateTime);
+
 internal interface IRemoteSourceGenerationService
 {
     /// <summary>
@@ -21,7 +27,11 @@ internal interface IRemoteSourceGenerationService
     /// compare that to the prior generated documents it has to see if it can reuse those directly, or if it needs to
     /// remove any documents no longer around, add any new documents, or change the contents of any existing documents.
     /// </summary>
-    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>> GetSourceGenerationInfoAsync(
+    /// <remarks>
+    /// Should only be called by the "RegularCompilationTracker", and should only return data from its view of the
+    /// world.  Not from the view of a "GeneratedFileReplacingCompilationTracker".
+    /// </remarks>
+    ValueTask<ImmutableArray<RegularCompilationTrackerSourceGenerationInfo>> GetRegularCompilationTrackerSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
     /// <summary>
@@ -29,7 +39,11 @@ internal interface IRemoteSourceGenerationService
     /// Should only be called by the host for documents it does not know about, or documents whose checksum contents are
     /// different than the last time the document was queried.
     /// </summary>
-    ValueTask<ImmutableArray<string>> GetContentsAsync(
+    /// <remarks>
+    /// Should only be called by the "RegularCompilationTracker", and should only return data from its view of the
+    /// world.  Not from the view of a "GeneratedFileReplacingCompilationTracker".
+    /// </remarks>
+    ValueTask<ImmutableArray<string>> GetRegularCompilationTrackerContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
 
     /// <summary>

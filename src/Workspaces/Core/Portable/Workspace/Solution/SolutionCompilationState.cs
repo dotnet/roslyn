@@ -950,13 +950,13 @@ internal sealed partial class SolutionCompilationState
     private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
         => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
-    private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+    private static readonly Func<ProjectId, SolutionState, RegularCompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
 
-    private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
+    private static RegularCompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
     {
         var projectState = solution.GetProjectState(projectId);
         Contract.ThrowIfNull(projectState);
-        return new CompilationTracker(projectState);
+        return new RegularCompilationTracker(projectState);
     }
 
     private ICompilationTracker GetCompilationTracker(ProjectId projectId)
@@ -1034,6 +1034,18 @@ internal sealed partial class SolutionCompilationState
     {
         return project.SupportsCompilation
             ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+            : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
+    }
+
+    /// <summary>
+    /// Equivalent to <see cref="GetSourceGeneratedDocumentStatesAsync"/>, but only returning from the underlying <see
+    /// cref="RegularCompilationTracker"/>.
+    /// </summary>
+    internal ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(
+        ProjectState project, CancellationToken cancellationToken)
+    {
+        return project.SupportsCompilation
+            ? GetCompilationTracker(project.Id).GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(this, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 

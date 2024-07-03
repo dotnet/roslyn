@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -30,32 +29,32 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             => new RemoteSourceGenerationService(arguments);
     }
 
-    public ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>> GetSourceGenerationInfoAsync(
+    public ValueTask<ImmutableArray<RegularCompilationTrackerSourceGenerationInfo>> GetRegularCompilationTrackerSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+            var documentStates = await solution.CompilationState.GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            var result = new FixedSizeArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>(documentStates.States.Count);
+            var result = new FixedSizeArrayBuilder<RegularCompilationTrackerSourceGenerationInfo>(documentStates.States.Count);
             foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
-                result.Add((state.Identity, state.GetContentIdentity(), state.GenerationDateTime));
+                result.Add(new(state.Identity, state.GetContentIdentity(), state.GenerationDateTime));
             }
 
             return result.MoveToImmutable();
         }, cancellationToken);
     }
 
-    public ValueTask<ImmutableArray<string>> GetContentsAsync(
+    public ValueTask<ImmutableArray<string>> GetRegularCompilationTrackerContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+            var documentStates = await solution.CompilationState.GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
             var result = new FixedSizeArrayBuilder<string>(documentIds.Length);
             foreach (var id in documentIds)
