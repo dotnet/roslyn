@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal interface IDiagnosticProjectInformationService : IWorkspaceService
 {
     /// <summary>
-    /// 
+    /// Allows the workspace to customize the project information it returns for a particular project.
     /// </summary>
     VSDiagnosticProjectInformation GetDiagnosticProjectInformation(Project project);
 }
