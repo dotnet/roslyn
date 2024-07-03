@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
@@ -16,18 +19,33 @@ internal partial class SettingsAggregator : ISettingsAggregator
 {
     private readonly Workspace _workspace;
     private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
+    private readonly AsyncBatchingWorkQueue _workQueue;
+
     private ISettingsProviderFactory<Setting> _whitespaceProvider;
     private ISettingsProviderFactory<NamingStyleSetting> _namingStyleProvider;
     private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
 
-    public SettingsAggregator(Workspace workspace)
+    public SettingsAggregator(
+        Workspace workspace,
+        IThreadingContext threadingContext,
+        IAsynchronousOperationListener listener)
     {
         _workspace = workspace;
         _workspace.WorkspaceChanged += UpdateProviders;
-        _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
-        _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
-        _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
-        _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(_workspace);
+
+        // 
+        var currentSolution = _workspace.CurrentSolution.SolutionState;
+        UpdateProviders(currentSolution);
+
+        // TODO(cyrusn): Why do we not update this as well inside UpdateProviders when we hear about a workspace event?
+        _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(currentSolution);
+
+        // Batch these up so that we don't do a lot of expensive work when hearing a flurry of workspace events.
+        _workQueue = new AsyncBatchingWorkQueue(
+            TimeSpan.FromSeconds(1),
+            UpdateProvidersAsync,
+            listener,
+            threadingContext.DisposalToken);
     }
 
     private void UpdateProviders(object? sender, WorkspaceChangeEventArgs e)
@@ -42,11 +60,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
             case WorkspaceChangeKind.ProjectAdded:
             case WorkspaceChangeKind.ProjectRemoved:
             case WorkspaceChangeKind.ProjectChanged:
-                _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
-                _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
-                _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
-                break;
-            default:
+                _workQueue.AddWork();
                 break;
         }
     }
@@ -76,14 +90,30 @@ internal partial class SettingsAggregator : ISettingsAggregator
         return null;
     }
 
-    private static ISettingsProviderFactory<T> GetOptionsProviderFactory<T>(Workspace workspace)
+    private ValueTask UpdateProvidersAsync(CancellationToken cancellationToken)
+    {
+        UpdateProviders(_workspace.CurrentSolution.SolutionState);
+        return ValueTaskFactory.CompletedTask;
+    }
+
+    [MemberNotNull(nameof(_whitespaceProvider))]
+    [MemberNotNull(nameof(_codeStyleProvider))]
+    [MemberNotNull(nameof(_namingStyleProvider))]
+    private void UpdateProviders(SolutionState solution)
+    {
+        _whitespaceProvider = GetOptionsProviderFactory<Setting>(solution);
+        _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(solution);
+        _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(solution);
+    }
+
+    private static ISettingsProviderFactory<T> GetOptionsProviderFactory<T>(SolutionState solution)
     {
         using var providers = TemporaryArray<ISettingsProviderFactory<T>>.Empty;
 
-        var commonProvider = workspace.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
+        var commonProvider = solution.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
         providers.Add(commonProvider);
 
-        var projectCountByLanguage = workspace.CurrentSolution.SolutionState.ProjectCountByLanguage;
+        var projectCountByLanguage = solution.ProjectCountByLanguage;
 
         TryAddProviderForLanguage(LanguageNames.CSharp);
         TryAddProviderForLanguage(LanguageNames.VisualBasic);
@@ -94,7 +124,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
         {
             if (projectCountByLanguage.ContainsKey(language))
             {
-                var provider = workspace.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
+                var provider = solution.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
                 if (provider != null)
                     providers.Add(provider);
             }
