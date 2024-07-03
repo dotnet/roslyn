@@ -61,7 +61,7 @@ internal partial class SolutionCompilationState
         /// in the result.  If <see langword="false"/> this will call all the way through to the most underlying <see
         /// cref="RegularCompilationTracker"/> to get its generated documents.  If this is <see langword="true"/> then
         /// this will be those same generated documents, along with all the generated documents from all wrapping <see
-        /// cref="GeneratedFileReplacingCompilationTracker"/>'s frozen documents overlaid on top.
+        /// cref="WithFrozenSourceGeneratedDocumentsCompilationTracker"/>'s frozen documents overlaid on top.
         /// </summary>
         ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);

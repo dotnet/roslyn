@@ -841,7 +841,8 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
             {
                 // Note: withFrozenSourceGeneratedDocuments has no impact on is.  We're always returning real generated
-                // docs, not frozen docs.  Frozen docs are only involved with a GeneratedFileReplacingCompilationTracker
+                // docs, not frozen docs.  Frozen docs are only involved with a
+                // WithFrozenSourceGeneratedDocumentsCompilationTracker
 
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
                 if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))

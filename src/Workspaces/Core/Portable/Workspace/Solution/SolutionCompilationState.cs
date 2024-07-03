@@ -1142,8 +1142,9 @@ internal sealed partial class SolutionCompilationState
             .Distinct()
             .ToImmutableArray();
 
-        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and it should be a
-        // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
+        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and
+        // it should be a WithFrozenSourceGeneratedDocumentsCompilationTracker. To undo the operation, we'll just
+        // restore the original CompilationTracker.
         var newTrackerMap = CreateCompilationTrackerMap(
             projectIdsToUnfreeze,
             this.SolutionState.GetProjectDependencyGraph(),
