@@ -14,11 +14,17 @@ namespace Microsoft.CodeAnalysis;
 internal partial class SolutionCompilationState
 {
     /// <summary>
-    /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker and updates it
-    /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
-    /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
+    /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker
+    /// and updates it to return a generated document with a specific content, regardless of what the generator actually
+    /// produces. In other words, it says "take the compilation this other thing produced, and pretend the generator
+    /// gave this content, even if it wouldn't."  This is used by <see
+    /// cref="Solution.WithFrozenSourceGeneratedDocuments"/> to ensure that a particular solution snapshot contains a
+    /// pre-existing generated document from a prior run that the user is interacting with in the host.  The current
+    /// snapshot might not produce the same content from before (or may not even produce that document anymore).  But we
+    /// want to still let the user work with that doc effectively up until the point that new generated documents are
+    /// produced and replace it in the host view.
     /// </summary>
-    private sealed class GeneratedFileReplacingCompilationTracker : ICompilationTracker
+    private sealed class WithFrozenSourceGeneratedDocumentsCompilationTracker : ICompilationTracker
     {
         private readonly TextDocumentStates<SourceGeneratedDocumentState> _replacementDocumentStates;
 
@@ -41,7 +47,7 @@ internal partial class SolutionCompilationState
         /// </summary>
         private SkeletonReferenceCache _skeletonReferenceCache;
 
-        public GeneratedFileReplacingCompilationTracker(
+        public WithFrozenSourceGeneratedDocumentsCompilationTracker(
             ICompilationTracker underlyingTracker,
             TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
         {
@@ -80,7 +86,7 @@ internal partial class SolutionCompilationState
             var underlyingTracker = this.UnderlyingTracker.WithCreateCreationPolicy(forceRegeneration);
             return underlyingTracker == this.UnderlyingTracker
                 ? this
-                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
+                : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
@@ -88,7 +94,7 @@ internal partial class SolutionCompilationState
             var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy(cancellationToken);
             return underlyingTracker == this.UnderlyingTracker
                 ? this
-                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
+                : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -99,7 +105,8 @@ internal partial class SolutionCompilationState
                 return _compilationWithReplacements;
             }
 
-            var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
+                compilationState, withFrozenSourceGeneratedDocuments: true, cancellationToken).ConfigureAwait(false);
             var newCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
             foreach (var (id, replacementState) in _replacementDocumentStates.States)
@@ -159,39 +166,35 @@ internal partial class SolutionCompilationState
                 (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
         public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-            SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
         {
             var newStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
-                compilationState, cancellationToken).ConfigureAwait(false);
+                compilationState, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
-            foreach (var (id, replacementState) in _replacementDocumentStates.States)
+            // Only if the caller *wants* frozen source generated documents, then we will overlay the real underlying
+            // generated docs with the frozen ones we're pointing at.
+            if (withFrozenSourceGeneratedDocuments)
             {
-                if (newStates.Contains(id))
+                foreach (var (id, replacementState) in _replacementDocumentStates.States)
                 {
-                    // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
-                    // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    newStates = newStates.SetState(replacementState);
-                }
-                else
-                {
-                    // The generated output no longer exists in the underlying compilation. This could happen if the user made
-                    // an edit which would cause this file to no longer exist, but they're still operating on an open representation
-                    // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
-                    // semantically correct operation, but working on stale snapshots never has that guarantee.
-                    newStates = newStates.AddRange([replacementState]);
+                    if (newStates.Contains(id))
+                    {
+                        // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
+                        // is stale. Replace the syntax tree so we have a tree that matches the text.
+                        newStates = newStates.SetState(replacementState);
+                    }
+                    else
+                    {
+                        // The generated output no longer exists in the underlying compilation. This could happen if the user made
+                        // an edit which would cause this file to no longer exist, but they're still operating on an open representation
+                        // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
+                        // semantically correct operation, but working on stale snapshots never has that guarantee.
+                        newStates = newStates.AddRange([replacementState]);
+                    }
                 }
             }
 
             return newStates;
-        }
-
-        public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(
-            SolutionCompilationState compilationState, CancellationToken cancellationToken)
-        {
-            // Just defer to the underlying tracker.  The caller only wants the innermost generated documents, not any
-            // frozen docs we'll overlay on top of it.  The caller will already know about those frozen documents and
-            // will do its own overlay on these results.
-            return this.UnderlyingTracker.GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken);
         }
 
         public Task<bool> HasSuccessfullyLoadedAsync(

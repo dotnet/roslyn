@@ -93,14 +93,14 @@ internal partial class SolutionCompilationState
 
             // First, grab the info from our external host about the generated documents it has for this project.  Note:
             // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
-            // As such, our call to the oop side reflects that by asking for only *its* innermost
-            // RegularCompilationTracker to do the same.
+            // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
+            // any overlaid 'frozen' source generated documents.
             var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetRegularCompilationTrackerSourceGenerationInfoAsync(
-                    solutionChecksum, projectId, cancellationToken),
+                (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(
+                    solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!infosOpt.HasValue)
@@ -160,13 +160,13 @@ internal partial class SolutionCompilationState
             // Either we generated a different number of files, and/or we had contents of files that changed. Ensure we
             // know the contents of any new/changed files.  Note: we ourselves are the innermost
             // "RegularCompilationTracker" responsible for actually running generators. As such, our call to the oop
-            // side reflects that by asking for the source gen contents produced by *its* innermost
-            // RegularCompilationTracker.
+            // side reflects that by asking for the real source generated docs, and *not* any overlaid 'frozen' source
+            // generated documents.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetRegularCompilationTrackerContentsAsync(
-                    solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
+                (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
+                    solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), withFrozenSourceGeneratedDocuments: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!generatedSourcesOpt.HasValue)

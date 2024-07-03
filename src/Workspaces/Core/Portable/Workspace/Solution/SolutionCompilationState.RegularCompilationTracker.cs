@@ -837,13 +837,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-                // Just defer to the core function that creates these.  They are the right values for both of these calls.
-                => GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken);
-
-            public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
+                SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
             {
+                // Note: withFrozenSourceGeneratedDocuments has no impact on is.  We're always returning real generated
+                // docs, not frozen docs.  Frozen docs are only involved with a GeneratedFileReplacingCompilationTracker
+
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
                 if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
