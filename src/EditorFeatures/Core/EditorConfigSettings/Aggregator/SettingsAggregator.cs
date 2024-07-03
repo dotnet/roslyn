@@ -33,7 +33,6 @@ internal partial class SettingsAggregator : ISettingsAggregator
         _workspace = workspace;
         _workspace.WorkspaceChanged += UpdateProviders;
 
-        // 
         var currentSolution = _workspace.CurrentSolution.SolutionState;
         UpdateProviders(currentSolution);
 
