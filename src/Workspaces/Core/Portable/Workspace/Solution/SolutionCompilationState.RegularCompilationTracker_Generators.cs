@@ -99,7 +99,7 @@ internal partial class SolutionCompilationState
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(
+                (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratedDocumentInfoAsync(
                     solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 

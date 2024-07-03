@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.SourceGeneration;
 
 [DataContract]
-internal readonly record struct RegularCompilationTrackerSourceGenerationInfo(
+internal readonly record struct SourceGeneratedDocmentInfo(
     [property: DataMember(Order = 0)] SourceGeneratedDocumentIdentity DocumentIdentity,
     [property: DataMember(Order = 1)] SourceGeneratedDocumentContentIdentity ContentIdentity,
     [property: DataMember(Order = 2)] DateTime GenerationDateTime);
@@ -30,7 +30,7 @@ internal interface IRemoteSourceGenerationService
     /// <param name="withFrozenSourceGeneratedDocuments">Controls if the caller wants frozen source generator documents
     /// included in the result, or if only the most underlying generated documents (produced by the real compiler <see
     /// cref="GeneratorDriver"/> should be included.</param>
-    ValueTask<ImmutableArray<RegularCompilationTrackerSourceGenerationInfo>> GetSourceGenerationInfoAsync(
+    ValueTask<ImmutableArray<SourceGeneratedDocmentInfo>> GetSourceGeneratedDocumentInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
     /// <summary>

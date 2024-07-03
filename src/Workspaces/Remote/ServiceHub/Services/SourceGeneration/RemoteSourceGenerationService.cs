@@ -29,15 +29,16 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             => new RemoteSourceGenerationService(arguments);
     }
 
-    public ValueTask<ImmutableArray<RegularCompilationTrackerSourceGenerationInfo>> GetRegularCompilationTrackerSourceGenerationInfoAsync(
-        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<SourceGeneratedDocmentInfo>> GetSourceGeneratedDocumentInfoAsync(
+        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            var documentStates = await solution.CompilationState.GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
+                project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
-            var result = new FixedSizeArrayBuilder<RegularCompilationTrackerSourceGenerationInfo>(documentStates.States.Count);
+            var result = new FixedSizeArrayBuilder<SourceGeneratedDocmentInfo>(documentStates.States.Count);
             foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
@@ -48,13 +49,14 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         }, cancellationToken);
     }
 
-    public ValueTask<ImmutableArray<string>> GetRegularCompilationTrackerContentsAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<string>> GetContentsAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            var documentStates = await solution.CompilationState.GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
+                project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             var result = new FixedSizeArrayBuilder<string>(documentIds.Length);
             foreach (var id in documentIds)
