@@ -13,7 +13,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal interface IDiagnosticProjectInformationService : IWorkspaceService
 {
     /// <summary>
-    /// Allows the workspace to customize the project information it returns for a particular project.
+    /// Allows the workspace to customize the project information it returns for a particular project. Note: this
+    /// information may ultimately be racey.  In that the LSP handler may call in the background for information that is
+    /// changing on the foreground.  While not ideal, that's been how project-info has always worked in the diagnostic
+    /// subsystem, so we just live with it for the time being.
     /// </summary>
     VSDiagnosticProjectInformation GetDiagnosticProjectInformation(Project project);
 }
