@@ -29,6 +29,9 @@ internal sealed class DefaultDiagnosticProjectInformationService() : IDiagnostic
     public static VSDiagnosticProjectInformation GetDiagnosticProjectInformationHelper(Project project)
         => new()
         {
+            // When we have nothing better, just return the underlying roslyn-internal guid of this project. In
+            // practice, in VS this will actually become the real VS project guid for this project, as long as we can
+            // find that.
             ProjectIdentifier = project.Id.Id.ToString(),
             ProjectName = project.Name,
         };
