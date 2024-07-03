@@ -234,20 +234,9 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
         }
     }
 
-    private DiagnosticData? TryGetSingleSelectedEntry()
+    private static DiagnosticData? TryGetSingleSelectedEntry()
     {
-        if (_tableControl?.SelectedEntries.Count() != 1)
-        {
-            return null;
-        }
-
-        if (!_tableControl.SelectedEntry.TryGetSnapshot(out var snapshot, out var index) ||
-            snapshot is not AbstractTableEntriesSnapshot<DiagnosticTableItem> roslynSnapshot)
-        {
-            return null;
-        }
-
-        return roslynSnapshot.GetItem(index)?.Data;
+        return null;
     }
 
     private bool TryGetPathToAnalyzerConfigDoc(DiagnosticData selectedDiagnostic, [NotNullWhen(true)] out Project? project, [NotNullWhen(true)] out string? pathToAnalyzerConfigDoc)
