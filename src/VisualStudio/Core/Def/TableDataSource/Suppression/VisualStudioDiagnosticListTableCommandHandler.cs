@@ -69,48 +69,4 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
         var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
     }
-
-    private async Task SetSeverityHandlerAsync(ReportDiagnostic reportDiagnostic, DiagnosticData selectedDiagnostic, Project project)
-    {
-        try
-        {
-            using var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandlerAsync));
-            using var context = _uiThreadOperationExecutor.BeginExecute(
-                title: ServicesVSResources.Updating_severity,
-                defaultDescription: ServicesVSResources.Updating_severity,
-                allowCancellation: true,
-                showProgress: true);
-
-            var newSolution = await ConfigureSeverityAsync(context.UserCancellationToken).ConfigureAwait(false);
-            var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-            using var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
-            await _editHandlerService.ApplyAsync(
-                _workspace,
-                project.Solution,
-                fromDocument: null,
-                operations,
-                title: ServicesVSResources.Updating_severity,
-                scope.GetCodeAnalysisProgress(),
-                context.UserCancellationToken).ConfigureAwait(false);
-
-            // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
-            if (selectedDiagnostic.DocumentId != null)
-                _diagnosticService.RequestDiagnosticRefresh();
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-        {
-        }
-
-        return;
-
-        // Local functions.
-        async System.Threading.Tasks.Task<Solution> ConfigureSeverityAsync(CancellationToken cancellationToken)
-        {
-            var diagnostic = await selectedDiagnostic.ToDiagnosticAsync(project, cancellationToken).ConfigureAwait(false);
-            return await ConfigurationUpdater.ConfigureSeverityAsync(reportDiagnostic, diagnostic, project, cancellationToken).ConfigureAwait(false);
-        }
-    }
 }
