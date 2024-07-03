@@ -81,6 +81,14 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        // Do not use unless you are certain the span you are passing in is valid!
+        // This was added to allow SourceText's indexer to directly create TextLines
+        // without the performance implications of calling FromSpan.
+        internal static TextLine FromKnownSpan(SourceText text, TextSpan span)
+        {
+            return new TextLine(text, span.Start, span.End);
+        }
+
         /// <summary>
         /// Gets the source text.
         /// </summary>
