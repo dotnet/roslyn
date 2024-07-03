@@ -12,20 +12,14 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
 [ExportWorkspaceServiceFactory(typeof(ISettingsAggregator), ServiceLayer.Default), Shared]
-internal sealed class SettingsAggregatorFactory : IWorkspaceServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SettingsAggregatorFactory(
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly IAsynchronousOperationListener _listener;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SettingsAggregatorFactory(
-        IThreadingContext threadingContext,
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _threadingContext = threadingContext;
-        _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new SettingsAggregator(workspaceServices.Workspace, _threadingContext, _listener);
