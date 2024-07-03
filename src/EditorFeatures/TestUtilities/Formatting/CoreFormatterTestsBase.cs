@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         {
             using var workspace = CreateWorkspace(codeWithMarker, parseOptions);
 
-            options?.SetGlobalOptions(workspace.GlobalOptions);
+            workspace.SetAnalyzerFallbackAndGlobalOptions(options);
 
             // set up caret position
             var testDocument = workspace.Documents.Single();
