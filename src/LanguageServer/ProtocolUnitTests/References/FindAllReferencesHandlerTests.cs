@@ -84,14 +84,6 @@ class B
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First(), progress);
 
-            Assert.Null(results);
-
-            // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
-            // with the test creating one, and the handler another, we have to unwrap.
-            // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual VSInternalReferenceItem
-            // so we have to correctly convert the JObject into the expected type.
-            results = progress.GetValues().SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<LSP.VSInternalReferenceItem>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions)).ToArray();
-
             Assert.NotNull(results);
             Assert.NotEmpty(results);
 
@@ -287,21 +279,51 @@ class C
                 PartialResultToken = progress
             };
 
-        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
         {
             var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), CancellationToken.None);
             // Results are returned in a non-deterministic order, so we order them by location
             var orderedResults = results?.OrderBy(r => r.Location, new OrderLocations()).ToArray();
+
+            // If we're using progress, we need to return the results from the progress object.
+            if (progress != null)
+            {
+                Assert.Null(orderedResults);
+                // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
+                // with the test creating one, and the handler another, we have to unwrap.
+                // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual VSInternalReferenceItem
+                // so we have to correctly convert the JObject into the expected type.
+                orderedResults = progress.Value.GetValues()
+                    .SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<LSP.VSInternalReferenceItem>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions))
+                    .OrderBy(r => r.Location, new OrderLocations())
+                    .ToArray();
+            }
+
             return orderedResults;
         }
 
-        internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
         {
             var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.Location[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), CancellationToken.None);
             // Results are returned in a non-deterministic order, so we order them by location
             var orderedResults = results.OrderBy(r => r, new OrderLocations()).ToArray();
+
+            // If we're using progress, we need to return the results from the progress object.
+            if (progress != null)
+            {
+                Assert.Null(orderedResults);
+                // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
+                // with the test creating one, and the handler another, we have to unwrap.
+                // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual LSP.Location
+                // so we have to correctly convert the JObject into the expected type.
+                orderedResults = progress.Value.GetValues()
+                    .SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<LSP.Location>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions))
+                    .OrderBy(r => r, new OrderLocations())
+                    .ToArray();
+            }
+
             return orderedResults;
         }
 
