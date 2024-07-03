@@ -105,6 +105,9 @@ internal partial class SolutionCompilationState
                 return _compilationWithReplacements;
             }
 
+            // We're building the real compilation for this tracker, so we want to include all generated docs at every
+            // level of compilation tracker wrapping.  So pass along `withFrozenSourceGeneratedDocuments: true` to get a
+            // full view of that.
             var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
                 compilationState, withFrozenSourceGeneratedDocuments: true, cancellationToken).ConfigureAwait(false);
             var newCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
