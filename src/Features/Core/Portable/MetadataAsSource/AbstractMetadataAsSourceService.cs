@@ -3,18 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -28,14 +24,9 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
         Document document,
         Compilation symbolCompilation,
         ISymbol symbol,
-        CleanCodeGenerationOptions options,
+        SyntaxFormattingOptions? formattingOptions,
         CancellationToken cancellationToken)
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
         var newSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var rootNamespace = newSemanticModel.GetEnclosingNamespace(position: 0, cancellationToken);
         Contract.ThrowIfNull(rootNamespace);
@@ -48,11 +39,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
                 generateDocumentationComments: true,
                 mergeAttributes: false,
                 autoInsertionLocation: false),
-            new CodeAndImportGenerationOptions()
-            {
-                GenerationOptions = options.GenerationOptions,
-                AddImportOptions = options.CleanupOptions.AddImportOptions
-            }.CreateProvider());
+                CodeAndImportGenerationOptions.GetDefault(document.Project.Services).CreateProvider());
 
         // Add the interface of the symbol to the top of the root namespace
         document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
@@ -72,12 +59,12 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
         var formattedDoc = await Formatter.FormatAsync(
             docWithAssemblyInfo,
             [node.FullSpan],
-            options.CleanupOptions.FormattingOptions,
+            formattingOptions,
             GetFormattingRules(docWithAssemblyInfo),
             cancellationToken).ConfigureAwait(false);
 
         var reducers = GetReducers();
-        return await Simplifier.ReduceAsync(formattedDoc, reducers, options.CleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        return await Simplifier.ReduceAsync(formattedDoc, reducers, cancellationToken).ConfigureAwait(false);
     }
 
     protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
@@ -85,7 +72,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
     /// <summary>
     /// provide formatting rules to be used when formatting MAS file
     /// </summary>
-    protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
     /// <summary>
     /// Prepends a region directive at the top of the document with a name containing

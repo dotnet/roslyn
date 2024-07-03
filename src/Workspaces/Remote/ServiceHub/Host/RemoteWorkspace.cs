@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -205,9 +206,38 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        private async Task<Solution> GetOrCreateSolutionToUpdateAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            CancellationToken cancellationToken)
+        {
+            // See if we can just incrementally update the current solution.
+            var currentSolution = this.CurrentSolution;
+            if (await IsIncrementalUpdateAsync().ConfigureAwait(false))
+                return currentSolution;
+
+            // If not, have to create a new, fresh, solution instance to update.
+            var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            return CreateSolutionFromInfo(solutionInfo);
+
+            async Task<bool> IsIncrementalUpdateAsync()
+            {
+                var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
+                        AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                    AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+
+                var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
+                    AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+
+                // if either solution id or file path changed, then we consider it as new solution
+                return currentSolution.Id == newSolutionInfo.Id && currentSolution.FilePath == newSolutionInfo.FilePath;
+            }
+        }
+
         /// <summary>
         /// Create an appropriate <see cref="Solution"/> instance corresponding to the <paramref
-        /// name="solutionChecksum"/> passed in.  Note: this method changes no Workspace state and exists purely to
+        /// name="newSolutionChecksum"/> passed in.  Note: this method changes no Workspace state and exists purely to
         /// compute the corresponding solution.  Updating of our caches, or storing this solution as the <see
         /// cref="Workspace.CurrentSolution"/> of this <see cref="RemoteWorkspace"/> is the responsibility of any
         /// callers.
@@ -224,27 +254,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private async Task<Solution> ComputeDisconnectedSolutionAsync(
             AssetProvider assetProvider,
-            Checksum solutionChecksum,
+            Checksum newSolutionChecksum,
             CancellationToken cancellationToken)
         {
             try
             {
-                // Try to create the solution snapshot incrementally off of the workspaces CurrentSolution first.
-                var updater = new SolutionCreator(Services.HostServices, assetProvider, this.CurrentSolution);
-                if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
-                {
-                    return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // Otherwise, this is a different solution, or the first time we're creating this solution.  Bulk
-                    // sync over all assets for it.
-                    await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                var solutionToUpdate = await GetOrCreateSolutionToUpdateAsync(
+                    assetProvider, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
 
-                    // get new solution info and options
-                    var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                    return CreateSolutionFromInfo(solutionInfo);
-                }
+                // Now, bring that solution in line with the snapshot defined by solutionChecksum.
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, solutionToUpdate);
+                return await updater.CreateSolutionAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

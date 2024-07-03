@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,11 +25,10 @@ internal sealed class SimpleAssetSource(ISerializerService serializerService, IR
             Contract.ThrowIfFalse(map.TryGetValue(checksum, out var data));
 
             using var stream = new MemoryStream();
-            using var context = new SolutionReplicationContext();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializerService.Serialize(data, writer, context, cancellationToken);
+                serializerService.Serialize(data, writer, cancellationToken);
             }
 
             stream.Position = 0;

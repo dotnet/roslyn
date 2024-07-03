@@ -415,16 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
                 }
 
-                if (node.Type.IsDynamic() && !method.ReturnType.IsDynamic())
-                {
-                    Debug.Assert(node.Type.IsDynamic());
-                    Debug.Assert(!method.ReturnsByRef);
-                    Debug.Assert(rewrittenCall.Type is not null);
-                    Debug.Assert(!rewrittenCall.Type.IsDynamic());
-                    Debug.Assert(!rewrittenCall.Type.IsVoidType());
-                    rewrittenCall = _factory.Convert(node.Type, rewrittenCall);
-                }
-
                 return rewrittenCall;
             }
         }
@@ -687,17 +677,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    refKind = rewrittenReceiver.GetRefKind();
-
-                    if (refKind == RefKind.None &&
-                        !rewrittenReceiver.Type.IsReferenceType &&
-                        Binder.HasHome(rewrittenReceiver,
-                                       Binder.AddressKind.Constrained,
-                                       _factory.CurrentFunction,
-                                       peVerifyCompatEnabled: false,
-                                       stackLocalsOpt: null))
+                    if (rewrittenReceiver.Type.IsReferenceType)
                     {
-                        refKind = RefKind.Ref;
+                        refKind = RefKind.None;
+                    }
+                    else
+                    {
+                        refKind = rewrittenReceiver.GetRefKind();
+
+                        if (refKind == RefKind.None &&
+                            Binder.HasHome(rewrittenReceiver,
+                                           Binder.AddressKind.Constrained,
+                                           _factory.CurrentFunction,
+                                           peVerifyCompatEnabled: false,
+                                           stackLocalsOpt: null))
+                        {
+                            refKind = RefKind.Ref;
+                        }
                     }
                 }
 

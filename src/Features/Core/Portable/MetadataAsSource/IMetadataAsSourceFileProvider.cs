@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
@@ -16,7 +17,15 @@ internal interface IMetadataAsSourceFileProvider
     /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
     /// </summary>
     Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
-        MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, TelemetryMessage? telemetryMessage, CancellationToken cancellationToken);
+        MetadataAsSourceWorkspace metadataWorkspace,
+        Workspace sourceWorkspace,
+        Project sourceProject,
+        ISymbol symbol,
+        bool signaturesOnly,
+        MetadataAsSourceOptions options,
+        string tempPath,
+        TelemetryMessage? telemetryMessage,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Called to clean up any state. Will be called under a lock to prevent concurrent access.

@@ -39,6 +39,12 @@
 "Title"="Run C#/VB code analysis with ServerGC (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
+[$RootKey$\FeatureFlags\Roslyn\SemanticSearchEnabled]
+"Description"="Enable C# Semantic Search."
+"Value"=dword:00000000
+"Title"="Enable C# Semantic Search"
+"PreviewPaneChannels"="IntPreview,int.main"
+
 // Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
 [$RootKey$\FeatureFlags\Lsp\PullDiagnostics]
 "Description"="Enables the LSP-powered diagnostics for managed .Net projects"

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -322,7 +321,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
         SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         // Create interval tree for spans
-        var intervalTree = SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), spans);
+        var intervalTree = SimpleMutableIntervalTree.Create(new TextSpanIntervalIntrospector(), spans);
 
         // Find tokens that are outside of spans
         var tokenSpans = new List<TextSpan>();
@@ -530,7 +529,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
         // Remove the spans we should not touch from the requested spans and return that final set.
         var result = NormalizedTextSpanCollection.Difference(requestedSpans, spansToAvoid);
 
-        return result.ToImmutableArray();
+        return [.. result];
     }
 
     private async Task<SyntaxNode> IterateAllCodeCleanupProvidersAsync(
@@ -594,7 +593,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
     private static SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
     {
         var tokenMap = map.ToDictionary(p => p.Key, p => p.Value);
-        return node.ReplaceTokens(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o].ToArray()));
+        return node.ReplaceTokens(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations([.. tokenMap[o]]));
     }
 
     private static bool TryCreateTextSpan(int start, int end, out TextSpan span)

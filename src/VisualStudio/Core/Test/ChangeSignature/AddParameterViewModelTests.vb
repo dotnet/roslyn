@@ -308,8 +308,7 @@ class MyClass
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/44958")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44958")>
         Public Sub AddParameter_SubmittingTypeWithModifiersIsInvalid()
             Dim markup = <Text><![CDATA[
 class MyClass

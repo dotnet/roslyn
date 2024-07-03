@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -22,15 +23,15 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
 [Export(typeof(IMetadataAsSourceFileService)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers) : IMetadataAsSourceFileService
+internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 {
+    private const string MetadataAsSource = nameof(MetadataAsSource);
+
     /// <summary>
     /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
     /// extracting it from a pdb).
     /// </summary>
-    private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers = ExtensionOrderer.Order(providers).ToImmutableArray();
+    private readonly Lazy<ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>>> _providers;
 
     /// <summary>
     /// Workspace created the first time we generate any metadata for any symbol.
@@ -38,33 +39,32 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
     private MetadataAsSourceWorkspace? _workspace;
 
     /// <summary>
-    /// A lock to guard the mutex and filesystem data below.  We want to ensure we generate into that and clean that
-    /// up safely.  
+    /// A lock to ensure we initialize <see cref="_workspace"/> and cleanup stale data only once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
-    /// We create a mutex so other processes can see if our directory is still alive. We destroy the mutex when
-    /// we purge our generated files.
+    /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
+    /// other VS instance will try to delete our _rootTemporaryPathWithGuid folder.
     /// </summary>
-    private Mutex? _mutex;
-    private string? _rootTemporaryPathWithGuid;
-    private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
+    private readonly Mutex _mutex;
+    private readonly string _rootTemporaryPathWithGuid;
+    private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSource);
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public MetadataAsSourceFileService(
+        [ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
+    {
+        _providers = new(() => [.. ExtensionOrderer.Order(providers)]);
+
+        var guidString = Guid.NewGuid().ToString("N");
+        _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
+        _mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
+    }
 
     private static string CreateMutexName(string directoryName)
-        => "MetadataAsSource-" + directoryName;
-
-    private string GetRootPathWithGuid_NoLock()
-    {
-        if (_rootTemporaryPathWithGuid == null)
-        {
-            var guidString = Guid.NewGuid().ToString("N");
-            _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
-            _mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
-        }
-
-        return _rootTemporaryPathWithGuid;
-    }
+        => $"{MetadataAsSource}-{directoryName}";
 
     public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
         Workspace sourceWorkspace,
@@ -72,7 +72,7 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
         ISymbol symbol,
         bool signaturesOnly,
         MetadataAsSourceOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         if (sourceProject == null)
             throw new ArgumentNullException(nameof(sourceProject));
@@ -87,28 +87,74 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            _workspace ??= new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+            if (_workspace is null)
+            {
+                _workspace = new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+
+                // We're being initialized the first time.  Use this time to clean up any stale metadata-as-source files
+                // from previous VS sessions.
+                CleanupGeneratedFiles(_rootTemporaryPath);
+            }
 
             Contract.ThrowIfNull(_workspace);
-            var tempPath = GetRootPathWithGuid_NoLock();
 
             // We don't want to track telemetry for signatures only requests, only where we try to show source
             using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
 
-            foreach (var lazyProvider in _providers)
+            foreach (var lazyProvider in _providers.Value)
             {
                 var provider = lazyProvider.Value;
-                var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
+                var providerTempPath = Path.Combine(_rootTemporaryPathWithGuid, provider.GetType().Name);
                 var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, telemetryMessage, cancellationToken).ConfigureAwait(false);
                 if (result is not null)
-                {
                     return result;
-                }
             }
         }
 
         // The decompilation provider can always return something
         throw ExceptionUtilities.Unreachable();
+
+        static void CleanupGeneratedFiles(string rootDirectory)
+        {
+            try
+            {
+                if (Directory.Exists(rootDirectory))
+                {
+                    // Let's look through directories to delete.
+                    foreach (var directoryInfo in new DirectoryInfo(rootDirectory).EnumerateDirectories())
+                    {
+                        // Is there a mutex for this one?  If so, that means it's a folder open in another VS instance.
+                        // We should leave it alone.  If not, then it's a folder from a previous VS run.  Delete that
+                        // now.
+                        if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
+                        {
+                            acquiredMutex.Dispose();
+                        }
+                        else
+                        {
+                            TryDeleteFolderWhichContainsReadOnlyFiles(directoryInfo.FullName);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        static void TryDeleteFolderWhichContainsReadOnlyFiles(string directoryPath)
+        {
+            try
+            {
+                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
+                    IOUtilities.PerformIO(() => fileInfo.IsReadOnly = false);
+
+                IOUtilities.PerformIO(() => Directory.Delete(directoryPath, recursive: true));
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 
     private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
@@ -127,7 +173,7 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
         {
             AssertIsMainThread(workspace);
 
-            foreach (var provider in _providers)
+            foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
@@ -150,7 +196,7 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
         {
             AssertIsMainThread(workspace);
 
-            foreach (var provider in _providers)
+            foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
@@ -186,7 +232,7 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
 
         AssertIsMainThread(workspace);
 
-        foreach (var provider in _providers)
+        foreach (var provider in _providers.Value)
         {
             if (!provider.IsValueCreated)
                 continue;
@@ -205,7 +251,7 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
         Project? project = null;
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            foreach (var provider in _providers)
+            foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
@@ -227,80 +273,6 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
             return null;
 
         return new SymbolMappingResult(project, resolutionResult.Symbol);
-    }
-
-    public void CleanupGeneratedFiles()
-    {
-        using (_gate.DisposableWait())
-        {
-            // Release our mutex to indicate we're no longer using our directory and reset state
-            if (_mutex != null)
-            {
-                _mutex.Dispose();
-                _mutex = null;
-                _rootTemporaryPathWithGuid = null;
-            }
-
-            // Only cleanup for providers that have actually generated a file. This keeps us from accidentally loading
-            // lazy providers on cleanup that weren't used
-            var workspace = _workspace;
-            if (workspace != null)
-            {
-                foreach (var provider in _providers)
-                {
-                    if (!provider.IsValueCreated)
-                        continue;
-
-                    provider.Value.CleanupGeneratedFiles(workspace);
-                }
-            }
-
-            try
-            {
-                if (Directory.Exists(_rootTemporaryPath))
-                {
-                    var deletedEverything = true;
-
-                    // Let's look through directories to delete.
-                    foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
-                    {
-                        // Is there a mutex for this one?
-                        if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
-                        {
-                            acquiredMutex.Dispose();
-                            deletedEverything = false;
-                            continue;
-                        }
-
-                        TryDeleteFolderWhichContainsReadOnlyFiles(directoryInfo.FullName);
-                    }
-
-                    if (deletedEverything)
-                    {
-                        Directory.Delete(_rootTemporaryPath);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-    }
-
-    private static void TryDeleteFolderWhichContainsReadOnlyFiles(string directoryPath)
-    {
-        try
-        {
-            foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
-            {
-                fileInfo.IsReadOnly = false;
-            }
-
-            Directory.Delete(directoryPath, recursive: true);
-        }
-        catch (Exception)
-        {
-        }
     }
 
     public bool IsNavigableMetadataSymbol(ISymbol symbol)

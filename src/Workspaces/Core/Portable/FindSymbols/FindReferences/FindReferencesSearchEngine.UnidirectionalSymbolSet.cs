@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -40,7 +39,7 @@ internal partial class FindReferencesSearchEngine
             var result = new MetadataUnifyingSymbolHashSet();
             result.AddRange(_upSymbols);
             result.AddRange(initialSymbols);
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)

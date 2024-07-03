@@ -59,7 +59,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
                 type.GetReferencedTypeParameters(result);
             }
 
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         protected override ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken)

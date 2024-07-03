@@ -43,19 +43,7 @@ internal sealed class SolutionAssetCache
     /// </summary>
     private readonly TimeSpan _purgeAfterTimeSpan;
 
-    /// <summary>
-    /// Time we will wait after the last activity before doing explicit GC cleanup.
-    /// We monitor all resource access and service call to track last activity time.
-    /// 
-    /// We do this since 64bit process can hold onto quite big unused memory when
-    /// OOP is running as AnyCpu
-    /// </summary>
-    private readonly TimeSpan _gcAfterTimeSpan;
-
     private readonly ConcurrentDictionary<Checksum, Entry> _assets = new();
-
-    private DateTime _lastGCRun;
-    private DateTime _lastActivityTime;
 
     // constructor for testing
     public SolutionAssetCache()
@@ -67,16 +55,11 @@ internal sealed class SolutionAssetCache
     /// </summary>
     /// <param name="cleanupInterval">time interval to clean up</param>
     /// <param name="purgeAfter">time unused data can sit in the cache</param>
-    /// <param name="gcAfter">time we wait before it call GC since last activity</param>
-    public SolutionAssetCache(RemoteWorkspace? remoteWorkspace, TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
+    public SolutionAssetCache(RemoteWorkspace? remoteWorkspace, TimeSpan cleanupInterval, TimeSpan purgeAfter)
     {
         _remoteWorkspace = remoteWorkspace;
         _cleanupIntervalTimeSpan = cleanupInterval;
         _purgeAfterTimeSpan = purgeAfter;
-        _gcAfterTimeSpan = gcAfter;
-
-        _lastActivityTime = DateTime.UtcNow;
-        _lastGCRun = DateTime.UtcNow;
 
         Task.Run(CleanAssetsAsync, CancellationToken.None);
     }
@@ -84,7 +67,6 @@ internal sealed class SolutionAssetCache
     public object GetOrAdd(Checksum checksum, object value)
     {
         Contract.ThrowIfNull(value);
-        UpdateLastActivityTime();
 
         var entry = _assets.GetOrAdd(checksum, new Entry(value));
         Update(entry);
@@ -93,8 +75,6 @@ internal sealed class SolutionAssetCache
 
     public bool TryGetAsset<T>(Checksum checksum, [MaybeNullWhen(false)] out T value)
     {
-        UpdateLastActivityTime();
-
         using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
         {
             if (!_assets.TryGetValue(checksum, out var entry))
@@ -113,9 +93,6 @@ internal sealed class SolutionAssetCache
 
     public bool ContainsAsset(Checksum checksum)
         => _assets.ContainsKey(checksum);
-
-    public void UpdateLastActivityTime()
-        => _lastActivityTime = DateTime.UtcNow;
 
     private static void Update(Entry entry)
     {
@@ -138,40 +115,8 @@ internal sealed class SolutionAssetCache
         while (!cancellationToken.IsCancellationRequested)
         {
             await CleanAssetsWorkerAsync(cancellationToken).ConfigureAwait(false);
-
-            ForceGC();
-
             await Task.Delay(_cleanupIntervalTimeSpan, cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    private void ForceGC()
-    {
-        // if there was no activity since last GC run. we don't have anything to do
-        if (_lastGCRun >= _lastActivityTime)
-        {
-            return;
-        }
-
-        var current = DateTime.UtcNow;
-        if (current - _lastActivityTime < _gcAfterTimeSpan)
-        {
-            // we are having activities.
-            return;
-        }
-
-        using (Logger.LogBlock(FunctionId.AssetStorage_ForceGC, CancellationToken.None))
-        {
-            // we didn't have activity for 5 min. spend some time to drop 
-            // unused memory
-            for (var i = 0; i < 3; i++)
-            {
-                GC.Collect();
-            }
-        }
-
-        // update gc run time
-        _lastGCRun = current;
     }
 
     private async ValueTask CleanAssetsWorkerAsync(CancellationToken cancellationToken)
@@ -266,6 +211,15 @@ internal sealed class SolutionAssetCache
         {
             Object = @object;
         }
+    }
+
+    public TestAccessor GetTestAccessor()
+        => new(this);
+
+    public readonly struct TestAccessor(SolutionAssetCache cache)
+    {
+        public void Clear()
+            => cache._assets.Clear();
     }
 }
 

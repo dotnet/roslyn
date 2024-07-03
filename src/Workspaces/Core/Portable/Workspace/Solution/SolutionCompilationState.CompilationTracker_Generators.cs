@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    private partial class CompilationTracker : ICompilationTracker
+    private partial class RegularCompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo nextGeneratorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
             CreationPolicy creationPolicy,
@@ -92,12 +91,16 @@ internal partial class SolutionCompilationState
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
             using var _ = await RemoteKeepAliveSession.CreateAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
-            // First, grab the info from our external host about the generated documents it has for this project.
+            // First, grab the info from our external host about the generated documents it has for this project.  Note:
+            // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
+            // As such, our call to the oop side reflects that by asking for only *its* innermost
+            // RegularCompilationTracker to do the same.
             var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, projectId, cancellationToken),
+                (service, solutionChecksum, cancellationToken) => service.GetRegularCompilationTrackerSourceGenerationInfoAsync(
+                    solutionChecksum, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!infosOpt.HasValue)
@@ -144,7 +147,7 @@ internal partial class SolutionCompilationState
                 foreach (var (documentIdentity, _, generationDateTime) in infos)
                 {
                     var documentId = documentIdentity.DocumentId;
-                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(documentId, oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
+                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
                 }
 
                 // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we
@@ -154,12 +157,15 @@ internal partial class SolutionCompilationState
                     : (compilationWithStaleGeneratedTrees, oldGeneratedDocuments);
             }
 
-            // Either we generated a different number of files, and/or we had contents of files that changed. Ensure
-            // we know the contents of any new/changed files.
+            // Either we generated a different number of files, and/or we had contents of files that changed. Ensure we
+            // know the contents of any new/changed files.  Note: we ourselves are the innermost
+            // "RegularCompilationTracker" responsible for actually running generators. As such, our call to the oop
+            // side reflects that by asking for the source gen contents produced by *its* innermost
+            // RegularCompilationTracker.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
+                (service, solutionChecksum, cancellationToken) => service.GetRegularCompilationTrackerContentsAsync(
                     solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 

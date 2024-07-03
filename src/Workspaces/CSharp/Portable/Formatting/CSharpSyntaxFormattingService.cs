@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -148,7 +146,7 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
             return changes;
         }
 
-        return FormatToken(document, indentationOptions, token, formattingRules, cancellationToken).ToImmutableArray();
+        return [.. FormatToken(document, indentationOptions, token, formattingRules, cancellationToken)];
     }
 
     private static bool OnlySmartIndentCloseBrace(in AutoFormattingOptions options)
@@ -199,7 +197,7 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
         var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)document.Root, document.Text);
 
         var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
-        return changes.ToImmutableArray();
+        return [.. changes];
     }
 
     private static IEnumerable<AbstractFormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
@@ -318,9 +316,12 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
     private ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, int position, SyntaxToken tokenBeforeCaret)
     {
         var formattingRuleFactory = _services.SolutionServices.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-        return ImmutableArray.Create(formattingRuleFactory.CreateRule(document, position))
-                             .AddRange(GetTypingRules(tokenBeforeCaret))
-                             .AddRange(Formatter.GetDefaultFormattingRules(_services));
+        return
+        [
+            formattingRuleFactory.CreateRule(document, position),
+            .. GetTypingRules(tokenBeforeCaret),
+            .. Formatter.GetDefaultFormattingRules(_services),
+        ];
     }
 
     public ImmutableArray<TextChange> GetFormattingChangesOnPaste(ParsedDocument document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
@@ -328,11 +329,9 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
         var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(document.Root, textSpan);
         var service = _services.GetRequiredService<ISyntaxFormattingService>();
 
-        var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
-        rules.AddRange(service.GetDefaultFormattingRules());
-
-        var result = service.GetFormattingResult(document.Root, [formattingSpan], options, rules, cancellationToken);
-        return result.GetTextChanges(cancellationToken).ToImmutableArray();
+        var result = service.GetFormattingResult(
+            document.Root, [formattingSpan], options, [new PasteFormattingRule(), .. service.GetDefaultFormattingRules()], cancellationToken);
+        return [.. result.GetTextChanges(cancellationToken)];
     }
 
     internal sealed class PasteFormattingRule : AbstractFormattingRule

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -67,8 +68,7 @@ public abstract partial class CompletionService
          ImmutableHashSet<string>? roles = null,
          CancellationToken cancellationToken = default)
     {
-        // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-        (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+        document = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
@@ -114,8 +114,6 @@ public abstract partial class CompletionService
         var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
             document, caretPosition, trigger, options, completionListSpan, augmentingProviders, sharedContext, cancellationToken).ConfigureAwait(false);
 
-        GC.KeepAlive(semanticModel);
-
         // Providers are ordered, but we processed them in our own order.  Ensure that the
         // groups are properly ordered based on the original providers.
         var completionProviderToIndex = GetCompletionProviderToIndex(providers);
@@ -137,13 +135,13 @@ public abstract partial class CompletionService
                         var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.Services, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
 
                         Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
-                        return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
+                        return triggeredProviders.IsEmpty ? [.. providers] : triggeredProviders;
                     }
 
                     return [];
 
                 default:
-                    return providers.ToImmutableArray();
+                    return [.. providers];
             }
         }
 
@@ -171,19 +169,20 @@ public abstract partial class CompletionService
     }
 
     /// <summary>
-    /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
+    /// Returns a document with frozen partial semantic model unless caller is test code require full semantics.
     /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
     /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
     /// we get into this transient state.
     /// </summary>
-    private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+    private async Task<Document> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
     {
         if (_suppressPartialSemantics)
         {
-            return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+            var _ = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return document;
         }
 
-        return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        return document.WithFrozenPartialSemantics(cancellationToken);
     }
 
     private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -235,16 +234,18 @@ public abstract partial class CompletionService
         SharedSyntaxContextsWithSpeculativeModel sharedContext,
         CancellationToken cancellationToken)
     {
-        var completionContextTasks = new List<Task<CompletionContext>>();
-        foreach (var provider in providers)
-        {
-            completionContextTasks.Add(GetContextAsync(
-                provider, document, caretPosition, trigger,
-                options, completionListSpan, sharedContext, cancellationToken));
-        }
-
-        var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
-        return completionContexts.Where(HasAnyItems).ToImmutableArray();
+        return await ProducerConsumer<CompletionContext>.RunParallelAsync(
+            source: providers,
+            produceItems: static async (provider, callback, args, cancellationToken) =>
+            {
+                var (document, caretPosition, trigger, options, completionListSpan, sharedContext) = args;
+                var context = await GetContextAsync(
+                    provider, document, caretPosition, trigger, options, completionListSpan, sharedContext, cancellationToken).ConfigureAwait(false);
+                if (HasAnyItems(context))
+                    callback(context);
+            },
+            args: (document, caretPosition, trigger, options, completionListSpan, sharedContext),
+            cancellationToken).ConfigureAwait(false);
     }
 
     private CompletionList MergeAndPruneCompletionLists(

@@ -454,15 +454,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     diagnostics.ReportUseSite(elementField, syntax);
 
-                    Symbol? unsafeAsMethod = null;
-
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {
                         if (CheckValueKind(syntax, source, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                         {
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T, diagnostics, syntax: syntax);
-                            unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
                         }
                         else
                         {
@@ -476,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (CheckValueKind(syntax, source, BindValueKind.RefersToLocation | BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                         {
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
-                            unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
                         }
                         else
                         {
@@ -484,12 +482,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
-                    {
-                        method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(source.Type), elementField.TypeWithAnnotations)).
-                            CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, syntax.GetLocation(), diagnostics));
-                    }
+                    CheckInlineArrayTypeIsSupported(syntax, source.Type, elementField.Type, diagnostics);
                 }
+            }
+        }
+
+        private static void CheckInlineArrayTypeIsSupported(SyntaxNode syntax, TypeSymbol inlineArrayType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        {
+            if (elementType.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadTypeArgument, syntax, elementType);
+            }
+            else if (inlineArrayType.IsRestrictedType())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadTypeArgument, syntax, inlineArrayType);
             }
         }
 
@@ -702,6 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics);
                     builder.Add(convertedElement!);
                 }
+                conversion.MarkUnderlyingConversionsChecked();
             }
 
             return new BoundCollectionExpression(
@@ -1118,22 +1125,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 addMethods = [];
                                 result = false;
                             }
-                            else if (finalApplicableCandidates.Length == 1 &&
-                                     tryEarlyBindSingleCandidateInvocationWithDynamicArgument(addMethodBinder, syntax, expression, methodGroup, diagnostics, resolution, finalApplicableCandidates[0], out var addMethod) is bool earlyBoundResult)
-                            {
-                                addMethods = addMethod is null ? [] : [addMethod];
-                                result = earlyBoundResult;
-                            }
                             else
                             {
-                                Debug.Assert(finalApplicableCandidates.Length > 0);
-
                                 addMethods = filterOutBadGenericMethods(addMethodBinder, syntax, methodGroup, analyzedArguments, resolution, finalApplicableCandidates, ref useSiteInfo);
                                 result = !addMethods.IsEmpty;
 
                                 if (!result)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, syntax, methodGroup.ReceiverOpt.Type);
+                                }
+                                else if (addMethods.Length == 1)
+                                {
+                                    addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
+                                    ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
                                 }
                             }
                         }
@@ -1257,67 +1261,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return resultBuilder.ToImmutableAndFree();
-            }
-
-            // This is what CanEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure
-            static bool canEarlyBindSingleCandidateInvocationWithDynamicArgument(
-                        Binder addMethodBinder,
-                        SyntaxNode syntax,
-                        BoundMethodGroup boundMethodGroup,
-                        BindingDiagnosticBag diagnostics,
-                        MethodGroupResolution resolution,
-                        MemberResolutionResult<MethodSymbol> methodResolutionResult,
-                        MethodSymbol singleCandidate)
-            {
-                Debug.Assert(boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty);
-
-                if (singleCandidate.IsGenericMethod)
-                {
-                    return false;
-                }
-
-                if (addMethodBinder.IsAmbiguousDynamicParamsArgument(resolution.AnalyzedArguments.Arguments, methodResolutionResult, out SyntaxNode argumentSyntax))
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
-            // This is what TryEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure
-            static bool? tryEarlyBindSingleCandidateInvocationWithDynamicArgument(
-                Binder addMethodBinder,
-                SyntaxNode syntax,
-                SyntaxNode expression,
-                BoundMethodGroup boundMethodGroup,
-                BindingDiagnosticBag diagnostics,
-                MethodGroupResolution resolution,
-                MemberResolutionResult<MethodSymbol> methodResolutionResult,
-                out MethodSymbol? addMethod)
-            {
-                MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
-                if (!canEarlyBindSingleCandidateInvocationWithDynamicArgument(addMethodBinder, syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
-                {
-                    addMethod = null;
-                    return null;
-                }
-
-                var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
-
-                bool result = bindInvocationExpressionContinued(
-                    addMethodBinder,
-                    node: syntax,
-                    expression: expression,
-                    result: resultWithSingleCandidate,
-                    analyzedArguments: resolution.AnalyzedArguments,
-                    methodGroup: resolution.MethodGroup,
-                    diagnostics: diagnostics,
-                    out addMethod);
-
-                resultWithSingleCandidate.Free();
-
-                return result;
             }
 
             // This is what BindInvocationExpressionContinued is doing in terms of reporting diagnostics and detecting a failure
@@ -1512,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
 
-        private void GenerateImplicitConversionErrorForCollectionExpression(
+        internal void GenerateImplicitConversionErrorForCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
@@ -1702,7 +1645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool targetTyped = conversionIfTargetTyped is { };
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
-            ImmutableArray<Conversion> underlyingConversions = conversionIfTargetTyped.GetValueOrDefault().UnderlyingConversions;
+            var conversion = conversionIfTargetTyped.GetValueOrDefault();
+            ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
             var condition = source.Condition;
             hasErrors |= source.HasErrors || destination.IsErrorType();
 
@@ -1714,6 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetTyped
                 ? CreateConversion(source.Alternative.Syntax, source.Alternative, underlyingConversions[1], isCast: false, conversionGroupOpt: null, destination, diagnostics)
                 : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
+            conversion.MarkUnderlyingConversionsChecked();
             var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
             hasErrors |= constantValue?.IsBad == true;
             if (targetTyped && !destination.IsErrorType() && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureTargetTypedConditional))
@@ -1753,6 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
             }
+            conversion.MarkUnderlyingConversionsChecked();
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
@@ -1781,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     syntax,
-                    source,
+                    BindToNaturalType(source, diagnostics),
                     conversion,
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
@@ -2020,10 +1966,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, isAddressOf, destination, diagnostics))
             {
                 hasErrors = true;
-            }
-            else if (destination is AnonymousTypeManager.AnonymousDelegatePublicSymbol { CheckParamsCollectionsFeatureAvailability: true })
-            {
-                MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
             }
 
             Debug.Assert(conversion.UnderlyingConversions.IsDefault);

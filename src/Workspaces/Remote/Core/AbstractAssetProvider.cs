@@ -45,6 +45,7 @@ internal abstract class AbstractAssetProvider
             cancellationToken).ConfigureAwait(false);
 
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
 
         // Fetch the projects in parallel.
         var projects = await Task.WhenAll(projectsTasks).ConfigureAwait(false);
@@ -53,7 +54,8 @@ internal abstract class AbstractAssetProvider
             solutionAttributes.Version,
             solutionAttributes.FilePath,
             ImmutableCollectionsMarshal.AsImmutableArray(projects),
-            analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
+            analyzerReferences,
+            fallbackAnalyzerOptions).WithTelemetryId(solutionAttributes.TelemetryId);
     }
 
     public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
@@ -142,8 +144,7 @@ internal abstract class AbstractAssetProvider
         var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(new(AssetPathKind.DocumentAttributes, documentId), attributeChecksum, cancellationToken).ConfigureAwait(false);
         var serializableSourceText = await GetAssetAsync<SerializableSourceText>(new(AssetPathKind.DocumentText, documentId), textChecksum, cancellationToken).ConfigureAwait(false);
 
-        var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), attributes.FilePath));
+        var textLoader = serializableSourceText.ToTextLoader(attributes.FilePath);
 
         // TODO: do we need version?
         return new DocumentInfo(attributes, textLoader, documentServiceProvider: null);
@@ -190,23 +191,41 @@ internal static class AbstractAssetProviderExtensions
         await assetProvider.GetAssetsAsync(assetPath, checksumSet, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Returns an array of assets, corresponding to all the checksums found in the given <paramref name="checksums"/>.
+    /// The assets will be returned in the order corresponding to their checksum in <paramref name="checksums"/>.
+    /// </summary>
     public static async Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
+        // Note: nothing stops 'checksums' from having multiple identical checksums in it.  First, collapse this down to
+        // a set so we're only asking about unique checksums.
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
 #if NET
         checksumSet.EnsureCapacity(checksums.Children.Length);
 #endif
         checksumSet.AddAll(checksums.Children);
 
-        using var _ = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
+        using var _2 = PooledDictionary<Checksum, T>.GetInstance(out var checksumToAsset);
 
         await assetProvider.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksumSet,
-            static (checksum, asset, builder) => builder.Add(asset),
-            builder,
+            // Calling .Add here is safe.  As checksum-set is a unique set of checksums, we'll never have collions here.
+            static (checksum, asset, checksumToAsset) => checksumToAsset.Add(checksum, asset),
+            checksumToAsset,
             cancellationToken).ConfigureAwait(false);
 
-        return builder.ToImmutableAndClear();
+        // Note: GetAssetsAsync will only succeed if we actually found all our assets (it crashes otherwise).  So we can
+        // just safely assume we can index into checksumToAsset here.
+        Contract.ThrowIfTrue(checksumToAsset.Count != checksumSet.Count);
+
+        // The result of GetAssetsArrayAsync wants the returned assets to be in the exact order of the checksums that
+        // were in 'checksums'.  So now fetch the assets in that order, even if we found them in an entirely different
+        // order.
+        var result = new FixedSizeArrayBuilder<T>(checksums.Children.Length);
+        foreach (var checksum in checksums.Children)
+            result.Add(checksumToAsset[checksum]);
+
+        return result.MoveToImmutable();
     }
 }

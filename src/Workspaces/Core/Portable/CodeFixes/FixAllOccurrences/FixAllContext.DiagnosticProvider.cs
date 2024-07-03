@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -81,26 +82,27 @@ public partial class FixAllContext
                             return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(project, diagnostics)]);
 
                         case FixAllScope.Solution:
-                            var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
-
-                            var tasks = project.Solution.Projects.Select(async p => new
-                            {
-                                Project = p,
-                                Diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(p).ConfigureAwait(false)
-                            }).ToArray();
-
-                            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                            foreach (var task in tasks)
-                            {
-                                var projectAndDiagnostics = await task.ConfigureAwait(false);
-                                if (projectAndDiagnostics.Diagnostics.Any())
+                            return await ProducerConsumer<(Project project, ImmutableArray<Diagnostic> diagnostics)>.RunParallelAsync(
+                                source: project.Solution.Projects,
+                                produceItems: static async (project, callback, fixAllContext, cancellationToken) =>
                                 {
-                                    projectsAndDiagnostics[projectAndDiagnostics.Project] = projectAndDiagnostics.Diagnostics;
-                                }
-                            }
+                                    var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
+                                    callback((project, diagnostics));
+                                },
+                                consumeItems: static async (results, args, cancellationToken) =>
+                                {
+                                    var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
 
-                            return projectsAndDiagnostics.ToImmutable();
+                                    await foreach (var (project, diagnostics) in results)
+                                    {
+                                        if (diagnostics.Any())
+                                            projectsAndDiagnostics.Add(project, diagnostics);
+                                    }
+
+                                    return projectsAndDiagnostics.ToImmutable();
+                                },
+                                args: fixAllContext,
+                                fixAllContext.CancellationToken).ConfigureAwait(false);
                     }
                 }
 

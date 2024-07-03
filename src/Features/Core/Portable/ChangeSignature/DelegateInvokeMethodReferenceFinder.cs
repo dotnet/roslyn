@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,9 +26,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature;
 /// <remarks>
 /// TODO: Rewrite this to track backward through references instead of binding everything
 /// </remarks>
-internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+internal sealed class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
-    public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
+    public static readonly DelegateInvokeMethodReferenceFinder Instance = new();
+
+    private DelegateInvokeMethodReferenceFinder()
+    {
+    }
 
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind == MethodKind.DelegateInvoke;
@@ -59,20 +64,27 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         return result.ToImmutableAndClear();
     }
 
-    protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected override Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(project.Documents.ToImmutableArray());
+        foreach (var document in project.Documents)
+            processResult(document, processResultData);
+
+        return Task.CompletedTask;
     }
 
-    protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -83,7 +95,12 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         var root = state.Root;
         var nodes = root.DescendantNodes();
 
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedAnonymousFunctions);
+        var invocations = nodes.Where(syntaxFacts.IsInvocationExpression)
+            .Where(e => state.SemanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
+
+        foreach (var node in invocations)
+            processResult(CreateFinderLocation(node, state, cancellationToken), processResultData);
+
         foreach (var node in nodes)
         {
             if (!syntaxFacts.IsAnonymousFunctionExpression(node))
@@ -92,19 +109,21 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
             var convertedType = (ISymbol?)state.SemanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
             if (convertedType != null)
             {
-                convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, state.Solution, cancellationToken).ConfigureAwait(false)
-                    ?? convertedType;
+                convertedType = SymbolFinder.FindSourceDefinition(convertedType, state.Solution, cancellationToken) ?? convertedType;
             }
 
             if (convertedType == methodSymbol.ContainingType)
-                convertedAnonymousFunctions.Add(node);
+            {
+                var finderLocation = CreateFinderLocation(node, state, cancellationToken);
+                processResult(finderLocation, processResultData);
+            }
         }
 
-        var invocations = nodes.Where(syntaxFacts.IsInvocationExpression)
-            .Where(e => state.SemanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
+        return;
 
-        return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-            node => new FinderLocation(
+        static FinderLocation CreateFinderLocation(SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
+        {
+            return new FinderLocation(
                 node,
                 new ReferenceLocation(
                     state.Document,
@@ -113,6 +132,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
                     isImplicit: false,
                     GetSymbolUsageInfo(node, state, cancellationToken),
                     GetAdditionalFindUsagesProperties(node, state),
-                    CandidateReason.None)));
+                    CandidateReason.None));
+        }
     }
 }

@@ -101,15 +101,14 @@ internal sealed class KeybindingResetDetector : IOleCommandTarget
         _infoBar = new VisualStudioInfoBar(threadingContext, vsInfoBarUIFactory, vsShell, listenerProvider, windowFrame: null);
     }
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         // Immediately bail if the user has asked to never see this bar again.
         if (_globalOptions.GetOption(KeybindingResetOptionsStorage.NeverShowAgain))
-        {
-            return Task.CompletedTask;
-        }
+            return;
 
-        return _threadingContext.InvokeBelowInputPriorityAsync(InitializeCore);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+        InitializeCore();
     }
 
     private void InitializeCore()

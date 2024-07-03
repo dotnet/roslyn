@@ -492,4 +492,10 @@
   <data name="Unexpected_value_0_in_DocumentKinds_array" xml:space="preserve">
     <value>Unexpected value '{0}' in DocumentKinds array.</value>
   </data>
+  <data name="Running_code_cleanup_on_fixed_documents" xml:space="preserve">
+    <value>Running code cleanup on fixed documents</value>
+  </data>
+  <data name="Applying_changes_to_0" xml:space="preserve">
+    <value>Applying changes to {0}</value>
+  </data>
 </root>

@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var activeStatementMarkers = SourceMarkers.GetActiveSpans(markedSource).ToArray();
             var exceptionRegionMarkers = SourceMarkers.GetExceptionRegions(markedSource);
 
-            return activeStatementMarkers.Aggregate(
+            return [.. activeStatementMarkers.Aggregate(
                 new List<UnmappedActiveStatement>(),
                 (list, marker) =>
                 {
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                     documentActiveStatements.Add(unmappedActiveStatement.Statement);
                     return SourceMarkers.SetListItem(list, ordinal, unmappedActiveStatement);
-                }).ToImmutableArray();
+                })];
         }
 
         internal static ImmutableArray<UnmappedActiveStatement> GetUnmappedActiveStatements(

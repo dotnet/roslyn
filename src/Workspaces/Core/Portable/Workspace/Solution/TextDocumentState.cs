@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -60,7 +58,7 @@ internal partial class TextDocumentState
                info.DocumentServiceProvider,
                info.Attributes,
                textAndVersionSource: info.TextLoader != null
-                ? CreateRecoverableText(info.TextLoader, solutionServices)
+                ? CreateTextFromLoader(info.TextLoader, PreservationMode.PreserveValue, solutionServices)
                 : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
                loadTextOptions)
     {
@@ -71,34 +69,14 @@ internal partial class TextDocumentState
     public IReadOnlyList<string> Folders => Attributes.Folders;
     public string Name => Attributes.Name;
 
-    private static ITextAndVersionSource CreateStrongText(TextAndVersion text)
-        => new ConstantTextAndVersionSource(text);
+    private static ConstantTextAndVersionSource CreateStrongText(TextAndVersion text)
+        => new(text);
 
-    private static ITextAndVersionSource CreateStrongText(TextLoader loader)
-        => new LoadableTextAndVersionSource(loader, cacheResult: true);
+    private static RecoverableTextAndVersion CreateRecoverableText(TextAndVersion text, SolutionServices services)
+        => new(new ConstantTextAndVersionSource(text), services);
 
-    private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, SolutionServices services)
-    {
-        var service = services.GetRequiredService<IWorkspaceConfigurationService>();
-        var options = service.Options;
-
-        return options.DisableRecoverableText
-            ? CreateStrongText(text)
-            : new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
-    }
-
-    private static ITextAndVersionSource CreateRecoverableText(TextLoader loader, SolutionServices services)
-    {
-        var service = services.GetRequiredService<IWorkspaceConfigurationService>();
-        var options = service.Options;
-
-        return options.DisableRecoverableText
-            ? CreateStrongText(loader)
-            : new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
-    }
-
-    public ITemporaryTextStorageInternal? Storage
-        => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
+    public ITemporaryStorageTextHandle? StorageHandle
+        => (TextAndVersionSource as RecoverableTextAndVersion)?.StorageHandle;
 
     public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
     {
@@ -159,13 +137,11 @@ internal partial class TextDocumentState
     }
 
     public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
-    {
-        var newTextSource = mode == PreservationMode.PreserveIdentity
-            ? CreateStrongText(newTextAndVersion)
-            : CreateRecoverableText(newTextAndVersion, solutionServices);
-
-        return UpdateText(newTextSource, mode, incremental: true);
-    }
+        => UpdateText(mode == PreservationMode.PreserveIdentity
+                ? CreateStrongText(newTextAndVersion)
+                : CreateRecoverableText(newTextAndVersion, solutionServices),
+            mode,
+            incremental: true);
 
     public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
     {
@@ -178,11 +154,29 @@ internal partial class TextDocumentState
     public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
     {
         // don't blow up on non-text documents.
-        var newTextSource = mode == PreservationMode.PreserveIdentity
-            ? CreateStrongText(loader)
-            : CreateRecoverableText(loader, solutionServices);
+        var newTextSource = CreateTextFromLoader(loader, mode, this.solutionServices);
 
         return UpdateText(newTextSource, mode, incremental: false);
+    }
+
+    private static ITextAndVersionSource CreateTextFromLoader(TextLoader loader, PreservationMode mode, SolutionServices solutionServices)
+    {
+        // If the caller is explicitly stating that identity must be preserved, then we created a source that will load
+        // from the loader the first time, but then cache that result so that hte same result is *always* returned.
+        if (mode == PreservationMode.PreserveIdentity)
+            return new LoadableTextAndVersionSource(loader, cacheResult: true);
+
+        // If the loader asks us to always hold onto it strongly, then we do not want to create a recoverable text
+        // source here.  Instead, we'll go back to the loader each time to get the text.  This is useful for when the
+        // loader knows it can always reconstitute the snapshot exactly as it was before.  For example, if the loader
+        // points at the contents of a memory mapped file in another process.
+        if (loader.AlwaysHoldStrongly)
+            return new LoadableTextAndVersionSource(loader, cacheResult: false);
+
+        // Otherwise, we just want to hold onto this loader by value.  So we create a loader that will load the
+        // contents, but not hold onto them strongly, and we wrap it in a recoverable-text that will then take those
+        // contents and dump it into a memory-mapped-file in this process so that snapshot semantics can be preserved.
+        return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
     }
 
     protected virtual TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)

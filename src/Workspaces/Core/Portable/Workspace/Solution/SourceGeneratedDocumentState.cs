@@ -6,7 +6,6 @@ using System;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -105,7 +104,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         ITextAndVersionSource textSource,
         SourceText text,
         LoadTextOptions loadTextOptions,
-        AsyncLazy<TreeAndVersion> treeSource,
+        ITreeAndVersionSource treeSource,
         Lazy<Checksum> lazyContentHash,
         DateTime generationDateTime)
         : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)

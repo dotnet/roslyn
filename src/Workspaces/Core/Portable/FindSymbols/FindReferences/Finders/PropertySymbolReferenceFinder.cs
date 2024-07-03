@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
 {
+    public static readonly PropertySymbolReferenceFinder Instance = new();
+
+    private PropertySymbolReferenceFinder()
+    {
+    }
+
     protected override bool CanFind(IPropertySymbol symbol)
         => true;
 
@@ -29,11 +35,18 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
+        CascadeToOtherPartOfPartial(symbol, result);
         CascadeToBackingFields(symbol, result);
         CascadeToAccessors(symbol, result);
         CascadeToPrimaryConstructorParameters(symbol, result, cancellationToken);
 
         return new(result.ToImmutable());
+    }
+
+    private static void CascadeToOtherPartOfPartial(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
+    {
+        result.AddIfNotNull(symbol.PartialDefinitionPart);
+        result.AddIfNotNull(symbol.PartialImplementationPart);
     }
 
     private static void CascadeToBackingFields(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
@@ -91,87 +104,92 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
         }
     }
 
-    protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
         IPropertySymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
 
-        var forEachDocuments = IsForEachProperty(symbol)
-            ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-            : [];
+        if (IsForEachProperty(symbol))
+            await FindDocumentsWithForEachStatementsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        var elementAccessDocument = symbol.IsIndexer
-            ? await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-            : [];
+        if (symbol.IsIndexer)
+            await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        var indexerMemberCrefDocument = symbol.IsIndexer
-            ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
-            : [];
+        if (symbol.IsIndexer)
+            await FindDocumentWithIndexerMemberCrefAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
-        return ordinaryDocuments.Concat(forEachDocuments, elementAccessDocument, indexerMemberCrefDocument, documentsWithGlobalAttributes);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     private static bool IsForEachProperty(IPropertySymbol symbol)
         => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
-    protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override void FindReferencesInDocument<TData>(
         IPropertySymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
-            symbol, state, cancellationToken).ConfigureAwait(false);
-
-        if (options.AssociatePropertyReferencesWithSpecificAccessor)
-        {
-            // We want to associate property references to a specific accessor (if an accessor
-            // is being referenced).  Check if this reference would match an accessor. If so, do
-            // not add it.  It will be added by PropertyAccessorSymbolReferenceFinder.
-            nameReferences = nameReferences.WhereAsArray(loc =>
+        FindReferencesInDocumentUsingSymbolName(
+            symbol,
+            state,
+            static (loc, data) =>
             {
-                var accessors = GetReferencedAccessorSymbols(
-                    state, symbol, loc.Node, cancellationToken);
-                return accessors.IsEmpty;
-            });
-        }
+                var useResult = true;
+                if (data.options.AssociatePropertyReferencesWithSpecificAccessor)
+                {
+                    // We want to associate property references to a specific accessor (if an accessor
+                    // is being referenced).  Check if this reference would match an accessor. If so, do
+                    // not add it.  It will be added by PropertyAccessorSymbolReferenceFinder.
+                    var accessors = GetReferencedAccessorSymbols(
+                        data.state, data.symbol, loc.Node, data.cancellationToken);
+                    useResult = accessors.IsEmpty;
+                }
 
-        var forEachReferences = IsForEachProperty(symbol)
-            ? await FindReferencesInForEachStatementsAsync(symbol, state, cancellationToken).ConfigureAwait(false)
-            : [];
+                if (useResult)
+                    data.processResult(loc, data.processResultData);
+            },
+            processResultData: (self: this, symbol, state, processResult, processResultData, options, cancellationToken),
+            cancellationToken);
 
-        var indexerReferences = symbol.IsIndexer
-            ? await FindIndexerReferencesAsync(symbol, state, options, cancellationToken).ConfigureAwait(false)
-            : [];
+        if (IsForEachProperty(symbol))
+            FindReferencesInForEachStatements(symbol, state, processResult, processResultData, cancellationToken);
 
-        var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            symbol, state, cancellationToken).ConfigureAwait(false);
-        return nameReferences.Concat(forEachReferences, indexerReferences, suppressionReferences);
+        if (symbol.IsIndexer)
+            FindIndexerReferences(symbol, state, processResult, processResultData, options, cancellationToken);
+
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
     }
 
-    private static Task<ImmutableArray<Document>> FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(
-        Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
+    private static Task FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync<TData>(
+        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsExplicitOrImplicitElementAccessExpression, cancellationToken);
+            project, documents, static index => index.ContainsExplicitOrImplicitElementAccessExpression, processResult, processResultData, cancellationToken);
     }
 
-    private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
-        Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
+    private static Task FindDocumentWithIndexerMemberCrefAsync<TData>(
+        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsIndexerMemberCref, cancellationToken);
+            project, documents, static index => index.ContainsIndexerMemberCref, processResult, processResultData, cancellationToken);
     }
 
-    private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
+    private static void FindIndexerReferences<TData>(
         IPropertySymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -179,7 +197,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
         {
             // Looking for individual get/set references.  Don't find anything here. 
             // these results will be provided by the PropertyAccessorSymbolReferenceFinder
-            return [];
+            return;
         }
 
         var syntaxFacts = state.SyntaxFacts;
@@ -190,31 +208,28 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
                 syntaxFacts.IsImplicitElementAccess(node) ||
                 syntaxFacts.IsConditionalAccessExpression(node) ||
                 syntaxFacts.IsIndexerMemberCref(node));
-        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
 
         foreach (var node in indexerReferenceExpressions)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (matched, candidateReason, indexerReference) = await ComputeIndexerInformationAsync(
-                symbol, state, node, cancellationToken).ConfigureAwait(false);
+            var (matched, candidateReason, indexerReference) = ComputeIndexerInformation(symbol, state, node, cancellationToken);
             if (!matched)
                 continue;
 
             var location = state.SyntaxTree.GetLocation(new TextSpan(indexerReference.SpanStart, 0));
             var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
 
-            locations.Add(new FinderLocation(node,
+            var result = new FinderLocation(node,
                 new ReferenceLocation(
                     state.Document, alias: null, location, isImplicit: false, symbolUsageInfo,
                     GetAdditionalFindUsagesProperties(node, state),
-                    candidateReason)));
+                    candidateReason));
+            processResult(result, processResultData);
         }
-
-        return locations.ToImmutableAndClear();
     }
 
-    private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
+    private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerInformation(
         IPropertySymbol symbol,
         FindReferencesDocumentState state,
         SyntaxNode node,
@@ -225,33 +240,33 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
         if (syntaxFacts.IsElementAccessExpression(node))
         {
             // The indexerReference for an element access expression will not be null
-            return ComputeElementAccessInformationAsync(symbol, node, state, cancellationToken)!;
+            return ComputeElementAccessInformation(symbol, node, state, cancellationToken)!;
         }
         else if (syntaxFacts.IsImplicitElementAccess(node))
         {
-            return ComputeImplicitElementAccessInformationAsync(symbol, node, state, cancellationToken)!;
+            return ComputeImplicitElementAccessInformation(symbol, node, state, cancellationToken)!;
         }
         else if (syntaxFacts.IsConditionalAccessExpression(node))
         {
-            return ComputeConditionalAccessInformationAsync(symbol, node, state, cancellationToken);
+            return ComputeConditionalAccessInformation(symbol, node, state, cancellationToken);
         }
         else
         {
             Debug.Assert(syntaxFacts.IsIndexerMemberCref(node));
-            return ComputeIndexerMemberCRefInformationAsync(symbol, state, node, cancellationToken);
+            return ComputeIndexerMemberCRefInformation(symbol, state, node, cancellationToken);
         }
     }
 
-    private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerMemberCRefInformationAsync(
+    private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerMemberCRefInformation(
         IPropertySymbol symbol, FindReferencesDocumentState state, SyntaxNode node, CancellationToken cancellationToken)
     {
-        var (matched, reason) = await SymbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
+        var (matched, reason) = SymbolsMatch(symbol, state, node, cancellationToken);
 
         // For an IndexerMemberCRef the node itself is the indexer we are looking for.
         return (matched, reason, node);
     }
 
-    private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
+    private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeConditionalAccessInformation(
         IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
     {
         // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
@@ -266,16 +281,16 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
             return default;
         }
 
-        var (matched, reason) = await SymbolsMatchAsync(symbol, state, indexerReference, cancellationToken).ConfigureAwait(false);
+        var (matched, reason) = SymbolsMatch(symbol, state, indexerReference, cancellationToken);
         return (matched, reason, indexerReference);
     }
 
-    private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
+    private static (bool matched, CandidateReason reason, SyntaxNode? indexerReference) ComputeElementAccessInformation(
         IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
     {
         // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
         state.SyntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
-        if (expression != null && (await SymbolsMatchAsync(symbol, state, expression, cancellationToken).ConfigureAwait(false)).matched)
+        if (expression != null && SymbolsMatch(symbol, state, expression, cancellationToken).matched)
         {
             // Element access with explicit member name (allowed in VB). We will have
             // already added a reference location for the member name identifier, so skip
@@ -283,15 +298,15 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
             return default;
         }
 
-        var (matched, reason) = await SymbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
+        var (matched, reason) = SymbolsMatch(symbol, state, node, cancellationToken);
         return (matched, reason, indexerReference);
     }
 
-    private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeImplicitElementAccessInformationAsync(
+    private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeImplicitElementAccessInformation(
         IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
     {
         var argumentList = state.SyntaxFacts.GetArgumentListOfImplicitElementAccess(node);
-        var (matched, reason) = await SymbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
+        var (matched, reason) = SymbolsMatch(symbol, state, node, cancellationToken);
         return (matched, reason, argumentList);
     }
 }

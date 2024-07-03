@@ -47,7 +47,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0014:  ret
             }
@@ -60,7 +60,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -104,7 +104,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0007:  call       "char char.ToLowerInvariant(char)"
               IL_000c:  stloc.0
               IL_000d:  ldloca.s   V_0
-              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0014:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0019:  ret
             }
@@ -118,7 +118,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0001:  call       "char char.ToLowerInvariant(char)"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
-              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000e:  ldarg.0
               IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0014:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -179,7 +179,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000a:  call       "char Test.GetCharWithSideEffect()"
               IL_000f:  stloc.0
               IL_0010:  ldloca.s   V_0
-              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0017:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_001c:  ret
             }
@@ -192,7 +192,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  call       "char Test.GetCharWithSideEffect()"
               IL_0005:  stloc.0
               IL_0006:  ldloca.s   V_0
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000d:  call       "string Test.GetStringWithSideEffect()"
               IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0017:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -240,13 +240,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0001:  ldfld      "char C.c"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
-              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000e:  ldarg.0
               IL_000f:  call       "ref char C.GetC()"
               IL_0014:  ldind.u2
               IL_0015:  stloc.1
               IL_0016:  ldloca.s   V_1
-              IL_0018:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0018:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0022:  call       "void System.Console.Write(string)"
               IL_0027:  ret
@@ -293,7 +293,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0003:  ldloc.0
               IL_0004:  stloc.1
               IL_0005:  ldloca.s   V_1
-              IL_0007:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0007:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000c:  ldarg.0
               IL_000d:  ldloca.s   V_0
               IL_000f:  call       "string C.SneakyLocalChange(ref char)"
@@ -497,11 +497,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.0
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.1
               IL_000a:  stloc.1
               IL_000b:  ldloca.s   V_1
-              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0012:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0017:  ret
             }
@@ -943,7 +943,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_00cd:  ldfld      "string Test.<M>d__1.<>7__wrap1"
                 IL_00d2:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                 IL_00d7:  ldloca.s   V_2
-                IL_00d9:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                IL_00d9:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
                 IL_00de:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                 IL_00e3:  stloc.1
                 IL_00e4:  leave.s    IL_00ff
@@ -1014,7 +1014,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0014:  ret
             }
@@ -1027,7 +1027,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -1081,7 +1081,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.0
@@ -1100,7 +1100,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -1119,7 +1119,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000c:  ldarg.1
               IL_000d:  stloc.0
               IL_000e:  ldloca.s   V_0
-              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_001a:  ret
             }
@@ -1133,13 +1133,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.1
               IL_0010:  stloc.1
               IL_0011:  ldloca.s   V_1
-              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_001d:  ret
             }
@@ -1192,7 +1192,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0001:  call       "char char.ToLowerInvariant(char)"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
-              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000e:  ldarg.0
               IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0014:  ldarg.0
@@ -1212,7 +1212,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0007:  call       "char char.ToLowerInvariant(char)"
               IL_000c:  stloc.0
               IL_000d:  ldloca.s   V_0
-              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0014:  ldarg.0
               IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -1232,7 +1232,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000d:  call       "char char.ToLowerInvariant(char)"
               IL_0012:  stloc.0
               IL_0013:  ldloca.s   V_0
-              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_001f:  ret
             }
@@ -1247,14 +1247,14 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0001:  call       "char char.ToLowerInvariant(char)"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
-              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000e:  ldarg.0
               IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0014:  ldarg.1
               IL_0015:  call       "char char.ToLowerInvariant(char)"
               IL_001a:  stloc.1
               IL_001b:  ldloca.s   V_1
-              IL_001d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001d:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0022:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0027:  ret
             }
@@ -1297,7 +1297,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -1371,7 +1371,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  call       "char Test.GetCharWithSideEffect()"
               IL_0005:  stloc.0
               IL_0006:  ldloca.s   V_0
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000d:  call       "string Test.GetStringWithSideEffect()"
               IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0017:  call       "string Test.GetStringWithSideEffect()"
@@ -1390,7 +1390,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000a:  call       "char Test.GetCharWithSideEffect()"
               IL_000f:  stloc.0
               IL_0010:  ldloca.s   V_0
-              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0017:  call       "string Test.GetStringWithSideEffect()"
               IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0021:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -1409,7 +1409,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0014:  call       "char Test.GetCharWithSideEffect()"
               IL_0019:  stloc.0
               IL_001a:  ldloca.s   V_0
-              IL_001c:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001c:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0021:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0026:  ret
             }
@@ -1423,13 +1423,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  call       "char Test.GetCharWithSideEffect()"
               IL_0005:  stloc.0
               IL_0006:  ldloca.s   V_0
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000d:  call       "string Test.GetStringWithSideEffect()"
               IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0017:  call       "char Test.GetCharWithSideEffect()"
               IL_001c:  stloc.1
               IL_001d:  ldloca.s   V_1
-              IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0024:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0029:  ret
             }
@@ -1484,18 +1484,18 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldc.i4.s   97
               IL_0002:  stloc.0
               IL_0003:  ldloca.s   V_0
-              IL_0005:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0005:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000a:  ldarg.0
               IL_000b:  ldfld      "char C.c"
               IL_0010:  stloc.1
               IL_0011:  ldloca.s   V_1
-              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  ldarg.0
               IL_0019:  call       "ref char C.GetC()"
               IL_001e:  ldind.u2
               IL_001f:  stloc.2
               IL_0020:  ldloca.s   V_2
-              IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0027:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_002c:  call       "void System.Console.Write(string)"
               IL_0031:  ret
@@ -1553,17 +1553,17 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0003:  ldc.i4.s   97
               IL_0005:  stloc.1
               IL_0006:  ldloca.s   V_1
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000d:  ldloc.0
               IL_000e:  stloc.2
               IL_000f:  ldloca.s   V_2
-              IL_0011:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0011:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0016:  ldarg.0
               IL_0017:  ldloca.s   V_0
               IL_0019:  call       "char C.SneakyLocalChange(ref char)"
               IL_001e:  stloc.3
               IL_001f:  ldloca.s   V_3
-              IL_0021:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0021:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0026:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_002b:  ret
             }
@@ -1616,7 +1616,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0014:  ret
             }
@@ -1802,15 +1802,15 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.0
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.1
               IL_000a:  stloc.1
               IL_000b:  ldloca.s   V_1
-              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0012:  ldarg.2
               IL_0013:  stloc.2
               IL_0014:  ldloca.s   V_2
-              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0020:  ret
             }
@@ -2004,7 +2004,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0011:  ldarg.2
               IL_0012:  stloc.0
               IL_0013:  ldloca.s   V_0
-              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_001f:  ret
             }
@@ -2017,7 +2017,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.2
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  ldarg.1
               IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
@@ -2530,7 +2530,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_0142:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                 IL_0147:  ldarg.0
                 IL_0148:  ldflda     "char Test.<M>d__1.<>7__wrap1"
-                IL_014d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                IL_014d:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
                 IL_0152:  ldloc.3
                 IL_0153:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                 IL_0158:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -2605,7 +2605,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.0
@@ -2624,7 +2624,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -2643,7 +2643,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000c:  ldarg.1
               IL_000d:  stloc.0
               IL_000e:  ldloca.s   V_0
-              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_001a:  ret
             }
@@ -2657,13 +2657,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.1
               IL_0010:  stloc.1
               IL_0011:  ldloca.s   V_1
-              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_001d:  ret
             }
@@ -2722,7 +2722,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.0
@@ -2743,7 +2743,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  ldarg.0
@@ -2764,7 +2764,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000c:  ldarg.1
               IL_000d:  stloc.0
               IL_000e:  ldloca.s   V_0
-              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0015:  ldarg.0
               IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -2785,7 +2785,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0012:  ldarg.1
               IL_0013:  stloc.0
               IL_0014:  ldloca.s   V_0
-              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0020:  ret
             }
@@ -2799,13 +2799,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.1
               IL_0010:  stloc.1
               IL_0011:  ldloca.s   V_1
-              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  ldarg.0
               IL_0019:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -2823,13 +2823,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  ldarg.1
               IL_0016:  stloc.1
               IL_0017:  ldloca.s   V_1
-              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0023:  ret
             }
@@ -2843,7 +2843,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.0
@@ -2851,7 +2851,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0015:  ldarg.1
               IL_0016:  stloc.1
               IL_0017:  ldloca.s   V_1
-              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0023:  ret
             }
@@ -2911,7 +2911,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0001:  call       "char char.ToLowerInvariant(char)"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
-              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000e:  ldarg.0
               IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0014:  ldarg.0
@@ -2933,7 +2933,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0007:  call       "char char.ToLowerInvariant(char)"
               IL_000c:  stloc.0
               IL_000d:  ldloca.s   V_0
-              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0014:  ldarg.0
               IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_001a:  ldarg.0
@@ -2955,7 +2955,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000d:  call       "char char.ToLowerInvariant(char)"
               IL_0012:  stloc.0
               IL_0013:  ldloca.s   V_0
-              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001a:  ldarg.0
               IL_001b:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -2977,7 +2977,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0013:  call       "char char.ToLowerInvariant(char)"
               IL_0018:  stloc.0
               IL_0019:  ldloca.s   V_0
-              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0025:  ret
             }
@@ -2992,14 +2992,14 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0001:  call       "char char.ToLowerInvariant(char)"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
-              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000e:  ldarg.0
               IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0014:  ldarg.1
               IL_0015:  call       "char char.ToLowerInvariant(char)"
               IL_001a:  stloc.1
               IL_001b:  ldloca.s   V_1
-              IL_001d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001d:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0022:  ldarg.0
               IL_0023:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0028:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -3018,14 +3018,14 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0007:  call       "char char.ToLowerInvariant(char)"
               IL_000c:  stloc.0
               IL_000d:  ldloca.s   V_0
-              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0014:  ldarg.0
               IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_001a:  ldarg.1
               IL_001b:  call       "char char.ToLowerInvariant(char)"
               IL_0020:  stloc.1
               IL_0021:  ldloca.s   V_1
-              IL_0023:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0023:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0028:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_002d:  ret
             }
@@ -3040,7 +3040,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0001:  call       "char char.ToLowerInvariant(char)"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
-              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000e:  ldarg.0
               IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0014:  ldarg.0
@@ -3049,7 +3049,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_001b:  call       "char char.ToLowerInvariant(char)"
               IL_0020:  stloc.1
               IL_0021:  ldloca.s   V_1
-              IL_0023:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0023:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0028:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_002d:  ret
             }
@@ -3100,7 +3100,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  ldarg.0
@@ -3186,7 +3186,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  call       "char Test.GetCharWithSideEffect()"
               IL_0005:  stloc.0
               IL_0006:  ldloca.s   V_0
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000d:  call       "string Test.GetStringWithSideEffect()"
               IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0017:  call       "string Test.GetStringWithSideEffect()"
@@ -3207,7 +3207,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000a:  call       "char Test.GetCharWithSideEffect()"
               IL_000f:  stloc.0
               IL_0010:  ldloca.s   V_0
-              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0017:  call       "string Test.GetStringWithSideEffect()"
               IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0021:  call       "string Test.GetStringWithSideEffect()"
@@ -3228,7 +3228,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0014:  call       "char Test.GetCharWithSideEffect()"
               IL_0019:  stloc.0
               IL_001a:  ldloca.s   V_0
-              IL_001c:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001c:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0021:  call       "string Test.GetStringWithSideEffect()"
               IL_0026:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_002b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -3249,7 +3249,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_001e:  call       "char Test.GetCharWithSideEffect()"
               IL_0023:  stloc.0
               IL_0024:  ldloca.s   V_0
-              IL_0026:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0026:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_002b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0030:  ret
             }
@@ -3263,13 +3263,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  call       "char Test.GetCharWithSideEffect()"
               IL_0005:  stloc.0
               IL_0006:  ldloca.s   V_0
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000d:  call       "string Test.GetStringWithSideEffect()"
               IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0017:  call       "char Test.GetCharWithSideEffect()"
               IL_001c:  stloc.1
               IL_001d:  ldloca.s   V_1
-              IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0024:  call       "string Test.GetStringWithSideEffect()"
               IL_0029:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -3287,13 +3287,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000a:  call       "char Test.GetCharWithSideEffect()"
               IL_000f:  stloc.0
               IL_0010:  ldloca.s   V_0
-              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0017:  call       "string Test.GetStringWithSideEffect()"
               IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0021:  call       "char Test.GetCharWithSideEffect()"
               IL_0026:  stloc.1
               IL_0027:  ldloca.s   V_1
-              IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0033:  ret
             }
@@ -3307,7 +3307,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  call       "char Test.GetCharWithSideEffect()"
               IL_0005:  stloc.0
               IL_0006:  ldloca.s   V_0
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000d:  call       "string Test.GetStringWithSideEffect()"
               IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0017:  call       "string Test.GetStringWithSideEffect()"
@@ -3315,7 +3315,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0021:  call       "char Test.GetCharWithSideEffect()"
               IL_0026:  stloc.1
               IL_0027:  ldloca.s   V_1
-              IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0033:  ret
             }
@@ -3374,24 +3374,24 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldc.i4.s   97
               IL_0002:  stloc.0
               IL_0003:  ldloca.s   V_0
-              IL_0005:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0005:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000a:  ldarg.0
               IL_000b:  ldfld      "char C.c"
               IL_0010:  stloc.1
               IL_0011:  ldloca.s   V_1
-              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  ldarg.0
               IL_0019:  call       "ref char C.GetC()"
               IL_001e:  ldind.u2
               IL_001f:  stloc.2
               IL_0020:  ldloca.s   V_2
-              IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0027:  ldarg.0
               IL_0028:  call       "ref char C.GetC2()"
               IL_002d:  ldind.u2
               IL_002e:  stloc.3
               IL_002f:  ldloca.s   V_3
-              IL_0031:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0031:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0036:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_003b:  call       "void System.Console.Write(string)"
               IL_0040:  ret
@@ -3453,7 +3453,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldloc.0
               IL_0007:  stloc.2
               IL_0008:  ldloca.s   V_2
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  ldloca.s   V_0
               IL_0012:  call       "string C.SneakyLocalChange(ref char)"
@@ -3461,7 +3461,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_001c:  ldloc.1
               IL_001d:  stloc.3
               IL_001e:  ldloca.s   V_3
-              IL_0020:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0020:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0025:  ldarg.0
               IL_0026:  ldloca.s   V_1
               IL_0028:  call       "string C.SneakyLocalChange(ref char)"
@@ -3525,7 +3525,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -3767,19 +3767,19 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.0
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.1
               IL_000a:  stloc.1
               IL_000b:  ldloca.s   V_1
-              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0012:  ldarg.2
               IL_0013:  stloc.2
               IL_0014:  ldloca.s   V_2
-              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001b:  ldarg.3
               IL_001c:  stloc.3
               IL_001d:  ldloca.s   V_3
-              IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0024:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0029:  ret
             }
@@ -4045,11 +4045,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0011:  ldarg.2
               IL_0012:  stloc.0
               IL_0013:  ldloca.s   V_0
-              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001a:  ldarg.2
               IL_001b:  stloc.1
               IL_001c:  ldloca.s   V_1
-              IL_001e:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001e:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0028:  ret
             }
@@ -4063,11 +4063,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.2
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.2
               IL_000a:  stloc.1
               IL_000b:  ldloca.s   V_1
-              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0012:  ldarg.0
               IL_0013:  ldarg.1
               IL_0014:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
@@ -4086,7 +4086,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.2
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  ldarg.1
               IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
@@ -4095,7 +4095,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_001a:  ldarg.2
               IL_001b:  stloc.1
               IL_001c:  ldloca.s   V_1
-              IL_001e:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001e:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0028:  ret
             }
@@ -4151,7 +4151,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0017:  ldarg.3
               IL_0018:  stloc.0
               IL_0019:  ldloca.s   V_0
-              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0025:  ret
             }
@@ -4169,7 +4169,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0011:  ldarg.3
               IL_0012:  stloc.0
               IL_0013:  ldloca.s   V_0
-              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001a:  ldarg.2
               IL_001b:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -4186,7 +4186,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.3
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  ldarg.1
               IL_0011:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
@@ -4204,7 +4204,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.3
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.2
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.0
@@ -4231,7 +4231,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0017:  ldarg.3
               IL_0018:  stloc.0
               IL_0019:  ldloca.s   V_0
-              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0025:  ret
             }
@@ -4244,7 +4244,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.3
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  ldarg.1
               IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
@@ -4415,7 +4415,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0012:  ldarg.3
               IL_0013:  stloc.0
               IL_0014:  ldloca.s   V_0
-              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0020:  ret
             }
@@ -4428,7 +4428,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.3
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  ldarg.1
               IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
@@ -5229,10 +5229,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_01af:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                 IL_01b4:  ldarg.0
                 IL_01b5:  ldflda     "char Test.<M>d__1.<>7__wrap1"
-                IL_01ba:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                IL_01ba:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
                 IL_01bf:  ldarg.0
                 IL_01c0:  ldflda     "char Test.<M>d__1.<>7__wrap2"
-                IL_01c5:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                IL_01c5:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
                 IL_01ca:  ldloc.s    V_4
                 IL_01cc:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                 IL_01d1:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -5313,7 +5313,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.0
@@ -5334,7 +5334,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  ldarg.0
@@ -5355,7 +5355,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_000c:  ldarg.1
               IL_000d:  stloc.0
               IL_000e:  ldloca.s   V_0
-              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0015:  ldarg.0
               IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -5376,7 +5376,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0012:  ldarg.1
               IL_0013:  stloc.0
               IL_0014:  ldloca.s   V_0
-              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0020:  ret
             }
@@ -5390,13 +5390,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.1
               IL_0010:  stloc.1
               IL_0011:  ldloca.s   V_1
-              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  ldarg.0
               IL_0019:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
@@ -5414,13 +5414,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0006:  ldarg.1
               IL_0007:  stloc.0
               IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
               IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0015:  ldarg.1
               IL_0016:  stloc.1
               IL_0017:  ldloca.s   V_1
-              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0023:  ret
             }
@@ -5434,7 +5434,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0000:  ldarg.1
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0009:  ldarg.0
               IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000f:  ldarg.0
@@ -5442,7 +5442,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0015:  ldarg.1
               IL_0016:  stloc.1
               IL_0017:  ldloca.s   V_1
-              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0023:  ret
             }

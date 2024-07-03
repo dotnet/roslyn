@@ -120,7 +120,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     {
         lock (_debuggingSessions)
         {
-            return _debuggingSessions.ToImmutableArray();
+            return [.. _debuggingSessions];
         }
     }
 
@@ -159,6 +159,9 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             {
                 initialDocumentStates = [];
             }
+
+            // Make sure the solution snapshot has all source-generated documents up-to-date:
+            solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
             var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, reportDiagnostics);

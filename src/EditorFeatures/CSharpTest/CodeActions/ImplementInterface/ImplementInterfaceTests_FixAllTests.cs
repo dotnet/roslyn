@@ -10,24 +10,24 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.ImplementInterface.CSharpImplementInterfaceCodeFixProvider>;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
-{
-    public class ImplementInterfaceTests_FixAllTests
-    {
-        #region "Fix all occurrences tests"
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface;
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInDocument()
+public class ImplementInterfaceTests_FixAllTests
+{
+    #region "Fix all occurrences tests"
+
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInDocument()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestState =
             {
-                TestState =
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -43,35 +43,35 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    AdditionalProjects =
+                },
+                AdditionalProjects =
+                {
+                    ["Assembly1"] =
                     {
-                        ["Assembly1"] =
+                        Sources =
                         {
-                            Sources =
-                            {
-                                @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
+                            @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C3 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                            },
-                            AdditionalProjectReferences = { "TestProject" },
                         },
+                        AdditionalProjectReferences = { "TestProject" },
                     },
                 },
-                FixedState =
+            },
+            FixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -92,20 +92,20 @@ class B1 : I1, I2
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                BatchFixedState =
+                MarkupHandling = MarkupMode.Allow,
+            },
+            BatchFixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -130,33 +130,33 @@ class B1 : I1, I2
         }
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInProjectCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
-                CodeActionEquivalenceKey = "False;False;True:global::I1;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-                CodeActionIndex = 0,
-            }.RunAsync();
-        }
+                MarkupHandling = MarkupMode.Allow,
+            },
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInProjectCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
+            CodeActionEquivalenceKey = "False;False;True:global::I1;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionIndex = 0,
+        }.RunAsync();
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInProject()
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInProject()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestState =
             {
-                TestState =
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -172,35 +172,35 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    AdditionalProjects =
+                },
+                AdditionalProjects =
+                {
+                    ["Assembly1"] =
                     {
-                        ["Assembly1"] =
+                        Sources =
                         {
-                            Sources =
-                            {
-                                @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
+                            @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C3 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                            },
-                            AdditionalProjectReferences = { "TestProject" },
                         },
+                        AdditionalProjectReferences = { "TestProject" },
                     },
                 },
-                FixedState =
+            },
+            FixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -221,20 +221,20 @@ class B1 : I1, I2
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                BatchFixedState =
+                MarkupHandling = MarkupMode.Allow,
+            },
+            BatchFixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -259,7 +259,7 @@ class B1 : I1, I2
         }
     }
 }",
-                        @"class B2 : I1, I2
+                    @"class B2 : I1, I2
 {
     public void F1()
     {
@@ -274,27 +274,27 @@ class B1 : I1, I2
         }
     }
 }",
-                    },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
-                CodeActionEquivalenceKey = "False;False;True:global::I1;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-                CodeActionIndex = 0,
-            }.RunAsync();
-        }
+                MarkupHandling = MarkupMode.Allow,
+            },
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
+            CodeActionEquivalenceKey = "False;False;True:global::I1;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionIndex = 0,
+        }.RunAsync();
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution()
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInSolution()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestState =
             {
-                TestState =
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -310,35 +310,35 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    AdditionalProjects =
+                },
+                AdditionalProjects =
+                {
+                    ["Assembly1"] =
                     {
-                        ["Assembly1"] =
+                        Sources =
                         {
-                            Sources =
-                            {
-                                @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
+                            @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C3 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                            },
-                            AdditionalProjectReferences = { "TestProject" },
                         },
+                        AdditionalProjectReferences = { "TestProject" },
                     },
                 },
-                FixedState =
+            },
+            FixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -359,20 +359,20 @@ class B1 : {|CS0535:I1|}, I2
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                BatchFixedState =
+                MarkupHandling = MarkupMode.Allow,
+            },
+            BatchFixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -397,7 +397,7 @@ class B1 : {|CS0535:I1|}, I2
         }
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, I2
+                    @"class B2 : {|CS0535:I1|}, I2
 {
     void I2.F1()
     {
@@ -412,14 +412,14 @@ class B1 : {|CS0535:I1|}, I2
         }
     }
 }",
-                    },
-                    AdditionalProjects =
+                },
+                AdditionalProjects =
+                {
+                    ["Assembly1"] =
                     {
-                        ["Assembly1"] =
+                        Sources =
                         {
-                            Sources =
-                            {
-                                @"class B3 : {|CS0535:I1|}, I2
+                            @"class B3 : {|CS0535:I1|}, I2
 {
     void I2.F1()
     {
@@ -434,31 +434,31 @@ class B1 : {|CS0535:I1|}, I2
         }
     }
 }",
-                            },
-                            AdditionalProjectReferences = { "TestProject" },
                         },
+                        AdditionalProjectReferences = { "TestProject" },
                     },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck,
-                DiagnosticSelector = diagnostics => diagnostics[1],
-                CodeActionEquivalenceKey = "True;False;False:global::I2;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-                CodeActionIndex = 1,
-            }.RunAsync();
-        }
+                MarkupHandling = MarkupMode.Allow,
+            },
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck,
+            DiagnosticSelector = diagnostics => diagnostics[1],
+            CodeActionEquivalenceKey = "True;False;False:global::I2;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestState =
             {
-                TestState =
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -474,20 +474,20 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    AdditionalProjects =
+                },
+                AdditionalProjects =
+                {
+                    ["Assembly1"] =
                     {
-                        ["Assembly1"] =
+                        Sources =
                         {
-                            Sources =
-                            {
-                                @"public interface I1
+                            @"public interface I1
 {
     void F1();
 }
@@ -503,15 +503,15 @@ class B3 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                            },
                         },
                     },
                 },
-                FixedState =
+            },
+            FixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -532,20 +532,20 @@ class B1 : {|CS0535:I1|}, I2
     {
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
 {
     class C2 : {|CS0535:I1|}, {|CS0535:I2|}
     {
     }
 }",
-                    },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                BatchFixedState =
+                MarkupHandling = MarkupMode.Allow,
+            },
+            BatchFixedState =
+            {
+                Sources =
                 {
-                    Sources =
-                    {
-                        @"public interface I1
+                    @"public interface I1
 {
     void F1();
 }
@@ -570,7 +570,7 @@ class B1 : {|CS0535:I1|}, I2
         }
     }
 }",
-                        @"class B2 : {|CS0535:I1|}, I2
+                    @"class B2 : {|CS0535:I1|}, I2
 {
     void I2.F1()
     {
@@ -585,16 +585,15 @@ class B1 : {|CS0535:I1|}, I2
         }
     }
 }",
-                    },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck,
-                DiagnosticSelector = diagnostics => diagnostics[1],
-                CodeActionEquivalenceKey = "True;False;False:global::I2;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-                CodeActionIndex = 1,
-            }.RunAsync();
-        }
-
-        #endregion
+                MarkupHandling = MarkupMode.Allow,
+            },
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck,
+            DiagnosticSelector = diagnostics => diagnostics[1],
+            CodeActionEquivalenceKey = "True;False;False:global::I2;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionIndex = 1,
+        }.RunAsync();
     }
+
+    #endregion
 }

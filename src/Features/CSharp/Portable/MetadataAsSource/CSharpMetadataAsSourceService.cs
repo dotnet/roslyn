@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource;
 
@@ -57,8 +55,8 @@ internal partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceS
         return document.WithSyntaxRoot(newRoot);
     }
 
-    protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        => s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+        => [s_memberSeparationRule, .. Formatter.GetDefaultFormattingRules(document)];
 
     protected override async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
     {

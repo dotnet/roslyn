@@ -18,7 +18,7 @@ internal partial class SolutionCompilationState
     /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
     /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
     /// </summary>
-    private class GeneratedFileReplacingCompilationTracker : ICompilationTracker
+    private sealed class GeneratedFileReplacingCompilationTracker : ICompilationTracker
     {
         private readonly TextDocumentStates<SourceGeneratedDocumentState> _replacementDocumentStates;
 
@@ -50,18 +50,21 @@ internal partial class SolutionCompilationState
             _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
         }
 
-        public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+        public bool ContainsAssemblyOrModuleOrDynamic(
+            ISymbol symbol, bool primary,
+            [NotNullWhen(true)] out Compilation? compilation,
+            out MetadataReferenceInfo? referencedThrough)
         {
             if (_compilationWithReplacements == null)
             {
                 // We don't have a compilation yet, so this couldn't have came from us
+                compilation = null;
                 referencedThrough = null;
                 return false;
             }
-            else
-            {
-                return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
-            }
+
+            return RootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(
+                symbol, primary, out compilation, out referencedThrough);
         }
 
         public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
@@ -72,9 +75,17 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
+        public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
         {
-            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(create, forceRegeneration, cancellationToken);
+            var underlyingTracker = this.UnderlyingTracker.WithCreateCreationPolicy(forceRegeneration);
+            return underlyingTracker == this.UnderlyingTracker
+                ? this
+                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
+        }
+
+        public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+        {
+            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy(cancellationToken);
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
@@ -147,18 +158,6 @@ internal partial class SolutionCompilationState
                 await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
                 (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
-        public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
-        {
-            // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
-            // So this method should only be called if:
-            //
-            // 1. Project A has a open source generated document, and this CompilationTracker represents A
-            // 2. Project B references that A, and is being frozen for partial semantics.
-            //
-            // We generally don't use partial semantics in a different project than the open file, so this isn't a scenario we need to support.
-            throw new NotImplementedException();
-        }
-
         public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, CancellationToken cancellationToken)
         {
@@ -171,7 +170,7 @@ internal partial class SolutionCompilationState
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    newStates = newStates.SetState(id, replacementState);
+                    newStates = newStates.SetState(replacementState);
                 }
                 else
                 {
@@ -184,6 +183,15 @@ internal partial class SolutionCompilationState
             }
 
             return newStates;
+        }
+
+        public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(
+            SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            // Just defer to the underlying tracker.  The caller only wants the innermost generated documents, not any
+            // frozen docs we'll overlay on top of it.  The caller will already know about those frozen documents and
+            // will do its own overlay on these results.
+            return this.UnderlyingTracker.GetRegularCompilationTrackerSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken);
         }
 
         public Task<bool> HasSuccessfullyLoadedAsync(

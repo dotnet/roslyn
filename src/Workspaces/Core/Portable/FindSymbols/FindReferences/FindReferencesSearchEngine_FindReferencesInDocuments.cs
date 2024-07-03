@@ -7,11 +7,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -91,35 +94,77 @@ internal partial class FindReferencesSearchEngine
 
             foreach (var symbol in symbols)
             {
-                var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(cache, globalAliases);
+                var state = new FindReferencesDocumentState(
+                    cache, TryGet(symbolToGlobalAliases, symbol));
 
                 await PerformSearchInDocumentWorkerAsync(symbol, state).ConfigureAwait(false);
             }
         }
 
-        async ValueTask PerformSearchInDocumentWorkerAsync(
-            ISymbol symbol, FindReferencesDocumentState state)
+        async ValueTask PerformSearchInDocumentWorkerAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
             // Always perform a normal search, looking for direct references to exactly that symbol.
-            foreach (var finder in _finders)
-            {
-                var references = await finder.FindReferencesInDocumentAsync(
-                    symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                foreach (var (_, location) in references)
-                {
-                    var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                    await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            await DirectSymbolSearchAsync(symbol, state).ConfigureAwait(false);
 
             // Now, for symbols that could involve inheritance, look for references to the same named entity, and
             // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
+            await InheritanceSymbolSearchAsync(symbol, state).ConfigureAwait(false);
+        }
 
+        async ValueTask DirectSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
+        {
+            await ProducerConsumer<FinderLocation>.RunAsync(
+                ProducerConsumerOptions.SingleReaderWriterOptions,
+                static (callback, args, cancellationToken) =>
+                {
+                    var (@this, symbol, state) = args;
+
+                    // We don't bother calling into the finders in parallel as there's only ever one that applies for a
+                    // particular symbol kind.  All the rest bail out immediately after a quick type-check.  So there's
+                    // no benefit in forking out to have only one of them end up actually doing work.
+                    foreach (var finder in @this._finders)
+                    {
+                        finder.FindReferencesInDocument(
+                            symbol, state,
+                            static (finderLocation, callback) => callback(finderLocation),
+                            callback, @this._options, cancellationToken);
+                    }
+
+                    return Task.CompletedTask;
+                },
+                consumeItems: static async (values, args, cancellationToken) =>
+                {
+                    var (@this, symbol, state) = args;
+                    var converted = await ConvertLocationsAndReportGroupsAsync(@this, values, symbol, cancellationToken).ConfigureAwait(false);
+                    await @this._progress.OnReferencesFoundAsync(converted, cancellationToken).ConfigureAwait(false);
+                },
+                args: (@this: this, symbol, state),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        static async Task<ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>> ConvertLocationsAndReportGroupsAsync(
+            FindReferencesSearchEngine @this, IAsyncEnumerable<FinderLocation> locations, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            SymbolGroup? group = null;
+
+            using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var result);
+
+            // Transform the individual finder-location objects to "group/symbol/location" tuples.
+            await foreach (var location in locations)
+            {
+                // The first time we see the location for a symbol, report its group.
+                group ??= await @this.ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                result.Add((group, symbol, location.Location));
+            }
+
+            return result.ToImmutableAndClear();
+        }
+
+        async ValueTask InheritanceSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
+        {
             if (InvolvesInheritance(symbol))
             {
-                var tokens = await AbstractReferenceFinder.FindMatchingIdentifierTokensAsync(
-                    state, symbol.Name, cancellationToken).ConfigureAwait(false);
+                var tokens = AbstractReferenceFinder.FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
 
                 foreach (var token in tokens)
                 {
@@ -133,7 +178,7 @@ internal partial class FindReferencesSearchEngine
                         var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
-                        await _progress.OnReferenceFoundAsync(candidateGroup, candidate, location, cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -175,7 +220,7 @@ internal partial class FindReferencesSearchEngine
             // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
             // We do *not* want to report these as they would have been found in the original call to the finders in
             // PerformSearchInTextSpanAsync.
-            if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+            if (SymbolFinder.OriginalSymbolsMatch(_solution, searchSymbol, candidate))
                 return false;
 
             // walk up the original symbol's inheritance hierarchy to see if we hit the candidate. Don't walk down
@@ -184,7 +229,7 @@ internal partial class FindReferencesSearchEngine
                 this, [searchSymbol], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
             foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
             {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
+                if (SymbolFinder.OriginalSymbolsMatch(_solution, symbolUp, candidate))
                     return true;
             }
 
@@ -194,7 +239,7 @@ internal partial class FindReferencesSearchEngine
                 this, [candidate], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
             foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
             {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
+                if (SymbolFinder.OriginalSymbolsMatch(_solution, searchSymbol, candidateUp))
                     return true;
             }
 

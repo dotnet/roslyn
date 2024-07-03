@@ -261,11 +261,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Next
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsAsync(
-                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing,
-                    includeSuppressedDiagnostics:=False,
-                    includeNonLocalDocumentDiagnostics:=True,
-                    CancellationToken.None).Result
+                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsForIdsAsync(
+                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
+                    includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None).Result
 
                 If diagnostics Is Nothing Then
                     Assert.Equal(0, actualDiagnostics.Length)

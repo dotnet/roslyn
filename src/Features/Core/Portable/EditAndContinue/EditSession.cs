@@ -566,11 +566,11 @@ internal sealed class EditSession
             // rude edit detection wasn't completed due to errors that prevent us from analyzing the document:
             if (analysis.HasChangesAndSyntaxErrors)
             {
-                return ProjectAnalysisSummary.CompilationErrors;
+                return ProjectAnalysisSummary.SyntaxErrors;
             }
 
             // rude edits detected:
-            if (!analysis.RudeEditErrors.IsEmpty)
+            if (analysis.HasBlockingRudeEdits)
             {
                 return ProjectAnalysisSummary.RudeEdits;
             }
@@ -726,7 +726,7 @@ internal sealed class EditSession
         if (edits.Count == mergedEditsBuilder.Count)
         {
             mergedEdits = mergedEditsBuilder.ToImmutable();
-            addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
+            addedSymbols = [.. addedSymbolsBuilder];
             return;
         }
 
@@ -780,7 +780,7 @@ internal sealed class EditSession
         }
 
         mergedEdits = mergedEditsBuilder.ToImmutable();
-        addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
+        addedSymbols = [.. addedSymbolsBuilder];
     }
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
@@ -805,10 +805,16 @@ internal sealed class EditSession
             var hasEmitErrors = false;
             foreach (var newProject in solution.Projects)
             {
+                if (newProject.FilePath == null)
+                {
+                    log.Write("Skipping project '{0}' without a file path", newProject.Name);
+                    continue;
+                }
+
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
-                    log.Write("EnC state of '{0}' queried: project not loaded", newProject.Id);
+                    log.Write("EnC state of {0} '{1}' queried: project not loaded", newProject.Name, newProject.FilePath);
 
                     // TODO (https://github.com/dotnet/roslyn/issues/1204):
                     //
@@ -825,12 +831,12 @@ internal sealed class EditSession
                 }
 
                 await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
-                if (changedOrAddedDocuments.IsEmpty())
+                if (changedOrAddedDocuments.IsEmpty)
                 {
                     continue;
                 }
 
-                log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.Id);
+                log.Write("Found {0} potentially changed document(s) in project {1} '{2}'", changedOrAddedDocuments.Count, newProject.Name, newProject.FilePath);
 
                 var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                 if (mvidReadError != null)
@@ -847,7 +853,7 @@ internal sealed class EditSession
 
                 if (mvid == Guid.Empty)
                 {
-                    log.Write("Emitting update of '{0}': project not built", newProject.Id);
+                    log.Write("Emitting update of {0} '{1}': project not built", newProject.Name, newProject.FilePath);
                     continue;
                 }
 
@@ -878,7 +884,14 @@ internal sealed class EditSession
 
                 foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                 {
-                    if (changedDocumentAnalysis.HasChanges)
+                    if (changedDocumentAnalysis.SyntaxError != null)
+                    {
+                        // only remember the first syntax error we encounter:
+                        syntaxError ??= changedDocumentAnalysis.SyntaxError;
+
+                        log.Write("Changed document '{0}' has syntax error: {1}", changedDocumentAnalysis.FilePath, changedDocumentAnalysis.SyntaxError);
+                    }
+                    else if (changedDocumentAnalysis.HasChanges)
                     {
                         log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
                     }
@@ -887,7 +900,7 @@ internal sealed class EditSession
                 }
 
                 var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
+                log.Write("Project summary for {0} '{1}': {2}", newProject.Name, newProject.FilePath, projectSummary);
 
                 if (projectSummary == ProjectAnalysisSummary.NoChanges)
                 {
@@ -906,24 +919,19 @@ internal sealed class EditSession
                     isBlocked = true;
                 }
 
-                if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
+                if (projectSummary is ProjectAnalysisSummary.SyntaxErrors or ProjectAnalysisSummary.RudeEdits)
                 {
-                    // only remember the first syntax error we encounter:
-                    syntaxError ??= changedDocumentAnalyses.FirstOrDefault(a => a.SyntaxError != null)?.SyntaxError;
                     isBlocked = true;
                 }
-                else if (projectSummary == ProjectAnalysisSummary.RudeEdits)
-                {
-                    foreach (var analysis in changedDocumentAnalyses)
-                    {
-                        if (analysis.RudeEditErrors.Length > 0)
-                        {
-                            documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
-                            Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, newProject.State.Attributes.TelemetryId);
-                        }
-                    }
 
-                    isBlocked = true;
+                // Report rude edit diagnostics - these can be blocking (errors) or non-blocking (warnings):
+                foreach (var analysis in changedDocumentAnalyses)
+                {
+                    if (!analysis.RudeEdits.IsEmpty)
+                    {
+                        documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEdits));
+                        Telemetry.LogRudeEditDiagnostics(analysis.RudeEdits, newProject.State.Attributes.TelemetryId);
+                    }
                 }
 
                 if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
@@ -970,7 +978,7 @@ internal sealed class EditSession
                     }
                 }
 
-                log.Write("Emitting update of '{0}'", newProject.Id);
+                log.Write("Emitting update of '{0}' {1}", newProject.Name, newProject.FilePath);
 
                 var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(newCompilation);
@@ -1048,6 +1056,7 @@ internal sealed class EditSession
                         var delta = new ManagedHotReloadUpdate(
                             mvid,
                             newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
+                            newProject.Id,
                             ilStream.ToImmutableArray(),
                             metadataStream.ToImmutableArray(),
                             pdbStream.ToImmutableArray(),

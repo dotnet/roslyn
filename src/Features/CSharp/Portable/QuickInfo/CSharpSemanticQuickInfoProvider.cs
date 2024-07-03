@@ -3,13 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
@@ -126,5 +133,63 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         }
 
         return typeInfo.Nullability.FlowState;
+    }
+
+    protected override async Task<OnTheFlyDocsElement?> GetOnTheFlyDocsElementAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    {
+        var document = context.Document;
+        var position = context.Position;
+
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        // Checks to see if there have been any files excluded at the workspace level
+        // since the copilot service passes along symbol information.
+        if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
+            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+            document, position, cancellationToken).ConfigureAwait(false);
+
+        if (symbol is null)
+        {
+            return null;
+        }
+
+        if (symbol.MetadataToken != 0)
+        {
+            OnTheFlyDocsLogger.LogHoveredMetadataSymbol();
+        }
+        else
+        {
+            OnTheFlyDocsLogger.LogHoveredSourceSymbol();
+        }
+
+        if (symbol.DeclaringSyntaxReferences.Length == 0)
+        {
+            return null;
+        }
+
+        var maxLength = 1000;
+        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
+        {
+            var span = reference.Span;
+            var sourceText = reference.SyntaxTree.GetText(cancellationToken);
+            return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
+        }).ToImmutableArray();
+
+        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language);
     }
 }

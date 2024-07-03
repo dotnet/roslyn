@@ -71,7 +71,7 @@ internal static class CodeGenerationHelpers
                 break;
             }
 
-            name = string.Join(".", names.ToArray());
+            name = string.Join(".", names);
         }
         else
         {
@@ -336,7 +336,7 @@ internal static class CodeGenerationHelpers
         // The list was grouped (by type, staticness, accessibility).  Try to find a location
         // to put the new declaration into.
 
-        var result = Array.BinarySearch(declarationList.ToArray(), declaration, comparerWithoutNameCheck);
+        var result = Array.BinarySearch([.. declarationList], declaration, comparerWithoutNameCheck);
         var desiredGroupIndex = result < 0 ? ~result : result;
         Debug.Assert(desiredGroupIndex >= 0);
         Debug.Assert(desiredGroupIndex <= declarationList.Count);

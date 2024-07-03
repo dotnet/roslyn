@@ -74,7 +74,9 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
     public static readonly ServiceRpcDescriptor HotReloadSessionNotificationService = CreateDebuggerServiceDescriptor("HotReloadSessionNotificationService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor ManagedHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("ManagedHotReloadAgentManagerService", new Version(0, 1));
-    public static readonly ServiceRpcDescriptor MauiLaunchCustomizerServiceDescriptor = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor GenericHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("GenericHotReloadAgentManagerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor HotReloadOptionService = CreateDebuggerClientServiceDescriptor("HotReloadOptionService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor MauiLaunchCustomizerService = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
 
     public static ServiceMoniker CreateMoniker(string namespaceName, string componentName, string serviceName, Version? version)
         => new(namespaceName + "." + componentName + "." + serviceName, version);
@@ -97,6 +99,13 @@ internal static class BrokeredServiceDescriptors
     /// </summary>
     public static ServiceJsonRpcDescriptor CreateDebuggerServiceDescriptor(string serviceName, Version? version = null)
         => CreateDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version));
+
+    /// <summary>
+    /// Descriptor for services proferred by the debugger server (implemented in TypeScript).
+    /// </summary>
+    public static ServiceJsonRpcDescriptor CreateDebuggerClientServiceDescriptor(string serviceName, Version? version = null)
+        => new ClientServiceDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version), clientInterface: null)
+           .WithExceptionStrategy(ExceptionProcessing.ISerializable);
 
     /// <summary>
     /// Descriptor for services proferred by the MAUI extension (implemented in TypeScript).

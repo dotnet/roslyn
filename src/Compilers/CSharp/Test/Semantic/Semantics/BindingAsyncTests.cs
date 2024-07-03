@@ -2313,13 +2313,13 @@ class Test
         get
         {
             Meth(1);
-            return field;
+            return @field;
         }
         set
         {
             Bar();
             Meth("""");
-            field = value;
+            @field = value;
         }
     }
 
@@ -3218,9 +3218,9 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,34): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
+                // (7,34): error CS4012: Parameters of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
                 //     async Task M1(TypedReference tr)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "tr").WithArguments("System.TypedReference"));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "tr").WithArguments("System.TypedReference"));
         }
 
         [Fact]
@@ -3238,10 +3238,7 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
-                //         TypedReference tr;
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
+            CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
                 // (9,24): warning CS0168: The variable 'tr' is declared but never used
                 //         TypedReference tr;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "tr").WithArguments("tr"));
@@ -3258,17 +3255,32 @@ class Test
 {
     async Task M1(bool truth)
     {
-        var tr = new TypedReference();
+        var tr = new TypedReference(); // 1
         await Task.Factory.StartNew(() => { });
     }
+
+    async Task M2(bool truth)
+    {
+        var tr = new TypedReference();
+        await Task.Factory.StartNew(() => { });
+        var tr2 = tr; // 2
+    }
+
+    async Task M3()
+    {
+        var tr = new TypedReference();
+        await Task.Factory.StartNew(() => { });
+        tr = default;
+        var tr2 = tr;
+    }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference").WithLocation(9, 9),
+            CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
                 // (9,13): warning CS0219: The variable 'tr' is assigned but its value is never used
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13));
+                //         var tr = new TypedReference(); // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13),
+                // (17,19): error CS4007: Instance of type 'System.TypedReference' cannot be preserved across 'await' or 'yield' boundary.
+                //         var tr2 = tr; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "tr").WithArguments("System.TypedReference").WithLocation(17, 19));
         }
 
         [Fact]
@@ -3288,9 +3300,6 @@ public class MyClass
                 // (8,31): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "tr"),
-                // (8,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions.
-                //         fixed (TypedReference tr) { }
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
                 // (8,31): error CS0210: You must provide an initializer in a fixed or using statement declaration
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "tr"),

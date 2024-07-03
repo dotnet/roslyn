@@ -86,14 +86,14 @@ public abstract partial class Workspace : IDisposable
 
         var emptyOptions = new SolutionOptionSet(_legacyOptions);
 
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: []);
+        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: [], fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed
             TimeSpan.FromMilliseconds(1500),
             ProcessUpdateSourceGeneratorRequestAsync,
             EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
-            listenerProvider.GetListener(),
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _updateSourceGeneratorsQueueTokenSource.Token);
     }
 
@@ -121,14 +121,14 @@ public abstract partial class Workspace : IDisposable
     protected internal Solution CreateSolution(SolutionInfo solutionInfo)
     {
         var options = new SolutionOptionSet(_legacyOptions);
-        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
+        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences, solutionInfo.FallbackAnalyzerOptions);
     }
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace, and with the given options.
     /// </summary>
-    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-        => new(this, solutionInfo.Attributes, options, analyzerReferences);
+    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences, ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
+        => new(this, solutionInfo.Attributes, options, analyzerReferences, fallbackAnalyzerOptions);
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace.
@@ -255,6 +255,8 @@ public abstract partial class Workspace : IDisposable
             {
                 var newSolution = data.transformation(oldSolution);
 
+                newSolution = data.@this.InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
+
                 // Attempt to unify the syntax trees in the new solution.
                 return UnifyLinkedDocumentContents(oldSolution, newSolution);
             },
@@ -285,6 +287,9 @@ public abstract partial class Workspace : IDisposable
 
             var changes = newSolution.GetChanges(oldSolution);
 
+            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var changedDocumentIds);
+            using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var addedDocumentIds);
+
             // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
             foreach (var addedProject in changes.GetAddedProjects())
             {
@@ -292,15 +297,8 @@ public abstract partial class Workspace : IDisposable
                 if (!addedProject.SupportsCompilation)
                     continue;
 
-                // It's likely when adding files that if we link them to files in another project, that we will do the
-                // same for other sibling files being added.  Keep that information around so help speed up the linked
-                // file search as we process siblings.
-                ProjectId? relatedProjectIdHint = null;
-                foreach (var addedDocument in addedProject.Documents)
-                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id, relatedProjectIdHint);
+                addedDocumentIds.AddRange(addedProject.DocumentIds);
             }
-
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
 
             foreach (var projectChanges in changes.GetProjectChanges())
             {
@@ -308,68 +306,140 @@ public abstract partial class Workspace : IDisposable
                 if (!projectChanges.NewProject.SupportsCompilation)
                     continue;
 
-                // Now do the same for all added documents in a project.
-                ProjectId? relatedProjectIdHint = null;
-                foreach (var addedDocument in projectChanges.GetAddedDocuments())
-                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument, relatedProjectIdHint);
-
-                // now, for any changed document, ensure we go and make all links to it have the same text/tree.
-                foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
-                    newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentId, seenChangedDocuments);
+                // Now do the same for all added and changed documents in a project.
+                addedDocumentIds.AddRange(projectChanges.GetAddedDocuments());
+                changedDocumentIds.AddRange(projectChanges.GetChangedDocuments());
             }
+
+            newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocumentIds);
+
+            // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+            newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentIds);
 
             return newSolution;
         }
 
-        static (Solution newSolution, ProjectId? relatedProjectId) UpdateAddedDocumentToExistingContentsInSolution(
-            Solution solution, DocumentId addedDocumentId, ProjectId? relatedProjectIdHint)
+        static Solution UpdateAddedDocumentToExistingContentsInSolution(
+            Solution solution, ArrayBuilder<DocumentId> addedDocumentIds)
         {
-            Contract.ThrowIfTrue(addedDocumentId.ProjectId == relatedProjectIdHint);
+            ProjectId? relatedProjectIdHint = null;
+            using var _ = ArrayBuilder<(DocumentId, DocumentState)>.GetInstance(out var relatedDocumentIdsAndStates);
 
-            // Look for a related document we can create our contents from.  We only have to look for a single related
-            // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
-            // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
-            // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
-            // to be recreated for each document.
-            var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
+            foreach (var addedDocumentId in addedDocumentIds)
+            {
+                // Ensure we don't search in addedDocumentId's project for the related document
+                if (addedDocumentId.ProjectId == relatedProjectIdHint)
+                    relatedProjectIdHint = null;
 
-            // Couldn't find a related document.  Keep the same solution, and keep track of the best related project we
-            // found while processing this project.
-            if (relatedDocumentId is null)
-                return (solution, relatedProjectIdHint);
+                // Look for a related document we can create our contents from.  We only have to look for a single related
+                // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
+                // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
+                // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
+                // to be recreated for each document.
+                var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
 
-            var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                // Couldn't find a related document.
+                if (relatedDocumentId is null)
+                    continue;
 
-            // Should never return a file as its own related document
-            Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
+                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
 
-            // Related document must come from a distinct project.
-            Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
+                // Should never return a file as its own related document
+                Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
 
-            var newSolution = solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
-            return (newSolution, relatedProjectId: relatedDocumentId.ProjectId);
+                // Related document must come from a distinct project.
+                Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
+
+                relatedProjectIdHint = relatedDocumentId.ProjectId;
+                relatedDocumentIdsAndStates.Add((addedDocumentId, relatedDocument.DocumentState));
+            }
+
+            if (relatedDocumentIdsAndStates.IsEmpty)
+                return solution;
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear(), forceEvenIfTreesWouldDiffer: false);
         }
 
-        static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, DocumentId changedDocumentId, HashSet<DocumentId> processedDocuments)
+        static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, HashSet<DocumentId> changedDocumentIds)
         {
             // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
             // process that chain once.
-            if (processedDocuments.Add(changedDocumentId))
+            using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
+
+            foreach (var changedDocumentId in changedDocumentIds)
             {
-                var changedDocument = solution.GetRequiredDocument(changedDocumentId);
+                Document? changedDocument = null;
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
+
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
                     if (relatedDocumentId == changedDocumentId)
                         continue;
 
-                    if (processedDocuments.Add(relatedDocumentId))
-                        solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
+                    if (!changedDocumentIds.Contains(relatedDocumentId))
+                    {
+                        changedDocument ??= solution.GetRequiredDocument(changedDocumentId);
+                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocument.DocumentState;
+                    }
                 }
             }
 
-            return solution;
+            if (relatedDocumentIdsAndStates.Count == 0)
+                return solution;
+
+            var relatedDocumentIdsAndStatesArray = relatedDocumentIdsAndStates.SelectAsArray(static kvp => (kvp.Key, kvp.Value));
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
         }
+    }
+
+    /// <summary>
+    /// Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
+    /// allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
+    /// Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
+    /// we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
+    /// 
+    /// This mechanism only takes care of flowing the initial snapshot of option values.
+    /// It's up to the host to keep the individual values up-to-date by updating 
+    /// <see cref="CurrentSolution"/> as appropriate.
+    /// 
+    /// Implementing the initialization here allows us to uphold an invariant that
+    /// the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
+    /// of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
+    /// </summary>
+    private Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+    {
+        var newFallbackOptions = newSolution.FallbackAnalyzerOptions;
+
+        // Clear out languages that are no longer present in the solution.
+        // If we didn't, the workspace might clear the solution (which removes the fallback options)
+        // and we would never re-initialize them from global options.
+        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (!newSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                newFallbackOptions = newFallbackOptions.Remove(language);
+            }
+        }
+
+        // Update solution snapshot to include options for newly added languages:
+        foreach (var (language, _) in newSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                continue;
+            }
+
+            if (newFallbackOptions.ContainsKey(language))
+            {
+                continue;
+            }
+
+            var provider = Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
+            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
+        }
+
+        return newSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
     }
 
     /// <summary>
@@ -910,6 +980,12 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
+    /// Call this method when <see cref="Solution.FallbackAnalyzerOptions"/> change in the host environment.
+    /// </summary>
+    internal void OnSolutionFallbackAnalyzerOptionsChanged(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => SetCurrentSolution(oldSolution => oldSolution.WithFallbackAnalyzerOptions(options), WorkspaceChangeKind.SolutionChanged);
+
+    /// <summary>
     /// Call this method when status of project has changed to incomplete.
     /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
     /// </summary>
@@ -1195,8 +1271,6 @@ public abstract partial class Workspace : IDisposable
                         // Have the linked documents point *into* the same instance data that the initial document
                         // points at.  This way things like tree data can be shared across docs.
 
-                        var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-
                         var newDocument = newSolution.GetRequiredDocument(documentId);
                         foreach (var linkedDocumentId in linkedDocumentIds)
                         {
@@ -1466,6 +1540,7 @@ public abstract partial class Workspace : IDisposable
 
             foreach (var projectChanges in projectChangesList)
             {
+                progressTracker.Report(CodeAnalysisProgress.Description(string.Format(WorkspacesResources.Applying_changes_to_0, projectChanges.NewProject.Name)));
                 this.ApplyProjectChanges(projectChanges);
                 progressTracker.ItemCompleted();
             }
@@ -1485,6 +1560,11 @@ public abstract partial class Workspace : IDisposable
             {
                 var changedOptions = newSolution.SolutionState.Options.GetChangedOptions();
                 _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
+            }
+
+            if (CurrentSolution.FallbackAnalyzerOptions != newSolution.FallbackAnalyzerOptions)
+            {
+                OnSolutionFallbackAnalyzerOptionsChanged(newSolution.FallbackAnalyzerOptions);
             }
 
             if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))

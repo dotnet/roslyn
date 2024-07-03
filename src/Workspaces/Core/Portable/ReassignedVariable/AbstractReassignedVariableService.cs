@@ -80,8 +80,8 @@ internal abstract class AbstractReassignedVariableService<
 
                     foreach (var child in current.ChildNodesAndTokens())
                     {
-                        if (child.IsNode)
-                            stack.Add(child.AsNode()!);
+                        if (child.AsNode(out var childNode))
+                            stack.Add(childNode);
                     }
                 }
             }
@@ -305,8 +305,8 @@ internal abstract class AbstractReassignedVariableService<
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
-                    if (child.IsNode)
-                        stack.Add(child.AsNode()!);
+                    if (child.AsNode(out var childNode))
+                        stack.Add(childNode);
                 }
 
                 // Ignore any nodes before the decl.

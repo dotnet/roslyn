@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -147,7 +146,7 @@ internal abstract partial class AbstractBreakpointResolver
                 default:
                     // They have a namespace or nested type qualified name.  Walk up to the root namespace trying to match.
                     var containers = await _solution.GetGlobalNamespacesAsync(cancellationToken).ConfigureAwait(false);
-                    return FindMembers(containers, nameParts.ToArray());
+                    return FindMembers(containers, [.. nameParts]);
             }
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -212,7 +211,7 @@ internal abstract partial class AbstractBreakpointResolver
     private IEnumerable<ISymbol> FindMembers(IEnumerable<INamedTypeSymbol> types, NameAndArity nameAndArity)
     {
         // Get the matching members from all types (including constructors and explicit interface
-        // implementations).  If there is a partial method, prefer returning the implementation over
+        // implementations).  If there is a partial method/property, prefer returning the implementation over
         // the definition (since the definition will not be a candidate for setting a breakpoint).
         var members = types.SelectMany(t => GetMembers(t, nameAndArity.Name))
                            .Select(s => GetPartialImplementationPartOrNull(s) ?? s);
@@ -228,8 +227,12 @@ internal abstract partial class AbstractBreakpointResolver
         return namespaces.GetAllTypes(cancellationToken);
     }
 
-    private static IMethodSymbol GetPartialImplementationPartOrNull(ISymbol symbol)
-        => (symbol.Kind == SymbolKind.Method) ? ((IMethodSymbol)symbol).PartialImplementationPart : null;
+    private static ISymbol GetPartialImplementationPartOrNull(ISymbol symbol) => symbol.Kind switch
+    {
+        SymbolKind.Method => ((IMethodSymbol)symbol).PartialImplementationPart,
+        SymbolKind.Property => ((IPropertySymbol)symbol).PartialImplementationPart,
+        _ => null
+    };
 
     /// <summary>
     /// Is this method or property a valid place to set a breakpoint and does it match the expected parameter count?

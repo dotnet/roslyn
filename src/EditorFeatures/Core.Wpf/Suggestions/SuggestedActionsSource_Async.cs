@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                using var state = SourceState.TryAddReference();
+                using var state = _state.TryAddReference();
                 if (state is null)
                     return;
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
                         // keep track of this *across* calls to each priority. So we create this set outside of the loop and
                         // then pass it continuously from one priority group to the next.
-                        var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+                        var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
 
                         using var _2 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total");
 
@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 var allSets = GetCodeFixesAndRefactoringsAsync(
                                     state, requestedActionCategories, document,
                                     range, selection,
-                                    addOperationScope: _ => null,
-                                    new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzers),
+                                    new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzerData),
                                     currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                                 await foreach (var set in allSets)
@@ -202,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 TextDocument document,
                 SnapshotSpan range,
                 TextSpan? selection,
-                Func<string, IDisposable?> addOperationScope,
                 ICodeActionRequestPriorityProvider priorityProvider,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                         workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
-                        priorityProvider, options, addOperationScope, cancellationToken).ConfigureAwait(false);
+                        priorityProvider, options, cancellationToken).ConfigureAwait(false);
                 }
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
@@ -276,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                         workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority, options,
-                        addOperationScope, filterOutsideSelection, cancellationToken).ConfigureAwait(false);
+                        filterOutsideSelection, cancellationToken).ConfigureAwait(false);
                 }
 
                 [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]

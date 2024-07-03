@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -27,7 +26,7 @@ internal static partial class ITypeSymbolExtensions
     /// interfaceMember, or this type doesn't supply a member that successfully implements
     /// interfaceMember).
     /// </summary>
-    public static async Task<ImmutableArray<ISymbol>> FindImplementationsForInterfaceMemberAsync(
+    public static ImmutableArray<ISymbol> FindImplementationsForInterfaceMember(
         this ITypeSymbol typeSymbol,
         ISymbol interfaceMember,
         Solution solution,
@@ -97,13 +96,11 @@ internal static partial class ITypeSymbolExtensions
             // OriginalSymbolMatch allows types to be matched across different assemblies if they are considered to
             // be the same type, which provides a more accurate implementations list for interfaces.
             var constructedInterfaceMember =
-                await constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefaultAsync(
-                    typeSymbol => SymbolFinder.OriginalSymbolsMatchAsync(solution, typeSymbol, interfaceMember, cancellationToken)).ConfigureAwait(false);
+                constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefault(
+                    typeSymbol => SymbolFinder.OriginalSymbolsMatch(solution, typeSymbol, interfaceMember));
 
             if (constructedInterfaceMember == null)
-            {
                 continue;
-            }
 
             // Now we need to walk the base type chain, but we start at the first type that actually
             // has the interface directly in its interface hierarchy.

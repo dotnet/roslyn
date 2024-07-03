@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
@@ -22,13 +23,17 @@ internal interface IMetadataAsSourceFileService
     /// representation of the original sources; otherwise <see langword="true"/> to only show member
     /// signatures.</param>
     /// <param name="options">Options to use when navigating. See <see cref="MetadataAsSourceOptions"/> for details.</param>
-    Task<MetadataAsSourceFile> GetGeneratedFileAsync(Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, CancellationToken cancellationToken = default);
+    Task<MetadataAsSourceFile> GetGeneratedFileAsync(
+        Workspace sourceWorkspace,
+        Project sourceProject,
+        ISymbol symbol,
+        bool signaturesOnly,
+        MetadataAsSourceOptions options,
+        CancellationToken cancellationToken);
 
     bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer buffer);
 
     bool TryRemoveDocumentFromWorkspace(string filePath);
-
-    void CleanupGeneratedFiles();
 
     bool IsNavigableMetadataSymbol(ISymbol symbol);
 

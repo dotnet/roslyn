@@ -15,7 +15,7 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
     internal readonly struct Data(DebuggingSessionTelemetry telemetry)
     {
         public readonly Guid SolutionSessionId = telemetry._solutionSessionId;
-        public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData = telemetry._editSessionData.ToImmutableArray();
+        public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData = [.. telemetry._editSessionData];
         public readonly int EmptyEditSessionCount = telemetry._emptyEditSessionCount;
         public readonly int EmptyHotReloadEditSessionCount = telemetry._emptyHotReloadEditSessionCount;
     }

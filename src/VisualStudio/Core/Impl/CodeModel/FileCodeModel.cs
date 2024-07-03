@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collectio
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -705,7 +704,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         // perform expensive operations at once
                         var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                         {
-                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(CancellationToken.None).ConfigureAwait(false);
                             return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
                         });
 

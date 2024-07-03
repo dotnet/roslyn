@@ -4,57 +4,82 @@
 
 using System;
 using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RazorDynamicRegistrationService), WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefault = true)] IRazorCohostDynamicRegistrationService? dynamicRegistrationService) : ILspServiceFactory
+internal sealed class RazorDynamicRegistrationServiceFactory(
+    [Import(AllowDefault = true)] IUIContextActivationService? uIContextActivationService,
+    [Import(AllowDefault = true)] Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
 
-        return new RazorDynamicRegistrationService(dynamicRegistrationService, clientLanguageServerManager);
+        return new RazorDynamicRegistrationService(uIContextActivationService, dynamicRegistrationService, clientLanguageServerManager);
     }
 
-    private class RazorDynamicRegistrationService : ILspService, IOnInitialized
+    private class RazorDynamicRegistrationService(
+        IUIContextActivationService? uIContextActivationService,
+        Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService,
+        IClientLanguageServerManager? clientLanguageServerManager) : ILspService, IOnInitialized, IDisposable
     {
-        private readonly IRazorCohostDynamicRegistrationService? _dynamicRegistrationService;
-        private readonly IClientLanguageServerManager _clientLanguageServerManager;
-        private readonly JsonSerializerSettings _serializerSettings;
+        private readonly CancellationTokenSource _disposalTokenSource = new();
 
-        public RazorDynamicRegistrationService(IRazorCohostDynamicRegistrationService? dynamicRegistrationService, IClientLanguageServerManager clientLanguageServerManager)
+        public void Dispose()
         {
-            _dynamicRegistrationService = dynamicRegistrationService;
-            _clientLanguageServerManager = clientLanguageServerManager;
-
-            var serializer = new JsonSerializer();
-            serializer.AddVSInternalExtensionConverters();
-            _serializerSettings = new JsonSerializerSettings { Converters = serializer.Converters };
+            _disposalTokenSource.Cancel();
         }
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            if (_dynamicRegistrationService is null)
+            if (dynamicRegistrationService is null || clientLanguageServerManager is null)
             {
                 return Task.CompletedTask;
             }
 
+            if (uIContextActivationService is null)
+            {
+                // Outside of VS, we want to initialize immediately.. I think?
+                InitializeRazor();
+            }
+            else
+            {
+                uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
+            }
+
+            return Task.CompletedTask;
+
+            void InitializeRazor()
+            {
+                this.InitializeRazor(clientCapabilities, context, _disposalTokenSource.Token);
+            }
+        }
+
+        private void InitializeRazor(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        {
+            // The LSP server will dispose us when the server exits, but VS could decide to activate us later.
+            // If a new instance of the server is created, a new instance of this class will be created and the
+            // UIContext will already be active, so this method will be immediately called on the new instance.
+            if (cancellationToken.IsCancellationRequested) return;
+
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-            var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities, _serializerSettings);
-            var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(_clientLanguageServerManager);
+            var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
+            var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(clientLanguageServerManager!);
 
             var requestContext = new RazorCohostRequestContext(context);
-            return _dynamicRegistrationService.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken);
+            dynamicRegistrationService!.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ReportNonFatalErrorAsync();
         }
     }
 }

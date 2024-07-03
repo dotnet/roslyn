@@ -10,14 +10,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -45,37 +41,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             object fixProviderData = null)
         {
             var testOptions = new TestParameters(fixProviderData: fixProviderData);
-            using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
+            using var workspace = CreateWorkspaceFromOptions(originalCode, testOptions);
+            if (expectedCodeAction)
             {
-                if (expectedCodeAction)
+                Assert.True(expectedCode != null, $"{nameof(expectedCode)} should be present if {nameof(expectedCodeAction)} is true.");
+
+                var documentId = workspace.Documents[0].Id;
+                var documentName = workspace.Documents[0].Name;
+                MarkupTestFile.GetSpan(expectedCode, out var expectedText, out var span);
+
+                var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
+
+                var oldSolutionAndNewSolution = await TestOperationAsync(
+                    testOptions, workspace, expectedText, codeActionTitle);
+
+                // the original source document does not exist in the new solution.
+                var newSolution = oldSolutionAndNewSolution.Item2;
+
+                var document = newSolution.GetDocument(documentId);
+                Assert.NotNull(document);
+                Assert.Equal(documentName, document.Name);
+            }
+            else
+            {
+                var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
+
+                if (actions.Length > 0)
                 {
-                    Assert.True(expectedCode != null, $"{nameof(expectedCode)} should be present if {nameof(expectedCodeAction)} is true.");
-
-                    var documentId = workspace.Documents[0].Id;
-                    var documentName = workspace.Documents[0].Name;
-                    MarkupTestFile.GetSpan(expectedCode, out var expectedText, out var span);
-
-                    var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
-
-                    var oldSolutionAndNewSolution = await TestOperationAsync(
-                        testOptions, workspace, expectedText, codeActionTitle);
-
-                    // the original source document does not exist in the new solution.
-                    var newSolution = oldSolutionAndNewSolution.Item2;
-
-                    var document = newSolution.GetDocument(documentId);
-                    Assert.NotNull(document);
-                    Assert.Equal(documentName, document.Name);
-                }
-                else
-                {
-                    var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
-
-                    if (actions.Length > 0)
-                    {
-                        var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameTypeCodeActionTitle), this);
-                        Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
-                    }
+                    var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameTypeCodeActionTitle), this);
+                    Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
                 }
             }
         }
@@ -88,40 +82,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             object fixProviderData = null)
         {
             var testOptions = new TestParameters(fixProviderData: fixProviderData);
-            using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
+            using var workspace = CreateWorkspaceFromOptions(originalCode, testOptions);
+            if (expectedCodeAction)
             {
-                if (expectedCodeAction)
+                Assert.True(expectedDocumentName != null, $"{nameof(expectedDocumentName)} should be present if {nameof(expectedCodeAction)} is true.");
+
+                var oldDocumentId = workspace.Documents[0].Id;
+                var expectedText = workspace.Documents[0].GetTextBuffer().CurrentSnapshot.GetText();
+                var spans = workspace.Documents[0].SelectedSpans;
+
+                var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
+
+                var oldSolutionAndNewSolution = await TestOperationAsync(
+                    testOptions, workspace, expectedText, codeActionTitle);
+
+                // The code action updated the Name of the file in-place
+                var newSolution = oldSolutionAndNewSolution.Item2;
+                var newDocument = newSolution.GetDocument(oldDocumentId);
+                Assert.Equal(expectedDocumentName, newDocument.Name);
+
+                if (destinationDocumentContainers != null)
                 {
-                    Assert.True(expectedDocumentName != null, $"{nameof(expectedDocumentName)} should be present if {nameof(expectedCodeAction)} is true.");
-
-                    var oldDocumentId = workspace.Documents[0].Id;
-                    var expectedText = workspace.Documents[0].GetTextBuffer().CurrentSnapshot.GetText();
-                    var spans = workspace.Documents[0].SelectedSpans;
-
-                    var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
-
-                    var oldSolutionAndNewSolution = await TestOperationAsync(
-                        testOptions, workspace, expectedText, codeActionTitle);
-
-                    // The code action updated the Name of the file in-place
-                    var newSolution = oldSolutionAndNewSolution.Item2;
-                    var newDocument = newSolution.GetDocument(oldDocumentId);
-                    Assert.Equal(expectedDocumentName, newDocument.Name);
-
-                    if (destinationDocumentContainers != null)
-                    {
-                        Assert.Equal(destinationDocumentContainers, newDocument.Folders);
-                    }
+                    Assert.Equal(destinationDocumentContainers, newDocument.Folders);
                 }
-                else
-                {
-                    var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
+            }
+            else
+            {
+                var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
 
-                    if (actions.Length > 0)
-                    {
-                        var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameFileCodeActionTitle), this);
-                        Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
-                    }
+                if (actions.Length > 0)
+                {
+                    var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameFileCodeActionTitle), this);
+                    Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
                 }
             }
         }

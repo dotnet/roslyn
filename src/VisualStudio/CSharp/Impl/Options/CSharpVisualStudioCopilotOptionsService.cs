@@ -42,6 +42,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private const string CopilotOptionNamePrefix = "Microsoft.VisualStudio.Conversations";
     private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
     private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
+    private const string CopilotOnTheFlyDocsOptionName = "EnableCSharpOnTheFlyDocs";
 
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
     private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
@@ -84,4 +85,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
 
     public Task<bool> IsRefineOptionEnabledAsync()
         => IsCopilotOptionEnabledAsync(CopilotRefineOptionName);
+
+    public Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
+        => IsCopilotOptionEnabledAsync(CopilotOnTheFlyDocsOptionName);
 }

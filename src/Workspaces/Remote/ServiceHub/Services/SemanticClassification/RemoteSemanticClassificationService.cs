@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,8 +39,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 solution = document.Project.Solution;
 
                 using var _ = Classifier.GetPooledList(out var temp);
-                await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
-                    document, spans, type, options, temp, cancellationToken).ConfigureAwait(false);
+
+                // Safe to do this.  The remote classification service only runs for C#/VB.  So we know we'll always
+                // have this service and it will always be this type.
+                var classificationService = (AbstractClassificationService)document.GetRequiredLanguageService<IClassificationService>();
+                await classificationService.AddClassificationsAsync(
+                    document, spans, options, type, temp, cancellationToken).ConfigureAwait(false);
 
                 if (isFullyLoaded)
                 {
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     _workQueue.AddWork((document, type, options));
                 }
 
-                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutableArray());
+                return SerializableClassifiedSpans.Dehydrate([.. temp]);
             }, cancellationToken);
         }
     }

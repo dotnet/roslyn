@@ -40,43 +40,44 @@ namespace Microsoft.CodeAnalysis.Remote
             AssetProvider assetService,
             Checksum checksumFromRequest,
             Solution solutionFromScratch,
-            Solution incrementalSolutionBuilt)
+            Solution incrementalSolutionBuilt,
+            ProjectId? projectConeId)
         {
 #if DEBUG
             var sb = new StringBuilder();
             var allChecksumsFromRequest = await GetAllChildrenChecksumsAsync(checksumFromRequest).ConfigureAwait(false);
 
-            var assetMapFromNewSolution = await solutionFromScratch.GetAssetMapAsync(CancellationToken.None).ConfigureAwait(false);
-            var assetMapFromIncrementalSolution = await incrementalSolutionBuilt.GetAssetMapAsync(CancellationToken.None).ConfigureAwait(false);
+            var assetMapFromNewSolution = await solutionFromScratch.GetAssetMapAsync(projectConeId, CancellationToken.None).ConfigureAwait(false);
+            var assetMapFromIncrementalSolution = await incrementalSolutionBuilt.GetAssetMapAsync(projectConeId, CancellationToken.None).ConfigureAwait(false);
 
             // check 4 things
             // 1. first see if we create new solution from scratch, it works as expected (indicating a bug in incremental update)
             var mismatch1 = assetMapFromNewSolution.Where(p => !allChecksumsFromRequest.Contains(p.Key)).ToList();
-            AppendMismatch(mismatch1, "assets only in new solutoin but not in the request", sb);
+            AppendMismatch(mismatch1, "Assets only in new solution but not in the request", sb);
 
             // 2. second check what items is mismatching for incremental solution
             var mismatch2 = assetMapFromIncrementalSolution.Where(p => !allChecksumsFromRequest.Contains(p.Key)).ToList();
-            AppendMismatch(mismatch2, "assets only in the incremental solution but not in the request", sb);
+            AppendMismatch(mismatch2, "Assets only in the incremental solution but not in the request", sb);
 
             // 3. check whether solution created from scratch and incremental one have any mismatch
             var mismatch3 = assetMapFromNewSolution.Where(p => !assetMapFromIncrementalSolution.ContainsKey(p.Key)).ToList();
-            AppendMismatch(mismatch3, "assets only in new solution but not in incremental solution", sb);
+            AppendMismatch(mismatch3, "Assets only in new solution but not in incremental solution", sb);
 
             var mismatch4 = assetMapFromIncrementalSolution.Where(p => !assetMapFromNewSolution.ContainsKey(p.Key)).ToList();
-            AppendMismatch(mismatch4, "assets only in incremental solution but not in new solution", sb);
+            AppendMismatch(mismatch4, "Assets only in incremental solution but not in new solution", sb);
 
             // 4. see what item is missing from request
             var mismatch5 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromNewSolution.Keys)).ConfigureAwait(false);
-            AppendMismatch(mismatch5, "assets only in the request but not in new solution", sb);
+            AppendMismatch(mismatch5, "Assets only in the request but not in new solution", sb);
 
             var mismatch6 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromIncrementalSolution.Keys)).ConfigureAwait(false);
-            AppendMismatch(mismatch6, "assets only in the request but not in incremental solution", sb);
+            AppendMismatch(mismatch6, "Assets only in the request but not in incremental solution", sb);
 
             var result = sb.ToString();
             if (result.Length > 0)
             {
                 Logger.Log(FunctionId.SolutionCreator_AssetDifferences, result);
-                Debug.Fail("Differences detected in solution checksum: " + result);
+                Debug.Fail($"Differences detected in solution checksum (ProjectId={projectConeId}):\r\n{result}");
             }
 
             return;
@@ -154,10 +155,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// create checksum to corresponding object map from solution this map should contain every parts of solution
         /// that can be used to re-create the solution back
         /// </summary>
-        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, ProjectId? projectConeId, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();
-            await solution.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+            await solution.AppendAssetMapAsync(map, projectConeId, cancellationToken).ConfigureAwait(false);
             return map;
         }
 

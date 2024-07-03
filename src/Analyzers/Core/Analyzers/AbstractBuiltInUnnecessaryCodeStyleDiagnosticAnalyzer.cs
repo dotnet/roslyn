@@ -100,19 +100,19 @@ internal abstract class AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer : 
     /// <summary>
     /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style options that can be used to configure each descriptor.
     /// </summary>
-    protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IOption2> supportedDiagnosticsWithOptions, PerLanguageOption2<bool>? fadingOption)
+    protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableArray<(DiagnosticDescriptor Descriptor, IOption2 Option)> supportedDiagnosticsWithOptions, PerLanguageOption2<bool>? fadingOption)
         : base(supportedDiagnosticsWithOptions)
     {
-        AddDescriptorsToFadingOptionMapping(supportedDiagnosticsWithOptions.Keys, fadingOption);
+        AddDescriptorsToFadingOptionMapping(supportedDiagnosticsWithOptions.Select(static item => item.Descriptor), fadingOption);
     }
 
     /// <summary>
     /// Constructor for a code style analyzer with multiple diagnostic descriptors with zero or more code style options that can be used to configure each descriptor.
     /// </summary>
-    protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>> supportedDiagnosticsWithOptions, PerLanguageOption2<bool>? fadingOption)
+    protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableArray<(DiagnosticDescriptor Descriptor, ImmutableHashSet<IOption2> Options)> supportedDiagnosticsWithOptions, PerLanguageOption2<bool>? fadingOption)
         : base(supportedDiagnosticsWithOptions)
     {
-        AddDescriptorsToFadingOptionMapping(supportedDiagnosticsWithOptions.Keys, fadingOption);
+        AddDescriptorsToFadingOptionMapping(supportedDiagnosticsWithOptions.Select(static item => item.Descriptor), fadingOption);
     }
 
     private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool>? fadingOption)

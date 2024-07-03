@@ -18,19 +18,19 @@ internal static class CodeStyleOptions2
 {
     private const string PublicFeatureName = "CodeStyleOptions";
 
-    private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
+    private static readonly ImmutableArray<IOption2>.Builder s_editorConfigOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
     private static PerLanguageOption2<CodeStyleOption2<T>> CreatePerLanguageOption<T>(
         OptionGroup group, string name, CodeStyleOption2<T> defaultValue, Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
-        => s_allOptionsBuilder.CreatePerLanguageEditorConfigOption(name, defaultValue, group, serializerFactory);
+        => s_editorConfigOptionsBuilder.CreatePerLanguageEditorConfigOption(name, defaultValue, group, serializerFactory);
 
     private static Option2<CodeStyleOption2<T>> CreateOption<T>(
         OptionGroup group, string name, CodeStyleOption2<T> defaultValue, Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
-        => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, languageName: null, serializerFactory);
+        => s_editorConfigOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, languageName: null, serializerFactory);
 
     private static Option2<T> CreateOption<T>(
         OptionGroup group, string name, T defaultValue, EditorConfigValueSerializer<T>? serializer = null)
-        => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, serializer);
+        => s_editorConfigOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, serializer);
 
     private static PerLanguageOption2<CodeStyleOption2<bool>> CreateQualifyAccessOption(string name)
         => CreatePerLanguageOption(CodeStyleOptionGroups.ThisOrMe, name, defaultValue: SimplifierOptions.DefaultQualifyAccess);
@@ -322,10 +322,10 @@ internal static class CodeStyleOptions2
                 return $"{value}{CodeStyleHelpers.GetEditorConfigStringNotificationPart(option, defaultValue)}";
             }));
 
-    internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = new(
+    internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreatePerLanguageOption(
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
         "dotnet_prefer_system_hash_code",
-        IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
-        group: CodeStyleOptionGroups.ExpressionLevelPreferences);
+        defaultValue: new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion));
 
     public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreatePerLanguageOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
@@ -342,7 +342,10 @@ internal static class CodeStyleOptions2
         "dotnet_style_allow_statement_immediately_after_block_experimental",
         IdeCodeStyleOptions.CommonDefaults.AllowStatementImmediatelyAfterBlock);
 
-    internal static readonly ImmutableArray<IOption2> AllOptions = s_allOptionsBuilder.ToImmutable();
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = s_editorConfigOptionsBuilder.ToImmutable();
 }
 
 internal static class CodeStyleOptionGroups

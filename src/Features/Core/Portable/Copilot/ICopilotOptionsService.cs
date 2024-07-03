@@ -23,4 +23,10 @@ internal interface ICopilotOptionsService : ILanguageService
     /// Returns true if Copilot background code analysis feature is enabled.
     /// </summary>
     Task<bool> IsCodeAnalysisOptionEnabledAsync();
+
+    /// <summary>
+    /// Returns true if Copilot on-the-fly docs feature is enabled.
+    /// </summary>
+    /// <returns></returns>
+    Task<bool> IsOnTheFlyDocsOptionEnabledAsync();
 }

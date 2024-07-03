@@ -4,13 +4,11 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
@@ -44,7 +42,7 @@ internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeSty
         var semanticModel = context.SemanticModel;
         var cancellationToken = context.CancellationToken;
 
-        var option = context.GetIdeAnalyzerOptions().ReportInvalidRegexPatterns;
+        var option = context.GetAnalyzerOptions().GetOption(RegexOptionsStorage.ReportInvalidRegexPatterns);
         if (!option || ShouldSkipAnalysis(context, notification: null))
             return;
 

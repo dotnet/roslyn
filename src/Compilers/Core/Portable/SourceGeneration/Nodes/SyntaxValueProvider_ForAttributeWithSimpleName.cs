@@ -205,9 +205,8 @@ public partial struct SyntaxValueProvider
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var childNode = child.AsNode()!;
                     if (syntaxHelper.IsAnyNamespaceBlock(childNode))
                         processNamespaceBlock(childNode);
                     else
@@ -283,8 +282,8 @@ public partial struct SyntaxValueProvider
                         // means having to dive deep into statements and expressions.
                         foreach (var child in node.ChildNodesAndTokens().Reverse())
                         {
-                            if (child.IsNode)
-                                nodeStack.Push(child.AsNode()!);
+                            if (child.AsNode(out var childNode))
+                                nodeStack.Push(childNode);
                         }
                     }
 

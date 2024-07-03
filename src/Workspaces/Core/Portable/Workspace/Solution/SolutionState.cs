@@ -33,11 +33,7 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
-    /// <summary>
-    /// Note: this insensitive comparer is busted on many systems.  But we do things this way for compat with the logic
-    /// we've had on windows since forever.
-    /// </summary>
-    public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+    public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
@@ -45,6 +41,17 @@ internal sealed partial class SolutionState
     public SolutionServices Services { get; }
     public SolutionOptionSet Options { get; }
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
+
+    /// <summary>
+    /// Fallback analyzer config options by language. The set of languages does not need to match the set of langauges of projects included in the surrent solution snapshot.
+    /// </summary>
+    public ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions { get; } = ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty;
+
+    /// <summary>
+    /// Number of projects in the solution of the given language.  The value is guaranteed to always be greater than zero.
+    /// If the project count does ever hit zero then there simply is no key/value pair for that language in this map.
+    /// </summary>
+    internal ImmutableDictionary<string, int> ProjectCountByLanguage { get; } = ImmutableDictionary<string, int>.Empty;
 
     private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
     private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
@@ -63,6 +70,8 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         SolutionOptionSet options,
         IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions,
+        ImmutableDictionary<string, int> projectCountByLanguage,
         ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
         ProjectDependencyGraph dependencyGraph,
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
@@ -74,6 +83,8 @@ internal sealed partial class SolutionState
         ProjectIds = projectIds;
         Options = options;
         AnalyzerReferences = analyzerReferences;
+        FallbackAnalyzerOptions = fallbackAnalyzerOptions;
+        ProjectCountByLanguage = projectCountByLanguage;
         _projectIdToProjectStateMap = idToProjectStateMap;
         _dependencyGraph = dependencyGraph;
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
@@ -95,7 +106,8 @@ internal sealed partial class SolutionState
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         SolutionOptionSet options,
-        IReadOnlyList<AnalyzerReference> analyzerReferences)
+        IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(
             workspaceKind,
             workspaceVersion: 0,
@@ -104,6 +116,8 @@ internal sealed partial class SolutionState
             projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
             options,
             analyzerReferences,
+            fallbackAnalyzerOptions,
+            projectCountByLanguage: ImmutableDictionary<string, int>.Empty,
             idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
             dependencyGraph: ProjectDependencyGraph.Empty,
             lazyAnalyzers: null)
@@ -151,10 +165,12 @@ internal sealed partial class SolutionState
     }
 
     internal SolutionState Branch(
+        ImmutableDictionary<string, int>? projectCountByLanguage = null,
         SolutionInfo.SolutionAttributes? solutionAttributes = null,
         IReadOnlyList<ProjectId>? projectIds = null,
         SolutionOptionSet? options = null,
         IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions>? fallbackAnalyzerOptions = null,
         ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
         ProjectDependencyGraph? dependencyGraph = null)
     {
@@ -163,6 +179,8 @@ internal sealed partial class SolutionState
         idToProjectStateMap ??= _projectIdToProjectStateMap;
         options ??= Options;
         analyzerReferences ??= AnalyzerReferences;
+        fallbackAnalyzerOptions ??= FallbackAnalyzerOptions;
+        projectCountByLanguage ??= ProjectCountByLanguage;
         dependencyGraph ??= _dependencyGraph;
 
         var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
@@ -171,6 +189,8 @@ internal sealed partial class SolutionState
             projectIds == ProjectIds &&
             options == Options &&
             analyzerReferencesEqual &&
+            fallbackAnalyzerOptions == FallbackAnalyzerOptions &&
+            projectCountByLanguage == ProjectCountByLanguage &&
             idToProjectStateMap == _projectIdToProjectStateMap &&
             dependencyGraph == _dependencyGraph)
         {
@@ -185,6 +205,8 @@ internal sealed partial class SolutionState
             projectIds,
             options,
             analyzerReferences,
+            fallbackAnalyzerOptions,
+            projectCountByLanguage,
             idToProjectStateMap,
             dependencyGraph,
             analyzerReferencesEqual ? _lazyAnalyzers : null);
@@ -217,6 +239,8 @@ internal sealed partial class SolutionState
             ProjectIds,
             Options,
             AnalyzerReferences,
+            FallbackAnalyzerOptions,
+            ProjectCountByLanguage,
             _projectIdToProjectStateMap,
             _dependencyGraph,
             _lazyAnalyzers);
@@ -305,6 +329,8 @@ internal sealed partial class SolutionState
         if (projectInfos.Count == 0)
             return this;
 
+        var langaugeCountDeltas = new TemporaryArray<(string language, int count)>();
+
         using var _ = ArrayBuilder<ProjectState>.GetInstance(projectInfos.Count, out var projectStates);
         foreach (var projectInfo in projectInfos)
             projectStates.Add(CreateProjectState(projectInfo));
@@ -332,7 +358,14 @@ internal sealed partial class SolutionState
             if (languageServices == null)
                 throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
 
-            var newProject = new ProjectState(languageServices, projectInfo);
+            if (!FallbackAnalyzerOptions.TryGetValue(language, out var fallbackAnalyzerOptions))
+            {
+                fallbackAnalyzerOptions = StructuredAnalyzerConfigOptions.Empty;
+            }
+
+            AddLanguageCountDelta(ref langaugeCountDeltas, language, amount: +1);
+
+            var newProject = new ProjectState(languageServices, projectInfo, fallbackAnalyzerOptions);
             return newProject;
         }
 
@@ -382,6 +415,7 @@ internal sealed partial class SolutionState
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
+                projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, langaugeCountDeltas),
                 dependencyGraph: newDependencyGraph);
         }
     }
@@ -417,11 +451,57 @@ internal sealed partial class SolutionState
         foreach (var projectId in projectIds)
             newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
 
+        var languageCountDeltas = new TemporaryArray<(string language, int count)>();
+        foreach (var projectId in projectIds)
+        {
+            AddLanguageCountDelta(ref languageCountDeltas, _projectIdToProjectStateMap[projectId].Language, amount: -1);
+        }
+
         return this.Branch(
             solutionAttributes: newSolutionAttributes,
             projectIds: newProjectIds,
             idToProjectStateMap: newStateMap,
+            projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, languageCountDeltas),
             dependencyGraph: newDependencyGraph);
+    }
+
+    private static void AddLanguageCountDelta(ref TemporaryArray<(string language, int count)> languageCountDeltas, string language, int amount)
+    {
+        Contract.ThrowIfFalse(amount is -1 or +1);
+
+        var index = languageCountDeltas.IndexOf(static (c, language) => c.language == language, language);
+        if (index < 0)
+        {
+            languageCountDeltas.Add((language, amount));
+        }
+        else
+        {
+            languageCountDeltas[index] = (language, languageCountDeltas[index].count + amount);
+        }
+    }
+
+    private static ImmutableDictionary<string, int> AddLanguageCounts(ImmutableDictionary<string, int> projectCountByLanguage, in TemporaryArray<(string language, int count)> languageCountDeltas)
+    {
+        foreach (var (language, delta) in languageCountDeltas)
+        {
+            if (!projectCountByLanguage.TryGetValue(language, out var currentCount))
+            {
+                currentCount = 0;
+            }
+
+            var newCount = currentCount + delta;
+            if (newCount > 0)
+            {
+                projectCountByLanguage = projectCountByLanguage.SetItem(language, newCount);
+            }
+            else
+            {
+                Contract.ThrowIfFalse(newCount == 0);
+                projectCountByLanguage = projectCountByLanguage.Remove(language);
+            }
+        }
+
+        return projectCountByLanguage;
     }
 
     /// <summary>
@@ -835,6 +915,35 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
+    /// Creates a new solution instance with updated analyzer fallback options.
+    /// </summary>
+    public SolutionState WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+    {
+        if (FallbackAnalyzerOptions == options)
+        {
+            return this;
+        }
+
+        var newProjectStatesMap = _projectIdToProjectStateMap.ToImmutableDictionary(
+            keySelector: static entry => entry.Key,
+            elementSelector: entry =>
+            {
+                // If the new options are specified for the project language we use them,
+                // otherwise we clear the options for the project.
+                if (!options.TryGetValue(entry.Value.Language, out var languageOptions))
+                {
+                    languageOptions = StructuredAnalyzerConfigOptions.Empty;
+                }
+
+                return entry.Value.WithFallbackAnalyzerOptions(languageOptions);
+            });
+
+        return Branch(
+            fallbackAnalyzerOptions: options,
+            idToProjectStateMap: newProjectStatesMap);
+    }
+
+    /// <summary>
     /// Creates a new solution instance with the document specified updated to have the specified name.
     /// </summary>
     public StateChange WithDocumentName(DocumentId documentId, string name)
@@ -989,51 +1098,6 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
-    /// Creates a new solution instance with the document specified updated to have a syntax tree
-    /// rooted by the specified syntax node.
-    /// </summary>
-    public StateChange WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
-    {
-        var oldDocument = GetRequiredDocumentState(documentId);
-        if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
-            oldTree.TryGetRoot(out var oldRoot) &&
-            oldRoot == root)
-        {
-            var oldProject = GetRequiredProjectState(documentId.ProjectId);
-            return new(this, oldProject, oldProject);
-        }
-
-        return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
-    }
-
-    /// <param name="forceEvenIfTreesWouldDiffer">Whether or not the specified document is forced to have the same text and
-    /// green-tree-root from <paramref name="documentState"/>.  If <see langword="true"/>, then they will share
-    /// these values.  If <see langword="false"/>, then they will only be shared when safe to do so (for example,
-    /// when parse-options and pp-directives would not cause issues.</param>
-    /// <remarks>
-    /// Forcing should only happen in frozen-partial snapshots, where we are ok with inaccuracies in the trees we
-    /// get back and want perf to be very high.  Any codepaths from frozen-partial should pass <see
-    /// langword="true"/> for this.  Any codepaths from Workspace.UnifyLinkedDocumentContents should pass <see
-    /// langword="false"/>.</remarks>
-    public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-    {
-        var oldDocument = GetRequiredDocumentState(documentId);
-        var oldProject = GetRequiredProjectState(documentId.ProjectId);
-        if (oldDocument == documentState)
-            return new(this, oldProject, oldProject);
-
-        if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
-            oldDocument.TreeSource == documentState.TreeSource)
-        {
-            return new(this, oldProject, oldProject);
-        }
-
-        return UpdateDocumentState(
-            oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
-            contentChanged: true);
-    }
-
-    /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source
     /// code kind specified.
     /// </summary>
@@ -1178,7 +1242,7 @@ internal sealed partial class SolutionState
                 state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
 
-        return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
+        return new ProjectDependencyGraph([.. projectIds], map);
     }
 
     public SolutionState WithOptions(SolutionOptionSet options)

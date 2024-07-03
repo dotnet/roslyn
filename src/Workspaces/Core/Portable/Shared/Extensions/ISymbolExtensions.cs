@@ -344,7 +344,7 @@ internal static partial class ISymbolExtensions
             result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
         }
 
-        return result.ToArray();
+        return [.. result];
     }
 
     private static XNode[]? RewriteInheritdocElement(ISymbol memberSymbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XElement element, CancellationToken cancellationToken)
@@ -658,11 +658,10 @@ internal static partial class ISymbolExtensions
 
         // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
         // check to see if we're referencing a symbol defined in source.
-        static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
         return symbols.WhereAsArray((s, arg) =>
             // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
             // of each namespace symbol, which might end up allocating in LOH
-            (s.IsNamespace() || s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
+            (s.IsNamespace() || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
             !s.IsDestructor() &&
             s.IsEditorBrowsable(
                 arg.hideAdvancedMembers,

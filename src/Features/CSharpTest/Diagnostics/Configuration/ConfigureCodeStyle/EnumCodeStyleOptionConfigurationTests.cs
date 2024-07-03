@@ -15,715 +15,714 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureCodeStyle
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureCodeStyle;
+
+public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
 {
-    public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
+    protected internal override string GetLanguage() => LanguageNames.CSharp;
+
+    protected override ParseOptions GetScriptOptions() => Options.Script;
+
+    internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
     {
-        protected internal override string GetLanguage() => LanguageNames.CSharp;
+        /*
+            /// <summary>
+            /// Assignment preference for unused values from expression statements and assignments.
+            /// </summary>
+            internal enum UnusedValuePreference
+            {
+                // Unused values must be explicitly assigned to a local variable
+                // that is never read/used.
+                UnusedLocalVariable = 1,
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+                // Unused values must be explicitly assigned to a discard '_' variable.
+                DiscardVariable = 2,
+            }
+         */
+        return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
+                    new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
+    }
 
-        internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+    {
+        protected override int CodeActionIndex => 0;
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
         {
-            /*
-                /// <summary>
-                /// Assignment preference for unused values from expression statements and assignments.
-                /// </summary>
-                internal enum UnusedValuePreference
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
                 {
-                    // Unused values must be explicitly assigned to a local variable
-                    // that is never read/used.
-                    UnusedLocalVariable = 1,
-
-                    // Unused values must be explicitly assigned to a discard '_' variable.
-                    DiscardVariable = 2,
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
+                    }
                 }
-             */
-            return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = unused_local_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_UnusedLocalVariable()
         {
-            protected override int CodeActionIndex => 0;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                csharp_style_unused_value_assignment_preference = discard_variable:suggestion    ; Comment2
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion    ; Comment2
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = unused_local_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_UnusedLocalVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    csharp_style_unused_value_assignment_preference = discard_variable:suggestion    ; Comment2
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion    ; Comment2
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    dotnet_diagnostic.IDE0059.severity = warning    ; Comment2
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    dotnet_diagnostic.IDE0059.severity = warning    ; Comment2
-
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = unused_local_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    dotnet_diagnostic.IDE0059.severity = error    ; Comment2
-                    csharp_style_unused_value_assignment_preference = discard_variable:suggestion    ; Comment3
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
-                    dotnet_diagnostic.IDE0059.severity = error    ; Comment2
-                    csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion    ; Comment3
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    csharp_style_unused_value_assignment_preference = discard_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    csharp_style_unused_value_assignment_preference = discard_variable:suggestion
-
-                    [*.cs]
-
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = unused_local_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact]
-            public async Task ConfigureEditorconfig_MaintainSeverity_UnusedLocalVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    csharp_style_unused_value_assignment_preference = discard_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preferencer = discard_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
-                    {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preferencer = discard_variable:suggestion
-
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = unused_local_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class DiscardVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
         {
-            protected override int CodeActionIndex => 1;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_DiscardVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                dotnet_diagnostic.IDE0059.severity = warning    ; Comment2
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                dotnet_diagnostic.IDE0059.severity = warning    ; Comment2
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = discard_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = unused_local_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_DiscardVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                dotnet_diagnostic.IDE0059.severity = error    ; Comment2
+                csharp_style_unused_value_assignment_preference = discard_variable:suggestion    ; Comment3
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preference = discard_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]    # Comment1
+                dotnet_diagnostic.IDE0059.severity = error    ; Comment2
+                csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion    ; Comment3
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [Fact]
-            public async Task ConfigureEditorconfig_RuleExists_DiscardVariable_WithoutSeveritySuffix()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preference = unused_local_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preference = discard_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                [*.cs]
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = unused_local_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task ConfigureEditorconfig_MaintainSeverity_UnusedLocalVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                    [*.cs]
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = discard_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact]
-            public async Task ConfigureEditorconfig_MaintainSeverity_DiscardVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preferencer = discard_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                             <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    csharp_style_unused_value_assignment_preference = discard_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preferencer = discard_variable:suggestion
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = unused_local_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+    }
+
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class DiscardVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+    {
+        protected override int CodeActionIndex => 1;
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_DiscardVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            [|var obj = new Program1();|]
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preference_error = discard_variable:suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\file.cs">
-                    class Program1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
                     {
-                        static void Main()
-                        {
-                            // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
-                            var obj = new Program1();
-                            obj = null;
-                            var obj2 = obj;
-                        }
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_unused_value_assignment_preference_error = discard_variable:suggestion
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = discard_variable
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = discard_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_DiscardVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task ConfigureEditorconfig_RuleExists_DiscardVariable_WithoutSeveritySuffix()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preference = unused_local_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preference = discard_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+                csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
+
+                [*.cs]
+
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = discard_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task ConfigureEditorconfig_MaintainSeverity_DiscardVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                csharp_style_unused_value_assignment_preference = unused_local_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        [|var obj = new Program1();|]
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preference_error = discard_variable:suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                class Program1
+                {
+                    static void Main()
+                    {
+                        // csharp_style_unused_value_assignment_preference = { discard_variable, unused_local_variable }
+                        var obj = new Program1();
+                        obj = null;
+                        var obj2 = obj;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_unused_value_assignment_preference_error = discard_variable:suggestion
+
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = discard_variable
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
     }
 }

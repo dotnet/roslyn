@@ -4,12 +4,13 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -61,79 +62,29 @@ internal readonly struct RemoteHostAssetWriter(
 
     private static readonly ObjectPool<ReadWriteStream> s_streamPool = new(() => new());
 
-    private static readonly UnboundedChannelOptions s_channelOptions = new()
-    {
-        // We have a single task reading the data from the channel and writing it to the pipe.  This option allows the
-        // channel to operate in a more efficient manner knowing it won't have to synchronize data for multiple readers.
-        SingleReader = true,
-
-        // Currently we only have a single writer writing to the channel when we call _scope.FindAssetsAsync. However,
-        // we could change this in the future to allow the search to happen in parallel.
-        SingleWriter = true,
-    };
-
     private readonly PipeWriter _pipeWriter = pipeWriter;
     private readonly Scope _scope = scope;
     private readonly AssetPath _assetPath = assetPath;
     private readonly ReadOnlyMemory<Checksum> _checksums = checksums;
     private readonly ISerializerService _serializer = serializer;
 
-    public async ValueTask WriteDataAsync(CancellationToken cancellationToken)
+    public Task WriteDataAsync(CancellationToken cancellationToken)
+        => ProducerConsumer<ChecksumAndAsset>.RunAsync(
+            ProducerConsumerOptions.SingleReaderWriterOptions,
+            produceItems: static (onItemFound, @this, cancellationToken) => @this.FindAssetsAsync(onItemFound, cancellationToken),
+            consumeItems: static (items, @this, cancellationToken) => @this.WriteBatchToPipeAsync(items, cancellationToken),
+            args: this,
+            cancellationToken);
+
+    private Task FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)
+        => _scope.FindAssetsAsync(
+            _assetPath, _checksums,
+            static (checksum, asset, onItemFound) => onItemFound((checksum, asset)),
+            onItemFound, cancellationToken);
+
+    private async Task WriteBatchToPipeAsync(
+        IAsyncEnumerable<ChecksumAndAsset> checksumsAndAssets, CancellationToken cancellationToken)
     {
-        // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
-        // find items, add them to the channel synchronously, and immediately continue searching for more items.
-        // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
-        var channel = Channel.CreateUnbounded<ChecksumAndAsset>(s_channelOptions);
-
-        // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets to
-        // the pipe. Capture-free version is only available on netcore unfortunately.
-        using var _ = cancellationToken.Register(
-#if NET
-            static (obj, cancellationToken) => ((Channel<ChecksumAndAsset>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
-            state: channel);
-#else
-            () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
-#endif
-
-        // Spin up a task to go find all the requested checksums, adding results to the channel.
-        // Spin up a task to read from the channel, writing out the assets to the pipe-writer.
-        await Task.WhenAll(
-            FindAssetsFromScopeAndWriteToChannelAsync(channel.Writer, cancellationToken),
-            ReadAssetsFromChannelAndWriteToPipeAsync(channel.Reader, cancellationToken)).ConfigureAwait(false);
-    }
-
-    private async Task FindAssetsFromScopeAndWriteToChannelAsync(ChannelWriter<ChecksumAndAsset> channelWriter, CancellationToken cancellationToken)
-    {
-        Exception? exception = null;
-        try
-        {
-            await Task.Yield();
-
-            await _scope.FindAssetsAsync(
-                _assetPath, _checksums,
-                // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-                // channel is only ever completed by us (after FindAssetsAsync completes or throws an exception) or if
-                // the cancellationToken is triggered above in WriteDataAsync. In that latter case, it's ok for writing
-                // to the channel to do nothing as we no longer need to write out those assets to the pipe.
-                static (checksum, asset, channelWriter) => channelWriter.TryWrite((checksum, asset)),
-                channelWriter, cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex) when ((exception = ex) == null)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-        finally
-        {
-            // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-            // writing task knows it's done.
-            channelWriter.TryComplete(exception);
-        }
-    }
-
-    private async Task ReadAssetsFromChannelAndWriteToPipeAsync(ChannelReader<ChecksumAndAsset> channelReader, CancellationToken cancellationToken)
-    {
-        await Task.Yield();
-
         // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
         // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a single
         // object writer across all assets means we get the benefit of string deduplication across all assets we write
@@ -150,14 +101,11 @@ internal readonly struct RemoteHostAssetWriter(
         // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
         var foundChecksumCount = 0;
 
-        while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+        await foreach (var (checksum, asset) in checksumsAndAssets)
         {
-            while (channelReader.TryRead(out var item))
-            {
-                await WriteSingleAssetToPipeAsync(
-                    pooledStream.Object, objectWriter, item.checksum, item.asset, cancellationToken).ConfigureAwait(false);
-                foundChecksumCount++;
-            }
+            await WriteSingleAssetToPipeAsync(
+                pooledStream.Object, objectWriter, checksum, asset, cancellationToken).ConfigureAwait(false);
+            foundChecksumCount++;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -219,7 +167,7 @@ internal readonly struct RemoteHostAssetWriter(
         objectWriter.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
 
         // Now serialize out the asset itself.
-        _serializer.Serialize(asset, objectWriter, _scope.ReplicationContext, cancellationToken);
+        _serializer.Serialize(asset, objectWriter, cancellationToken);
     }
 
     private void WriteSentinelByteToPipeWriter()

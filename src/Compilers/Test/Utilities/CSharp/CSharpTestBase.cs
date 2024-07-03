@@ -1204,7 +1204,7 @@ namespace System.Diagnostics.CodeAnalysis
             else
             {
                 allReferences = TargetFrameworkUtil.Mscorlib461ExtendedReferences;
-                allReferences = allReferences.Concat(new[] { Net461.SystemThreadingTasks, SystemThreadingTasksExtensions.PortableLib });
+                allReferences = allReferences.Concat(new[] { Net461.References.SystemThreadingTasks, SystemThreadingTasksExtensions.PortableLib });
             }
 
             if (references != null)

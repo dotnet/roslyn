@@ -37,7 +37,6 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     _lazyAnalyzers = lazyAnalyzers;
 
                     Processor = processor;
-                    Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
                 }
 
                 public ImmutableArray<IUnitTestingIncrementalAnalyzer> Analyzers
@@ -116,31 +115,6 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                             return;
                         }
                     }
-                }
-
-                public override void Shutdown()
-                {
-                    base.Shutdown();
-
-                    Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
-                }
-
-                private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)
-                {
-                    // There are 2 things incremental processor takes care of
-                    //
-                    // #1 is making sure we delay processing any work until there is enough idle (ex, typing) in host.
-                    // #2 is managing cancellation and pending works.
-                    //
-                    // we used to do #1 and #2 only for Roslyn files. and that is usually fine since most of time solution contains only roslyn files.
-                    //
-                    // but for mixed solution (ex, Roslyn files + HTML + JS + CSS), #2 still makes sense but #1 doesn't. We want
-                    // to pause any work while something is going on in other project types as well. 
-                    //
-                    // we need to make sure we play nice with neighbors as well.
-                    //
-                    // now, we don't care where changes are coming from. if there is any change in host, we pause ourselves for a while.
-                    UpdateLastAccessTime();
                 }
             }
         }

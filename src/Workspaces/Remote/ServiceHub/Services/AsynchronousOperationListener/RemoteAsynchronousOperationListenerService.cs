@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var exportProvider = workspace.Services.SolutionServices.ExportProvider;
                 var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
 
-                return new ValueTask<bool>(!listenerProvider.HasPendingWaiter(featureNames.ToArray()));
+                return new ValueTask<bool>(!listenerProvider.HasPendingWaiter([.. featureNames]));
             }, cancellationToken);
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var exportProvider = workspace.Services.SolutionServices.ExportProvider;
                 var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
 
-                await listenerProvider.WaitAllAsync(workspace, featureNames.ToArray()).ConfigureAwait(false);
+                await listenerProvider.WaitAllAsync(workspace, [.. featureNames]).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

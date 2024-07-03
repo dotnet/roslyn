@@ -3054,18 +3054,12 @@ class C1
                 // (27,69): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z").WithLocation(27, 69),
-                // (28,46): error CS1963: An expression tree may not contain a dynamic operation
+                // (28,44): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 46),
-                // (28,53): error CS1963: An expression tree may not contain a dynamic operation
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d }").WithLocation(28, 44),
+                // (28,51): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 53),
-                // (28,56): error CS1963: An expression tree may not contain a dynamic operation
-                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 56),
-                // (28,59): error CS1963: An expression tree may not contain a dynamic operation
-                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 59),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d, d, d }").WithLocation(28, 51),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo()").WithLocation(29, 54),
@@ -3087,6 +3081,15 @@ class C1
                 // (33,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e8 = x => -x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "-x").WithLocation(33, 54),
+                // (34,54): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e9 = x => f(d);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d)").WithLocation(34, 54),
+                // (36,55): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e11 = x => f((dynamic)1);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f((dynamic)1)").WithLocation(36, 55),
+                // (37,55): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e12 = x => f(d ?? null);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d ?? null)").WithLocation(37, 55),
                 // (38,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e13 = x => d ? 1 : 2;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(38, 55),
@@ -4472,7 +4475,7 @@ class C
         [Fact]
         public void InArgumentDynamicLocalFunction()
         {
-            string source = @"
+            string source1 = @"
 class C
 {
     private static void M1(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
@@ -4482,6 +4485,38 @@ class C
         dynamic d = 1;
 
         M1(in d, d = 2, in d);
+    }
+}
+";
+
+            var comp1 = CreateCompilationWithMscorlib45AndCSharp(source1, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+
+            comp1.VerifyEmitDiagnostics(
+                // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 15),
+                // (10,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 28)
+                );
+
+            comp1 = CreateCompilationWithMscorlib45AndCSharp(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+
+            comp1.VerifyEmitDiagnostics(
+                // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 15),
+                // (10,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 28)
+                );
+
+            string source2 = @"
+class C
+{
+    static void Main()
+    {
+        dynamic d = 1;
 
         void M2(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
 
@@ -4490,24 +4525,19 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp2 = CreateCompilationWithMscorlib45AndCSharp(source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput:
+            CompileAndVerify(comp2, expectedOutput:
 @"
-True
 True
 ").VerifyDiagnostics();
 
-            comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+            comp2 = CreateCompilationWithMscorlib45AndCSharp(source2, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
-                //         M1(in d, d = 2, in d);
-                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 15),
-                // (10,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
-                //         M1(in d, d = 2, in d);
-                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 28)
-                );
+            CompileAndVerify(comp2, expectedOutput:
+@"
+True
+").VerifyDiagnostics();
         }
 
         [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
@@ -4687,24 +4717,11 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: "Hello world", targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
-                {
-                  // Code size       23 (0x17)
-                  .maxstack  2
-                  .locals init (S V_0, //s
-                                  object V_1) //d
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  IL_0008:  ldstr      "Hello world"
-                  IL_000d:  stloc.1
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  ldloc.1
-                  IL_0011:  call       "void S.M({{argType}})"
-                  IL_0016:  ret
-                }
-                """);
+            CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp).VerifyDiagnostics(
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s.M(d);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -4731,49 +4748,11 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: argType == "string" ? "Hello world" : "Caught exception", targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
-                {
-                  // Code size      101 (0x65)
-                  .maxstack  4
-                  .locals init (S V_0, //s
-                                object V_1) //d
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  IL_0008:  ldstr      "Hello world"
-                  IL_000d:  stloc.1
-                  .try
-                  {
-                    IL_000e:  ldloca.s   V_0
-                    IL_0010:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0015:  brtrue.s   IL_003b
-                    IL_0017:  ldc.i4.0
-                    IL_0018:  ldtoken    "{{argType}}"
-                    IL_001d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0022:  ldtoken    "Program"
-                    IL_0027:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_002c:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                    IL_0031:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_0036:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_003b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0040:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
-                    IL_0045:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_004a:  ldloc.1
-                    IL_004b:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                    IL_0050:  call       "void S.M({{argType}})"
-                    IL_0055:  leave.s    IL_0064
-                  }
-                  catch object
-                  {
-                    IL_0057:  pop
-                    IL_0058:  ldstr      "Caught exception"
-                    IL_005d:  call       "void System.Console.WriteLine(string)"
-                    IL_0062:  leave.s    IL_0064
-                  }
-                  IL_0064:  ret
-                }
-                """);
+            CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp).VerifyDiagnostics(
+                // (6,5): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                //     s.M(d);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(6, 5)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -4852,32 +4831,14 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: """
-                Hello world
-                Hello world
-                """, targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
-                {
-                  // Code size       33 (0x21)
-                  .maxstack  3
-                  .locals init (S V_0, //s
-                                object V_1) //d
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  IL_0008:  ldstr      "Hello world"
-                  IL_000d:  stloc.1
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  ldloc.1
-                  IL_0011:  call       "int S.this[{{argType}}].get"
-                  IL_0016:  pop
-                  IL_0017:  ldloca.s   V_0
-                  IL_0019:  ldloc.1
-                  IL_001a:  ldc.i4.1
-                  IL_001b:  call       "void S.this[{{argType}}].set"
-                  IL_0020:  ret
-                }
-                """);
+            CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp).VerifyDiagnostics(
+                // (4,5): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // _ = s[d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 5),
+                // (5,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s[d] = 1;
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(5, 1)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -4931,98 +4892,14 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: argType == "string"
-                ? """
-                  Hello world
-                  Hello world
-                  """
-                : """
-                  Caught exception
-                  Caught exception
-                  """, targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.<<Main>$>g__get|0_0(ref Program.<>c__DisplayClass0_0)", $$"""
-                {
-                  // Code size      101 (0x65)
-                  .maxstack  4
-                  .locals init (S V_0) //s
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  .try
-                  {
-                    IL_0008:  ldloca.s   V_0
-                    IL_000a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_000f:  brtrue.s   IL_0035
-                    IL_0011:  ldc.i4.0
-                    IL_0012:  ldtoken    "{{argType}}"
-                    IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_001c:  ldtoken    "Program"
-                    IL_0021:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0026:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                    IL_002b:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_0030:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0035:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_003a:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
-                    IL_003f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0044:  ldarg.0
-                    IL_0045:  ldfld      "dynamic Program.<>c__DisplayClass0_0.d"
-                    IL_004a:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                    IL_004f:  call       "int S.this[{{argType}}].get"
-                    IL_0054:  pop
-                    IL_0055:  leave.s    IL_0064
-                  }
-                  catch object
-                  {
-                    IL_0057:  pop
-                    IL_0058:  ldstr      "Caught exception"
-                    IL_005d:  call       "void System.Console.WriteLine(string)"
-                    IL_0062:  leave.s    IL_0064
-                  }
-                  IL_0064:  ret
-                }
-                """);
-
-            verifier.VerifyIL("Program.<<Main>$>g__set|0_1(ref Program.<>c__DisplayClass0_0)", $$"""
-                {
-                  // Code size      101 (0x65)
-                  .maxstack  4
-                  .locals init (S V_0) //s
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  .try
-                  {
-                    IL_0008:  ldloca.s   V_0
-                    IL_000a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_000f:  brtrue.s   IL_0035
-                    IL_0011:  ldc.i4.0
-                    IL_0012:  ldtoken    "{{argType}}"
-                    IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_001c:  ldtoken    "Program"
-                    IL_0021:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0026:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                    IL_002b:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_0030:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_0035:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_003a:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
-                    IL_003f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_0044:  ldarg.0
-                    IL_0045:  ldfld      "dynamic Program.<>c__DisplayClass0_0.d"
-                    IL_004a:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                    IL_004f:  ldc.i4.1
-                    IL_0050:  call       "void S.this[{{argType}}].set"
-                    IL_0055:  leave.s    IL_0064
-                  }
-                  catch object
-                  {
-                    IL_0057:  pop
-                    IL_0058:  ldstr      "Caught exception"
-                    IL_005d:  call       "void System.Console.WriteLine(string)"
-                    IL_0062:  leave.s    IL_0064
-                  }
-                  IL_0064:  ret
-                }
-                """);
+            CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp).VerifyDiagnostics(
+                // (11,13): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                //         _ = s[d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(11, 13),
+                // (24,9): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                //         s[d] = 1;
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(24, 9)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -5068,7 +4945,7 @@ class C2 : C1
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_01(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5113,8 +4990,7 @@ class JsonSerializer
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.TargetMethod.ToTestDisplayString());
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp1).VerifyDiagnostics();
@@ -5147,8 +5023,11 @@ public interface I1
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: parseOptions);
-            CompileAndVerify(comp2,
-                expectedOutput: @"System.Object (i1, value) => Convert(i1.Test(""name"", value)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Object)" : ")")).VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
+                //         var expr = GetExpression((I1 i1, dynamic value) => i1.Test("name", value));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, @"i1.Test(""name"", value)").WithLocation(9, 60)
+                );
 
             string source3 = @"
 #nullable enable
@@ -5174,19 +5053,15 @@ class JsonSerializer
 ";
 
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: parseOptions);
-            comp3.VerifyDiagnostics(
-                // (9,46): warning CS8604: Possible null reference argument for parameter 'c' in 'C JsonSerializer.Deserialize<C>(Stream c)'.
-                //         return JsonSerializer.Deserialize<C>(result);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "result").WithArguments("c", "C JsonSerializer.Deserialize<C>(Stream c)").WithLocation(9, 46)
-                );
+            comp3.VerifyEmitDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Theory]
@@ -5194,7 +5069,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_02(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5239,8 +5114,7 @@ class JsonSerializer
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.TargetMethod.ToTestDisplayString());
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp1).VerifyDiagnostics();
@@ -5273,8 +5147,11 @@ public interface I1
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: parseOptions);
-            CompileAndVerify(comp2,
-                expectedOutput: @"System.Object (i1, value) => Convert(i1.Test(""name"", value)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Object)" : ")")).VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
+                //         var expr = GetExpression((I1 i1, dynamic value) => i1.Test("name", value));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, @"i1.Test(""name"", value)").WithLocation(9, 60)
+                );
 
             string source3 = @"
 #nullable enable
@@ -5299,19 +5176,15 @@ class JsonSerializer
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: parseOptions);
-            comp3.VerifyDiagnostics(
-                // (9,46): warning CS8604: Possible null reference argument for parameter 'c' in 'C JsonSerializer.Deserialize<C>(Stream c)'.
-                //         return JsonSerializer.Deserialize<C>(result);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "result").WithArguments("c", "C JsonSerializer.Deserialize<C>(Stream c)").WithLocation(9, 46)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Theory]
@@ -5319,7 +5192,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5364,8 +5237,7 @@ class JsonSerializer
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.TargetMethod.ToTestDisplayString());
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp1).VerifyDiagnostics();
@@ -5398,8 +5270,11 @@ public interface I1
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: parseOptions);
-            CompileAndVerify(comp2,
-                expectedOutput: @"System.Object (i1, value) => i1.Test(""name"", value)").VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
+                //         var expr = GetExpression((I1 i1, dynamic value) => i1.Test("name", value));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, @"i1.Test(""name"", value)").WithLocation(9, 60)
+                );
 
             string source3 = @"
 #nullable enable
@@ -5425,19 +5300,15 @@ class JsonSerializer
 ";
 
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: parseOptions);
-            comp3.VerifyDiagnostics(
-                // (9,46): warning CS8604: Possible null reference argument for parameter 'c' in 'C JsonSerializer.Deserialize<C>(Stream c)'.
-                //         return JsonSerializer.Deserialize<C>(result);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "result").WithArguments("c", "C JsonSerializer.Deserialize<C>(Stream c)").WithLocation(9, 46)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Theory]
@@ -5445,7 +5316,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_Extension(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5470,17 +5341,21 @@ static class Extensions
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("? result", symbolInfo.Symbol.ToTestDisplayString());
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
             AssertEx.Equal(@"new C().Test(""name"", d)", call.ToString());
             symbolInfo = model.GetSymbolInfo(call);
-            AssertEx.Equal(@"System.Int32 C.Test(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(call);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(typeInfo.Type.IsErrorType());
+            Assert.True(typeInfo.ConvertedType.IsErrorType());
 
-            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (7,22): error CS1973: 'C' has no applicable method named 'Test' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+                //         var result = new C().Test("name", d);
+                Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, @"new C().Test(""name"", d)").WithArguments("C", "Test").WithLocation(7, 22)
+                );
         }
 
         [Fact]
@@ -5507,17 +5382,21 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
             AssertEx.Equal(@"Test(name: ""name"", d)", call.ToString());
             symbolInfo = model.GetSymbolInfo(call);
             AssertEx.Equal(@"System.Int32 C.Test(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(call);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (7,41): error CS8324: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
+                //         var result = Test(name: "name", d);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "d").WithLocation(7, 41)
+                );
         }
 
         [Fact]
@@ -5547,17 +5426,21 @@ unsafe public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
             AssertEx.Equal(@"Test(&name, d)", call.ToString());
             symbolInfo = model.GetSymbolInfo(call);
             AssertEx.Equal("System.Int32 C.Test(System.String* name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(call);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp1, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (10,27): error CS1978: Cannot use an expression of type 'string*' as an argument to a dynamically dispatched operation.
+                //         var result = Test(&name, d);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "&name").WithArguments("string*").WithLocation(10, 27)
+                );
         }
 
         [Theory]
@@ -5565,7 +5448,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5587,20 +5470,24 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
             AssertEx.Equal(@"Test(""name"", d)", call.ToString());
             symbolInfo = model.GetSymbolInfo(call);
             AssertEx.Equal(@"System.Int32 C.Test(System.String name, System.Object value, params System.Collections.Generic.List<System.Int32> list)", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(call);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
-            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (7,22): error CS9218: 'C.Test(string, object, params List<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         var result = Test("name", d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, @"Test(""name"", d)").WithArguments("C.Test(string, object, params System.Collections.Generic.List<int>)").WithLocation(7, 22)
+                );
         }
 
         [Fact]
@@ -5637,7 +5524,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
@@ -5662,11 +5549,7 @@ public class C
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
 
-            comp.VerifyDiagnostics(
-                // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
-                //         var a = Test1(d);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "a = Test1(d)").WithArguments("void").WithLocation(7, 13)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -5695,9 +5578,13 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         Test1(d)++;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "Test1(d)").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -5729,9 +5616,16 @@ unsafe public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32* a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,10): error CS0193: The * or -> operator must be applied to a pointer
+                //         (*Test1(d))++;
+                Diagnostic(ErrorCode.ERR_PtrExpected, "*Test1(d)").WithLocation(10, 10),
+                // (12,34): error CS0193: The * or -> operator must be applied to a pointer
+                //         System.Console.WriteLine(*a);        
+                Diagnostic(ErrorCode.ERR_PtrExpected, "*a").WithLocation(12, 34)
+                );
         }
 
         [Theory]
@@ -5739,7 +5633,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_LocalFunction([CombinatorialValues(0, 12, 13)] int version)
         {
-            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.RegularNext, _ => TestOptions.RegularPreview };
+            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.Regular13, _ => TestOptions.RegularPreview };
 
             string source = @"
 public class C
@@ -5771,7 +5665,7 @@ public class C
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Delegate(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 public class C
@@ -5807,8 +5701,7 @@ class JsonSerializer
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.TargetMethod.ToTestDisplayString());
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp).VerifyDiagnostics();
@@ -5839,17 +5732,21 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
             AssertEx.Equal(@"Test(name: ""name"", d)", call.ToString());
             symbolInfo = model.GetSymbolInfo(call);
             AssertEx.Equal(@"System.Int32 C.D.Invoke(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(call);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (7,41): error CS8324: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
+                //         var result = Test(name: "name", d);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "d").WithLocation(7, 41)
+                );
         }
 
         [Fact]
@@ -5880,17 +5777,21 @@ unsafe public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
             AssertEx.Equal(@"Test(&name, d)", call.ToString());
             symbolInfo = model.GetSymbolInfo(call);
             AssertEx.Equal("System.Int32 C.D.Invoke(System.String* name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(call);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp1, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (10,27): error CS1978: Cannot use an expression of type 'string*' as an argument to a dynamically dispatched operation.
+                //         var result = Test(&name, d);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "&name").WithArguments("string*").WithLocation(10, 27)
+                );
         }
 
         [Theory]
@@ -5898,7 +5799,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_Delegate_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5921,20 +5822,24 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
             AssertEx.Equal(@"Test(""name"", d)", call.ToString());
             symbolInfo = model.GetSymbolInfo(call);
             AssertEx.Equal(@"System.Int32 C.D.Invoke(System.String name, System.Object value, params System.Collections.Generic.List<System.Int32> list)", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(call);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
-            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (7,22): error CS9218: 'C.D.Invoke(string, object, params List<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         var result = Test("name", d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, @"Test(""name"", d)").WithArguments("C.D.Invoke(string, object, params System.Collections.Generic.List<int>)").WithLocation(7, 22)
+                );
         }
 
         [Fact]
@@ -5972,7 +5877,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IInvocationOperation)model.GetOperation(call);
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
@@ -5999,11 +5904,7 @@ delegate void D(int x);
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
 
-            comp.VerifyDiagnostics(
-                // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
-                //         var a = Test1(d);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "a = Test1(d)").WithArguments("void").WithLocation(7, 13)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6034,9 +5935,13 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         Test1(d)++;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "Test1(d)").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -6069,9 +5974,16 @@ unsafe public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32* a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,10): error CS0193: The * or -> operator must be applied to a pointer
+                //         (*Test1(d))++;
+                Diagnostic(ErrorCode.ERR_PtrExpected, "*Test1(d)").WithLocation(10, 10),
+                // (12,34): error CS0193: The * or -> operator must be applied to a pointer
+                //         System.Console.WriteLine(*a);        
+                Diagnostic(ErrorCode.ERR_PtrExpected, "*a").WithLocation(12, 34)
+                );
         }
 
         [Theory]
@@ -6079,7 +5991,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Property_01(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 #nullable enable
@@ -6123,8 +6035,7 @@ class JsonSerializer
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.Property.ToTestDisplayString());
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp).VerifyDiagnostics();
@@ -6157,8 +6068,11 @@ public interface I1
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: parseOptions);
-            CompileAndVerify(comp2,
-                expectedOutput: @"System.Object (i1, value) => Convert(i1.get_Item(""name"", value)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Object)" : ")")).VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
+                //         var expr = GetExpression((I1 i1, dynamic value) => i1["name", value]);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, @"i1[""name"", value]").WithLocation(9, 60)
+                );
 
             string source3 = @"
 #nullable enable
@@ -6184,19 +6098,15 @@ class JsonSerializer
 ";
 
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: parseOptions);
-            comp3.VerifyDiagnostics(
-                // (9,46): warning CS8604: Possible null reference argument for parameter 'c' in 'C JsonSerializer.Deserialize<C>(Stream c)'.
-                //         return JsonSerializer.Deserialize<C>(result);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "result").WithArguments("c", "C JsonSerializer.Deserialize<C>(Stream c)").WithLocation(9, 46)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Theory]
@@ -6204,7 +6114,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Property_02(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 #nullable enable
@@ -6248,8 +6158,7 @@ class JsonSerializer
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.Property.ToTestDisplayString());
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp).VerifyDiagnostics();
@@ -6282,8 +6191,11 @@ public interface I1
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: parseOptions);
-            CompileAndVerify(comp2,
-                expectedOutput: @"System.Object (i1, value) => Convert(i1.get_Item(""name"", value)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Object)" : ")")).VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
+                //         var expr = GetExpression((I1 i1, dynamic value) => i1["name", value]);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, @"i1[""name"", value]").WithLocation(9, 60)
+                );
 
             string source3 = @"
 #nullable enable
@@ -6309,19 +6221,15 @@ class JsonSerializer
 ";
 
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: parseOptions);
-            comp3.VerifyDiagnostics(
-                // (9,46): warning CS8604: Possible null reference argument for parameter 'c' in 'C JsonSerializer.Deserialize<C>(Stream c)'.
-                //         return JsonSerializer.Deserialize<C>(result);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "result").WithArguments("c", "C JsonSerializer.Deserialize<C>(Stream c)").WithLocation(9, 46)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -6370,8 +6278,7 @@ class JsonSerializer
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.Property.ToTestDisplayString());
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp).VerifyDiagnostics();
@@ -6404,8 +6311,11 @@ public interface I1
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
-            CompileAndVerify(comp2,
-                expectedOutput: @"System.Object (i1, value) => i1.get_Item(""name"", value)").VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
+                //         var expr = GetExpression((I1 i1, dynamic value) => i1["name", value]);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, @"i1[""name"", value]").WithLocation(9, 60)
+                );
 
             string source3 = @"
 #nullable enable
@@ -6431,19 +6341,15 @@ class JsonSerializer
 ";
 
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (9,46): warning CS8604: Possible null reference argument for parameter 'c' in 'C JsonSerializer.Deserialize<C>(Stream c)'.
-                //         return JsonSerializer.Deserialize<C>(result);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "result").WithArguments("c", "C JsonSerializer.Deserialize<C>(Stream c)").WithLocation(9, 46)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -6480,11 +6386,10 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var operation = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), operation.Property.ToTestDisplayString());
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
-            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+            CompileAndVerify(comp1).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6514,20 +6419,23 @@ unsafe public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.String* name, System.Object value] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
-            CompileAndVerify(comp1, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (10,30): error CS1978: Cannot use an expression of type 'string*' as an argument to a dynamically dispatched operation.
+                //         var result = new C()[&name, d];
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "&name").WithArguments("string*").WithLocation(10, 30)
+                );
         }
 
         [Theory]
@@ -6535,7 +6443,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_Property_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -6558,20 +6466,23 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
             var model = comp1.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 result", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.String name, System.Object value, params System.Collections.Generic.List<System.Int32> list] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
-            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (7,22): error CS9218: 'C.this[string, object, params List<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         var result = new C()["name", d];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, @"new C()[""name"", d]").WithArguments("C.this[string, object, params System.Collections.Generic.List<int>]").WithLocation(7, 22)
+                );
         }
 
         [Fact]
@@ -6608,8 +6519,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
@@ -6642,7 +6552,7 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
             TypeInfo typeInfo;
 
@@ -6651,20 +6561,19 @@ public class C
                 symbolInfo = model.GetSymbolInfo(elementAccess);
                 AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
                 typeInfo = model.GetTypeInfo(elementAccess);
-                AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+                AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+                AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-                var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-                AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+                var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
                 Assert.Equal(typeInfo.Type, propertyRef.Type);
             }
 
             var increment = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(increment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6697,7 +6606,7 @@ unsafe public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32* a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
             TypeInfo typeInfo;
 
@@ -6706,15 +6615,21 @@ unsafe public class C
                 symbolInfo = model.GetSymbolInfo(elementAccess);
                 AssertEx.Equal("System.Int32* C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
                 typeInfo = model.GetTypeInfo(elementAccess);
-                AssertEx.Equal("System.Int32*", typeInfo.Type.ToTestDisplayString());
-                AssertEx.Equal("System.Int32*", typeInfo.ConvertedType.ToTestDisplayString());
+                AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+                AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-                var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-                AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+                var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
                 Assert.Equal(typeInfo.Type, propertyRef.Type);
             }
 
-            CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,10): error CS0193: The * or -> operator must be applied to a pointer
+                //         (*c[d])++;
+                Diagnostic(ErrorCode.ERR_PtrExpected, "*c[d]").WithLocation(11, 10),
+                // (13,34): error CS0193: The * or -> operator must be applied to a pointer
+                //         System.Console.WriteLine(*a);        
+                Diagnostic(ErrorCode.ERR_PtrExpected, "*a").WithLocation(13, 34)
+                );
         }
 
         [Fact]
@@ -6766,11 +6681,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -6779,7 +6693,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
             AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
@@ -6816,11 +6730,7 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
@@ -6883,8 +6793,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -6894,13 +6803,13 @@ public class C
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
             AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
 
@@ -6930,11 +6839,7 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
@@ -6995,11 +6900,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -7008,14 +6912,14 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
 
@@ -7046,11 +6950,7 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (12,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(12, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
@@ -7097,11 +6997,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.IO.Stream C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.IO.Stream", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.IO.Stream", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -7110,20 +7009,16 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.IO.Stream", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.IO.Stream", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Object", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Object", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.IO.Stream", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString());
 
-            comp.VerifyDiagnostics(
-                // (9,24): error CS0266: Cannot implicitly convert type 'object' to 'System.IO.Stream'. An explicit conversion exists (are you missing a cast?)
-                //         var a = c[d] = o;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "System.IO.Stream").WithLocation(9, 24)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7164,34 +7059,33 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic? a", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
 
             string source3 = @"
 #nullable enable
@@ -7218,18 +7112,14 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32?", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
         }
 
@@ -7282,11 +7172,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -7294,10 +7183,10 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
             symbolInfo = model.GetSymbolInfo(assignment);
-            AssertEx.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)", symbolInfo.Symbol.ToTestDisplayString());
+            AssertEx.Equal("dynamic dynamic.op_Addition(dynamic left, System.Int32 right)", symbolInfo.Symbol.ToTestDisplayString());
 
             var operation = (ICompoundAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
             AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
             Assert.Null(operation.OperatorMethod);
@@ -7335,22 +7224,15 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (10,17): warning CS0458: The result of the expression is always 'null' of type 'dynamic'
-                //         var a = c[d] += (int?)null;
-                Diagnostic(ErrorCode.WRN_AlwaysNull, "c[d] += (int?)null").WithArguments("dynamic").WithLocation(10, 17),
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -7406,8 +7288,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -7520,11 +7401,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -7532,10 +7412,10 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
             symbolInfo = model.GetSymbolInfo(assignment);
-            AssertEx.Equal("dynamic dynamic.op_Addition(System.Int32 left, dynamic right)", symbolInfo.Symbol.ToTestDisplayString());
+            AssertEx.Equal("dynamic dynamic.op_Addition(dynamic left, dynamic right)", symbolInfo.Symbol.ToTestDisplayString());
 
             var operation = (ICompoundAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
             Assert.Null(operation.OperatorMethod);
@@ -7624,36 +7504,35 @@ class C2 {}
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("? a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("?", typeInfo.Type.ToTestDisplayString());
-            Assert.True(typeInfo.Type.IsErrorType());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.False(typeInfo.Type.IsErrorType());
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("C2 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("?", typeInfo.Type.ToTestDisplayString());
-            Assert.True(typeInfo.Type.IsErrorType());
-            AssertEx.Equal("?", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.False(typeInfo.Type.IsErrorType());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
             symbolInfo = model.GetSymbolInfo(assignment);
-            Assert.Null(symbolInfo.Symbol);
+            AssertEx.Equal("dynamic dynamic.op_Addition(dynamic left, C2 right)", symbolInfo.Symbol.ToTestDisplayString());
 
             var operation = (ICompoundAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("C2", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
             AssertEx.Equal("C2", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("?", operation.Type.ToTestDisplayString());
-            Assert.True(operation.Type.IsErrorType());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+            Assert.False(operation.Type.IsErrorType());
             Assert.Null(operation.OperatorMethod);
 
             var right = assignment.Right;
@@ -7661,11 +7540,7 @@ class C2 {}
             AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
 
-            comp.VerifyDiagnostics(
-                // (9,17): error CS0019: Operator '+=' cannot be applied to operands of type 'C2' and 'C2'
-                //         var a = c[d] += right;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c[d] += right").WithArguments("+=", "C2", "C2").WithLocation(9, 17)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7706,36 +7581,35 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic? a", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
             symbolInfo = model.GetSymbolInfo(assignment);
-            AssertEx.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)", symbolInfo.Symbol.ToTestDisplayString());
+            AssertEx.Equal("dynamic dynamic.op_Addition(dynamic left, System.Int32 right)", symbolInfo.Symbol.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
 
             string source3 = @"
 #nullable enable
@@ -7762,22 +7636,15 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (10,17): warning CS0458: The result of the expression is always 'null' of type 'int?'
-                //         var a = c[d] += (int?)null;
-                Diagnostic(ErrorCode.WRN_AlwaysNull, "c[d] += (int?)null").WithArguments("int?").WithLocation(10, 17),
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -7829,11 +7696,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (PostfixUnaryExpressionSyntax)elementAccess.Parent;
@@ -7841,10 +7707,10 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
             symbolInfo = model.GetSymbolInfo(assignment);
-            AssertEx.Equal("System.Int32 System.Int32.op_Increment(System.Int32 value)", symbolInfo.Symbol.ToTestDisplayString());
+            AssertEx.Equal("dynamic dynamic.op_Increment(dynamic value)", symbolInfo.Symbol.ToTestDisplayString());
 
             var operation = (IIncrementOrDecrementOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
             Assert.Null(operation.OperatorMethod);
 
@@ -7876,19 +7742,15 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -7943,8 +7805,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (PostfixUnaryExpressionSyntax)elementAccess.Parent;
@@ -7987,19 +7848,15 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -8038,42 +7895,37 @@ class C2 {}
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("? a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("?", typeInfo.Type.ToTestDisplayString());
-            Assert.True(typeInfo.Type.IsErrorType());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.False(typeInfo.Type.IsErrorType());
             Assert.Equal(CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("C2 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (PostfixUnaryExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("?", typeInfo.Type.ToTestDisplayString());
-            Assert.True(typeInfo.Type.IsErrorType());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.False(typeInfo.Type.IsErrorType());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             symbolInfo = model.GetSymbolInfo(assignment);
-            Assert.Null(symbolInfo.Symbol);
+            AssertEx.Equal("dynamic dynamic.op_Increment(dynamic value)", symbolInfo.Symbol.ToTestDisplayString());
 
             var operation = (IIncrementOrDecrementOperation)model.GetOperation(assignment);
-            AssertEx.Equal("C2", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("?", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
             Assert.Null(operation.OperatorMethod);
 
-            comp.VerifyDiagnostics(
-                // (8,17): error CS0023: Operator '++' cannot be applied to operand of type 'C2'
-                //         var a = c[d]++;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "c[d]++").WithArguments("++", "C2").WithLocation(8, 17)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -8125,11 +7977,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (PrefixUnaryExpressionSyntax)elementAccess.Parent;
@@ -8137,10 +7988,10 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
             symbolInfo = model.GetSymbolInfo(assignment);
-            AssertEx.Equal("System.Int32 System.Int32.op_Increment(System.Int32 value)", symbolInfo.Symbol.ToTestDisplayString());
+            AssertEx.Equal("dynamic dynamic.op_Increment(dynamic value)", symbolInfo.Symbol.ToTestDisplayString());
 
             var operation = (IIncrementOrDecrementOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
             Assert.Null(operation.OperatorMethod);
 
@@ -8172,19 +8023,15 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -8239,8 +8086,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (PrefixUnaryExpressionSyntax)elementAccess.Parent;
@@ -8283,19 +8129,15 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("dynamic?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -8336,36 +8178,35 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic? a", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (PrefixUnaryExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
             symbolInfo = model.GetSymbolInfo(assignment);
-            AssertEx.Equal("System.Int32 System.Int32.op_Increment(System.Int32 value)", symbolInfo.Symbol.ToTestDisplayString());
+            AssertEx.Equal("dynamic dynamic.op_Increment(dynamic value)", symbolInfo.Symbol.ToTestDisplayString());
 
             var operation = (IIncrementOrDecrementOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
             Assert.Null(operation.OperatorMethod);
 
-            CompileAndVerify(comp, expectedOutput: "3 3").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
 
             string source3 = @"
 #nullable enable
@@ -8392,19 +8233,15 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -8456,11 +8293,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.String C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.String", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -8469,14 +8305,14 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.String", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.String", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
 
@@ -8506,11 +8342,7 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
@@ -8570,11 +8402,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32? C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32?", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32?", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -8583,14 +8414,14 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32?", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
 
@@ -8620,11 +8451,7 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
@@ -8687,8 +8514,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -8734,11 +8560,7 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
@@ -8799,11 +8621,10 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.String C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.String", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -8812,14 +8633,14 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.String", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
 
@@ -8850,11 +8671,7 @@ public class C
 }
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (12,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a);        
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("b", "void C.Print(dynamic b)").WithLocation(12, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
@@ -8907,43 +8724,34 @@ class C2 {}
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("C2? a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic? a", symbolInfo.Symbol.ToTestDisplayString());
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("C2? C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("C2?", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("C2?", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("?", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("?", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("C2?", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("?", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.String", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            // The unexpected nullability warning is pre-existing condition - https://github.com/dotnet/roslyn/issues/72912
-            comp.VerifyDiagnostics(
-                // (10,17): error CS0019: Operator '??=' cannot be applied to operands of type 'C2' and 'string'
-                //         var a = c[d] ??= "2";
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"c[d] ??= ""2""").WithArguments("??=", "C2", "string").WithLocation(10, 17),
-                // (10,26): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'C2'.
-                //         var a = c[d] ??= "2";
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"""2""").WithArguments("string", "C2").WithLocation(10, 26)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -8985,39 +8793,34 @@ struct C2 {}
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("? a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic a", symbolInfo.Symbol.ToTestDisplayString());
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("C2 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("?", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("?", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("C2", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("C2", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("?", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            comp.VerifyDiagnostics(
-                // (8,17): error CS0019: Operator '??=' cannot be applied to operands of type 'C2' and 'C2'
-                //         var a = c[d] ??= new C2();
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c[d] ??= new C2()").WithArguments("??=", "C2", "C2").WithLocation(8, 17)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -9058,39 +8861,38 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic? a", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("ref System.Int32? C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32?", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32?", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32?", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "2 2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
         }
 
         [Fact]
@@ -9123,29 +8925,28 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
@@ -9180,10 +8981,7 @@ public class C
             comp2.VerifyDiagnostics(
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = 2 });
-                Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = 2 });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60)
+                Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59)
                 );
         }
 
@@ -9217,13 +9015,12 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("dynamic C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -9274,10 +9071,7 @@ public class C
             comp2.VerifyDiagnostics(
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = 2 });
-                Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = 2 });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60)
+                Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59)
                 );
         }
 
@@ -9312,29 +9106,28 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
@@ -9369,13 +9162,7 @@ public class C
             comp2.VerifyDiagnostics(
                 // (9,70): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d, dynamic v) => new C() { [d] = v });
-                Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 70),
-                // (9,71): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d, dynamic v) => new C() { [d] = v });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 71),
-                // (9,76): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d, dynamic v) => new C() { [d] = v });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "v").WithLocation(9, 76)
+                Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 70)
                 );
         }
 
@@ -9409,35 +9196,30 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.String", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            comp.VerifyDiagnostics(
-                // (7,33): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         var c = new C() { [d] = "2" };
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "int").WithLocation(7, 33)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -9470,33 +9252,30 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            // IInvalidOperation is pre-existing condition - https://github.com/dotnet/roslyn/issues/72916
-            var propertyRef = (IInvalidOperation)model.GetOperation(elementAccess);
-            //var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            //AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IAssignmentOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             var right = assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
         }
 
         [Fact]
@@ -9534,13 +9313,12 @@ class C2
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("C2 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -9590,9 +9368,6 @@ class C2
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
                 Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60),
                 // (9,67): error CS1963: An expression tree may not contain a dynamic operation
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "F").WithLocation(9, 67)
@@ -9659,13 +9434,12 @@ class C2
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("dynamic C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -9715,9 +9489,6 @@ class C2
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
                 Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60),
                 // (9,67): error CS1963: An expression tree may not contain a dynamic operation
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "F").WithLocation(9, 67)
@@ -9783,24 +9554,23 @@ class C2
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("ref C2 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IMemberInitializerOperation)model.GetOperation(assignment);
-            AssertEx.Equal("C2", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
 
             string source2 = @"
 using System;
@@ -9838,12 +9608,9 @@ class C2
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
                 Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,59): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                // (9,67): error CS1963: An expression tree may not contain a dynamic operation
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
-                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = { F = 2 } });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60)
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "F").WithLocation(9, 67)
                 );
 
             string source3 = @"
@@ -9868,11 +9635,7 @@ class C2
 ";
 
             var comp3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (7,35): error CS0117: 'C2' does not contain a definition for 'F'
-                //         var c = new C() { [d] = { F = 2 } };
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F").WithArguments("C2", "F").WithLocation(7, 35)
-                );
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -9905,13 +9668,12 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("System.Collections.Generic.List<System.Int32> C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -9956,9 +9718,6 @@ public class C
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
                 Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60),
                 // (9,66): error CS1963: An expression tree may not contain a dynamic operation
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "2").WithLocation(9, 66)
@@ -10020,13 +9779,12 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("dynamic C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
@@ -10071,9 +9829,6 @@ public class C
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
                 Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60),
                 // (9,66): error CS1963: An expression tree may not contain a dynamic operation
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "2").WithLocation(9, 66)
@@ -10135,24 +9890,23 @@ public class C
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
             var symbolInfo = model.GetSymbolInfo(elementAccess);
-            AssertEx.Equal("ref System.Collections.Generic.List<System.Int32> C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Collections.Generic.List<System.Int32>", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Collections.Generic.List<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("System.Collections.Generic.List<System.Int32>", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Collections.Generic.List<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var operation = (IMemberInitializerOperation)model.GetOperation(assignment);
-            AssertEx.Equal("System.Collections.Generic.List<System.Int32>", operation.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
 
             string source2 = @"
 using System;
@@ -10185,12 +9939,9 @@ public class C
                 // (9,59): error CS8074: An expression tree lambda may not contain a dictionary initializer.
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
                 Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,59): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                // (9,66): error CS1963: An expression tree may not contain a dynamic operation
                 //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
-                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "[d]").WithLocation(9, 59),
-                // (9,60): error CS1963: An expression tree may not contain a dynamic operation
-                //         var expr = GetExpression((dynamic d) => new C() { [d] = {2} });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(9, 60)
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "2").WithLocation(9, 66)
                 );
 
             string source3 = @"
@@ -10215,11 +9966,7 @@ class C2
 ";
 
             var comp3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
-            comp3.VerifyDiagnostics(
-                // (7,33): error CS1922: Cannot initialize type 'C2' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-                //         var c = new C() { [d] = {2} };
-                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{2}").WithArguments("C2").WithLocation(7, 33)
-                );
+            comp3.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -10276,17 +10023,16 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             var tupleTypeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);
@@ -10303,12 +10049,12 @@ public class C
             var right = (TupleExpressionSyntax)assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             var rightElement = right.Arguments[0].Expression;
             typeInfo = model.GetTypeInfo(rightElement);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "(2, 123) 2").VerifyDiagnostics();
 
@@ -10408,8 +10154,7 @@ public class C
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
@@ -10534,17 +10279,16 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             var tupleTypeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);
@@ -10561,12 +10305,12 @@ public class C
             var right = (TupleExpressionSyntax)assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("(dynamic, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             var rightElement = right.Arguments[0].Expression;
             typeInfo = model.GetTypeInfo(rightElement);
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "(2, 123) 2").VerifyDiagnostics();
 
@@ -10634,11 +10378,7 @@ public class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
 
-            comp.VerifyDiagnostics(
-                // (8,30): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         var a = (c[d], _) = ("2", 123);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "int").WithLocation(8, 30)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -10679,36 +10419,35 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").First();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("(System.Int32, System.Int32) a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("(dynamic, System.Int32) a", symbolInfo.Symbol.ToTestDisplayString());
 
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Item1").Single();
             symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic (dynamic, System.Int32).Item1", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             var tupleTypeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             Assert.True(model.GetDeconstructionInfo(assignment) is { Method: null, Conversion: null, Nested: [{ Method: null, Conversion: { IsIdentity: true }, Nested: [] }, _] });
 
@@ -10720,14 +10459,14 @@ public class C
             var right = (TupleExpressionSyntax)assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             var rightElement = right.Arguments[0].Expression;
             typeInfo = model.GetTypeInfo(rightElement);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "(2, 123) 2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
 
             string source3 = @"
 #nullable enable
@@ -10755,19 +10494,15 @@ public class C
 ";
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
 
-            comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a.Item1);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a.Item1").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
-                );
+            comp3.VerifyDiagnostics();
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Item1").Single();
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -10832,24 +10567,23 @@ class C2
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             var tupleTypeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);
             AssertEx.Equal("(dynamic, System.Int32)", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetDeconstructionInfo(assignment) is { Method: not null, Conversion: null, Nested: [{ Method: null, Conversion: { IsIdentity: true }, Nested: [] }, _] });
+            Assert.True(model.GetDeconstructionInfo(assignment) is { Method: not null, Conversion: null, Nested: [{ Method: null, Conversion: { IsBoxing: true }, Nested: [] }, _] });
 
             var operation = (IDeconstructionAssignmentOperation)model.GetOperation(assignment);
             Assert.Equal(tupleTypeInfo.Type, operation.Target.Type);
@@ -10861,7 +10595,11 @@ class C2
             AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "(2, 123) 2").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(2, 123) 2").VerifyDiagnostics(
+                // (10,18): warning CS8624: Argument of type 'dynamic' cannot be used as an output of type 'int' for parameter 'x' in 'void C2.Deconstruct(out int x, out int y)' due to differences in the nullability of reference types.
+                //         var a = (c[d], _) = new C2();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput, "c[d]").WithArguments("dynamic", "int", "x", "void C2.Deconstruct(out int x, out int y)").WithLocation(10, 18)
+                );
 
             string source3 = @"
 #nullable enable
@@ -10899,7 +10637,11 @@ class C2
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
 
             // Nullability is not tracked across deconstruction, this is a pre-existing condition - https://github.com/dotnet/roslyn/issues/33011 
-            comp3.VerifyDiagnostics();
+            comp3.VerifyDiagnostics(
+                // (10,18): warning CS8624: Argument of type 'dynamic' cannot be used as an output of type 'int?' for parameter 'x' in 'void C2.Deconstruct(out int? x, out int y)' due to differences in the nullability of reference types.
+                //         var a = (c[d], _) = new C2();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput, "c[d]").WithArguments("dynamic", "int?", "x", "void C2.Deconstruct(out int? x, out int y)").WithLocation(10, 18)
+                );
 
             tree = comp3.SyntaxTrees.Single();
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Item1").Single();
@@ -10976,8 +10718,7 @@ class C2
             AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
@@ -11105,12 +10846,7 @@ class C2
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
 
-            // The unexpected error is a pre-existing condition - https://github.com/dotnet/roslyn/issues/72914
-            comp.VerifyDiagnostics(
-                // (10,18): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         var a = (c[d], _) = new C2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c[d]").WithArguments("dynamic", "int").WithLocation(10, 18)
-                );
+            CompileAndVerify(comp, expectedOutput: "(2, 123) 2").VerifyDiagnostics();
 
             string source3 = @"
 #nullable enable
@@ -11122,7 +10858,10 @@ public class C
         dynamic d = 1;
         var c = new C();
         var a = (c[d], _) = new C2();
+        System.Console.Write(a);        
         Print(a.Item1);
+        System.Console.Write("" "");        
+        System.Console.Write(c._test1);        
     }
 
     int? _test1 = 0;    
@@ -11145,14 +10884,9 @@ class C2
     }
 }
 ";
-            var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
+            var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            // The unexpected error is a pre-existing condition - https://github.com/dotnet/roslyn/issues/72914
-            comp3.VerifyDiagnostics(
-                // (10,18): error CS0266: Cannot implicitly convert type 'dynamic' to 'int?'. An explicit conversion exists (are you missing a cast?)
-                //         var a = (c[d], _) = new C2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c[d]").WithArguments("dynamic", "int?").WithLocation(10, 18)
-                );
+            CompileAndVerify(comp3, expectedOutput: "(2, 123) 2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -11188,11 +10922,7 @@ class C2
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
 
-            comp.VerifyDiagnostics(
-                // (8,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         var a = (c[d], _) = new C2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c[d]").WithArguments("string", "int").WithLocation(8, 18)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -11241,38 +10971,37 @@ class C2
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").First();
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("(System.Int32, System.Int32) a", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("(dynamic, System.Int32) a", symbolInfo.Symbol.ToTestDisplayString());
 
             node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Item1").Single();
             symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("dynamic (dynamic, System.Int32).Item1", symbolInfo.Symbol.ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
 
             var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
             typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             var tupleTypeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetDeconstructionInfo(assignment) is { Method: not null, Conversion: null, Nested: [{ Method: null, Conversion: { IsIdentity: true }, Nested: [] }, _] });
+            Assert.True(model.GetDeconstructionInfo(assignment) is { Method: not null, Conversion: null, Nested: [{ Method: null, Conversion: { IsBoxing: true }, Nested: [] }, _] });
 
             var operation = (IDeconstructionAssignmentOperation)model.GetOperation(assignment);
             Assert.Equal(tupleTypeInfo.Type, operation.Target.Type);
@@ -11284,7 +11013,11 @@ class C2
             AssertEx.Equal("C2", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("C2", typeInfo.ConvertedType.ToTestDisplayString());
 
-            CompileAndVerify(comp, expectedOutput: "(2, 123) 2").VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics(
+                // (10,18): warning CS8624: Argument of type 'dynamic' cannot be used as an output of type 'int' for parameter 'x' in 'void C2.Deconstruct(out int x, out int y)' due to differences in the nullability of reference types.
+                //         var a = (c[d], _) = new C2();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput, "c[d]").WithArguments("dynamic", "int", "x", "void C2.Deconstruct(out int x, out int y)").WithLocation(10, 18)
+                );
 
             string source3 = @"
 #nullable enable
@@ -11321,9 +11054,9 @@ class C2
             var comp3 = CreateCompilation(source3, targetFramework: TargetFramework.StandardAndCSharp);
 
             comp3.VerifyDiagnostics(
-                // (11,15): warning CS8604: Possible null reference argument for parameter 'b' in 'void C.Print(dynamic b)'.
-                //         Print(a.Item1);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a.Item1").WithArguments("b", "void C.Print(dynamic b)").WithLocation(11, 15)
+                // (10,18): warning CS8624: Argument of type 'dynamic' cannot be used as an output of type 'int?' for parameter 'x' in 'void C2.Deconstruct(out int? x, out int y)' due to differences in the nullability of reference types.
+                //         var a = (c[d], _) = new C2();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput, "c[d]").WithArguments("dynamic", "int?", "x", "void C2.Deconstruct(out int? x, out int y)").WithLocation(10, 18)
                 );
 
             tree = comp3.SyntaxTrees.Single();
@@ -11331,8 +11064,8 @@ class C2
             model = comp3.GetSemanticModel(tree);
 
             typeInfo = model.GetTypeInfo(node);
-            AssertEx.Equal("System.Int32?", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
         [Fact]
@@ -11373,18 +11106,18 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             typeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             left = (TupleExpressionSyntax)left.Parent.Parent;
             typeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("((System.Int32, System.Int32), System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("((System.Int32, System.Int32), System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("((dynamic, System.Int32), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("((dynamic, System.Int32), System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);
@@ -11396,17 +11129,17 @@ public class C
             var right = (TupleExpressionSyntax)assignment.Right;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("((System.Int32, System.Int32), System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("((System.Int32, System.Int32), System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("((dynamic, System.Int32), System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             right = (TupleExpressionSyntax)right.Arguments[0].Expression;
             typeInfo = model.GetTypeInfo(right);
             AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             var rightElement = right.Arguments[0].Expression;
             typeInfo = model.GetTypeInfo(rightElement);
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "((2, 123), 124) 2").VerifyDiagnostics();
         }
@@ -11457,25 +11190,25 @@ class C2
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             typeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             left = (TupleExpressionSyntax)left.Parent.Parent;
             typeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("((System.Int32, System.Int32), System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("((System.Int32, System.Int32), System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("((dynamic, System.Int32), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("((dynamic, System.Int32), System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);
             AssertEx.Equal("((dynamic, System.Int32), System.Int32)", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("((dynamic, System.Int32), System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetDeconstructionInfo(assignment) is { Method: null, Conversion: null, Nested: [{ Method: not null, Conversion: null, Nested: [{ Method: null, Conversion: { IsIdentity: true }, Nested: [] }, _] }, _] });
+            Assert.True(model.GetDeconstructionInfo(assignment) is { Method: null, Conversion: null, Nested: [{ Method: not null, Conversion: null, Nested: [{ Method: null, Conversion: { IsBoxing: true }, Nested: [] }, _] }, _] });
 
             var right = (TupleExpressionSyntax)assignment.Right;
             typeInfo = model.GetTypeInfo(right);
@@ -11535,13 +11268,13 @@ public class C
             symbolInfo = model.GetSymbolInfo(elementAccess);
             AssertEx.Equal("System.Int32 C.this[System.Int32 x] { get; set; }", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(elementAccess);
-            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
 
             var left = (TupleExpressionSyntax)elementAccess.Parent.Parent;
             typeInfo = model.GetTypeInfo(left);
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
-            AssertEx.Equal("(System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("(dynamic, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString());
 
             var assignment = (AssignmentExpressionSyntax)left.Parent;
             typeInfo = model.GetTypeInfo(assignment);

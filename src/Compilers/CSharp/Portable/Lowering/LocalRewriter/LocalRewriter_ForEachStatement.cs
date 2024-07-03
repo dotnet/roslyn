@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
-            bool isImplicit = false;
+            bool implementsInterface = false;
             MethodSymbol? disposeMethod = enumeratorInfo.PatternDisposeInfo?.Method; // pattern-based
 
             if (disposeMethod is null)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversions = _factory.CurrentFunction.ContainingAssembly.CorLibrary.TypeConversions;
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
-                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
+                implementsInterface = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorType, idisposableTypeSymbol, ref useSiteInfo, out _);
                 _diagnostics.Add(forEachSyntax, useSiteInfo);
             }
 
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                containingType: _factory.CurrentType,
                                                location: enumeratorInfo.Location);
 
-            if (isImplicit || !(enumeratorInfo.PatternDisposeInfo is null))
+            if (implementsInterface || !(enumeratorInfo.PatternDisposeInfo is null))
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
                     alwaysOrMaybeDisposeStmt = RewriteIfStatement(
                         syntax: forEachSyntax,
-                        rewrittenCondition: _factory.ObjectNotEqual(_factory.Convert(objectType, boundEnumeratorVar), _factory.Null(objectType)),
+                        rewrittenCondition: _factory.IsNotNullReference(boundEnumeratorVar),
                         rewrittenConsequence: disposeCallStatement,
                         rewrittenAlternativeOpt: null,
                         hasErrors: false);
