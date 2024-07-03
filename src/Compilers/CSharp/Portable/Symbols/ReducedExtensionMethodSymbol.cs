@@ -613,6 +613,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _reducedFrom.TryGetOverloadResolutionPriority();
         }
 
+        internal sealed override bool CanHaveOverloadResolutionPriority => _reducedFrom.CanHaveOverloadResolutionPriority;
+
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol
         {
             private readonly ReducedExtensionMethodSymbol _containingMethod;

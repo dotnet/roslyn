@@ -325,6 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        internal sealed override bool CanHaveOverloadResolutionPriority => false;
+
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {

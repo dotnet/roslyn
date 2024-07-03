@@ -977,6 +977,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                 {
                 }
 
+                // Attribute is intentionally ignored, as this will cause a cycle
                 [OverloadResolutionPriority(1)]
                 public OverloadResolutionPriorityAttribute(object priority)
                 {
@@ -1143,9 +1144,9 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
-            // (5,6): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.
+            // (5,6): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToNonIndexer, "OverloadResolutionPriority(1)").WithLocation(5, 6)
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(5, 6)
         );
     }
 
@@ -1346,12 +1347,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
         comp.VerifyDiagnostics(
-            // (6,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+            // (6,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
-            // (8,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(6, 10),
+            // (8,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(8, 10)
         );
 
         var c = comp.GetTypeByMetadataName("C")!;
@@ -1539,12 +1540,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
         comp.VerifyDiagnostics(
-            // (6,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+            // (6,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
-            // (8,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(6, 10),
+            // (8,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(8, 10)
         );
 
         var c = comp.GetTypeByMetadataName("C")!;
@@ -1574,12 +1575,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
         comp.VerifyDiagnostics(
-            // (6,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+            // (6,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(6, 10),
-            // (8,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(6, 10),
+            // (8,10): error CS9502: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //         [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, "OverloadResolutionPriority(1)").WithLocation(8, 10)
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(8, 10)
         );
 
         var c = comp.GetTypeByMetadataName("C")!;
@@ -1624,12 +1625,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
-            // (13,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
+            // (13,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, "OverloadResolutionPriority(1)").WithLocation(13, 6),
-            // (17,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(13, 6),
+            // (17,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, "OverloadResolutionPriority(1)").WithLocation(17, 6)
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(17, 6)
         );
     }
 
@@ -1713,12 +1714,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
-            // (15,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
+            // (15,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, "OverloadResolutionPriority(1)").WithLocation(15, 6),
-            // (19,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(15, 6),
+            // (19,6): error CS9503: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, "OverloadResolutionPriority(1)").WithLocation(19, 6)
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(19, 6)
         );
     }
 
@@ -1764,5 +1765,241 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], targetFramework: TargetFramework.Mscorlib45AndCSharp);
         CompileAndVerify(executable, references: new[] { AsReference(comp, useMetadataReference) }, targetFramework: TargetFramework.Mscorlib45AndCSharp, expectedOutput: "1234").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Destructor()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                ~C() => throw null;
+            }
+            """;
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (5,6): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(5, 6)
+        );
+    }
+    [Fact]
+    public void IndexedProperty()
+    {
+        var attrRef = CreateCompilation(OverloadResolutionPriorityAttributeDefinition);
+
+        string vbSource = """
+            Imports System
+            Imports System.Runtime.CompilerServices
+            Imports System.Runtime.InteropServices
+
+            <ComImport, Guid("0002095E-0000-0000-C000-000000000046")>
+            Public Class B
+                <OverloadResolutionPriority(1)>
+                Public Property IndexedProperty(arg As Object) As Integer
+                    Get
+                        Return 0
+                    End Get
+                    Set
+                    End Set
+                End Property
+                Public Property IndexedProperty(arg As String) As Integer
+                    Get
+                        Throw New Exception()
+                    End Get
+                    Set
+                        Throw New Exception()
+                    End Set
+                End Property
+            End Class
+            """;
+        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.NetStandard20References, referencedCompilations: [attrRef]);
+        var vbRef = vb.EmitToImageReference();
+
+        var executable = """
+            var b = new B();
+            _ = b.IndexedProperty["test"];
+            b.IndexedProperty["test"] = 0;
+            """;
+
+        var verifier = CompileAndVerify(executable, references: [attrRef.EmitToImageReference(), vbRef]).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       29 (0x1d)
+              .maxstack  3
+              IL_0000:  newobj     "B..ctor()"
+              IL_0005:  dup
+              IL_0006:  ldstr      "test"
+              IL_000b:  callvirt   "int B.IndexedProperty[object].get"
+              IL_0010:  pop
+              IL_0011:  ldstr      "test"
+              IL_0016:  ldc.i4.0
+              IL_0017:  callvirt   "void B.IndexedProperty[object].set"
+              IL_001c:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void NoWarningOnLocalFunction()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                public static void Main()
+                {
+                    Local("test");
+
+                    [OverloadResolutionPriority(1)]
+                    void Local(object o) => System.Console.Write(1);
+                }
+            }
+            """;
+
+        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void WarningOnLambda()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                public void M()
+                {
+                    var l = [OverloadResolutionPriority(1)] (object o) => System.Console.Write(1);
+                }
+            }
+            """;
+
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (7,18): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+            //         var l = [OverloadResolutionPriority(1)] (object o) => System.Console.Write(1);
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(7, 18)
+        );
+    }
+
+    [Theory, CombinatorialData]
+    public void BinaryOperators_SameType(bool useMetadataReference)
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public interface I1 {}
+            public interface I2 {}
+            public interface I3 : I1, I2 {}
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                public static C operator +(C c, I1 i) { System.Console.Write(1); return c; }
+                public static C operator +(C c, I2 i) => throw null;
+            }
+            """;
+
+        var executable = """
+            var c = new C();
+            I3 i3 = null;
+            _ = c + i3;
+            """;
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void BinaryOperators_DifferentType(bool useMetadataReference)
+    {
+        var source = @"
+            using System.Runtime.CompilerServices;
+
+            public class C1
+            {
+                [OverloadResolutionPriority(1)]
+                public static C1 operator +(C1 c1, C2 c2) => throw null;
+            }
+
+            public class C2
+            {
+                public static C2 operator +(C1 c1, C2 c2) => throw null;
+            }
+            ";
+
+        var executable = @"
+            var c1 = new C1();
+            var c2 = new C2();
+            _ = c1 + c2;
+            ";
+
+        var expectedDiagnostics = new[] {
+            // (4,17): error CS0034: Operator '+' is ambiguous on operands of type 'C1' and 'C2'
+            //             _ = c1 + c2;
+            Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 + c2").WithArguments("+", "C1", "C2").WithLocation(4, 17)
+        };
+
+        CreateCompilation([executable, source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CreateCompilation(executable, references: [AsReference(comp, useMetadataReference)]).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, CombinatorialData]
+    public void UnaryOperator_Allowed(bool useMetadataReference)
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public struct S
+            {
+                public static S? operator!(S? s) => throw null;
+
+                [OverloadResolutionPriority(1)]
+                public static S operator!(S s)
+                {
+                    System.Console.Write("1");
+                    return s;
+                }
+            }
+            """;
+
+        var executable = """
+            S? s = new S();
+            _ = !s;
+            """;
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("implicit")]
+    [InlineData("explicit")]
+    public void ConversionOperators_Disallowed(string operatorType)
+    {
+        var source = $$"""
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                public static {{operatorType}} operator C(int i) => throw null;
+            }
+            """;
+
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (5,6): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(5, 6)
+        );
     }
 }

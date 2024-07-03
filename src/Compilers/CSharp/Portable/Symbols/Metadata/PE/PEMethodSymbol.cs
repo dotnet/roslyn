@@ -1704,5 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return _uncommonFields?._lazyOverloadResolutionPriority;
         }
+
+        internal override bool CanHaveOverloadResolutionPriority => !IsExplicitInterfaceImplementation;
     }
 }

@@ -2452,9 +2452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.INF_IdentifierConflictWithContextualKeyword
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
-                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToNonIndexer
-                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor
-                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

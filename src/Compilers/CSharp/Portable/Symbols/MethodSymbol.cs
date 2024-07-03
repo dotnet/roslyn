@@ -1192,9 +1192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Do not call this method from early attribute binding, cycles will occur.
         /// </remarks>
-        internal int OverloadResolutionPriority => TryGetOverloadResolutionPriority() ?? 0;
+        internal int OverloadResolutionPriority => CanHaveOverloadResolutionPriority ? (TryGetOverloadResolutionPriority() ?? 0) : 0;
 
         internal abstract int? TryGetOverloadResolutionPriority();
+
+        internal abstract bool CanHaveOverloadResolutionPriority { get; }
 
         #region IMethodSymbolInternal
 

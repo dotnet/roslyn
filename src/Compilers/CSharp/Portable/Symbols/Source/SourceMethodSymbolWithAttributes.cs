@@ -371,9 +371,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
                 {
-                    if (this is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                    if (!CanHaveOverloadResolutionPriority)
                     {
-                        // Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
+                        // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
                         return (null, null);
                     }
 
@@ -636,19 +636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
 
-                if (this is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                if (!CanHaveOverloadResolutionPriority)
                 {
-                    // Cannot use 'OverloadResolutionPriorityAttribute' on an accessor method.
-                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToAccessor, arguments.AttributeSyntaxOpt);
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, arguments.AttributeSyntaxOpt);
                 }
                 else if (this.OverriddenMethod is not null)
                 {
                     diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt);
-                }
-                else if (this.IsExplicitInterfaceImplementation)
-                {
-                    // Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
-                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, arguments.AttributeSyntaxOpt);
                 }
             }
             else
@@ -1751,5 +1746,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int? TryGetOverloadResolutionPriority()
             => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
+
+#pragma warning disable IDE0055 // Fix formatting
+        internal override bool CanHaveOverloadResolutionPriority => this is not (
+                                SourcePropertyAccessorSymbol or
+                                SourceEventAccessorSymbol or
+                                SourceDestructorSymbol or
+                                LambdaSymbol or
+                                SourceUserDefinedConversionSymbol or
+                                { IsExplicitInterfaceImplementation: true });
+#pragma warning restore IDE0055
     }
 }

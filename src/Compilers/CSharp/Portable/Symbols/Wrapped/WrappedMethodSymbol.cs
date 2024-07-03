@@ -369,5 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return UnderlyingMethod.TryGetOverloadResolutionPriority();
         }
+
+        internal sealed override bool CanHaveOverloadResolutionPriority => UnderlyingMethod.CanHaveOverloadResolutionPriority;
     }
 }

@@ -735,44 +735,29 @@ namespace System.Diagnostics.CodeAnalysis
                     4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
                     72 69 74 65 64 00
                 )
-                // Fields
                 .field private int32 '<priority>P'
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-
-                // Methods
                 .method public hidebysig specialname rtspecialname 
                     instance void .ctor (
                         int32 priority
                     ) cil managed 
                 {
-                    // Method begins at RVA 0x2069
-                    // Code size 14 (0xe)
-                    .maxstack 8
-
-                    // sequence point: hidden
-                    IL_0000: ldarg.0
-                    IL_0001: ldarg.1
-                    IL_0002: stfld int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::'<priority>P'
-                    IL_0007: ldarg.0
-                    IL_0008: call instance void [mscorlib]System.Attribute::.ctor()
-                    IL_000d: ret
-                } // end of method OverloadResolutionPriorityAttribute::.ctor
-
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::'<priority>P'
+                    ldarg.0
+                    call instance void [mscorlib]System.Attribute::.ctor()
+                    ret
+                }
                 .method public hidebysig specialname 
                     instance int32 get_Priority () cil managed 
                 {
-                    // Method begins at RVA 0x2078
-                    // Code size 7 (0x7)
-                    .maxstack 8
-
-                    IL_0000: ldarg.0
-                    IL_0001: ldfld int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::'<priority>P'
-                    IL_0006: ret
-                } // end of method OverloadResolutionPriorityAttribute::get_Priority
-
-                // Properties
+                    ldarg.0
+                    ldfld int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::'<priority>P'
+                    ret
+                }
                 .property instance int32 Priority()
                 {
                     .get instance int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::get_Priority()

@@ -829,8 +829,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int GetOverloadResolutionPriority(this Symbol symbol)
         {
-            Debug.Assert(symbol is MethodSymbol || symbol is PropertySymbol);
+            Debug.Assert(symbol is MethodSymbol or PropertySymbol);
             return symbol is MethodSymbol method ? method.OverloadResolutionPriority : ((PropertySymbol)symbol).OverloadResolutionPriority;
         }
+
+        internal static bool CanHaveOverloadResolutionPriority(this Symbol symbol) => symbol switch
+        {
+            MethodSymbol method => method.CanHaveOverloadResolutionPriority,
+            PropertySymbol property => property.CanHaveOverloadResolutionPriority,
+            _ => false
+        };
     }
 }

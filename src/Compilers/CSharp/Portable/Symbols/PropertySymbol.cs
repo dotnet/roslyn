@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!this.IsIndexer)
+                if (!CanHaveOverloadResolutionPriority)
                 {
                     return 0;
                 }
@@ -346,6 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal abstract int? TryGetOverloadResolutionPriority();
+
+        internal bool CanHaveOverloadResolutionPriority => IsIndexer || IsIndexedProperty;
 
         /// <summary>
         /// Implements visitor pattern.

@@ -1023,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override int? TryGetOverloadResolutionPriority()
         {
-            Debug.Assert(IsIndexer);
+            Debug.Assert(IsIndexer || IsIndexedProperty);
             if (!_flags.IsOverloadResolutionPriorityPopulated)
             {
                 if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority))

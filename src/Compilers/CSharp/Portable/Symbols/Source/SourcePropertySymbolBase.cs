@@ -1408,20 +1408,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
 
-                if (!IsIndexer)
+                if (!IsIndexer || IsExplicitInterfaceImplementation)
                 {
-                    // Cannot use 'OverloadResolutionPriorityAttribute' on a property that is not an indexer.
-                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToNonIndexer, arguments.AttributeSyntaxOpt.Location);
+                    // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, arguments.AttributeSyntaxOpt.Location);
                 }
                 else if (IsOverride)
                 {
                     // Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
                     diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt.Location);
-                }
-                else if (IsExplicitInterfaceImplementation)
-                {
-                    // Cannot use 'OverloadResolutionPriorityAttribute' on an explicit interface implementation.
-                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToExplicitImplementation, arguments.AttributeSyntaxOpt.Location);
                 }
             }
         }

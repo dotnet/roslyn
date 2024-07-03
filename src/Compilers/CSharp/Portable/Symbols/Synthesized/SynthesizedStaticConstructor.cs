@@ -445,5 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return null;
         }
+
+        internal sealed override bool CanHaveOverloadResolutionPriority => false;
     }
 }

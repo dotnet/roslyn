@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((options & Options.DynamicResolution) == 0)
             {
-                RemoveLowerPriorityMembers(results);
+                RemoveLowerPriorityMembers<MemberResolutionResult<TMember>, TMember>(results);
 
                 // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified,
                 // SPEC: the method invocation is ambiguous, and a binding-time error occurs.
@@ -1630,7 +1630,7 @@ outerDefault:
                     // that OverloadResolutionPriorityAttribute won't affect early bound attributes, so you can't use OverloadResolutionPriorityAttribute
                     // to adjust what constructor of OverloadResolutionPriorityAttribute is chosen. See `CycleOnOverloadResolutionPriorityConstructor_02` for
                     // an example.
-                    RemoveLowerPriorityMembers(results);
+                    RemoveLowerPriorityMembers<MemberResolutionResult<MethodSymbol>, MethodSymbol>(results);
                 }
 
                 // The best method of the set of candidate methods is identified. If a single best
@@ -1711,7 +1711,8 @@ outerDefault:
             return currentBestIndex;
         }
 
-        private static void RemoveLowerPriorityMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
+        private static void RemoveLowerPriorityMembers<TMemberResolution, TMember>(ArrayBuilder<TMemberResolution> results)
+            where TMemberResolution : IMemberResolutionResultWithPriority<TMember>
             where TMember : Symbol
         {
             // - Then, the reduced set of candidate members is grouped by declaring type. Within each group:
@@ -1725,27 +1726,33 @@ outerDefault:
                 case []:
                 case [_]:
                 // We only look at methods and indexers, so if this isn't one of those scenarios, we don't need to do anything.
-                case [{ Member: not (MethodSymbol or PropertySymbol { IsIndexer: true }) }, _, ..]:
+                case [Symbol s, _, ..] when !s.CanHaveOverloadResolutionPriority():
                     return;
             }
 
             // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
-            if (results.All(r => getOverloadResolutionPriority(r) == 0))
+            if (results.All(r => r.MemberWithPriority?.GetOverloadResolutionPriority() is null or 0))
             {
                 // All default, nothing to do
                 return;
             }
 
             bool removedMembers = false;
-            var resultsByContainingType = PooledDictionary<NamedTypeSymbol, OneOrMany<MemberResolutionResult<TMember>>>.GetInstance();
+            var resultsByContainingType = PooledDictionary<NamedTypeSymbol, OneOrMany<TMemberResolution>>.GetInstance();
 
             foreach (var result in results)
             {
-                var containingType = result.LeastOverriddenMember.ContainingType;
+                if (result.MemberWithPriority is null)
+                {
+                    // Can happen for things like built-in binary operators
+                    continue;
+                }
+
+                var containingType = result.MemberWithPriority.ContainingType;
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
-                    var previousOverloadResolutionPriority = getOverloadResolutionPriority(previousResults.First());
-                    var currentOverloadResolutionPriority = getOverloadResolutionPriority(result);
+                    var previousOverloadResolutionPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
+                    var currentOverloadResolutionPriority = result.MemberWithPriority.GetOverloadResolutionPriority();
 
                     if (currentOverloadResolutionPriority > previousOverloadResolutionPriority)
                     {
@@ -1759,7 +1766,7 @@ outerDefault:
                     else
                     {
                         removedMembers = true;
-                        Debug.Assert(previousResults.All(r => getOverloadResolutionPriority(r) == previousOverloadResolutionPriority));
+                        Debug.Assert(previousResults.All(r => r.MemberWithPriority.GetOverloadResolutionPriority() == previousOverloadResolutionPriority));
                     }
                 }
                 else
@@ -1781,8 +1788,6 @@ outerDefault:
                 results.AddRange(resultsForType);
             }
             resultsByContainingType.Free();
-
-            static int getOverloadResolutionPriority(MemberResolutionResult<TMember> result) => result.LeastOverriddenMember.GetOverloadResolutionPriority();
         }
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
