@@ -30,14 +30,14 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
     {
         var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
 
-        text = UpdateSourceText(request.ContentChanges, text);
+        text = GetUpdatedSourceText(request.ContentChanges, text);
 
         context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 
         return SpecializedTasks.Default<object>();
     }
 
-    private static SourceText UpdateSourceText(TextDocumentContentChangeEvent[] contentChanges, SourceText text)
+    private static SourceText GetUpdatedSourceText(TextDocumentContentChangeEvent[] contentChanges, SourceText text)
     {
         var areChangesOrdered = true;
 
@@ -45,21 +45,19 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         // positions between changes. See
         // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#didChangeTextDocumentParams
         // for more details.
-        if (contentChanges.Length > 0)
+        //
+        // If the host sends us changes in a way such that no earlier change can affect the position of a later change,
+        // then we can merge the changes into a single TextChange, allowing creation of only a single new
+        // source text.
+        for (var i = 1; i < contentChanges.Length; i++)
         {
-            // If the host sends us changes in a way such that no earlier change can affect the position of a later change,
-            // then we can merge the changes into a single TextChange, allowing creation of only a single new
-            // source text.
-            for (var i = 1; i < contentChanges.Length; i++)
-            {
-                var prevChange = contentChanges[i - 1];
-                var curChange = contentChanges[i];
+            var prevChange = contentChanges[i - 1];
+            var curChange = contentChanges[i];
 
-                if (prevChange.Range.Start.CompareTo(curChange.Range.End) < 0)
-                {
-                    areChangesOrdered = false;
-                    break;
-                }
+            if (prevChange.Range.Start.CompareTo(curChange.Range.End) < 0)
+            {
+                areChangesOrdered = false;
+                break;
             }
         }
 
