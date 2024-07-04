@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -82,10 +83,13 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         // Do not use unless you are certain the span you are passing in is valid!
-        // This was added to allow SourceText's indexer to directly create TextLines
+        // This was added to allow SourceText.LineInfo's indexer to directly create TextLines
         // without the performance implications of calling FromSpan.
         internal static TextLine FromKnownSpan(SourceText text, TextSpan span)
         {
+            Debug.Assert(span.Start == 0 || TextUtilities.IsAnyLineBreakCharacter(text[span.Start - 1]));
+            Debug.Assert(span.End == text.Length || TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]));
+
             return new TextLine(text, span.Start, span.End);
         }
 
