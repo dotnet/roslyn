@@ -43,19 +43,9 @@
 
       <!-- Also crossgen a few assemblies we don't own but insert into VS -->
       <_R2RAssemblies Include="Microsoft.CodeAnalysis.Elfie.dll" />
-      <_R2RAssemblies Include="Microsoft.ServiceHub.Framework.dll" />
-      <_R2RAssemblies Include="Microsoft.VisualStudio.Composition.dll" />
-      <_R2RAssemblies Include="Microsoft.VisualStudio.Telemetry.dll" />
-      <_R2RAssemblies Include="Microsoft.VisualStudio.Threading.dll" />
-      <_R2RAssemblies Include="MessagePack.dll" />
-      <_R2RAssemblies Include="Nerdback.Streams.dll" />
-      <_R2RAssemblies Include="Newtonsoft.Json.dll" />
       <_R2RAssemblies Include="SQLitePCLRaw.batteries_v2.dll" />
-      <_R2RAssemblies Include="StreamJsonRpc.dll" />
-      <_R2RAssemblies Include="System.IO.Pipelines.dll" />
       <_R2RAssemblies Include="System.Text.Json.dll" />
       <_R2RAssemblies Include="System.Text.Encodings.Web.dll" />
-      <_R2RAssemblies Include="Microsoft.NET.StringTools.dll" />
 
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
       <_AllPublishedAssemblyPaths Include="$(PublishDir)**\*.dll" Exclude="$(PublishDir)**\*.resources.dll" />
@@ -72,7 +62,44 @@
       <!-- Now we get all Roslyn assemblies in the publish folder -->
       <_R2RAssemblyPaths Include="@(_AllPublishedAssemblyPaths)" Exclude="@(_NoR2RAssemblyPaths)" />
     </ItemGroup>
-    
+
+    <ItemGroup>
+      <!-- Following assemblies are shipped by host, located under "Common7\ServiceHub\SharedAssemblies" folder -->
+      <_AssembliesSharedWithHost Include="MessagePack.Annotations.dll" />
+      <_AssembliesSharedWithHost Include="MessagePack.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.Bcl.AsyncInterfaces.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.Bcl.HashCode.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.NET.StringTools.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.ServiceHub.Client.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.ServiceHub.Framework.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.ServiceHub.HostLib.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.ServiceHub.HostStub.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.ServiceHub.Resources.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.VisualStudio.Composition.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.VisualStudio.RemoteControl.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.VisualStudio.Telemetry.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.VisualStudio.Threading.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.VisualStudio.Utilities.Internal.dll" />
+      <_AssembliesSharedWithHost Include="Microsoft.VisualStudio.Validation.dll" />
+      <_AssembliesSharedWithHost Include="Nerdbank.Streams.dll" />
+      <_AssembliesSharedWithHost Include="Newtonsoft.Json.dll" />
+      <_AssembliesSharedWithHost Include="StreamJsonRpc.dll" />
+      <_AssembliesSharedWithHost Include="System.ComponentModel.Composition.dll" />
+      <_AssembliesSharedWithHost Include="System.Composition.AttributedModel.dll" />
+      <_AssembliesSharedWithHost Include="System.Composition.Convention.dll" />
+      <_AssembliesSharedWithHost Include="System.Composition.Hosting.dll" />
+      <_AssembliesSharedWithHost Include="System.Composition.Runtime.dll" />
+      <_AssembliesSharedWithHost Include="System.Composition.TypedParts.dll" />
+      <_AssembliesSharedWithHost Include="System.IO.Pipelines.dll" />
+      <_AssembliesSharedWithHost Include="System.Management.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_R2RAssembliesNotSharedWithHost Include="@(_R2RAssemblies)" Exclude="@(_AssembliesSharedWithHost)" />
+      <_R2RAssembliesSharedWithHost Include="@(_R2RAssemblies)" Exclude="@(_R2RAssembliesNotSharedWithHost)" />
+    </ItemGroup>
+    <Warning Text="Do not ship and crossgen assemblies shared with host: @(_R2RAssembliesSharedWithHost)" Condition="@(_R2RAssembliesSharedWithHost->Count()) > 0" />
+
     <PropertyGroup>
       <CrossgenWorkDir>$(PublishDir)CrossGen\</CrossgenWorkDir>
       <OriginalAssemblyDir>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyDir>
@@ -150,17 +177,22 @@
 
         Always include BCL in the vsix for non-official build to avoid breakage. Since VS used on CI machines
         as well as by external contributors usually lags behind our insertion target.
+
+        We also need to do something simialr for assemblies shared by host.
       -->
-      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">true</_ExcludeRuntimeLibraries>
+      <_ExcludeRuntimeAndHostSharedAssemblies Condition="'$(OfficialBuild)' == 'true'">true</_ExcludeRuntimeAndHostSharedAssemblies>
     </PropertyGroup>
     <ItemGroup>
       <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
       <_ExcludedFiles Include="$(PublishDir)**\*.pdb" />
       <_ExcludedFiles Include="$(CrossgenWorkDir)**\*" />
 
+      <!-- exclude files shared by host -->
+      <_ExcludedFiles Condition="'$(_ExcludeRuntimeAndHostSharedAssemblies)' == 'true'" Include="@(_AssembliesSharedWithHost->'$(PublishDir)%(FileName)%(Extension)')" />
+
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_ExcludedFiles Include="$(PublishDir)runtimes\**\*.*" />
-      <_ExcludedFiles Condition="'$(_ExcludeRuntimeLibraries)' == 'true'" Include="@(_RuntimeLibrariesInPublishDir)" />
+      <_ExcludedFiles Condition="'$(_ExcludeRuntimeAndHostSharedAssemblies)' == 'true'" Include="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
