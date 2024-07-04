@@ -40,6 +40,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters), interfaces);
 
         /// <summary>
+        /// Creates a service descriptor set for services using System.Text.Json serialization.
+        /// </summary>
+        public RazorServiceDescriptorsWrapper(
+            string componentName,
+            Func<string, string> featureDisplayNameProvider,
+            ImmutableArray<System.Text.Json.Serialization.JsonConverter> jsonConverters,
+            IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
+            => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters), interfaces);
+
+        /// <summary>
         /// To be called from a service factory in OOP.
         /// </summary>
         public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
