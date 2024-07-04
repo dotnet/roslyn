@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal static class SemanticTokensHelpers
     {
-        private static readonly ObjectPool<List<int>> s_tokenListPool = new ObjectPool<List<int>>(() => new List<int>());
+        private static readonly ObjectPool<List<int>> s_tokenListPool = new ObjectPool<List<int>>(() => new List<int>(capacity: 1000));
 
         internal static async Task<int[]> HandleRequestHelperAsync(
             IGlobalOptionService globalOptions,
