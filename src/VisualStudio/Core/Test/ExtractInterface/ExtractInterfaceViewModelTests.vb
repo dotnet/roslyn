@@ -16,6 +16,8 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Utilities
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
     <[UseExportProvider]>
@@ -273,6 +275,25 @@ public class $$MyClass
             Assert.Equal("Goo(string)", viewModel.MemberContainers.ElementAt(4).SymbolName)
         End Function
 
+        <Fact>
+        Public Async Function TestDestinationChanged() As Task
+            Dim markup = <Text><![CDATA[
+public class $$MyClass
+{
+    public void Goo(string s) { }
+    public void Goo(int i) { }
+    public void Goo(int i, string s) { }
+    public void Goo() { }
+    public void Goo(int i, int i2) { }
+}"]]></Text>
+
+            Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
+            Assert.Equal(NewTypeDestination.NewFile, viewModel.DestinationViewModel.Destination)
+            viewModel.DestinationViewModel.Destination = NewTypeDestination.CurrentFile
+            Dim newViewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
+            Assert.Equal(viewModel.DestinationViewModel.Destination, newViewModel.DestinationViewModel.Destination)
+        End Function
+
         Private Shared Async Function GetViewModelAsync(markup As XElement,
                               languageName As String,
                               defaultInterfaceName As String,
@@ -313,7 +334,8 @@ public class $$MyClass
                     memberViewModels:=memberViewModels.ToImmutableArray(),
                     defaultNamespace:=defaultNamespace,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,
-                    languageName:=doc.Project.Language)
+                    languageName:=doc.Project.Language,
+                    globalOptionService:=workspace.GetService(Of IGlobalOptionService))
             End Using
         End Function
     End Class
