@@ -243,7 +243,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
 
-            using var _ = ArrayBuilder<int>.GetInstance(5 * classifiedSpans.Count, out var data);
+            var data = new int[5 * classifiedSpans.Count];
+            var index = 0;
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
             {
                 currentClassifiedSpanIndex = ComputeNextToken(
@@ -252,14 +253,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
                     out var tokenType, out var tokenModifiers);
 
-                data.Add(deltaLine);
-                data.Add(startCharacterDelta);
-                data.Add(tokenLength);
-                data.Add(tokenType);
-                data.Add(tokenModifiers);
+                data[index++] = deltaLine;
+                data[index++] = startCharacterDelta;
+                data[index++] = tokenLength;
+                data[index++] = tokenType;
+                data[index++] = tokenModifiers;
             }
 
-            return data.ToArray();
+            return data;
         }
 
         private static int ComputeNextToken(
