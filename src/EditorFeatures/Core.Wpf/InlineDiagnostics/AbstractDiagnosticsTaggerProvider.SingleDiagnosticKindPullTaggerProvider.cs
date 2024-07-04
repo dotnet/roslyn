@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -130,18 +129,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                     diagnosticKind: _diagnosticKind,
                     includeSuppressedDiagnostics: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // Copilot code analysis is a special analyzer that reports semantic correctness
-                // issues in user's code. These diagnostics are computed by a special code analysis
-                // service in the background. As computing these diagnostics can be expensive,
-                // we only add cached Copilot diagnostics here.
-                // Note that we consider Copilot diagnostics as special analyzer semantic diagnostics
-                // and hence only report them for 'DiagnosticKind.AnalyzerSemantic'.
-                if (_diagnosticKind == DiagnosticKind.AnalyzerSemantic)
-                {
-                    var copilotDiagnostics = await document.GetCachedCopilotDiagnosticsAsync(requestedSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                    diagnostics = diagnostics.AddRange(copilotDiagnostics);
-                }
 
                 foreach (var diagnosticData in diagnostics)
                 {

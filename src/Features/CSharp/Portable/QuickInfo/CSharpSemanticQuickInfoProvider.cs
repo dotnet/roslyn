@@ -140,6 +140,12 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         var document = context.Document;
         var position = context.Position;
 
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
+            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
+        {
+            return null;
+        }
+
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
             !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -149,12 +155,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         // Checks to see if there have been any files excluded at the workspace level
         // since the copilot service passes along symbol information.
         if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
-        {
-            return null;
-        }
-
-        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
-            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
         {
             return null;
         }

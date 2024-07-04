@@ -320,11 +320,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">基底類別包含無法存取的未實作成員</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">內建 Copilot 分析</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">C# 與 Visual Basic 參考</target>

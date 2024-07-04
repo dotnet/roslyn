@@ -51,11 +51,12 @@ internal partial class SuggestedActionWithNestedFlavors
             }
 
             if (originalDocument.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+                !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             {
                 return null;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             return new RefineUsingCopilotSuggestedAction(
                 suggestedAction.ThreadingContext,
                 suggestedAction.SourceProvider,
