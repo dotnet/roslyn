@@ -31,12 +31,6 @@ internal static partial class ID
         public const int SetActiveRuleSet = 0x0118;
         public const int SetSeverityDefault = 0x011b;
 
-        // Error list context menu command IDs for suppressions and setting severity
-        public const int AddSuppressions = 0x011d;
-        public const int AddSuppressionsInSource = 0x011f;
-        public const int AddSuppressionsInSuppressionFile = 0x0120;
-        public const int RemoveSuppressions = 0x0121;
-
         // Analyze and Code Cleanup menu IDs
         public const int AnalysisScopeDefault = 0x0131;
         public const int AnalysisScopeCurrentDocument = 0x0132;
