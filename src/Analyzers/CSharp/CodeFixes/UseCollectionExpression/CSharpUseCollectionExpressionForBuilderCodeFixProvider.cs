@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -81,6 +82,15 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         // Remove all the nodes mutating the builder.
         foreach (var (statement, _) in analysisResult.Matches)
             subEditor.RemoveNode(statement);
+
+        //Add the leading trivia from the declaration of the builder to the invocation where we convert the builder to a collection.
+        var dummyObjectCreationDeclaration = dummyObjectCreation.Ancestors().Take(3);
+
+        if (dummyObjectCreationDeclaration.Last() is VariableDeclarationSyntax variableDeclaration)
+        {
+            var type = variableDeclaration.Type;
+            subEditor.ReplaceNode(type, type.WithPrependedNonIndentationTriviaFrom(analysisResult.LocalDeclarationStatement));
+        }
 
         // Finally, replace the invocation where we convert the builder to a collection with the new collection expression.
         subEditor.ReplaceNode(dummyObjectCreation, collectionExpression);
