@@ -1591,6 +1591,7 @@ public partial class UseCollectionExpressionForBuilderTests
     }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
     public async Task TestLeadingComment(string pattern)
     {
         await new VerifyCS.Test
@@ -1627,6 +1628,7 @@ public partial class UseCollectionExpressionForBuilderTests
     }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
     public async Task TestLeadingCommentWithAdditionalTrivia1(string pattern)
     {
         await new VerifyCS.Test
@@ -1665,6 +1667,7 @@ public partial class UseCollectionExpressionForBuilderTests
     }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
     public async Task TestLeadingCommentWithAdditionalTrivia2(string pattern)
     {
         await new VerifyCS.Test
