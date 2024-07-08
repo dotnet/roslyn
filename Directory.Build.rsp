@@ -1,1 +1,1 @@
-# This file intentionally left blank to avoid accidental import during build.
+-p:_IsDisjointMSBuildVersion=false
