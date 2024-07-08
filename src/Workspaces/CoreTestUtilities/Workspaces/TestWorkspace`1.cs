@@ -116,6 +116,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public void SetAnalyzerFallbackOptions(string language, params (string name, string value)[] options)
+        {
+            SetCurrentSolution(
+                s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(language,
+                    StructuredAnalyzerConfigOptions.Create(
+                        new DictionaryAnalyzerConfigOptions(
+                            options.Select(static o => KeyValuePairUtil.Create(o.name, o.value)).ToImmutableDictionary())))),
+                changeKind: WorkspaceChangeKind.SolutionChanged);
+        }
+
         /// <summary>
         /// Use to set specified editorconfig options as <see cref="Solution.FallbackAnalyzerOptions"/>.
         /// </summary>
