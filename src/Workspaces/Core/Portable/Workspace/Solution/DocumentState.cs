@@ -59,7 +59,7 @@ internal partial class DocumentState : TextDocumentState
         ParseOptions? options,
         LoadTextOptions loadTextOptions)
     {
-        var textSource = CreateTextAndVersionSource(languageServices.SolutionServices, info, loadTextOptions);
+        var textSource = CreateTextAndVersionSource(languageServices.SolutionServices, info.TextLoader, info.FilePath, loadTextOptions);
 
         // If this is document that doesn't support syntax, then don't even bother holding
         // onto any tree source.  It will never be used to get a tree, and can only hurt us
@@ -336,7 +336,7 @@ internal partial class DocumentState : TextDocumentState
             newTreeSource);
     }
 
-    public DocumentState UpdateParseOptionsAndSourceCodeKind(ParseOptions options, bool onlyPreprocessorDirectiveChange)
+    public DocumentState UpdateParseOptionsAndSourceCodeKind(ParseOptions? options, bool onlyPreprocessorDirectiveChange)
     {
         Contract.ThrowIfFalse(SupportsSyntaxTree);
 
@@ -350,6 +350,8 @@ internal partial class DocumentState : TextDocumentState
         if (onlyPreprocessorDirectiveChange &&
             TreeSource.TryGetValue(out var existingTreeAndVersion))
         {
+            Debug.Assert(options != null);
+
             var existingTree = existingTreeAndVersion.Tree;
 
             SyntaxTree? newTree = null;
@@ -365,18 +367,25 @@ internal partial class DocumentState : TextDocumentState
                 newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
         }
 
-        // If we weren't able to reuse in a smart way, just reparse
-        newTreeSource ??= CreateLazyFullyParsedTree(
-            TextAndVersionSource,
-            LoadTextOptions,
-            Attributes.SyntaxTreeFilePath,
-            options,
-            LanguageServices);
+        if (options != null)
+        {
+            // If we weren't able to reuse in a smart way, just reparse
+            newTreeSource ??= CreateLazyFullyParsedTree(
+                TextAndVersionSource,
+                LoadTextOptions,
+                Attributes.SyntaxTreeFilePath,
+                options,
+                LanguageServices);
+        }
+        else
+        {
+            newTreeSource = null;
+        }
 
         return new DocumentState(
             LanguageServices,
             DocumentServiceProvider,
-            Attributes.With(sourceCodeKind: options.Kind),
+            (options != null) ? Attributes.With(sourceCodeKind: options.Kind) : Attributes,
             TextAndVersionSource,
             LoadTextOptions,
             options,
@@ -429,6 +438,16 @@ internal partial class DocumentState : TextDocumentState
             ParseOptions,
             newTreeSource);
     }
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => new DocumentState(
+            LanguageServices,
+            newProvider,
+            Attributes,
+            TextAndVersionSource,
+            LoadTextOptions,
+            ParseOptions,
+            TreeSource);
 
     public new DocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
         => (DocumentState)base.WithAttributes(newAttributes);

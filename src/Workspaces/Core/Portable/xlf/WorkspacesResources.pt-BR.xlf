@@ -42,6 +42,16 @@
         <target state="translated">Não há suporte para alterar o documento '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_project_from_ordinary_to_interactive_submission_or_vice_versa_is_not_supported">
+        <source>Changing project from ordinary to interactive submission or vice versa is not supported</source>
+        <target state="new">Changing project from ordinary to interactive submission or vice versa is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_language_is_not_supported">
+        <source>Changing project language is not supported</source>
+        <target state="new">Changing project language is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">A CodeAction '{0}' não produziu uma solução alterada</target>
@@ -120,6 +130,11 @@
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
         <target state="translated">Não há suporte para a remoção de documentos da configuração do analisador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_compilation_options_is_not_supported">
+        <source>Removing compilation options is not supported</source>
+        <target state="new">Removing compilation options is not supported</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">

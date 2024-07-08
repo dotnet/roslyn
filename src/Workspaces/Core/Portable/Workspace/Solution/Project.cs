@@ -573,106 +573,113 @@ public partial class Project
     /// Creates a new instance of this project updated to have the new assembly name.
     /// </summary>
     public Project WithAssemblyName(string assemblyName)
-        => this.Solution.WithProjectAssemblyName(this.Id, assemblyName).GetProject(this.Id)!;
+        => this.Solution.WithProjectAssemblyName(this.Id, assemblyName).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the new default namespace.
     /// </summary>
     public Project WithDefaultNamespace(string defaultNamespace)
-        => this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetProject(this.Id)!;
+        => this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the specified compilation options.
     /// </summary>
     public Project WithCompilationOptions(CompilationOptions options)
-        => this.Solution.WithProjectCompilationOptions(this.Id, options).GetProject(this.Id)!;
+        => this.Solution.WithProjectCompilationOptions(this.Id, options).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the specified parse options.
     /// </summary>
-    public Project WithParseOptions(ParseOptions options)
-        => this.Solution.WithProjectParseOptions(this.Id, options).GetProject(this.Id)!;
+    public Project WithParseOptions(ParseOptions? options)
+        => this.Solution.WithProjectParseOptions(this.Id, options).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to include the specified project reference
     /// in addition to already existing ones.
     /// </summary>
     public Project AddProjectReference(ProjectReference projectReference)
-        => this.Solution.AddProjectReference(this.Id, projectReference).GetProject(this.Id)!;
+        => this.Solution.AddProjectReference(this.Id, projectReference).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to include the specified project references
     /// in addition to already existing ones.
     /// </summary>
     public Project AddProjectReferences(IEnumerable<ProjectReference> projectReferences)
-        => this.Solution.AddProjectReferences(this.Id, projectReferences).GetProject(this.Id)!;
+        => this.Solution.AddProjectReferences(this.Id, projectReferences).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to no longer include the specified project reference.
     /// </summary>
     public Project RemoveProjectReference(ProjectReference projectReference)
-        => this.Solution.RemoveProjectReference(this.Id, projectReference).GetProject(this.Id)!;
+        => this.Solution.RemoveProjectReference(this.Id, projectReference).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to replace existing project references 
     /// with the specified ones.
     /// </summary>
     public Project WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
-        => this.Solution.WithProjectReferences(this.Id, projectReferences).GetProject(this.Id)!;
+        => this.Solution.WithProjectReferences(this.Id, projectReferences).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to include the specified metadata reference
     /// in addition to already existing ones.
     /// </summary>
     public Project AddMetadataReference(MetadataReference metadataReference)
-        => this.Solution.AddMetadataReference(this.Id, metadataReference).GetProject(this.Id)!;
+        => this.Solution.AddMetadataReference(this.Id, metadataReference).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to include the specified metadata references
     /// in addition to already existing ones.
     /// </summary>
     public Project AddMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
-        => this.Solution.AddMetadataReferences(this.Id, metadataReferences).GetProject(this.Id)!;
+        => this.Solution.AddMetadataReferences(this.Id, metadataReferences).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to no longer include the specified metadata reference.
     /// </summary>
     public Project RemoveMetadataReference(MetadataReference metadataReference)
-        => this.Solution.RemoveMetadataReference(this.Id, metadataReference).GetProject(this.Id)!;
+        => this.Solution.RemoveMetadataReference(this.Id, metadataReference).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to replace existing metadata reference
     /// with the specified ones.
     /// </summary>
     public Project WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
-        => this.Solution.WithProjectMetadataReferences(this.Id, metadataReferences).GetProject(this.Id)!;
+        => this.Solution.WithProjectMetadataReferences(this.Id, metadataReferences).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to include the specified analyzer reference 
     /// in addition to already existing ones.
     /// </summary>
     public Project AddAnalyzerReference(AnalyzerReference analyzerReference)
-        => this.Solution.AddAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id)!;
+        => this.Solution.AddAnalyzerReference(this.Id, analyzerReference).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to include the specified analyzer references
     /// in addition to already existing ones.
     /// </summary>
     public Project AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
-        => this.Solution.AddAnalyzerReferences(this.Id, analyzerReferences).GetProject(this.Id)!;
+        => this.Solution.AddAnalyzerReferences(this.Id, analyzerReferences).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to no longer include the specified analyzer reference.
     /// </summary>
     public Project RemoveAnalyzerReference(AnalyzerReference analyzerReference)
-        => this.Solution.RemoveAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id)!;
+        => this.Solution.RemoveAnalyzerReference(this.Id, analyzerReference).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to replace existing analyzer references 
     /// with the specified ones.
     /// </summary>
     public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferencs)
-        => this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetProject(this.Id)!;
+        => this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetRequiredProject(Id);
+
+    /// <summary>
+    /// Creates a new instance of this project updated to replace existing analyzer references 
+    /// with the specified ones.
+    /// </summary>
+    internal Project WithAttributes(ProjectInfo.ProjectAttributes attributes)
+        => Solution.WithProjectAttributes(attributes).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new document in a new instance of this project.
@@ -738,7 +745,7 @@ public partial class Project
     {
         // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
         // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
-        return this.Solution.RemoveDocument(documentId).GetProject(this.Id)!;
+        return this.Solution.RemoveDocument(documentId).GetRequiredProject(Id);
     }
 
     /// <summary>
@@ -757,7 +764,7 @@ public partial class Project
     public Project RemoveAdditionalDocument(DocumentId documentId)
         // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
         // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
-        => this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id)!;
+        => this.Solution.RemoveAdditionalDocument(documentId).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to no longer include the specified additional documents.
@@ -775,7 +782,7 @@ public partial class Project
     public Project RemoveAnalyzerConfigDocument(DocumentId documentId)
         // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
         // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
-        => this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id)!;
+        => this.Solution.RemoveAnalyzerConfigDocument(documentId).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>s.

@@ -655,7 +655,7 @@ internal partial class ProjectState
     private TextDocumentStates<DocumentState> UpdateDocumentsChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
         => DocumentStates.UpdateStates(static (state, checksumAlgorithm) => state.UpdateChecksumAlgorithm(checksumAlgorithm), checksumAlgorithm);
 
-    public ProjectState WithCompilationOptions(CompilationOptions options)
+    public ProjectState WithCompilationOptions(CompilationOptions? options)
     {
         if (options == CompilationOptions)
         {
@@ -664,23 +664,25 @@ internal partial class ProjectState
 
         var newProvider = new ProjectSyntaxTreeOptionsProvider(_analyzerConfigOptionsCache);
 
-        return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
+        return With(projectInfo: ProjectInfo.WithCompilationOptions(options?.WithSyntaxTreeOptionsProvider(newProvider))
                    .WithVersion(Version.GetNewerVersion()));
     }
 
-    public ProjectState WithParseOptions(ParseOptions options)
+    public ProjectState WithParseOptions(ParseOptions? options)
     {
         if (options == ParseOptions)
         {
             return this;
         }
 
-        var onlyPreprocessorDirectiveChange = ParseOptions != null &&
+        var onlyPreprocessorDirectiveChange = options != null && ParseOptions != null &&
             LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>().OptionsDifferOnlyByPreprocessorDirectives(options, ParseOptions);
 
         return With(
             projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
-            documentStates: DocumentStates.UpdateStates(static (state, args) => state.UpdateParseOptionsAndSourceCodeKind(args.options, args.onlyPreprocessorDirectiveChange), (options, onlyPreprocessorDirectiveChange)));
+            documentStates: DocumentStates.UpdateStates(static (state, args) =>
+                state.UpdateParseOptionsAndSourceCodeKind(args.options, args.onlyPreprocessorDirectiveChange),
+                arg: (options, onlyPreprocessorDirectiveChange)));
     }
 
     public ProjectState WithFallbackAnalyzerOptions(StructuredAnalyzerConfigOptions options)

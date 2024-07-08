@@ -2021,7 +2021,7 @@ public abstract partial class Workspace : IDisposable
             filePath: doc.FilePath,
             isGenerated: doc.State.Attributes.IsGenerated)
             .WithDesignTimeOnly(doc.State.Attributes.DesignTimeOnly)
-            .WithDocumentServiceProvider(doc.Services);
+            .WithDocumentServiceProvider(doc.DocumentServiceProvider);
 
     /// <summary>
     /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project to the current solution.

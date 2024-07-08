@@ -487,7 +487,7 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOptions"/>
     public SolutionCompilationState WithProjectCompilationOptions(
-        ProjectId projectId, CompilationOptions options)
+        ProjectId projectId, CompilationOptions? options)
     {
         return ForkProject(
             this.SolutionState.WithProjectCompilationOptions(projectId, options),
@@ -497,7 +497,7 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectParseOptions"/>
     public SolutionCompilationState WithProjectParseOptions(
-        ProjectId projectId, ParseOptions options)
+        ProjectId projectId, ParseOptions? options)
     {
         var stateChange = this.SolutionState.WithProjectParseOptions(projectId, options);
 
@@ -549,6 +549,97 @@ internal sealed partial class SolutionCompilationState
             static stateChange => new TranslationAction.ReplaceAllSyntaxTreesAction(
                 stateChange.OldProjectState, stateChange.NewProjectState, isParseOptionChange: false),
             forkTracker: true);
+    }
+
+    public SolutionCompilationState WithProjectAttributes(ProjectInfo.ProjectAttributes attributes)
+    {
+        var projectId = attributes.Id;
+        var oldProject = SolutionState.GetRequiredProjectState(projectId);
+
+        if (oldProject.ProjectInfo.Attributes.Language != attributes.Language)
+        {
+            throw new NotSupportedException(WorkspacesResources.Changing_project_language_is_not_supported);
+        }
+
+        if (oldProject.ProjectInfo.Attributes.IsSubmission != attributes.IsSubmission)
+        {
+            throw new NotSupportedException(WorkspacesResources.Changing_project_from_ordinary_to_interactive_submission_or_vice_versa_is_not_supported);
+        }
+
+        return
+             WithProjectName(projectId, attributes.Name)
+            .WithProjectAssemblyName(projectId, attributes.AssemblyName)
+            .WithProjectFilePath(projectId, attributes.FilePath)
+            .WithProjectOutputFilePath(projectId, attributes.OutputFilePath)
+            .WithProjectOutputRefFilePath(projectId, attributes.OutputRefFilePath)
+            .WithProjectCompilationOutputInfo(projectId, attributes.CompilationOutputInfo)
+            .WithProjectDefaultNamespace(projectId, attributes.DefaultNamespace)
+            .WithHasAllInformation(projectId, attributes.HasAllInformation)
+            .WithRunAnalyzers(projectId, attributes.RunAnalyzers)
+            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm);
+    }
+
+    public SolutionCompilationState WithProjectInfo(ProjectInfo info)
+    {
+        var projectId = info.Id;
+        var newState = WithProjectAttributes(info.Attributes)
+            .WithProjectCompilationOptions(projectId, info.CompilationOptions)
+            .WithProjectParseOptions(projectId, info.ParseOptions)
+            .WithProjectReferences(projectId, info.ProjectReferences)
+            .WithProjectMetadataReferences(projectId, info.MetadataReferences)
+            .WithProjectAnalyzerReferences(projectId, info.AnalyzerReferences);
+
+        var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
+
+        using var _1 = ArrayBuilder<DocumentInfo>.GetInstance(out var addedDocumentInfos);
+        using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var removedDocumentInfos);
+
+        UpdateDocuments<DocumentState>(info.Documents);
+        UpdateDocuments<AdditionalDocumentState>(info.AdditionalDocuments);
+        UpdateDocuments<AnalyzerConfigDocumentState>(info.AnalyzerConfigDocuments);
+
+        void UpdateDocuments<TDocumentState>(IReadOnlyList<DocumentInfo> newDocumentInfos)
+            where TDocumentState : TextDocumentState
+        {
+            using var _3 = ArrayBuilder<TDocumentState>.GetInstance(out var updatedDocuments);
+
+            var oldDocumentStates = oldProjectState.GetDocumentStates<TDocumentState>();
+
+            foreach (var newDocumentInfo in newDocumentInfos)
+            {
+                if (oldDocumentStates.TryGetState(newDocumentInfo.Id, out var oldDocumentState))
+                {
+                    var newDocumentState = (TDocumentState)oldDocumentState.WithDocumentInfo(newDocumentInfo);
+                    if (oldDocumentState != newDocumentState)
+                    {
+                        updatedDocuments.Add(newDocumentState);
+                    }
+                }
+                else
+                {
+                    addedDocumentInfos.Add(newDocumentInfo);
+                }
+            }
+
+            if (!oldDocumentStates.Ids.IsEmpty())
+            {
+                var newDocumentsLookup = newDocumentInfos.ToLookup(static d => d.Id);
+                foreach (var oldDocumentId in oldDocumentStates.Ids)
+                {
+                    if (!newDocumentsLookup.Contains(oldDocumentId))
+                    {
+                        removedDocumentInfos.Add(oldDocumentId);
+                    }
+                }
+            }
+
+            newState = newState
+                .WithDocumentStatesOfMultipleProjects<TDocumentState>([(projectId, updatedDocuments.ToImmutableAndClear())], GetUpdateDocumentsTranslationAction)
+                .AddDocumentsToMultipleProjects<TDocumentState>(addedDocumentInfos.ToImmutableAndClear())
+                .RemoveDocumentsFromSingleProject<TDocumentState>(projectId, removedDocumentInfos.ToImmutableAndClear());
+        }
+
+        return newState;
     }
 
     /// <inheritdoc cref="SolutionState.AddProjectReferences"/>

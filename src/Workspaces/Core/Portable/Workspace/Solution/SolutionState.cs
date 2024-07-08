@@ -637,7 +637,7 @@ internal sealed partial class SolutionState
     /// Create a new solution instance with the project specified updated to have
     /// the specified compilation options.
     /// </summary>
-    public StateChange WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
+    public StateChange WithProjectCompilationOptions(ProjectId projectId, CompilationOptions? options)
     {
         var oldProject = GetRequiredProjectState(projectId);
         var newProject = oldProject.WithCompilationOptions(options);
@@ -654,7 +654,7 @@ internal sealed partial class SolutionState
     /// Create a new solution instance with the project specified updated to have
     /// the specified parse options.
     /// </summary>
-    public StateChange WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+    public StateChange WithProjectParseOptions(ProjectId projectId, ParseOptions? options)
     {
         var oldProject = GetRequiredProjectState(projectId);
         var newProject = oldProject.WithParseOptions(options);
@@ -1124,7 +1124,7 @@ internal sealed partial class SolutionState
 
     private StateChange UpdateDocumentState(DocumentState newDocument)
     {
-        var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
+        var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
         var newProject = oldProject.UpdateDocument(newDocument);
 
         // This method shouldn't have been called if the document has not changed.

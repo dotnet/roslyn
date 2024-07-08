@@ -490,15 +490,9 @@ public partial class Solution
     /// Create a new solution instance with the project specified updated to have
     /// the specified parse options.
     /// </summary>
-    public Solution WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+    public Solution WithProjectParseOptions(ProjectId projectId, ParseOptions? options)
     {
         CheckContainsProject(projectId);
-
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
         return WithCompilationState(_compilationState.WithProjectParseOptions(projectId, options));
     }
 
@@ -551,6 +545,24 @@ public partial class Solution
         }
 
         return WithCompilationState(_compilationState.WithProjectDocumentsOrder(projectId, documentIds));
+    }
+
+    /// <summary>
+    /// Updates the solution with project information stored in <paramref name="attributes"/>.
+    /// </summary>
+    internal Solution WithProjectAttributes(ProjectInfo.ProjectAttributes attributes)
+    {
+        CheckContainsProject(attributes.Id);
+        return WithCompilationState(_compilationState.WithProjectAttributes(attributes));
+    }
+
+    /// <summary>
+    /// Updates the solution with project information stored in <paramref name="info"/>.
+    /// </summary>
+    internal Solution WithProjectInfo(ProjectInfo info)
+    {
+        CheckContainsProject(info.Id);
+        return WithCompilationState(_compilationState.WithProjectInfo(info));
     }
 
     /// <summary>
