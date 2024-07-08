@@ -1196,7 +1196,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract int? TryGetOverloadResolutionPriority();
 
-        internal abstract bool CanHaveOverloadResolutionPriority { get; }
+        internal bool CanHaveOverloadResolutionPriority =>
+            MethodKind is MethodKind.Ordinary
+                       or MethodKind.Constructor
+                       or MethodKind.UserDefinedOperator
+                       or MethodKind.ReducedExtension
+                       or MethodKind.LocalFunction
+            && !IsOverride;
 
         #region IMethodSymbolInternal
 

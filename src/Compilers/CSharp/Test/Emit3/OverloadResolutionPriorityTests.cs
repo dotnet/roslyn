@@ -472,16 +472,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         var il2 = """
             .assembly extern assembly1 {}
 
-            .class public auto ansi beforefieldinit Derived
-                extends [assembly1]Base
+            .class public auto ansi beforefieldinit Derived extends [assembly1]Base
             {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
-                    01 00 01 00 00
-                )
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
-                    01 00 00 00 00
-                )
-                // Methods
                 .method public hidebysig virtual 
                     instance void M (
                         object o
@@ -490,13 +482,9 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                     .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
                         01 00 00 00 00 00 00 00
                     )
-                    // Method begins at RVA 0x2050
-                    // Code size 11 (0xb)
-                    .maxstack 8
-
-                    IL_0000: ldstr "1"
-                    IL_0005: call void [mscorlib]System.Console::WriteLine(string)
-                    IL_000a: ret
+                    ldstr "1"
+                    call void [mscorlib]System.Console::WriteLine(string)
+                    ret
                 } // end of method Derived::M
 
                 .method public hidebysig virtual 
@@ -507,24 +495,16 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                     .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
                         01 00 02 00 00 00 00 00
                     )
-                    // Method begins at RVA 0x205c
-                    // Code size 2 (0x2)
-                    .maxstack 8
-
-                    IL_0000: ldnull
-                    IL_0001: throw
+                    ldnull
+                    throw
                 } // end of method Derived::M
 
                 .method public hidebysig specialname rtspecialname 
                     instance void .ctor () cil managed 
                 {
-                    // Method begins at RVA 0x2067
-                    // Code size 7 (0x7)
-                    .maxstack 8
-
-                    IL_0000: ldarg.0
-                    IL_0001: call instance void [assembly1]Base::.ctor()
-                    IL_0006: ret
+                    ldarg.0
+                    call instance void [assembly1]Base::.ctor()
+                    ret
                 } // end of method Derived::.ctor
 
             }
@@ -583,15 +563,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         var il2 = """
             .assembly extern assembly1 {}
 
-            .class public auto ansi beforefieldinit Derived
-                extends [assembly1]Base
+            .class public auto ansi beforefieldinit Derived extends [assembly1]Base
             {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
-                    01 00 01 00 00
-                )
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
-                    01 00 00 00 00
-                )
                 .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
                     01 00 04 49 74 65 6d 00 00
                 )
@@ -601,14 +574,10 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         object o
                     ) cil managed 
                 {
-                    // Method begins at RVA 0x205b
-                    // Code size 8 (0x8)
-                    .maxstack 8
-
-                    IL_0000: ldc.i4.1
-                    IL_0001: call void [mscorlib]System.Console::Write(int32)
-                    IL_0006: ldc.i4.1
-                    IL_0007: ret
+                    ldc.i4.1
+                    call void [mscorlib]System.Console::Write(int32)
+                    ldc.i4.1
+                    ret
                 } // end of method Derived::get_Item
 
                 .method public hidebysig specialname virtual 
@@ -617,13 +586,9 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         int32 'value'
                     ) cil managed 
                 {
-                    // Method begins at RVA 0x2064
-                    // Code size 7 (0x7)
-                    .maxstack 8
-
-                    IL_0000: ldc.i4.2
-                    IL_0001: call void [mscorlib]System.Console::Write(int32)
-                    IL_0006: ret
+                    ldc.i4.2
+                    call void [mscorlib]System.Console::Write(int32)
+                    ret
                 } // end of method Derived::set_Item
 
                 .method public hidebysig specialname virtual 
@@ -631,12 +596,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         string s
                     ) cil managed 
                 {
-                    // Method begins at RVA 0x2050
-                    // Code size 2 (0x2)
-                    .maxstack 8
-
-                    IL_0000: ldnull
-                    IL_0001: throw
+                    ldnull
+                    throw
                 } // end of method Derived::get_Item
 
                 .method public hidebysig specialname virtual 
@@ -645,24 +606,16 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         int32 'value'
                     ) cil managed 
                 {
-                    // Method begins at RVA 0x2050
-                    // Code size 2 (0x2)
-                    .maxstack 8
-
-                    IL_0000: ldnull
-                    IL_0001: throw
+                    ldnull
+                    throw
                 } // end of method Derived::set_Item
 
                 .method public hidebysig specialname rtspecialname 
                     instance void .ctor () cil managed 
                 {
-                    // Method begins at RVA 0x206c
-                    // Code size 7 (0x7)
-                    .maxstack 8
-
-                    IL_0000: ldarg.0
-                    IL_0001: call instance void [assembly1]Base::.ctor()
-                    IL_0006: ret
+                    ldarg.0
+                    call instance void [assembly1]Base::.ctor()
+                    ret
                 } // end of method Derived::.ctor
 
                 // Properties
@@ -1190,12 +1143,36 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE: Confirm with LDM that there is no impact on this?
         CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var m = C.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(1, 9)
         );
+    }
+
+    [Theory, CombinatorialData]
+    public void DelegateConversion(bool useMetadataReference)
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                public static void M(object o) => System.Console.Write(1);
+                public static void M(string s) => throw null;
+            }
+            """;
+
+        var executable = """
+            System.Action<string> a = C.M;
+            a(null);
+            """;
+
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "1").VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -1222,7 +1199,6 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE: Confirm with LDM that we want this diagnostic
         var expectedDiagnostics = new[]
         {
             // (4,6): error CS9500: Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
@@ -1507,16 +1483,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         var indexer = (PropertySymbol)indexers[0];
         AssertEx.Equal("System.Int32 C.this[System.Object x] { get; set; }", indexer.ToTestDisplayString());
         Assert.Equal(0, indexer.OverloadResolutionPriority);
-        // Note: We don't try to account for a methoddef actually being part of a property, and therefore changing what we read. If the methoddef has the attribute
-        // in metadata, we'll read it. It won't impact overload resolution, but it will be read.
-        Assert.Equal(1, indexer.GetMethod.OverloadResolutionPriority);
-        Assert.Equal(1, indexer.SetMethod.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority);
+        Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority);
 
         indexer = (PropertySymbol)indexers[1];
         AssertEx.Equal("System.Int32 C.this[System.String x] { get; set; }", indexer.ToTestDisplayString());
         Assert.Equal(0, indexer.OverloadResolutionPriority);
-        // Note: We don't try to account for a methoddef actually being part of a property, and therefore changing what we read. If the methoddef has the attribute
-        // in metadata, we'll read it. It won't impact overload resolution, but it will be read.
         Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority);
         Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority);
     }
@@ -1864,7 +1836,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     }
 
     [Fact]
-    public void WarningOnLambda()
+    public void ErrorOnLambda()
     {
         var source = """
             using System.Runtime.CompilerServices;
@@ -1997,6 +1969,26 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (5,6): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+            //     [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(5, 6)
+        );
+    }
+
+    [Fact]
+    public void DisallowedOnStaticCtors()
+    {
+        var code = """
+            using System.Runtime.CompilerServices;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                static C() => throw null;
+            }
+            """;
+
+        CreateCompilation([code, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
             // (5,6): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //     [OverloadResolutionPriority(1)]
             Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(5, 6)

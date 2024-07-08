@@ -1725,8 +1725,6 @@ outerDefault:
                 // Can't prune anything unless there's at least 2 candidates
                 case []:
                 case [_]:
-                // We only look at methods and indexers, so if this isn't one of those scenarios, we don't need to do anything.
-                case [Symbol s, _, ..] when !s.CanHaveOverloadResolutionPriority():
                     return;
             }
 
@@ -1751,22 +1749,22 @@ outerDefault:
                 var containingType = result.MemberWithPriority.ContainingType;
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
-                    var previousOverloadResolutionPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
-                    var currentOverloadResolutionPriority = result.MemberWithPriority.GetOverloadResolutionPriority();
+                    var previousPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
+                    var currentPriority = result.MemberWithPriority.GetOverloadResolutionPriority();
 
-                    if (currentOverloadResolutionPriority > previousOverloadResolutionPriority)
+                    if (currentPriority > previousPriority)
                     {
                         removedMembers = true;
                         resultsByContainingType[containingType] = OneOrMany.Create(result);
                     }
-                    else if (currentOverloadResolutionPriority == previousOverloadResolutionPriority)
+                    else if (currentPriority == previousPriority)
                     {
                         resultsByContainingType[containingType] = previousResults.Add(result);
                     }
                     else
                     {
                         removedMembers = true;
-                        Debug.Assert(previousResults.All(r => r.MemberWithPriority.GetOverloadResolutionPriority() == previousOverloadResolutionPriority));
+                        Debug.Assert(previousResults.All(r => r.MemberWithPriority.GetOverloadResolutionPriority() == previousPriority));
                     }
                 }
                 else

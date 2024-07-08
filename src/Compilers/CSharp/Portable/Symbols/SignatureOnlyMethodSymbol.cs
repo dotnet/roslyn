@@ -186,8 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override int? TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
-        internal sealed override bool CanHaveOverloadResolutionPriority => throw ExceptionUtilities.Unreachable();
-
         #endregion
     }
 }

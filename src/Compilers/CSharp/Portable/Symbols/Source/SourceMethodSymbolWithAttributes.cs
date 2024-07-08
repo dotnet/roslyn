@@ -636,14 +636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
 
-                if (!CanHaveOverloadResolutionPriority)
+                if (IsOverride)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt);
+                }
+                else if (!CanHaveOverloadResolutionPriority)
                 {
                     // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
                     diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, arguments.AttributeSyntaxOpt);
-                }
-                else if (this.OverriddenMethod is not null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride, arguments.AttributeSyntaxOpt);
                 }
             }
             else
@@ -1746,15 +1746,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int? TryGetOverloadResolutionPriority()
             => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
-
-#pragma warning disable IDE0055 // Fix formatting
-        internal override bool CanHaveOverloadResolutionPriority => this is not (
-                                SourcePropertyAccessorSymbol or
-                                SourceEventAccessorSymbol or
-                                SourceDestructorSymbol or
-                                LambdaSymbol or
-                                SourceUserDefinedConversionSymbol or
-                                { IsExplicitInterfaceImplementation: true });
-#pragma warning restore IDE0055
     }
 }

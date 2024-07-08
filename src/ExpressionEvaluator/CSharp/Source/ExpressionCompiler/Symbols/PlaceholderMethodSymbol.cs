@@ -287,8 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override int? TryGetOverloadResolutionPriority() => null;
 
-        internal sealed override bool CanHaveOverloadResolutionPriority => false;
-
 #if DEBUG
         protected override MethodSymbolAdapter CreateCciAdapter()
         {
