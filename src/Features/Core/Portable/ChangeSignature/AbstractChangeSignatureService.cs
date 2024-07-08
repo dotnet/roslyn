@@ -401,7 +401,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             });
 
             var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
-            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var formattedRoot = Formatter.Format(
                 newRoot,

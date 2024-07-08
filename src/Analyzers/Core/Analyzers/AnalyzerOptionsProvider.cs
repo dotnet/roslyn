@@ -54,7 +54,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     // SyntaxFormattingOptions
 
     public SyntaxFormattingOptions GetSyntaxFormattingOptions(ISyntaxFormatting formatting)
-        => formatting.GetFormattingOptions(_options, _fallbackOptions.CleanupOptions?.FormattingOptions);
+        => formatting.GetFormattingOptions(_options);
 
     // CodeGenerationOptions
 

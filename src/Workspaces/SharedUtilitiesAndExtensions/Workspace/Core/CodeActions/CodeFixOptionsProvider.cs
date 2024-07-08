@@ -54,7 +54,7 @@ internal readonly struct CodeFixOptionsProvider
     // SyntaxFormattingOptions
 
     public SyntaxFormattingOptions GetFormattingOptions(ISyntaxFormatting formatting)
-        => formatting.GetFormattingOptions(_options, FallbackSyntaxFormattingOptions);
+        => formatting.GetFormattingOptions(_options);
 
     public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, _languageServices.Language, FallbackCommonSyntaxFormattingOptions.AccessibilityModifiersRequired);
 
@@ -66,13 +66,6 @@ internal readonly struct CodeFixOptionsProvider
         => LineFormattingOptions.Default;
 #else
         => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.LineFormatting;
-#endif
-
-    private SyntaxFormattingOptions? FallbackSyntaxFormattingOptions
-#if CODE_STYLE
-        => null;
-#else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 
     private SyntaxFormattingOptions FallbackCommonSyntaxFormattingOptions
