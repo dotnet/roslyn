@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// first.  This will also attempt to return a fix for an error first, but will fall back to any fix if that
         /// does not succeed.
         /// </summary>
-        Task<FirstFixResult> GetMostSevereFixAsync(TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Task<CodeFixCollection?> GetMostSevereFixAsync(TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(TextDocument document, TextSpan textSpan, string diagnosticId, DiagnosticSeverity severity, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
         Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, DiagnosticSeverity severity, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
