@@ -1143,12 +1143,12 @@ class @record {
         public void TestEscapeRecordKeywordIdentifiers_DoesNotEscapesMethodNames()
         {
             var text = @"
-class Foo {
-    Foo record() { return default; } }
+class C {
+    C record() { return default; } }
 ";
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
-                global.GetTypeMembers("Foo", 0).Single().
+                global.GetTypeMembers("C", 0).Single().
                 GetMembers("record").Single();
 
             var format = new SymbolDisplayFormat(
@@ -1160,7 +1160,7 @@ class Foo {
                 text,
                 findSymbol,
                 format,
-                "Foo record()",
+                "C record()",
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.MethodName, //record
