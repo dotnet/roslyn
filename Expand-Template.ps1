@@ -105,6 +105,8 @@ try {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv test/Library.Tests "test/$LibraryName.Tests"
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    git mv src/VSInsertionMetadata/Library.VSInsertionMetadata.proj "src/VSInsertionMetadata/$LibraryName.VSInsertionMetadata.proj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Refresh solution file both to update paths and give the projects unique GUIDs
     dotnet sln remove src/Library/Library.csproj
@@ -168,12 +170,6 @@ try {
         'LibraryName' = $LibraryName;
     }
 
-    Replace-Placeholders -Path "azure-pipelines/InsertionMetadataPackage.nuspec" -Replacements @{
-        'LibraryName' = $LibraryName;
-    }
-    Replace-Placeholders -Path "azure-pipelines/artifacts/VSInsertion.ps1" -Replacements @{
-        'LibraryName' = $LibraryName;
-    }
     Replace-Placeholders -Path "azure-pipelines/OptProf.yml" -Replacements @{
         'LibraryName' = $LibraryName;
     }
