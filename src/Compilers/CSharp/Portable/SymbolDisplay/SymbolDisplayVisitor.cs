@@ -103,10 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new SymbolDisplayPart(kind, symbol, text);
             }
 
-            bool escapeRecord = StringComparer.Ordinal.Equals(text, "record") && symbol?.Kind is SymbolKind.NamedType or SymbolKind.Alias;
+            bool isNamedTypeOrAliasName = symbol?.Kind is SymbolKind.NamedType or SymbolKind.Alias;
+            
             bool isEscapable = IsEscapable(kind);
 
-            text = isEscapable ? EscapeIdentifier(text, escapeRecord) : text;
+            text = isEscapable ? EscapeIdentifier(text, isNamedTypeOrAliasName) : text;
 
             return new SymbolDisplayPart(kind, symbol, text);
         }
@@ -136,12 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string EscapeIdentifier(string identifier, bool escapeRecord)
+        private static string EscapeIdentifier(string identifier, bool isNamedTypeOrAliasName)
         {
             SyntaxKind kind = SyntaxFacts.GetKeywordKind(identifier);
-            if (kind == SyntaxKind.None && escapeRecord)
+            
+            if (kind is SyntaxKind.None && isNamedTypeOrAliasName && StringComparer.Ordinal.Equals(identifier, "record"))
             {
-                return $"@{identifier}";
+                kind = SyntaxKind.RecordKeyword;
             }
 
             return kind == SyntaxKind.None ? identifier : $"@{identifier}";
