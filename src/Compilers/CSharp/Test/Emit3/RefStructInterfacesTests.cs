@@ -21670,12 +21670,12 @@ ref struct S
                 comp1,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
             VerifyDiagnostics(
-                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     T _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
-                // (12,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     S _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7)
+                // (3,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct S1<T>
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "S1").WithLocation(3, 12),
+                // (10,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct S2
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "S2").WithLocation(10, 12)
                 );
 
             var src2 = @"
@@ -21691,16 +21691,7 @@ struct S2<T2>
             comp2.VerifyDiagnostics(
                 // (6,5): error CS8345: Field or auto-implemented property cannot be of type 'T2' unless it is an instance member of a ref struct.
                 //     T2 _f;
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T2").WithArguments("T2").WithLocation(6, 5),
-
-                // https://github.com/dotnet/roslyn/issues/73556:
-                // The warning below is somewhat misleading. 'S2' can be used as a type argument (it is not a ref struct) and 'T2' is a type argument. 
-                // However, given the error above, this is probably not worth fixing. There is no way to declare a legal non-ref struct with a field
-                // of type 'T2'.
-
-                // (6,8): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     T2 _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 8)
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T2").WithArguments("T2").WithLocation(6, 5)
                 );
         }
 
@@ -21728,9 +21719,9 @@ class C
 
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     T _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (3,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct S1<T>
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "S1").WithLocation(3, 12),
                 // (14,9): error CS0306: The type 'S1<int>' may not be used as a type argument
                 //         x[0] = 123;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("S1<int>").WithLocation(14, 9)
@@ -21768,9 +21759,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     T _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (3,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct S1<T>
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "S1").WithLocation(3, 12),
                 // (14,9): error CS0306: The type 'S1<int>' may not be used as a type argument
                 //         x[0] = 123;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("S1<int>").WithLocation(14, 9)
