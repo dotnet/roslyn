@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (text == null)
             {
-
                 return new SymbolDisplayPart(kind, symbol, "?");
             }
 
