@@ -11742,7 +11742,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { SpanSource, source }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilation(new[] { TestSources.Span, source }, options: TestOptions.UnsafeReleaseExe);
             verify(comp);
 
             comp = CreateCompilation(new[] { source }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
