@@ -916,9 +916,10 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
         var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
-        workspace.GlobalOptions.SetGlobalOption(
-            CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent) }
+        });
 
         var text = """
             using System;
