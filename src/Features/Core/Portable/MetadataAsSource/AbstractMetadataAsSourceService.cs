@@ -24,14 +24,9 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
         Document document,
         Compilation symbolCompilation,
         ISymbol symbol,
-        CleanCodeGenerationOptions options,
+        SyntaxFormattingOptions? formattingOptions,
         CancellationToken cancellationToken)
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
         var newSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var rootNamespace = newSemanticModel.GetEnclosingNamespace(position: 0, cancellationToken);
         Contract.ThrowIfNull(rootNamespace);
@@ -44,11 +39,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
                 generateDocumentationComments: true,
                 mergeAttributes: false,
                 autoInsertionLocation: false),
-            new CodeAndImportGenerationOptions()
-            {
-                GenerationOptions = options.GenerationOptions,
-                AddImportOptions = options.CleanupOptions.AddImportOptions
-            }.CreateProvider());
+                CodeAndImportGenerationOptions.GetDefault(document.Project.Services).CreateProvider());
 
         // Add the interface of the symbol to the top of the root namespace
         document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
@@ -68,12 +59,12 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
         var formattedDoc = await Formatter.FormatAsync(
             docWithAssemblyInfo,
             [node.FullSpan],
-            options.CleanupOptions.FormattingOptions,
+            formattingOptions,
             GetFormattingRules(docWithAssemblyInfo),
             cancellationToken).ConfigureAwait(false);
 
         var reducers = GetReducers();
-        return await Simplifier.ReduceAsync(formattedDoc, reducers, options.CleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        return await Simplifier.ReduceAsync(formattedDoc, reducers, cancellationToken).ConfigureAwait(false);
     }
 
     protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);

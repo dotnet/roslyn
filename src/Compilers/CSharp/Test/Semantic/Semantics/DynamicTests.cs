@@ -4945,7 +4945,7 @@ class C2 : C1
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_01(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5069,7 +5069,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_02(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5192,7 +5192,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5316,7 +5316,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_Extension(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5448,7 +5448,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5633,7 +5633,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_LocalFunction([CombinatorialValues(0, 12, 13)] int version)
         {
-            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.RegularNext, _ => TestOptions.RegularPreview };
+            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.Regular13, _ => TestOptions.RegularPreview };
 
             string source = @"
 public class C
@@ -5665,7 +5665,7 @@ public class C
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Delegate(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 public class C
@@ -5799,7 +5799,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_Delegate_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5991,7 +5991,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Property_01(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 #nullable enable
@@ -6114,7 +6114,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Property_02(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 #nullable enable
@@ -6443,7 +6443,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_Property_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C

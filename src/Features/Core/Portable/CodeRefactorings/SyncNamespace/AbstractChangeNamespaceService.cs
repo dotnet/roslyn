@@ -789,7 +789,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
                 var result = await RemoveUnnecessaryImportsWorkerAsync(
                     doc,
                     CreateImports(doc, names, withFormatterAnnotation: false),
-                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
                 callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },
@@ -801,12 +800,11 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         async static Task<Document> RemoveUnnecessaryImportsWorkerAsync(
             Document doc,
             IEnumerable<SyntaxNode> importsToRemove,
-            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken token)
         {
             var removeImportService = doc.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
-            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(fallbackOptions, token).ConfigureAwait(false);
+            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(token).ConfigureAwait(false);
 
             return await removeImportService.RemoveUnnecessaryImportsAsync(
                 doc,

@@ -12,7 +12,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -40,7 +42,8 @@ public abstract partial class AbstractMetadataAsSourceTests
             string? sourceWithSymbolReference = null,
             string? languageVersion = null,
             string? metadataLanguageVersion = null,
-            string? metadataCommonReferences = null)
+            string? metadataCommonReferences = null,
+            bool fileScopedNamespaces = false)
         {
             projectLanguage ??= LanguageNames.CSharp;
             metadataSources ??= [];
@@ -51,6 +54,14 @@ public abstract partial class AbstractMetadataAsSourceTests
             var workspace = CreateWorkspace(
                 projectLanguage, metadataSources, includeXmlDocComments,
                 sourceWithSymbolReference, languageVersion, metadataLanguageVersion, metadataCommonReferences);
+
+            if (fileScopedNamespaces)
+            {
+                workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent) }
+                });
+            }
 
             return new TestContext(workspace);
         }
@@ -77,14 +88,13 @@ public abstract partial class AbstractMetadataAsSourceTests
             Contract.ThrowIfNull(symbol);
 
             // Generate and hold onto the result so it can be disposed of with this context
-            return _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.GetDefault(project.Services));
+            return _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.Default, CancellationToken.None);
         }
 
         public async Task<MetadataAsSourceFile> GenerateSourceAsync(
             string? symbolMetadataName = null,
             Project? project = null,
-            bool signaturesOnly = true,
-            bool fileScopedNamespaces = false)
+            bool signaturesOnly = true)
         {
             symbolMetadataName ??= AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
             project ??= this.DefaultProject;
@@ -118,24 +128,8 @@ public abstract partial class AbstractMetadataAsSourceTests
                 }
             }
 
-            var options = MetadataAsSourceOptions.GetDefault(project.Services);
-
-            if (fileScopedNamespaces)
-            {
-                options = options with
-                {
-                    GenerationOptions = options.GenerationOptions with
-                    {
-                        GenerationOptions = new CSharpCodeGenerationOptions
-                        {
-                            NamespaceDeclarations = new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)
-                        }
-                    }
-                };
-            }
-
             // Generate and hold onto the result so it can be disposed of with this context
-            var result = await _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, options);
+            var result = await _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.Default, CancellationToken.None);
 
             return result;
         }
@@ -153,9 +147,9 @@ public abstract partial class AbstractMetadataAsSourceTests
             Assert.Equal(expectedSpan.End, actualSpan.End);
         }
 
-        public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool signaturesOnly = true, bool fileScopedNamespaces = false)
+        public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool signaturesOnly = true)
         {
-            var result = await GenerateSourceAsync(symbolMetadataName, project, signaturesOnly, fileScopedNamespaces);
+            var result = await GenerateSourceAsync(symbolMetadataName, project, signaturesOnly);
             VerifyResult(result, expected);
         }
 

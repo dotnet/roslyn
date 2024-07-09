@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var options = _globalOptions.GetMetadataAsSourceOptions(_document.Project.Services);
+            var options = _globalOptions.GetMetadataAsSourceOptions();
             var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(
-                _workspace, _document.Project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                _workspace, _document.Project, symbol, signaturesOnly: true, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
 

@@ -264,7 +264,12 @@ internal sealed class LanguageServerProjectSystem
                 else
                 {
                     var projectSystemName = $"{projectPath} (${loadedProjectInfo.TargetFramework})";
-                    var projectCreationInfo = new ProjectSystemProjectCreationInfo { AssemblyName = projectSystemName, FilePath = projectPath };
+                    var projectCreationInfo = new ProjectSystemProjectCreationInfo
+                    {
+                        AssemblyName = projectSystemName,
+                        FilePath = projectPath,
+                        CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath
+                    };
 
                     var projectSystemProject = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
                         projectSystemName,

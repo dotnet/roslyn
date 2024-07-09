@@ -19581,9 +19581,6 @@ public class Cls
                 // (11,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     static object Test1(out System.ArgIterator x)
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(11, 25),
-                // (8,25): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Test2(Test1(out var x1), x1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 25),
                 // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async void Test()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
@@ -19624,18 +19621,32 @@ public class Cls
             var compilation = CreateCompilation(text,
                                                 targetFramework: TargetFramework.Mscorlib45,
                                                 options: TestOptions.ReleaseExe,
-                                                parseOptions: TestOptions.Regular);
+                                                parseOptions: TestOptions.Regular12);
 
             compilation.VerifyDiagnostics(
                 // (12,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     static object Test1(out System.ArgIterator x)
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(12, 25),
-                // (8,25): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,25): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         Test2(Test1(out System.ArgIterator x1), x1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.ArgIterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 25),
-                // (9,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "System.ArgIterator").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 25),
+                // (9,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         var x = default(System.ArgIterator);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 9),
+                // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = default(System.ArgIterator);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
+                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async void Test()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
+                );
+
+            compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45);
+
+            compilation.VerifyDiagnostics(
+                // (12,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     static object Test1(out System.ArgIterator x)
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(12, 25),
                 // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = default(System.ArgIterator);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),

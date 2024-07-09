@@ -1037,6 +1037,11 @@
         <target state="translated">'GetHashCode'에서 'System.HashCode' 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_Threading_Lock">
+        <source>Prefer 'System.Threading.Lock'</source>
+        <target state="new">Prefer 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
         <target state="translated">UTF-8 문자열 리터럴 선호</target>
@@ -1364,7 +1369,7 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_collection_expressions">
         <source>Show hints for collection expressions</source>
-        <target state="new">Show hints for collection expressions</target>
+        <target state="translated">컬렉션 식에 대한 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">

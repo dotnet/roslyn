@@ -4969,7 +4969,7 @@ public class C
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp13)]
         public void AwaitRefStruct(LanguageVersion languageVersion)
         {
             var comp = CreateCompilation(@"
@@ -4993,18 +4993,35 @@ class C
     {
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll);
-            if (languageVersion < LanguageVersionFacts.CSharpNext)
+            if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyDiagnostics(
                     // (8,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
                     //     async Task M(Task<S> t)
                     Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
-                    // (12,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (12,9): error CS8936: Feature 'ref and unsafe in async and iterator methods' is not available in C# 10.0. Please use language version 13.0 or greater.
                     //         var a = await t;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(12, 9),
-                    // (14,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(12, 9),
+                    // (14,9): error CS8936: Feature 'ref and unsafe in async and iterator methods' is not available in C# 10.0. Please use language version 13.0 or greater.
                     //         var r = t.Result;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 9),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(14, 9),
+                    // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //         M(await t, ref r);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                    );
+            }
+            else if (languageVersion == LanguageVersion.CSharp11)
+            {
+                comp.VerifyDiagnostics(
+                    // (8,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    //     async Task M(Task<S> t)
+                    Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
+                    // (12,9): error CS9058: Feature 'ref and unsafe in async and iterator methods' is not available in C# 11.0. Please use language version 13.0 or greater.
+                    //         var a = await t;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(12, 9),
+                    // (14,9): error CS9058: Feature 'ref and unsafe in async and iterator methods' is not available in C# 11.0. Please use language version 13.0 or greater.
+                    //         var r = t.Result;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(14, 9),
                     // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
                     //         M(await t, ref r);
                     Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)

@@ -748,6 +748,9 @@ internal static class UseCollectionExpressionHelpers
         InitializerExpressionSyntax initializer,
         bool newCollectionIsSingleLine)
     {
+        if (initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment()))
+            return false;
+
         // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
         // with `[x, y, z]`.
         if (newCollectionIsSingleLine && sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))

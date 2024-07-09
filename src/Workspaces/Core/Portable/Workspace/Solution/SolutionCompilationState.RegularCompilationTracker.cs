@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// compilation for that project.  As the compilation is being built, the partial results are
         /// stored as well so that they can be used in the 'in progress' workspace snapshot.
         /// </summary>
-        private partial class CompilationTracker : ICompilationTracker
+        private sealed partial class RegularCompilationTracker : ICompilationTracker
         {
             private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
                 state => string.Join(",", state.AssemblyName, state.DocumentStates.Count);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private readonly bool _validateStates;
 
-            private CompilationTracker(
+            private RegularCompilationTracker(
                 ProjectState project,
                 CompilationTrackerState? state,
                 in SkeletonReferenceCache skeletonReferenceCacheToClone)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             /// Creates a tracker for the provided project.  The tracker will be in the 'empty' state
             /// and will have no extra information beyond the project itself.
             /// </summary>
-            public CompilationTracker(ProjectState project)
+            public RegularCompilationTracker(ProjectState project)
                 : this(project, state: null, skeletonReferenceCacheToClone: new())
             {
             }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
                 // it since some change has happened, and we may now need to run generators.
                 Contract.ThrowIfTrue(forkedTrackerState is FinalCompilationTrackerState);
                 Contract.ThrowIfFalse(forkedTrackerState is null or InProgressState);
-                return new CompilationTracker(
+                return new RegularCompilationTracker(
                     newProjectState,
                     forkedTrackerState,
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis
                     _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                 };
 
-                return new CompilationTracker(
+                return new RegularCompilationTracker(
                     this.ProjectState,
                     newState,
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis
                     var newFinalState = finalState.WithCreationPolicy(desiredCreationPolicy);
                     return newFinalState == finalState
                         ? this
-                        : new CompilationTracker(this.ProjectState, newFinalState, skeletonReferenceCacheToClone: _skeletonReferenceCache);
+                        : new RegularCompilationTracker(this.ProjectState, newFinalState, skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis
                     // Safe cast to appease NRT system.
                     var lazyCompilationWithGeneratedDocuments = (Lazy<Compilation?>)lazyCompilationWithoutGeneratedDocuments!;
 
-                    return new CompilationTracker(
+                    return new RegularCompilationTracker(
                         frozenProjectState,
                         new InProgressState(
                             desiredCreationPolicy,
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis
                     var compilationWithGeneratedDocuments = new Lazy<Compilation?>(() => compilationWithoutGeneratedDocuments.Value.AddSyntaxTrees(
                         generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
-                    return new CompilationTracker(
+                    return new RegularCompilationTracker(
                         frozenProjectState,
                         new InProgressState(
                             desiredCreationPolicy,
@@ -838,8 +838,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
             {
+                // Note: withFrozenSourceGeneratedDocuments has no impact on is.  We're always returning real generated
+                // docs, not frozen docs.  Frozen docs are only involved with a
+                // WithFrozenSourceGeneratedDocumentsCompilationTracker
+
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
                 if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
