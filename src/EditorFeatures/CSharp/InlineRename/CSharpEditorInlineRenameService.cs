@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -27,7 +28,7 @@ internal sealed class CSharpEditorInlineRenameService(
     [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
     IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
 {
-    private const int NumberOfContextLines = 5;
+    private const int NumberOfContextLines = 20;
     private const int MaxDefinitionCount = 10;
     private const int MaxReferenceCount = 50;
 
@@ -49,8 +50,8 @@ internal sealed class CSharpEditorInlineRenameService(
         {
             // Find largest snippet of code that represents the definition
             var containingStatementOrDeclarationSpan =
-                await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false) ??
-                await renameDefinition.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false);
+                await TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameDefinition.Document, renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false) ??
+                await TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameDefinition.Document, renameDefinition.SourceSpan, cancellationToken).ConfigureAwait(false);
 
             // Find documentation comments of definitions
             var symbolService = renameDefinition.Document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
@@ -75,9 +76,9 @@ internal sealed class CSharpEditorInlineRenameService(
         {
             // Find largest snippet of code that represents the reference
             var containingStatementOrDeclarationSpan =
-                await renameLocation.Document.TryGetSurroundingNodeSpanAsync<BaseMethodDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
-                await renameLocation.Document.TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
-                await renameLocation.Document.TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameLocation.TextSpan, cancellationToken).ConfigureAwait(false);
+                await TryGetSurroundingNodeSpanAsync<MemberDeclarationSyntax>(renameLocation.Document, renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
+                await TryGetSurroundingNodeSpanAsync<BaseMethodDeclarationSyntax>(renameLocation.Document, renameLocation.TextSpan, cancellationToken).ConfigureAwait(false) ??
+                await TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameLocation.Document, renameLocation.TextSpan, cancellationToken).ConfigureAwait(false);
 
             var documentText = await renameLocation.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
@@ -132,5 +133,33 @@ internal sealed class CSharpEditorInlineRenameService(
                 resultBuilder.Add(documentText.GetSubText(surroundingSpanOfInterest.Value).ToString());
             }
         }
+    }
+
+    /// <summary>
+    /// Returns the <see cref="TextSpan"/> of the nearest encompassing <see cref="CSharpSyntaxNode"/> of type
+    /// <typeparamref name="T"/> of which the supplied <paramref name="textSpan"/> is a part within the supplied
+    /// <paramref name="document"/>.
+    /// </summary>
+    public static async Task<TextSpan?> TryGetSurroundingNodeSpanAsync<T>(
+        Document document,
+        TextSpan textSpan,
+        CancellationToken cancellationToken)
+            where T : CSharpSyntaxNode
+    {
+        if (document.Project.Language is not LanguageNames.CSharp)
+        {
+            return null;
+        }
+
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root is null)
+        {
+            return null;
+        }
+
+        var containingNode = root.FindNode(textSpan);
+        var targetNode = containingNode.FirstAncestorOrSelf<T>() ?? containingNode;
+
+        return targetNode.Span;
     }
 }
