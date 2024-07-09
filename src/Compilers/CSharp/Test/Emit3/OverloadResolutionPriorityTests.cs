@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader.PortablePdb;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1992,6 +1993,544 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             // (5,6): error CS9501: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //     [OverloadResolutionPriority(1)]
             Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(5, 6)
+        );
+    }
+
+    [Theory, CombinatorialData]
+    public void InterpolatedStringHandlerPriority(bool useMetadataReference)
+    {
+        var handler = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct Handler
+            {
+                public Handler(int literalLength, int formattedCount) {}
+
+                [OverloadResolutionPriority(1)]
+                public void AppendLiteral(string s, int i = 0) => Console.Write(1);
+                public void AppendLiteral(string s) => throw null;
+                [OverloadResolutionPriority(1)]
+                public void AppendFormatted(object o) => Console.Write(2);
+                public void AppendFormatted(int i) => throw null;
+
+            }
+            """;
+
+        var executable = """
+            Handler h = $"test {1}";
+            """;
+
+        var verifier = CompileAndVerify([handler, executable, OverloadResolutionPriorityAttributeDefinition, InterpolatedStringHandlerAttribute], expectedOutput: "12").VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       36 (0x24)
+              .maxstack  3
+              .locals init (Handler V_0)
+              IL_0000:  ldloca.s   V_0
+              IL_0002:  ldc.i4.5
+              IL_0003:  ldc.i4.1
+              IL_0004:  call       "Handler..ctor(int, int)"
+              IL_0009:  ldloca.s   V_0
+              IL_000b:  ldstr      "test "
+              IL_0010:  ldc.i4.0
+              IL_0011:  call       "void Handler.AppendLiteral(string, int)"
+              IL_0016:  ldloca.s   V_0
+              IL_0018:  ldc.i4.1
+              IL_0019:  box        "int"
+              IL_001e:  call       "void Handler.AppendFormatted(object)"
+              IL_0023:  ret
+            }
+            """);
+
+        var comp = CreateCompilation([handler, OverloadResolutionPriorityAttributeDefinition, InterpolatedStringHandlerAttribute]);
+        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("[System.Runtime.CompilerServices.OverloadResolutionPriority(1)]", "")]
+    [InlineData("", "[System.Runtime.CompilerServices.OverloadResolutionPriority(1)]")]
+    public void PartialMethod(string definitionPriority, string implementationPriority)
+    {
+        var definition = $$"""
+            public partial class C
+            {
+                {{definitionPriority}}
+                public partial void M(object o);
+            }
+            """;
+
+        var implementation = $$"""
+            public partial class C
+            {
+                {{implementationPriority}}
+                public partial void M(object o) => System.Console.Write(1);
+                public void M(string s) => throw null;
+            }
+            """;
+
+        var executable = """
+            var c = new C();
+            c.M("");
+            """;
+
+        CompileAndVerify([executable, definition, implementation, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("[System.Runtime.CompilerServices.OverloadResolutionPriority(1)]", "")]
+    [InlineData("", "[System.Runtime.CompilerServices.OverloadResolutionPriority(1)]")]
+    public void PartialIndexer(string definitionPriority, string implementationPriority)
+    {
+        var definition = $$"""
+            public partial class C
+            {
+                {{definitionPriority}}
+                public partial int this[object o] { get; set; }
+            }
+            """;
+
+        var implementation = $$"""
+            public partial class C
+            {
+                {{implementationPriority}}
+                public partial int this[object o]
+                {
+                    get { System.Console.Write(1); return 1; }
+                    set => System.Console.Write(2);
+                }
+                public int this[string s]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+            }
+            """;
+
+        var executable = """
+            var c = new C();
+            _ = c[""];
+            c[""] = 0;
+            """;
+
+        CompileAndVerify([executable, definition, implementation, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AttributeAppliedTwiceMethod_Source()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            var c = new C();
+            c.M("");
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                [OverloadResolutionPriority(2)]
+                public void M(object o) => System.Console.Write(1);
+                public void M(string s) => System.Console.Write(2);
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (9,6): error CS0579: Duplicate 'OverloadResolutionPriority' attribute
+            //     [OverloadResolutionPriority(2)]
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "OverloadResolutionPriority").WithArguments("OverloadResolutionPriority").WithLocation(9, 6)
+        );
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbol = model.GetSymbolInfo(invocation).Symbol;
+
+        Assert.Equal("void C.M(System.Object o)", symbol.ToTestDisplayString());
+        var underlyingSymbol = symbol.GetSymbol<MethodSymbol>();
+
+        Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+    }
+
+    [Fact]
+    public void AttributeAppliedTwiceMethod_Metadata()
+    {
+        // Equivalent to:
+        // public class C
+        // {
+        //     [OverloadResolutionPriority(1)]
+        //     [OverloadResolutionPriority(2)]
+        //     public void M(object o) => System.Console.Write(1);
+        //     public void M(string s) => System.Console.Write(2);
+        // }
+        var il = """
+            .class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+            {
+                .method public hidebysig 
+                    instance void M (
+                        object o
+                    ) cil managed 
+                {
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 01 00 00 00 00 00
+                    )
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 02 00 00 00 00 00
+                    )
+                    ldc.i4.1
+                    call void [mscorlib]System.Console::Write(int32)
+                    ret
+                } // end of method C::M
+
+                .method public hidebysig 
+                    instance void M (
+                        string s
+                    ) cil managed 
+                {
+                    ldc.i4.2
+                    call void [mscorlib]System.Console::Write(int32)
+                    ret
+                } // end of method C::M
+
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                } // end of method C::.ctor
+            } // end of class C
+
+            """;
+
+        var ilRef = CompileIL(il + OverloadResolutionPriorityAttributeILDefinition);
+
+        var source = """
+            var c = new C();
+            c.M("");
+            """;
+
+        var comp = CreateCompilation(source, references: [ilRef]);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbol = model.GetSymbolInfo(invocation).Symbol;
+
+        Assert.Equal("void C.M(System.Object o)", symbol.ToTestDisplayString());
+        var underlyingSymbol = symbol.GetSymbol<MethodSymbol>();
+
+        Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+    }
+
+    [Fact]
+    public void AttributeAppliedTwiceConstructor_Source()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            var c = new C("");
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                [OverloadResolutionPriority(2)]
+                public C(object o) {}
+                public C(string s) {}
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (8,6): error CS0579: Duplicate 'OverloadResolutionPriority' attribute
+            //     [OverloadResolutionPriority(2)]
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "OverloadResolutionPriority").WithArguments("OverloadResolutionPriority").WithLocation(8, 6)
+        );
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+        var symbol = model.GetSymbolInfo(invocation).Symbol;
+
+        Assert.Equal("C..ctor(System.Object o)", symbol.ToTestDisplayString());
+        var underlyingSymbol = symbol.GetSymbol<MethodSymbol>();
+
+        Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+    }
+
+    [Fact]
+    public void AttributeAppliedTwiceConstructor_Metadata()
+    {
+        // Equivalent to:
+        // public class C
+        // {
+        //     [OverloadResolutionPriority(1)]
+        //     [OverloadResolutionPriority(2)]
+        //     public C(object o) {}
+        //     public C(string s) {}
+        // }
+        var il = """
+            .class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+            {
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        object o
+                    ) cil managed 
+                {
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 01 00 00 00 00 00
+                    )
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 02 00 00 00 00 00
+                    )
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                }
+
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        string s
+                    ) cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                } // end of method C::.ctor
+            } // end of class C
+
+            """;
+
+        var ilRef = CompileIL(il + OverloadResolutionPriorityAttributeILDefinition);
+
+        var source = """
+            var c = new C("");
+            """;
+
+        var comp = CreateCompilation(source, references: [ilRef]);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+        var symbol = model.GetSymbolInfo(invocation).Symbol;
+
+        Assert.Equal("C..ctor(System.Object o)", symbol.ToTestDisplayString());
+        var underlyingSymbol = symbol.GetSymbol<MethodSymbol>();
+
+        Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+    }
+
+    [Fact]
+    public void AttributeAppliedTwiceIndexer_Source()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            var c = new C();
+            _ = c[""];
+            c[""] = 0;
+
+            public class C
+            {
+                [OverloadResolutionPriority(1)]
+                [OverloadResolutionPriority(2)]
+                public int this[object o]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+                public int this[string o]
+                {
+                    get => throw null;
+                    set => throw null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (10,6): error CS0579: Duplicate 'OverloadResolutionPriority' attribute
+            //     [OverloadResolutionPriority(2)]
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "OverloadResolutionPriority").WithArguments("OverloadResolutionPriority").WithLocation(10, 6)
+        );
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var symbols = tree.GetRoot().DescendantNodes()
+            .OfType<ElementAccessExpressionSyntax>()
+            .Select(i => model.GetSymbolInfo(i).Symbol)
+            .ToArray();
+
+        Assert.Equal(2, symbols.Length);
+
+        Assert.All(symbols, s =>
+        {
+            AssertEx.Equal("System.Int32 C.this[System.Object o] { get; set; }", s.ToTestDisplayString());
+            var underlyingSymbol = s.GetSymbol<PropertySymbol>();
+
+            Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+        });
+    }
+
+    [Fact]
+    public void AttributeAppliedTwiceIndexer_Metadata()
+    {
+        // Equivalent to:
+        // public class C
+        // {
+        //     [OverloadResolutionPriority(1)]
+        //     [OverloadResolutionPriority(2)]
+        //     public int this[object o]
+        //     {
+        //         get => throw null;
+        //         set => throw null;
+        //     }
+        //     public int this[string o]
+        //     {
+        //         get => throw null;
+        //         set => throw null;
+        //     }
+        // }
+        var il = """
+            .class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+                    01 00 04 49 74 65 6d 00 00
+                )
+                // Methods
+                .method public hidebysig specialname 
+                    instance int32 get_Item (
+                        object o
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method C::get_Item
+
+                .method public hidebysig specialname 
+                    instance void set_Item (
+                        object o,
+                        int32 'value'
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method C::set_Item
+
+                .method public hidebysig specialname 
+                    instance int32 get_Item (
+                        string o
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method C::get_Item
+
+                .method public hidebysig specialname 
+                    instance void set_Item (
+                        string o,
+                        int32 'value'
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method C::set_Item
+
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                } // end of method C::.ctor
+
+                // Properties
+                .property instance int32 Item(
+                    object o
+                )
+                {
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 01 00 00 00 00 00
+                    )
+                    .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+                        01 00 02 00 00 00 00 00
+                    )
+                    .get instance int32 C::get_Item(object)
+                    .set instance void C::set_Item(object, int32)
+                }
+                .property instance int32 Item(
+                    string o
+                )
+                {
+                    .get instance int32 C::get_Item(string)
+                    .set instance void C::set_Item(string, int32)
+                }
+
+            } // end of class C
+
+            """;
+
+        var ilRef = CompileIL(il + OverloadResolutionPriorityAttributeILDefinition);
+
+        var source = """
+            var c = new C();
+            _ = c[""];
+            c[""] = 0;
+            """;
+
+        var comp = CreateCompilation(source, references: [ilRef]);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var symbols = tree.GetRoot().DescendantNodes()
+            .OfType<ElementAccessExpressionSyntax>()
+            .Select(i => model.GetSymbolInfo(i).Symbol)
+            .ToArray();
+
+        Assert.Equal(2, symbols.Length);
+
+        Assert.All(symbols, s =>
+        {
+            AssertEx.Equal("System.Int32 C.this[System.Object o] { get; set; }", s.ToTestDisplayString());
+            var underlyingSymbol = s.GetSymbol<PropertySymbol>();
+
+            Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+        });
+    }
+
+    [Fact]
+    public void HonoredInsideExpressionTree()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+            using System.Runtime.CompilerServices;
+
+            Expression<Action> e = () => C.M(1, 2, 3);
+
+            public class C
+            {
+                public static void M(params int[] a)
+                {
+                }
+
+                [OverloadResolutionPriority(1)]
+                public static void M(params IEnumerable<int> e)
+                {
+                }
+            }
+            """;
+
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (6,30): error CS9226: An expression tree may not contain an expanded form of non-array params collection parameter.
+            // Expression<Action> e = () => C.M(1, 2, 3);
+            Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "C.M(1, 2, 3)").WithLocation(6, 30)
         );
     }
 }
