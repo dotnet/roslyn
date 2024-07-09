@@ -76,7 +76,6 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         if (token.Parent is not ExpressionSyntax parentExpression)
             return;
 
-        var options = context.Options;
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 

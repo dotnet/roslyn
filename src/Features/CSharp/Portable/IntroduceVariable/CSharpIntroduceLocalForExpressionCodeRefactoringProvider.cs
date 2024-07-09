@@ -88,7 +88,6 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
 
     protected override async Task<ExpressionStatementSyntax> CreateTupleDeconstructionAsync(
         Document document,
-        CodeActionOptionsProvider optionsProvider,
         INamedTypeSymbol tupleType,
         ExpressionSyntax expression,
         CancellationToken cancellationToken)

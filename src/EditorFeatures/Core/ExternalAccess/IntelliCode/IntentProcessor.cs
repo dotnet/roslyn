@@ -66,9 +66,7 @@ internal class IntentSourceProvider(
             originalDocument,
             selectionTextSpan,
             currentDocument,
-            new IntentDataProvider(
-                intentRequestContext.IntentData,
-                _globalOptions.CreateProvider()),
+            new IntentDataProvider(intentRequestContext.IntentData),
             cancellationToken).ConfigureAwait(false);
 
         if (results.IsDefaultOrEmpty)
