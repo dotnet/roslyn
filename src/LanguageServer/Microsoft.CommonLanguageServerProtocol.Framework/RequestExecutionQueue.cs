@@ -239,7 +239,6 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = activityId;
 
-
                     // Serially in the queue determine which language is appropriate for handling the request (based on the request URI).
                     //
                     // The client can send us the language associated with a URI in the didOpen notification.  It is important that all prior didOpen

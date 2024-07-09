@@ -20,7 +20,7 @@ internal interface IQueueItem<TRequestContext>
     /// Executes the work specified by this queue item.
     /// </summary>
     /// <param name="request">The request parameters.</param>
-    /// <param name="context">The context created by <see cref="CreateRequestContextAsync{TRequest}(TRequest, IMethodHandler, CancellationToken)"/>.</param>
+    /// <param name="context">The context created by <see cref="CreateRequestContextAsync{TRequest}(IMethodHandler, RequestHandlerMetadata, AbstractLanguageServer{TRequestContext}, CancellationToken)"/>.</param>
     /// <param name="handler">The handler to use to execute the request.</param>
     /// <param name="language">The language for the request.</param>
     /// <param name="cancellationToken" />
