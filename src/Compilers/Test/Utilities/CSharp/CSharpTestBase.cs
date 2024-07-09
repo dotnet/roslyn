@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
-        protected const string NullableAttributeDefinition = @"
+        protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents
@@ -60,7 +60,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string NullableContextAttributeDefinition = @"
+        protected static readonly string NullableContextAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(
@@ -81,7 +81,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected const string NullablePublicOnlyAttributeDefinition = @"
+        protected static readonly string NullablePublicOnlyAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
@@ -97,7 +97,7 @@ namespace System.Runtime.CompilerServices
 
         // Nullable flow analysis attributes are defined at
         // https://github.com/dotnet/coreclr/blob/4a1275434fff99206f2a28f5f0e87f124069eb7f/src/System.Private.CoreLib/shared/System/Diagnostics/CodeAnalysis/NullableAttributes.cs
-        protected const string AllowNullAttributeDefinition = @"
+        protected static readonly string AllowNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
@@ -106,7 +106,7 @@ namespace System.Diagnostics.CodeAnalysis
     }
 }";
 
-        protected const string DisallowNullAttributeDefinition = @"
+        protected static readonly string DisallowNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
@@ -115,7 +115,7 @@ namespace System.Diagnostics.CodeAnalysis
     }
 }";
 
-        protected const string MaybeNullAttributeDefinition = @"
+        protected static readonly string MaybeNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
@@ -125,7 +125,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string MaybeNullWhenAttributeDefinition = @"
+        protected static readonly string MaybeNullWhenAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
@@ -136,7 +136,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string NotNullAttributeDefinition = @"
+        protected static readonly string NotNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
@@ -146,7 +146,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string NotNullWhenAttributeDefinition = @"
+        protected static readonly string NotNullWhenAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
@@ -157,7 +157,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string MemberNotNullAttributeDefinition = @"
+        protected static readonly string MemberNotNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
@@ -169,7 +169,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string MemberNotNullWhenAttributeDefinition = @"
+        protected static readonly string MemberNotNullWhenAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
@@ -181,7 +181,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string DoesNotReturnIfAttributeDefinition = @"
+        protected static readonly string DoesNotReturnIfAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
@@ -192,7 +192,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string DoesNotReturnAttributeDefinition = @"
+        protected static readonly string DoesNotReturnAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
@@ -203,7 +203,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string NotNullIfNotNullAttributeDefinition = @"
+        protected static readonly string NotNullIfNotNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
@@ -214,7 +214,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string IsExternalInitTypeDefinition = @"
+        protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     public static class IsExternalInit
@@ -223,7 +223,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string IAsyncDisposableDefinition = @"
+        protected static readonly string IAsyncDisposableDefinition = @"
 namespace System
 {
     public interface IAsyncDisposable
@@ -233,7 +233,7 @@ namespace System
 }
 ";
 
-        protected const string NonDisposableAsyncEnumeratorDefinition = @"
+        protected static readonly string NonDisposableAsyncEnumeratorDefinition = @"
 #nullable disable
 
 namespace System.Collections.Generic
@@ -246,7 +246,7 @@ namespace System.Collections.Generic
 }
 ";
 
-        protected const string DisposableAsyncEnumeratorDefinition = @"
+        protected static readonly string DisposableAsyncEnumeratorDefinition = @"
 #nullable disable
 
 namespace System.Collections.Generic
@@ -259,9 +259,9 @@ namespace System.Collections.Generic
 }
 " + IAsyncDisposableDefinition;
 
-        protected const string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
+        protected static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
 
-        protected const string CommonAsyncStreamsTypes = @"
+        protected static readonly string CommonAsyncStreamsTypes = @"
 #nullable disable
 
 namespace System.Collections.Generic
@@ -590,7 +590,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string EnumeratorCancellationAttributeType = @"
+        protected static readonly string EnumeratorCancellationAttributeType = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
@@ -601,7 +601,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string NativeIntegerAttributeDefinition =
+        protected static readonly string NativeIntegerAttributeDefinition =
 @"using System.Collections.Generic;
 namespace System.Runtime.CompilerServices
 {
@@ -629,7 +629,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected const string UnmanagedCallersOnlyAttributeDefinition =
+        protected static readonly string UnmanagedCallersOnlyAttributeDefinition =
 @"namespace System.Runtime.InteropServices
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
@@ -641,7 +641,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected const string UnscopedRefAttributeDefinition =
+        protected static readonly string UnscopedRefAttributeDefinition =
 @"namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
@@ -650,7 +650,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected const string RefSafetyRulesAttributeDefinition =
+        protected static readonly string RefSafetyRulesAttributeDefinition =
 @"namespace System.Runtime.CompilerServices
 {
     public sealed class RefSafetyRulesAttribute : Attribute
@@ -663,7 +663,7 @@ namespace System.Runtime.CompilerServices
         protected static MetadataReference RefSafetyRulesAttributeLib =>
             CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
 
-        protected const string RequiredMemberAttribute = @"
+        protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
@@ -676,7 +676,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string SetsRequiredMembersAttribute = @"
+        protected static readonly string SetsRequiredMembersAttribute = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
@@ -689,7 +689,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        internal const string CompilerFeatureRequiredAttribute = """
+        internal static readonly string CompilerFeatureRequiredAttribute = """
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
@@ -705,7 +705,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal const string CollectionBuilderAttributeDefinition = """
+        internal static readonly string CollectionBuilderAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
@@ -2445,7 +2445,7 @@ namespace System.Runtime.CompilerServices
             }
         }
 
-        internal const string InterpolatedStringHandlerAttribute = @"
+        internal static readonly string InterpolatedStringHandlerAttribute = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
@@ -2503,7 +2503,7 @@ public " + type + " " + name + @"
 " + (includeOneTimeHelpers ? InterpolatedStringHandlerAttribute + cultureInfoHandler : "");
         }
 
-        internal const string InterpolatedStringHandlerArgumentAttribute = @"
+        internal static readonly string InterpolatedStringHandlerArgumentAttribute = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]

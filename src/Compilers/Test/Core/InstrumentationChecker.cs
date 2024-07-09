@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return (index == length - 1) ? ";" : "";
         }
 
-        public const string InstrumentationHelperSource = @"
+        public static readonly string InstrumentationHelperSource = @"
 namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Runtime
         }
 
         public static readonly XElement InstrumentationHelperSource = new XElement("file", new XAttribute("name", "c.vb"), InstrumentationHelperSourceStr);
-        public const string InstrumentationHelperSourceStr = @"
+        public static readonly string InstrumentationHelperSourceStr = @"
 Namespace Microsoft.CodeAnalysis.Runtime
 
     Public Class Instrumentation
