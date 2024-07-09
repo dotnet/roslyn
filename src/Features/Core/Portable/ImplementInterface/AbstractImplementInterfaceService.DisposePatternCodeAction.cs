@@ -85,31 +85,31 @@ internal abstract partial class AbstractImplementInterfaceService
         return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
     }
 
-    private sealed class ImplementInterfaceWithDisposePatternCodeAction(
+    private sealed class ImplementInterfaceWithDisposePatternGenerator(
         AbstractImplementInterfaceService service,
         Document document,
         ImplementTypeGenerationOptions options,
         State state,
         bool explicitly,
         bool abstractly,
-        ISymbol? throughMember) : ImplementInterfaceCodeAction(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
+        ISymbol? throughMember) : ImplementInterfaceGenerator(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
     {
-        public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
+        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementWithDisposePatternCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
             State state)
         {
-            return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
+            return new ImplementInterfaceWithDisposePatternGenerator(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
         }
 
-        public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
+        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementExplicitlyWithDisposePatternCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
             State state)
         {
-            return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
+            return new ImplementInterfaceWithDisposePatternGenerator(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
         }
 
         public override string Title

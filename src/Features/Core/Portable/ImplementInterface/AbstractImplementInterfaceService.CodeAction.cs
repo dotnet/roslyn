@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    internal partial class ImplementInterfaceCodeAction : CodeAction
+    internal partial class ImplementInterfaceGenerator : IImplementInterfaceGenerator
     {
         protected readonly bool Explicitly;
         protected readonly bool Abstractly;
@@ -35,7 +35,7 @@ internal abstract partial class AbstractImplementInterfaceService
         protected readonly AbstractImplementInterfaceService Service;
         private readonly string _equivalenceKey;
 
-        internal ImplementInterfaceCodeAction(
+        internal ImplementInterfaceGenerator(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
@@ -56,53 +56,53 @@ internal abstract partial class AbstractImplementInterfaceService
             _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!);
         }
 
-        public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementAbstractlyCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
             State state)
         {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
+            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
         }
 
-        public static ImplementInterfaceCodeAction CreateImplementCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
             State state)
         {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
+            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
         }
 
-        public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementExplicitlyCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
             State state)
         {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
+            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
         }
 
-        public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementThroughMemberCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
             State state,
             ISymbol throughMember)
         {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
+            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
         }
 
-        public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementRemainingExplicitlyCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
             State state)
         {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
+            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
         }
 
-        public override string Title
+        public virtual string Title
         {
             get
             {
@@ -156,9 +156,9 @@ internal abstract partial class AbstractImplementInterfaceService
                throughMember?.Name;
         }
 
-        public override string EquivalenceKey => _equivalenceKey;
+        public string EquivalenceKey => _equivalenceKey;
 
-        protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+        public Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             => GetUpdatedDocumentAsync(cancellationToken);
 
         public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)

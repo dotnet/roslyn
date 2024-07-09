@@ -52,21 +52,21 @@ internal abstract partial class AbstractImplementInterfaceService : IImplementIn
             // TODO: https://github.com/dotnet/roslyn/issues/60990
             // While implementing just one default action, like in the case of pressing enter after interface name in VB,
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
-            var action = ShouldImplementDisposePattern(state, explicitly: false)
-                ? ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, options, state)
-                : ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+            var generator = ShouldImplementDisposePattern(state, explicitly: false)
+                ? ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePatternCodeAction(this, document, options, state)
+                : ImplementInterfaceGenerator.CreateImplementCodeAction(this, document, options, state);
 
-            return await action.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
-    public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+    public ImmutableArray<IImplementInterfaceGenerator> GetGenerators(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
     {
         var state = State.Generate(this, document, model, node, cancellationToken);
-        return GetActions(document, options, state, cancellationToken).ToImmutableArray();
+        return GetGenerators(document, options, state, cancellationToken).ToImmutableArray();
     }
 
-    private IEnumerable<CodeAction> GetActions(
+    private IEnumerable<IImplementInterfaceGenerator> GetGenerators(
         Document document, ImplementTypeGenerationOptions options, State state, CancellationToken cancellationToken)
     {
         if (state == null)
@@ -96,39 +96,39 @@ internal abstract partial class AbstractImplementInterfaceService : IImplementIn
             // will be the same as "Implement interface explicitly", so there is no point in having both of them
             if (totalMemberCount != inaccessibleMemberCount)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+                yield return ImplementInterfaceGenerator.CreateImplementCodeAction(this, document, options, state);
             }
 
             if (ShouldImplementDisposePattern(state, explicitly: false))
             {
-                yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, options, state);
+                yield return ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePatternCodeAction(this, document, options, state);
             }
 
             var delegatableMembers = GetDelegatableMembers(state, cancellationToken);
             foreach (var member in delegatableMembers)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementThroughMemberCodeAction(this, document, options, state, member);
+                yield return ImplementInterfaceGenerator.CreateImplementThroughMemberCodeAction(this, document, options, state, member);
             }
 
             if (state.ClassOrStructType.IsAbstract)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementAbstractlyCodeAction(this, document, options, state);
+                yield return ImplementInterfaceGenerator.CreateImplementAbstractlyCodeAction(this, document, options, state);
             }
         }
 
         if (state.MembersWithoutExplicitImplementation.Length > 0)
         {
-            yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, options, state);
+            yield return ImplementInterfaceGenerator.CreateImplementExplicitlyCodeAction(this, document, options, state);
 
             if (ShouldImplementDisposePattern(state, explicitly: true))
             {
-                yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, options, state);
+                yield return ImplementInterfaceWithDisposePatternGenerator.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, options, state);
             }
         }
 
         if (AnyImplementedImplicitly(state))
         {
-            yield return ImplementInterfaceCodeAction.CreateImplementRemainingExplicitlyCodeAction(this, document, options, state);
+            yield return ImplementInterfaceGenerator.CreateImplementRemainingExplicitlyCodeAction(this, document, options, state);
         }
     }
 

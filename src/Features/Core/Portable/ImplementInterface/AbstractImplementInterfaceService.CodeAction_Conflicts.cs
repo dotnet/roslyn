@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    internal partial class ImplementInterfaceCodeAction
+    internal partial class ImplementInterfaceGenerator
     {
         private bool HasConflictingMember(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
         {

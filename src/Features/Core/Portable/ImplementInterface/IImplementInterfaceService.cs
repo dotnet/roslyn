@@ -11,8 +11,13 @@ using Microsoft.CodeAnalysis.ImplementType;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
+internal interface IImplementInterfaceGenerator
+{
+    string Title { get; }
+}
+
 internal interface IImplementInterfaceService : ILanguageService
 {
     Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken);
-    ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
+    ImmutableArray<IImplementInterfaceGenerator> GetGenerators(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 }
