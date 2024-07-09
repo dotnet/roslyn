@@ -239,7 +239,13 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = activityId;
 
-                    // Determine which language is appropriate for handling the request.
+
+                    // Serially in the queue determine which language is appropriate for handling the request (based on the request URI).
+                    //
+                    // The client can send us the language associated with a URI in the didOpen notification.  It is important that all prior didOpen
+                    // notifications have been completed by the time we attempt to determine the language, so we have the up to date map of URI to language.
+                    // Since didOpen notifications are marked as mutating, the queue will not advance to the next request until the server has finished processing
+                    // the didOpen, ensuring that this line will only run once all prior didOpens have completed.
                     var language = _languageServer.GetLanguageForRequest(work.MethodName, work.SerializedRequest);
 
                     // Now that we know the actual language, we can deserialize the request and start creating the request context.
@@ -287,8 +293,13 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         CancellationTokenSource? currentWorkCts,
         CancellationToken cancellationToken)
     {
-        var task = methodInfo.Invoke(this, [work, handler, metadata, concurrentlyExecutingTasks, currentWorkCts, cancellationToken]) as Task
-            ?? throw new InvalidOperationException($"ProcessQueueCoreAsync result task cannot be null");
+        var result = methodInfo.Invoke(this, [work, handler, metadata, concurrentlyExecutingTasks, currentWorkCts, cancellationToken]);
+        if (result is null)
+        {
+            throw new InvalidOperationException($"ProcessQueueCoreAsync result task cannot be null");
+        }
+
+        var task = (Task)result;
         await task.ConfigureAwait(false);
     }
 
@@ -304,17 +315,12 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         CancellationTokenSource? currentWorkCts,
         CancellationToken cancellationToken)
     {
-        var deserializedRequest = work.TryDeserializeRequest<TRequest>(_languageServer, metadata, handler.MutatesSolutionState);
-        if (deserializedRequest == null)
-        {
-            return;
-        }
-
         // The request context must be created serially inside the queue to so that requests always run
         // on the correct snapshot as of the last request.
-        var context = await work.CreateRequestContextAsync(deserializedRequest, handler, cancellationToken).ConfigureAwait(false);
+        var contextInfo = await work.CreateRequestContextAsync<TRequest>(handler, metadata, _languageServer, cancellationToken).ConfigureAwait(false);
+        var (context, deserializedRequest) = contextInfo.Value;
 
-        // Run anything in before request before we start handliung the request (for example setting the UI culture).
+        // Run anything in before request before we start handling the request (for example setting the UI culture).
         BeforeRequest(deserializedRequest);
 
         if (handler.MutatesSolutionState)

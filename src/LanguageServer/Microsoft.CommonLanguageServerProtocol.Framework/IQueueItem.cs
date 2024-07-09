@@ -32,14 +32,10 @@ internal interface IQueueItem<TRequestContext>
     /// Note - this method is always called serially inside the queue before
     /// running the actual request in <see cref="StartRequestAsync{TRequest, TResponse}(TRequest, TRequestContext?, IMethodHandler, string, CancellationToken)"/>
     /// Throwing in this method will cause the server to shutdown.
+    /// 
+    /// If there was a recoverable failure in creating the request, this will return null and the caller should stop processing the request.
     /// </summary>
-    Task<TRequestContext> CreateRequestContextAsync<TRequest>(TRequest deserializedRequest, IMethodHandler handler, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Attempts to deserialize the request.  If the request cannot be deserialized, ensures that the exception is returned as the result.
-    /// If the request is mutating, the exception will bubble up so the queue can handle it and shutdown.
-    /// </summary>
-    public TRequest? TryDeserializeRequest<TRequest>(AbstractLanguageServer<TRequestContext> languageServer, RequestHandlerMetadata requestHandlerMetadata, bool isMutating);
+    Task<(TRequestContext, TRequest)?> CreateRequestContextAsync<TRequest>(IMethodHandler handler, RequestHandlerMetadata requestHandlerMetadata, AbstractLanguageServer<TRequestContext> languageServer, CancellationToken cancellationToken);
 
     /// <summary>
     /// Provides access to LSP services.

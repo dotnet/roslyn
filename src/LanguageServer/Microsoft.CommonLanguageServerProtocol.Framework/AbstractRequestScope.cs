@@ -21,9 +21,9 @@ internal abstract class AbstractRequestScope(string name) : IDisposable
     public abstract void RecordExecutionStart();
 
     /// <summary>
-    /// Sets the language for the request once it has been determined
+    /// Updates the telemetry metrics for the request with the handler's language.
     /// </summary>
-    public void UpdateLanguage(string language)
+    public void RecordHandlerLanguage(string language)
     {
         Language = language;
     }
