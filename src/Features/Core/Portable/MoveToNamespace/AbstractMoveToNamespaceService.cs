@@ -262,7 +262,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
 
         // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
         // otherwise, we will end up with multiple linked documents with different content.
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var mergedSolution = await PropagateChangeToLinkedDocumentsAsync(modifiedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
         var mergedDocument = mergedSolution.GetDocument(document.Id);
 

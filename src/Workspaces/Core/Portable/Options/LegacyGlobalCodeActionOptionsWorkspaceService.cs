@@ -38,10 +38,10 @@ internal sealed class LegacyGlobalCleanCodeGenerationOptionsWorkspaceService(IGl
             => ValueTaskFactory.FromResult(options.GetDocumentFormattingOptions(fallbackOptions: null));
 
         ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(options.GetSyntaxFormattingOptions(languageServices, fallbackOptions: null));
+            => ValueTaskFactory.FromResult(options.GetSyntaxFormattingOptions(languageServices));
 
         ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(options.GetSimplifierOptions(languageServices, fallbackOptions: null));
+            => ValueTaskFactory.FromResult(options.GetSimplifierOptions(languageServices));
 
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions: null, fallbackOptions: null));

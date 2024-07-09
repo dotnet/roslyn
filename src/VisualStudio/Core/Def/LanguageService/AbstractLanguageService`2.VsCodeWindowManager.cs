@@ -57,7 +57,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         private void SetupView(IVsTextView view)
             => _languageService.SetupNewTextView(view);
 
-        private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
+        private void GlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
             if (e.ChangedOptions.Any(item => item.key.Language == _languageService.RoslynLanguageName && item.key.Option.Equals(NavigationBarViewOptionsStorage.ShowNavigationBar)))
             {

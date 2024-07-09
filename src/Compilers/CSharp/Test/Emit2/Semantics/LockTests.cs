@@ -1572,9 +1572,9 @@ public class LockTests : CSharpTestBase
         CSharpTestSource sources = [source, LockTypeDefinition];
 
         CreateCompilation(sources, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (5,7): error CS8652: The feature 'Lock object' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,7): error CS9202: Feature 'Lock object' is not available in C# 12.0. Please use language version 13.0 or greater.
             // lock (l) { Console.Write("L"); }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "l").WithArguments("Lock object").WithLocation(5, 7));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "l").WithArguments("Lock object", "13.0").WithLocation(5, 7));
 
         var expectedOutput = "ELD";
 
@@ -3448,10 +3448,7 @@ public class LockTests : CSharpTestBase
         CreateCompilation([source, LockTypeDefinition]).VerifyEmitDiagnostics(
             // (9,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15),
-            // (11,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-            //             yield return 2;
-            Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(11, 13));
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15));
     }
 
     [Fact]
@@ -3560,10 +3557,7 @@ public class LockTests : CSharpTestBase
         CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyEmitDiagnostics(
             // (10,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(10, 15),
-            // (12,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-            //             yield return 2;
-            Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(12, 13));
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(10, 15));
     }
 
     [Fact]

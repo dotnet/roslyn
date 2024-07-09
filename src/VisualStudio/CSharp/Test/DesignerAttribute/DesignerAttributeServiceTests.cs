@@ -11,85 +11,119 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttributes
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttributes;
+
+[UseExportProvider]
+public sealed class DesignerAttributeServiceTests
 {
-    [UseExportProvider]
-    public class DesignerAttributeServiceTests
+    [Fact]
+    public async Task NoDesignerTest1()
     {
-        [Fact]
-        public async Task NoDesignerTest1()
-        {
-            var code = @"class Test { }";
+        await TestAsync(@"class Test { }", category: null);
+    }
 
-            await TestAsync(code, category: null);
-        }
+    [Fact]
+    public async Task NoDesignerOnSecondClass()
+    {
+        await TestAsync(
+            """
+            class Test1 { }
 
-        [Fact]
-        public async Task NoDesignerOnSecondClass()
-        {
+            [System.ComponentModel.DesignerCategory("Form")]
+            class Test2 { }
+            """, category: null);
+    }
 
-            await TestAsync(
-@"class Test1 { }
+    [Fact]
+    public async Task NoDesignerOnStruct()
+    {
+        await TestAsync(
+            """
 
-[System.ComponentModel.DesignerCategory(""Form"")]
-class Test2 { }", category: null);
-        }
+            [System.ComponentModel.DesignerCategory("Form")]
+            struct Test1 { }
+            """, category: null);
+    }
 
-        [Fact]
-        public async Task NoDesignerOnStruct()
-        {
+    [Fact]
+    public async Task NoDesignerOnNestedClass()
+    {
+        await TestAsync(
+            """
+            class Test1
+            {
+                [System.ComponentModel.DesignerCategory("Form")]
+                class Test2 { }
+            }
+            """, category: null);
+    }
 
-            await TestAsync(
-@"
-[System.ComponentModel.DesignerCategory(""Form"")]
-struct Test1 { }", category: null);
-        }
+    [Fact]
+    public async Task SimpleDesignerTest()
+    {
+        await TestAsync(
+            """
+            [System.ComponentModel.DesignerCategory("Form")]
+            class Test { }
+            """, "Form");
+    }
 
-        [Fact]
-        public async Task NoDesignerOnNestedClass()
-        {
+    [Fact]
+    public async Task SimpleDesignerTest2()
+    {
+        await TestAsync(
+            """
+            using System.ComponentModel;
 
-            await TestAsync(
-@"class Test1
-{
-    [System.ComponentModel.DesignerCategory(""Form"")]
-    class Test2 { }
-}", category: null);
-        }
+            [DesignerCategory("Form")]
+            class Test { }
+            """, "Form");
+    }
 
-        [Fact]
-        public async Task SimpleDesignerTest()
-        {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Form")]
+    [InlineData("Form1")]
+    public async Task TestUnboundBase1(string? existingCategory)
+    {
+        await TestAsync(
+            """
+            namespace System.Windows.Forms
+            {
+                [System.ComponentModel.DesignerCategory("Form")]
+                public class Form { }
+            }
 
-            await TestAsync(
-@"[System.ComponentModel.DesignerCategory(""Form"")]
-class Test { }", "Form");
-        }
+            // The base type won't bind.  That's ok.  We should fallback to looking it up in a particular namespace.
+            // This should always work and not be impacted by the existing category.
+            class Test : Form { }
+            """, "Form", existingCategory);
+    }
 
-        [Fact]
-        public async Task SimpleDesignerTest2()
-        {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Form")]
+    public async Task TestUnboundBaseUseOldValueIfNotFound(string? category)
+    {
+        await TestAsync(
+            """
+            // The base type won't bind.  Return existing category if we have one.
+            class Test : Form { }
+            """, category: category, existingCategory: category);
+    }
 
-            await TestAsync(
-@"using System.ComponentModel;
+    private static async Task TestAsync(string codeWithMarker, string? category, string? existingCategory = null)
+    {
+        using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
 
-[DesignerCategory(""Form"")]
-class Test { }", "Form");
-        }
+        var hostDocument = workspace.Documents.First();
+        var documentId = hostDocument.Id;
+        var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
-        private static async Task TestAsync(string codeWithMarker, string? category)
-        {
-            using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
+        var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
+        var actual = await DesignerAttributeDiscoveryService.ComputeDesignerAttributeCategoryAsync(
+            compilation.DesignerCategoryAttributeType() != null, document.Project, document.Id, existingCategory, CancellationToken.None);
 
-            var hostDocument = workspace.Documents.First();
-            var documentId = hostDocument.Id;
-            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-
-            var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
-            var actual = await DesignerAttributeDiscoveryService.ComputeDesignerAttributeCategoryAsync(
-                compilation.DesignerCategoryAttributeType() != null, document.Project, document.Id, CancellationToken.None);
-
-            Assert.Equal(category, actual);
-        }
+        Assert.Equal(category, actual);
     }
 }

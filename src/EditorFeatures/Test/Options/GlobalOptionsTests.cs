@@ -92,10 +92,13 @@ public class GlobalOptionsTests
         public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
             => throw new NotImplementedException();
 
-        public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
             => throw new NotImplementedException();
 
-        public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
+            => throw new NotImplementedException();
+
+        public StructuredAnalyzerConfigOptions GetAnalyzerConfigOptions(string language)
             => throw new NotImplementedException();
 
         #endregion
@@ -190,7 +193,7 @@ public class GlobalOptionsTests
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetDocumentationCommentOptions(globalOptions.GetLineFormattingOptions(language), language), DocumentationCommentOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetExtractMethodOptions(language), ExtractMethodOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetImplementTypeOptions(language), ImplementTypeOptions.Default, language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(languageServices), MetadataAsSourceOptions.GetDefault(languageServices), language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(), MetadataAsSourceOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSignatureHelpOptions(language), SignatureHelpOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSymbolSearchOptions(language), SymbolSearchOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetWorkspaceConfigurationOptions(), WorkspaceConfigurationOptions.Default);

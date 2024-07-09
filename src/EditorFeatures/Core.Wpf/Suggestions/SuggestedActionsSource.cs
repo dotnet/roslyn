@@ -233,13 +233,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state is null)
                     return null;
 
-                var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+                var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
 
                 foreach (var order in Orderings)
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
-                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
+                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzerData);
 
                     var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
@@ -256,10 +256,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
                             document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasFix)
+                        if (result != null)
                         {
                             Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                            return result.CodeFixCollection.FirstDiagnostic.Severity switch
+                            return result.FirstDiagnostic.Severity switch
                             {
 
                                 DiagnosticSeverity.Hidden or DiagnosticSeverity.Info or DiagnosticSeverity.Warning => PredefinedSuggestedActionCategoryNames.CodeFix,
@@ -267,9 +267,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _ => throw ExceptionUtilities.Unreachable(),
                             };
                         }
-
-                        if (!result.UpToDate)
-                            return null;
                     }
 
                     return null;

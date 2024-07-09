@@ -73,7 +73,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
             syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out _);
-            var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
+            var inAttributeContext = syntaxFacts.IsNameOfAttribute(simpleName);
 
             var matchingTypes = await FindAsync(name, ignoreCase, SymbolFilter.Type).ConfigureAwait(false);
             var matchingAttributeTypes = inAttributeContext ? await FindAsync(name + nameof(Attribute), ignoreCase, SymbolFilter.Type).ConfigureAwait(false) : [];
@@ -125,7 +125,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             var looksGeneric = syntaxFacts.LooksGeneric(simpleName);
 
-            var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
+            var inAttributeContext = syntaxFacts.IsNameOfAttribute(simpleName);
             syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out var arity);
 
             var validSymbols = matchingTypes
@@ -167,7 +167,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
                 Contract.ThrowIfNull(rightSide);
 
                 syntaxFacts.GetNameAndArityOfSimpleName(rightSide, out rightName, out _);
-                isAttributeName = syntaxFacts.IsAttributeName(rightSide);
+                isAttributeName = syntaxFacts.IsNameOfAttribute(rightSide);
             }
 
             return symbols

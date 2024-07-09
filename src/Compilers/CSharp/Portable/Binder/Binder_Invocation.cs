@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
             bool ignoreNormalFormIfHasValidParamsParameter = false,
-            bool searchExtensionMethodsIfNecessary = true)
+            bool searchExtensionMethodsIfNecessary = true,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -137,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
 
             // Query operator can't be called dynamically. 
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
@@ -323,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null,
-            bool ignoreNormalFormIfHasValidParamsParameter = false)
+            bool ignoreNormalFormIfHasValidParamsParameter = false,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -349,7 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
-                    diagnostics, queryClause, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter, anyApplicableCandidates: out _);
+                    diagnostics, queryClause,
+                    ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                    disallowExpandedNonArrayParams: disallowExpandedNonArrayParams,
+                    anyApplicableCandidates: out _);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -641,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
                 var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
-                ReportMemberNotSupportedByDynamicDispatch(node, applicable, analyzedArguments.Arguments, diagnostics);
+                ReportMemberNotSupportedByDynamicDispatch(node, applicable, diagnostics);
 
                 result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
             }
@@ -668,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, ArrayBuilder<BoundExpression> arguments, BindingDiagnosticBag diagnostics)
+        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, BindingDiagnosticBag diagnostics)
             where TMember : Symbol
         {
             if (candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
@@ -677,15 +683,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics,
                     ErrorCode.ERR_DynamicDispatchToParamsCollection,
                     syntax, candidate.LeastOverriddenMember);
-            }
-            else if (IsAmbiguousDynamicParamsArgument(arguments, candidate, out SyntaxNode argumentSyntax) &&
-                     !candidate.LeastOverriddenMember.GetParameters().Last().Type.IsSZArray())
-            {
-                // We know that runtime binder might not be
-                // able to handle the disambiguation
-                Error(diagnostics,
-                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                    argumentSyntax, candidate.LeastOverriddenMember);
             }
         }
 
@@ -698,7 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
             bool ignoreNormalFormIfHasValidParamsParameter,
-            out bool anyApplicableCandidates)
+            out bool anyApplicableCandidates,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -714,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup, expression, methodName, analyzedArguments,
                 useSiteInfo: ref useSiteInfo,
                 options: (ignoreNormalFormIfHasValidParamsParameter ? OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter : OverloadResolution.Options.None) |
+                         (disallowExpandedNonArrayParams ? OverloadResolution.Options.DisallowExpandedNonArrayParams : OverloadResolution.Options.None) |
                          (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
             diagnostics.Add(expression, useSiteInfo);
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
@@ -798,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (result is null && finalApplicableCandidates[0].LeastOverriddenMember.MethodKind != MethodKind.LocalFunction)
                             {
-                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], resolution.AnalyzedArguments.Arguments, diagnostics);
+                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], diagnostics);
                             }
                         }
 
@@ -857,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsAmbiguousDynamicParamsArgument<TMethodOrPropertySymbol>(ArrayBuilder<BoundExpression> arguments, MemberResolutionResult<TMethodOrPropertySymbol> candidate, out SyntaxNode argumentSyntax)
              where TMethodOrPropertySymbol : Symbol
         {
-            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, out _) &&
+            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, disallowExpandedNonArrayParams: false, out _) &&
                 candidate.Result.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
                 var parameters = candidate.Member.GetParameters();

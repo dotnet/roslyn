@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteExtensionMethodImportCompletionService), null),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
             (typeof(IRemoteFullyQualifyService), null),
-            (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteInheritanceMarginService), null),
             (typeof(IRemoteKeepAliveService), null),
             (typeof(IRemoteLegacySolutionEventsAggregationService), null),
