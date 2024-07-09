@@ -254,12 +254,12 @@ internal sealed class GlobalOptionService(
         return true;
     }
 
-    public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.AddHandler(target, handler);
     }
 
-    public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.RemoveHandler(target, handler);
     }

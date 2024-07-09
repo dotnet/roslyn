@@ -6,11 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2133,7 +2129,7 @@ struct S
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
         public void TestIsNullable1()
         {
             var source = @"
@@ -2149,15 +2145,9 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,23): error CS0103: The name 'i' does not exist in the current context
+                // (6,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (o is int? i)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 23),
-                // (6,24): error CS1003: Syntax error, ':' expected
-                //         if (o is int? i)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(6, 24),
-                // (6,24): error CS1525: Invalid expression term ')'
-                //         if (o is int? i)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(6, 18));
         }
 
         [Fact]

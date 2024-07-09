@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -42,11 +43,22 @@ public sealed class SolutionInfo
     /// </summary>
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
-    private SolutionInfo(SolutionAttributes attributes, IReadOnlyList<ProjectInfo> projects, IReadOnlyList<AnalyzerReference> analyzerReferences)
+    /// <summary>
+    /// Per-language analyzer config options that are used as a fallback if the option is not present in <see cref="AnalyzerConfigOptionsResult"/> produced by the compiler.
+    /// Implements a top-level (but not global) virtual editorconfig file that's in scope for all source files of the solution.
+    /// </summary>
+    internal ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions { get; }
+
+    private SolutionInfo(
+        SolutionAttributes attributes,
+        IReadOnlyList<ProjectInfo> projects,
+        IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
     {
         Attributes = attributes;
         Projects = projects;
         AnalyzerReferences = analyzerReferences;
+        FallbackAnalyzerOptions = fallbackAnalyzerOptions;
     }
 
     // 3.5.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
@@ -72,6 +84,18 @@ public sealed class SolutionInfo
         string? filePath = null,
         IEnumerable<ProjectInfo>? projects = null,
         IEnumerable<AnalyzerReference>? analyzerReferences = null)
+        => Create(id, version, filePath, projects, analyzerReferences, ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
+
+    /// <summary>
+    /// Create a new instance of a SolutionInfo.
+    /// </summary>
+    internal static SolutionInfo Create(
+        SolutionId id,
+        VersionStamp version,
+        string? filePath,
+        IEnumerable<ProjectInfo>? projects,
+        IEnumerable<AnalyzerReference>? analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
     {
         return new SolutionInfo(
             new SolutionAttributes(
@@ -80,11 +104,12 @@ public sealed class SolutionInfo
                 filePath,
                 telemetryId: default),
             PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)),
-            PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+            PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)),
+            fallbackAnalyzerOptions);
     }
 
     internal SolutionInfo WithTelemetryId(Guid telemetryId)
-        => new(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
+        => new(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences, FallbackAnalyzerOptions);
 
     /// <summary>
     /// type that contains information regarding this solution itself but
