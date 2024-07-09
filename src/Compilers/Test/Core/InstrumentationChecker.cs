@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.Runtime
             return (index == length - 1) ? "" : ".";
         }
 
-        public static readonly XElement InstrumentationHelperSource = new XElement("file", new XAttribute("name", "c.vb"), InstrumentationHelperSourceStr);
         public static readonly string InstrumentationHelperSourceStr = @"
 Namespace Microsoft.CodeAnalysis.Runtime
 
@@ -271,6 +270,7 @@ Namespace Microsoft.CodeAnalysis.Runtime
     End Class
 End Namespace
 ";
+        public static readonly XElement InstrumentationHelperSource = new XElement("file", new XAttribute("name", "c.vb"), InstrumentationHelperSourceStr);
     }
 
     public abstract class BaseInstrumentationChecker

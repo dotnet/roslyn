@@ -259,8 +259,6 @@ namespace System.Collections.Generic
 }
 " + IAsyncDisposableDefinition;
 
-        protected static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
-
         protected static readonly string CommonAsyncStreamsTypes = @"
 #nullable disable
 
@@ -589,6 +587,8 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+
+        protected static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
 
         protected static readonly string EnumeratorCancellationAttributeType = @"
 namespace System.Runtime.CompilerServices
