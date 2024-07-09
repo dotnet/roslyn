@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
             var coreValueKind = valueKind & ValueKindSignificantBitsMask;
-            AccessorKind kind = GetIndexerAccessorKind(indexerAccess, valueKind);
+            AccessorKind accessorKind = GetIndexerAccessorKind(indexerAccess, valueKind);
             var useSetAccessor = coreValueKind == BindValueKind.Assignable && indexerAccess.Indexer.RefKind != RefKind.Ref;
             var accessorForDefaultArguments = useSetAccessor
                 ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentNamesOpt,
                     refKindsBuilderOpt?.ToImmutableOrNull() ?? default,
                     indexerAccess.Expanded,
-                    kind,
+                    accessorKind,
                     argsToParams,
                     defaultArguments,
                     indexerAccess.Type);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return indexerAccess;
             }
 
-            return indexerAccess.Update(kind);
+            return indexerAccess.Update(accessorKind);
         }
 
 #nullable disable
@@ -2274,13 +2274,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns the set of arguments to be considered for escape analysis of a method invocation. This
-        /// set potentially includes the receiver of the method call.  Each argument is returned (only once)
+        /// set potentially includes the receiver of the method call. Each argument is returned (only once)
         /// with the corresponding parameter and ref kind.
         /// 
         /// No filtering like removing non-reflike types is done by this method. It is the responsibility of
         /// the caller to determine which arguments impact escape analysis.
-        ///
-        /// This method is used by for old and new escape rules to collect information.
         /// </summary>
         private void GetInvocationArgumentsForEscape(
             in MethodInfo methodInfo,
@@ -4603,9 +4601,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private uint GetValEscapeOfObjectMemberInitializer(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
             uint result;
