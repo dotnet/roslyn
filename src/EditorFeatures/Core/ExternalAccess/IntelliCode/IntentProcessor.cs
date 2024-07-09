@@ -23,11 +23,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class IntentSourceProvider(
-    [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders,
-    IGlobalOptionService globalOptions) : IIntentSourceProvider
+    [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders) : IIntentSourceProvider
 {
     private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
         IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
