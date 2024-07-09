@@ -317,6 +317,12 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         // The request context must be created serially inside the queue to so that requests always run
         // on the correct snapshot as of the last request.
         var contextInfo = await work.CreateRequestContextAsync<TRequest>(handler, metadata, _languageServer, cancellationToken).ConfigureAwait(false);
+        if (contextInfo is null)
+        {
+            // We failed to create the context in a non-mutating request, we can't process this item so just return.
+            return;
+        }
+
         var (context, deserializedRequest) = contextInfo.Value;
 
         // Run anything in before request before we start handling the request (for example setting the UI culture).
