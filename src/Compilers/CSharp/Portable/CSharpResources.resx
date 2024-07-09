@@ -7977,7 +7977,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
     <value>allows ref struct constraint</value>
   </data>
-  <!-- PROTOTYPE: Condense -->
   <data name="ERR_CannotApplyOverloadResolutionPriorityToOverride" xml:space="preserve">
     <value>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</value>
   </data>

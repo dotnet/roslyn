@@ -850,17 +850,17 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (5,6): error CS8652: The feature 'overload resolution priority' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,6): error CS9202: Feature 'overload resolution priority' is not available in C# 12.0. Please use language version 13.0 or greater.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority").WithLocation(5, 6),
-            // (9,6): error CS8652: The feature 'overload resolution priority' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority", "13.0").WithLocation(5, 6),
+            // (9,6): error CS9202: Feature 'overload resolution priority' is not available in C# 12.0. Please use language version 13.0 or greater.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority").WithLocation(9, 6),
-            // (28,6): error CS8652: The feature 'overload resolution priority' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority", "13.0").WithLocation(9, 6),
+            // (28,6): error CS9202: Feature 'overload resolution priority' is not available in C# 12.0. Please use language version 13.0 or greater.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority").WithLocation(28, 6));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority", "13.0").WithLocation(28, 6));
 
-        var definingComp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        var definingComp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
         var consumingSource = """
             var c = new C("test");

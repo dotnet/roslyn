@@ -2341,15 +2341,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InlineArrayAttributeOnRecord = 9259,
         ERR_FeatureNotAvailableInVersion13 = 9260,
 
+        ERR_CannotApplyOverloadResolutionPriorityToOverride = 9261,
+        ERR_CannotApplyOverloadResolutionPriorityToMember = 9262,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
         //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
-
-        // PROTOTYPE: Condense
-        ERR_CannotApplyOverloadResolutionPriorityToOverride = 9500,
-        ERR_CannotApplyOverloadResolutionPriorityToMember = 9501,
     }
 }

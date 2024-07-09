@@ -290,10 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeaturePartialProperties = MessageBase + 12845,
         IDS_FeatureFieldAndValueKeywords = MessageBase + 12846,
 
-        // PROTOTYPE: condense
-        IDS_OverloadResolutionPriority = MessageBase + 12900,
-
         IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
+        IDS_OverloadResolutionPriority = MessageBase + 12848,
     }
 
     // Message IDs may refer to strings that need to be localized.
