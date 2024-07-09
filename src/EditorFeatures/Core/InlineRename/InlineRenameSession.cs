@@ -95,6 +95,17 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
     /// <summary>
+    /// Information about this rename session.
+    /// </summary>
+    public IInlineRenameInfo RenameInfo => _renameInfo;
+
+    /// <summary>
+    /// The task which computes the main rename locations against the original workspace
+    /// snapshot.
+    /// </summary>
+    public JoinableTask<IInlineRenameLocationSet> AllRenameLocationsTask => _allRenameLocationsTask;
+
+    /// <summary>
     /// Keep-alive session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
     /// the oop side, which is valuable for preventing it from constantly being dropped/synced on every conflict
     /// resolution step.
@@ -125,9 +136,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private CancellationTokenSource _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
 
     private readonly IInlineRenameInfo _renameInfo;
-
-    internal IInlineRenameInfo RenameInfo => _renameInfo;
-    internal JoinableTask<IInlineRenameLocationSet> AllRenameLocationsTask => _allRenameLocationsTask;
 
     /// <summary>
     /// The initial text being renamed.
