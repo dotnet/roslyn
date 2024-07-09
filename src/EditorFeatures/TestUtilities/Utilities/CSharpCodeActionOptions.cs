@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 
@@ -20,6 +19,5 @@ internal static class CSharpCodeActionOptions
             SimplifierOptions = CSharpSimplifierOptions.Default
         },
         CodeGenerationOptions = CSharpCodeGenerationOptions.Default,
-        CodeStyleOptions = CSharpIdeCodeStyleOptions.Default
     };
 }

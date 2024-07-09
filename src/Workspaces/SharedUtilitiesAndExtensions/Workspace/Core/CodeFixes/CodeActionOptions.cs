@@ -39,7 +39,6 @@ internal sealed record class CodeActionOptions
 #if !CODE_STYLE
     [DataMember] public required CodeCleanupOptions CleanupOptions { get; init; }
     [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
-    [DataMember] public required IdeCodeStyleOptions CodeStyleOptions { get; init; }
     [DataMember] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
     [DataMember] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
     [DataMember] public bool HideAdvancedMembers { get; init; } = false;
@@ -49,7 +48,6 @@ internal sealed record class CodeActionOptions
         {
             CleanupOptions = CodeCleanupOptions.GetDefault(languageServices),
             CodeGenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
-            CodeStyleOptions = IdeCodeStyleOptions.GetDefault(languageServices)
         };
 #else
     public static CodeActionOptions GetDefault(LanguageServices languageServices)
