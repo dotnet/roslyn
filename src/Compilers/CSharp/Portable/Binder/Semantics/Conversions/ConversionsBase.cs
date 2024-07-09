@@ -3932,10 +3932,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        private bool IsFeatureFirstClassSpanEnabled
+        {
+            get
+            {
+                // Note: when Compilation is null, we assume latest LangVersion.
+                return Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != false;
+            }
+        }
+
         private bool HasImplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // Note: when Compilation is null, we assume latest LangVersion.
-            if (Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) == false)
+            if (!IsFeatureFirstClassSpanEnabled)
             {
                 return false;
             }
@@ -3978,8 +3986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool HasExplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // Note: when Compilation is null, we assume latest LangVersion.
-            if (Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) == false)
+            if (!IsFeatureFirstClassSpanEnabled)
             {
                 return false;
             }
@@ -4000,13 +4007,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IgnoreUserDefinedSpanConversions(TypeSymbol? source, TypeSymbol? target)
         {
-            if (source is null || target is null)
-            {
-                return false;
-            }
-
-            // Note: when Compilation is null, we assume latest LangVersion.
-            return Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != false &&
+            return source is not null && target is not null &&
+                IsFeatureFirstClassSpanEnabled &&
                 (ignoreUserDefinedSpanConversionsInOneDirection(source, target) ||
                 ignoreUserDefinedSpanConversionsInOneDirection(target, source));
 

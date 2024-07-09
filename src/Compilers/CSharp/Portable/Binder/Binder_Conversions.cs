@@ -512,24 +512,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static MethodSymbol? TryFindImplicitOperatorFromArray(TypeSymbol type)
         {
+            Debug.Assert(type.IsSpan() || type.IsReadOnlySpan());
+
             return TryFindSingleMember(type, WellKnownMemberNames.ImplicitConversionName,
-                static (member) => member is MethodSymbol
+                static (method) => method is
                 {
                     ParameterCount: 1,
                     Arity: 0,
                     IsStatic: true,
                     DeclaredAccessibility: Accessibility.Public,
                     Parameters: [{ Type: ArrayTypeSymbol { IsSZArray: true, ElementType: TypeParameterSymbol } }]
-                } method ? method : null);
+                });
         }
 
-        private static T? TryFindSingleMember<T>(TypeSymbol type, string name, Func<Symbol, T?> predicate) where T : class
+        private static MethodSymbol? TryFindSingleMember(TypeSymbol type, string name, Func<MethodSymbol, bool> predicate)
         {
             var members = type.GetMembers(name);
-            T? result = null;
+            MethodSymbol? result = null;
             foreach (var member in members)
             {
-                if (predicate(member) is { } selected)
+                if (member is MethodSymbol method && predicate(method))
                 {
                     if (result is not null)
                     {
@@ -537,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                     }
 
-                    result = selected;
+                    result = method;
                 }
             }
 
