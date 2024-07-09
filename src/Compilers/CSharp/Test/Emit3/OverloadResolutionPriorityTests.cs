@@ -1363,12 +1363,6 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             .class public auto ansi beforefieldinit C
                 extends [mscorlib]System.Object
             {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
-                    01 00 01 00 00
-                )
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
-                    01 00 00 00 00
-                )
                 .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
                     01 00 04 49 74 65 6d 00 00
                 )
@@ -1381,12 +1375,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                     .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
                         01 00 01 00 00 00 00 00
                     )
-                    // Method begins at RVA 0x2050
-                    // Code size 2 (0x2)
-                    .maxstack 8
-
-                    IL_0000: ldnull
-                    IL_0001: throw
+                    ldnull
+                    throw
                 } // end of method C::get_Item
 
                 .method public hidebysig specialname 
@@ -1398,12 +1388,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                     .custom instance void System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
                         01 00 01 00 00 00 00 00
                     )
-                    // Method begins at RVA 0x2050
-                    // Code size 2 (0x2)
-                    .maxstack 8
-
-                    IL_0000: ldnull
-                    IL_0001: throw
+                    ldnull
+                    throw
                 } // end of method C::set_Item
 
                 .method public hidebysig specialname 
@@ -1411,14 +1397,10 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         string x
                     ) cil managed 
                 {
-                    // Method begins at RVA 0x2053
-                    // Code size 8 (0x8)
-                    .maxstack 8
-
-                    IL_0000: ldc.i4.1
-                    IL_0001: call void [mscorlib]System.Console::Write(int32)
-                    IL_0006: ldc.i4.1
-                    IL_0007: ret
+                    ldc.i4.1
+                    call void [mscorlib]System.Console::Write(int32)
+                    ldc.i4.1
+                    ret
                 } // end of method C::get_Item
 
                 .method public hidebysig specialname 
@@ -1427,24 +1409,17 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                         int32 'value'
                     ) cil managed 
                 {
-                    // Code size 7 (0x7)
-                    .maxstack 8
-
-                    IL_0000: ldc.i4.2
-                    IL_0001: call void [mscorlib]System.Console::Write(int32)
-                    IL_0006: ret
+                    ldc.i4.2
+                    call void [mscorlib]System.Console::Write(int32)
+                    ret
                 } // end of method C::set_Item
 
                 .method public hidebysig specialname rtspecialname 
                     instance void .ctor () cil managed 
                 {
-                    // Method begins at RVA 0x2064
-                    // Code size 7 (0x7)
-                    .maxstack 8
-
-                    IL_0000: ldarg.0
-                    IL_0001: call instance void [mscorlib]System.Object::.ctor()
-                    IL_0006: ret
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
                 } // end of method C::.ctor
 
                 // Properties
@@ -2532,5 +2507,26 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             // Expression<Action> e = () => C.M(1, 2, 3);
             Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "C.M(1, 2, 3)").WithLocation(6, 30)
         );
+    }
+
+    [Fact]
+    public void QuerySyntax()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            var c = new C();
+            _ = from x in c select x;
+
+            class C
+            {
+                [OverloadResolutionPriority(1)]
+                public C Select(Func<int, int> selector, int i = 0) { Console.Write(1); return this; }
+                public C Select(Func<int, int> selector) => throw null;
+            }
+            """;
+
+        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
     }
 }
