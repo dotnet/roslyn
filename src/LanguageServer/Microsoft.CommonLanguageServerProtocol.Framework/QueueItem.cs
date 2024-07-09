@@ -6,7 +6,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -21,10 +24,8 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TRequestContext>
+internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 {
-    private readonly TRequest _request;
-
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
 
@@ -32,22 +33,17 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     /// A task completion source representing the result of this queue item's work.
     /// This is the task that the client is waiting on.
     /// </summary>
-    private readonly TaskCompletionSource<TResponse> _completionSource = new();
+    private readonly TaskCompletionSource<object?> _completionSource = new();
 
     public ILspServices LspServices { get; }
 
     public string MethodName { get; }
 
-    public string Language { get; }
-
-    public Type? RequestType => typeof(TRequest) == typeof(NoValue) ? null : typeof(TRequest);
-
-    public Type? ResponseType => typeof(TResponse) == typeof(NoValue) ? null : typeof(TResponse);
+    public object? SerializedRequest { get; }
 
     private QueueItem(
         string methodName,
-        string language,
-        TRequest request,
+        object? serializedRequest,
         ILspServices lspServices,
         ILspLogger logger,
         CancellationToken cancellationToken)
@@ -56,29 +52,26 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
 
         _logger = logger;
-        _request = request;
+        SerializedRequest = serializedRequest;
         LspServices = lspServices;
 
         MethodName = methodName;
-        Language = language;
 
         var telemetryService = lspServices.GetService<AbstractTelemetryService>();
 
         _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
 
-    public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
+    public static (IQueueItem<TRequestContext>, Task<object?>) Create(
         string methodName,
-        string language,
-        TRequest request,
+        object? serializedRequest,
         ILspServices lspServices,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
-        var queueItem = new QueueItem<TRequest, TResponse, TRequestContext>(
+        var queueItem = new QueueItem<TRequestContext>(
             methodName,
-            language,
-            request,
+            serializedRequest,
             lspServices,
             logger,
             cancellationToken);
@@ -86,15 +79,46 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         return (queueItem, queueItem._completionSource.Task);
     }
 
-    public async Task<TRequestContext> CreateRequestContextAsync(IMethodHandler handler, CancellationToken cancellationToken)
+    public async Task<TRequestContext> CreateRequestContextAsync<TRequest>(TRequest request, IMethodHandler handler, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         _requestTelemetryScope?.RecordExecutionStart();
 
         var requestContextFactory = LspServices.GetRequiredService<AbstractRequestContextFactory<TRequestContext>>();
-        var context = await requestContextFactory.CreateRequestContextAsync(this, handler, _request, cancellationToken).ConfigureAwait(false);
+        var context = await requestContextFactory.CreateRequestContextAsync(this, handler, request, cancellationToken).ConfigureAwait(false);
         return context;
+    }
+
+    public TRequest? TryDeserializeRequest<TRequest>(AbstractLanguageServer<TRequestContext> languageServer, RequestHandlerMetadata requestHandlerMetadata, bool isMutating)
+    {
+        try
+        {
+            return languageServer.DeserializeRequest<TRequest>(SerializedRequest, requestHandlerMetadata);
+        }
+        catch (Exception ex)
+        {
+            // Report the exception to logs / telemetry
+            _requestTelemetryScope?.RecordException(ex);
+            _logger.LogException(ex);
+
+            // Set the task result to the exception
+            _completionSource.TrySetException(ex);
+
+            // End the request - the caller will return immediately if it cannot deserialize.
+            _requestTelemetryScope?.Dispose();
+            _logger.LogEndContext($"{MethodName}");
+
+            // If the request is mutating, bubble the exception out so the queue shutsdown.
+            if (isMutating)
+            {
+                throw;
+            }
+            else
+            {
+                return default;
+            }
+        }
     }
 
     /// <summary>
@@ -102,13 +126,11 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    /// <param name="context">Context used for the request.</param>
-    /// <param name="handler">The handler to execute.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>The result of the request.</returns>
-    public async Task StartRequestAsync(TRequestContext? context, IMethodHandler handler, CancellationToken cancellationToken)
+    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken)
     {
         _logger.LogStartContext($"{MethodName}");
+        _requestTelemetryScope?.UpdateLanguage(language);
+
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -133,7 +155,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
             }
             else if (handler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
             {
-                var result = await requestHandler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
+                var result = await requestHandler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
 
                 _completionSource.TrySetResult(result);
             }
@@ -145,7 +167,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
             }
             else if (handler is INotificationHandler<TRequest, TRequestContext> notificationHandler)
             {
-                await notificationHandler.HandleNotificationAsync(_request, context, cancellationToken).ConfigureAwait(false);
+                await notificationHandler.HandleNotificationAsync(request, context, cancellationToken).ConfigureAwait(false);
 
                 // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
                 _completionSource.TrySetResult((TResponse)(object)NoValue.Instance);

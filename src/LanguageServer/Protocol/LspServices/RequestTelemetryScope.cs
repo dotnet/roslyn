@@ -41,6 +41,6 @@ internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger 
     {
         var requestDuration = _stopwatch.Elapsed;
 
-        _telemetryLogger.UpdateTelemetryData(Name, _queuedDuration, requestDuration, _result);
+        _telemetryLogger.UpdateTelemetryData(Name, Language, _queuedDuration, requestDuration, _result);
     }
 }
