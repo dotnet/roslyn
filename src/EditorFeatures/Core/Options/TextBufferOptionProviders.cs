@@ -40,23 +40,22 @@ internal static class TextBufferOptionProviders
         };
     }
 
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat)
-        => GetSyntaxFormattingOptionsImpl(textBuffer, optionsProvider.Factory.GetOptions(textBuffer), optionsProvider.IndentationManager, optionsProvider.GlobalOptions, languageServices, explicitFormat);
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, StructuredAnalyzerConfigOptions fallbackOptions, LanguageServices languageServices, bool explicitFormat)
+        => GetSyntaxFormattingOptionsImpl(textBuffer, optionsProvider.Factory.GetOptions(textBuffer), fallbackOptions, optionsProvider.IndentationManager, languageServices, explicitFormat);
 
-    private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, LanguageServices languageServices, bool explicitFormat)
+    private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, StructuredAnalyzerConfigOptions fallbackOptions, IIndentationManagerService indentationManager, LanguageServices languageServices, bool explicitFormat)
     {
-        var configOptions = editorOptions.ToAnalyzerConfigOptions();
-        var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
-        var options = configOptions.GetSyntaxFormattingOptions(languageServices, fallbackOptions);
+        var configOptions = editorOptions.ToAnalyzerConfigOptions(fallbackOptions);
+        var options = configOptions.GetSyntaxFormattingOptions(languageServices);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat);
 
         return options with { LineFormatting = lineFormattingOptions };
     }
 
-    public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat)
+    public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, StructuredAnalyzerConfigOptions fallbackOptions, LanguageServices languageServices, bool explicitFormat)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
-        var formattingOptions = GetSyntaxFormattingOptionsImpl(textBuffer, editorOptions, optionsProvider.IndentationManager, optionsProvider.GlobalOptions, languageServices, explicitFormat);
+        var formattingOptions = GetSyntaxFormattingOptionsImpl(textBuffer, editorOptions, fallbackOptions, optionsProvider.IndentationManager, languageServices, explicitFormat);
 
         return new IndentationOptions(formattingOptions)
         {
@@ -66,21 +65,19 @@ internal static class TextBufferOptionProviders
         };
     }
 
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool allowInHiddenRegions)
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, StructuredAnalyzerConfigOptions fallbackOptions, LanguageServices languageServices, bool allowInHiddenRegions)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
-        var configOptions = editorOptions.ToAnalyzerConfigOptions();
-        var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices);
-        return configOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions, fallbackOptions);
+        var configOptions = editorOptions.ToAnalyzerConfigOptions(fallbackOptions);
+        return configOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions, fallbackOptions: null);
     }
 
-    public static CodeCleanupOptions GetCodeCleanupOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat, bool allowImportsInHiddenRegions)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, StructuredAnalyzerConfigOptions fallbackOptions, LanguageServices languageServices, bool explicitFormat, bool allowImportsInHiddenRegions)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
-        var configOptions = editorOptions.ToAnalyzerConfigOptions();
-        var fallbackOptions = optionsProvider.GlobalOptions.GetCodeCleanupOptions(languageServices);
+        var configOptions = editorOptions.ToAnalyzerConfigOptions(fallbackOptions);
 
-        var options = configOptions.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions);
+        var options = configOptions.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions: null);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, optionsProvider.IndentationManager, explicitFormat);
 
         return options with { FormattingOptions = options.FormattingOptions with { LineFormatting = lineFormattingOptions } };

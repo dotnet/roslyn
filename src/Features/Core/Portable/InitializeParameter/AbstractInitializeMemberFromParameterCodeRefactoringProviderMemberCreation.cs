@@ -118,7 +118,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         // Offer to create new one and assign to that.
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions(
             document, parameter, constructorDeclaration, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);

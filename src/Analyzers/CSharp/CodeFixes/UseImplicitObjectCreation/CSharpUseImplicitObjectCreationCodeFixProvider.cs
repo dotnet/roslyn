@@ -58,7 +58,7 @@ internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBase
 #if CODE_STYLE
         var options = CSharpSimplifierOptions.Default;
 #else
-        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
         // Bulk apply these, except at the expression level.  One fix at the expression level may prevent another fix

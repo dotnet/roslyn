@@ -179,6 +179,11 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_style_prefer_local_over_anonymous_function",
         CSharpIdeCodeStyleOptions.Default.PreferLocalOverAnonymousFunction);
 
+    public static readonly Option2<CodeStyleOption2<bool>> PreferSystemThreadingLock = CreateOption(
+        CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+        "csharp_prefer_system_threading_lock",
+        CSharpIdeCodeStyleOptions.Default.PreferSystemThreadingLock);
+
     public static readonly Option2<CodeStyleOption2<bool>> PreferTupleSwap = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_tuple_swap",
         CSharpIdeCodeStyleOptions.Default.PreferTupleSwap);

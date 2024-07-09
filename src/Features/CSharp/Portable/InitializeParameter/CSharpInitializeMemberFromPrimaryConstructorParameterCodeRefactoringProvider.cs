@@ -74,7 +74,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         if (parameterNameParts.BaseName == "")
             return;
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var fieldOrProperty = TryFindMatchingUninitializedFieldOrPropertySymbol();
         var refactorings = fieldOrProperty == null

@@ -46,7 +46,6 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
     private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
             .AddParts(
                 typeof(MockHostWorkspaceProvider),
                 typeof(MockManagedHotReloadService),
@@ -54,6 +53,10 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
             .AddParts(additionalParts);
 
         var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+
+        var sourceTextProvider = (PdbMatchingSourceTextProvider)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is PdbMatchingSourceTextProvider).Value;
+        var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
+        listenerProvider.EventListeners = [sourceTextProvider];
 
         ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
         {

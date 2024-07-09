@@ -116,17 +116,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Flags]
-        public enum Options : byte
+        public enum Options : ushort
         {
             None = 0,
-            IsMethodGroupConversion = 0b_00000001,
-            AllowRefOmittedArguments = 0b_00000010,
-            InferWithDynamic = 0b_00000100,
-            IgnoreNormalFormIfHasValidParamsParameter = 0b_00001000,
-            IsFunctionPointerResolution = 0b_00010000,
-            IsExtensionMethodResolution = 0b_00100000,
-            DynamicResolution = 0b_01000000,
-            DynamicConvertsToAnything = 0b_10000000,
+            IsMethodGroupConversion = 1 << 0,
+            AllowRefOmittedArguments = 1 << 1,
+            InferWithDynamic = 1 << 2,
+            IgnoreNormalFormIfHasValidParamsParameter = 1 << 3,
+            IsFunctionPointerResolution = 1 << 4,
+            IsExtensionMethodResolution = 1 << 5,
+            DynamicResolution = 1 << 6,
+            DynamicConvertsToAnything = 1 << 7,
+            DisallowExpandedNonArrayParams = 1 << 8,
         }
 
         // Perform overload resolution on the given method group, with the given arguments and
@@ -819,7 +820,7 @@ outerDefault:
             var result = normalResult;
             if (!normalResult.IsValid)
             {
-                if (IsValidParams(_binder, constructor, out TypeWithAnnotations definitionElementType))
+                if (IsValidParams(_binder, constructor, disallowExpandedNonArrayParams: false, out TypeWithAnnotations definitionElementType))
                 {
                     var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, definitionElementType, completeResults, ref useSiteInfo);
                     if (expandedResult.IsValid || completeResults)
@@ -1042,8 +1043,8 @@ outerDefault:
             Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArity());
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
-
-            var normalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, out _))
+            bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
+            var normalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _))
                 ? default(MemberResolutionResult<TMember>)
                 : IsMemberApplicableInNormalForm(
                     member,
@@ -1062,7 +1063,7 @@ outerDefault:
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
-                if ((options & Options.IsMethodGroupConversion) == 0 && IsValidParams(_binder, leastOverriddenMember, out TypeWithAnnotations definitionElementType))
+                if ((options & Options.IsMethodGroupConversion) == 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
                         member,
@@ -1162,7 +1163,7 @@ outerDefault:
         // We need to know if this is a valid formal parameter list with a parameter array
         // as the final formal parameter. We might be in an error recovery scenario
         // where the params array is not an array type.
-        public static bool IsValidParams(Binder binder, Symbol member, out TypeWithAnnotations definitionElementType)
+        public static bool IsValidParams(Binder binder, Symbol member, bool disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType)
         {
             // A varargs method is never a valid params method.
             if (member.GetIsVararg())
@@ -1180,7 +1181,7 @@ outerDefault:
 
             ParameterSymbol final = member.GetParameters().Last();
             if ((final.IsParamsArray && final.Type.IsSZArray()) ||
-                (final.IsParamsCollection && !final.Type.IsSZArray() &&
+                (final.IsParamsCollection && !final.Type.IsSZArray() && !disallowExpandedNonArrayParams &&
                  (binder.Compilation.LanguageVersion > LanguageVersion.CSharp12 || member.ContainingModule == binder.Compilation.SourceModule)))
             {
                 return TryInferParamsCollectionIterationType(binder, final.OriginalDefinition.Type, out definitionElementType);

@@ -46,8 +46,8 @@ internal partial class CSharpSimplificationService()
     public override SimplifierOptions DefaultOptions
         => CSharpSimplifierOptions.Default;
 
-    public override SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions)
-        => new CSharpSimplifierOptions(options, (CSharpSimplifierOptions?)fallbackOptions);
+    public override SimplifierOptions GetSimplifierOptions(IOptionsReader options)
+        => new CSharpSimplifierOptions(options, fallbackOptions: null);
 
     public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
     {

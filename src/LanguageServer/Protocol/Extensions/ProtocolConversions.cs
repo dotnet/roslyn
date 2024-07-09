@@ -849,10 +849,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
             LSP.FormattingOptions? options,
             Document document,
-            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (options != null)
             {
