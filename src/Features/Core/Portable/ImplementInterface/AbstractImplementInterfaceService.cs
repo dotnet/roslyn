@@ -54,9 +54,9 @@ internal abstract partial class AbstractImplementInterfaceService : IImplementIn
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
             var generator = ShouldImplementDisposePattern(state, explicitly: false)
                 ? ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePattern(this, document, options, state)
-                : ImplementInterfaceGenerator.CreateImplementCodeAction(this, document, options, state);
+                : ImplementInterfaceGenerator.CreateImplement(this, document, options, state);
 
-            return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -96,7 +96,7 @@ internal abstract partial class AbstractImplementInterfaceService : IImplementIn
             // will be the same as "Implement interface explicitly", so there is no point in having both of them
             if (totalMemberCount != inaccessibleMemberCount)
             {
-                yield return ImplementInterfaceGenerator.CreateImplementCodeAction(this, document, options, state);
+                yield return ImplementInterfaceGenerator.CreateImplement(this, document, options, state);
             }
 
             if (ShouldImplementDisposePattern(state, explicitly: false))

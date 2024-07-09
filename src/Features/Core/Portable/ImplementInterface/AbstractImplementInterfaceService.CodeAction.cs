@@ -65,7 +65,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
         }
 
-        public static ImplementInterfaceGenerator CreateImplementCodeAction(
+        public static ImplementInterfaceGenerator CreateImplement(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
@@ -158,10 +158,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
         public string EquivalenceKey => _equivalenceKey;
 
-        public Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            => GetUpdatedDocumentAsync(cancellationToken);
-
-        public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
+        public Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken)
         {
             var unimplementedMembers = Explicitly
                 ? _onlyRemaining
@@ -171,7 +168,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
         }
 
-        public virtual Task<Document> GetUpdatedDocumentAsync(
+        protected virtual Task<Document> GetUpdatedDocumentAsync(
             Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             INamedTypeSymbol classOrStructType,

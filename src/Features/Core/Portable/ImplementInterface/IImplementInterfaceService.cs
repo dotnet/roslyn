@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 internal interface IImplementInterfaceGenerator
 {
     string Title { get; }
+    string EquivalenceKey { get; }
+
+    Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken);
 }
 
 internal interface IImplementInterfaceService : ILanguageService

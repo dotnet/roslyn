@@ -117,7 +117,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 ? FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern
                 : FeaturesResources.Implement_interface_with_Dispose_pattern;
 
-        public override async Task<Document> GetUpdatedDocumentAsync(
+        protected override async Task<Document> GetUpdatedDocumentAsync(
             Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             INamedTypeSymbol classType,

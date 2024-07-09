@@ -45,22 +45,25 @@ internal class CSharpImplementInterfaceCodeFixProvider : CodeFixProvider
 
         var token = root.FindToken(span.Start);
         if (!token.Span.IntersectsWith(span))
-        {
             return;
-        }
 
         var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()
-                                  .Where(_interfaceName)
-                                  .Select(n => service.GetCodeActions(document, context.Options.GetImplementTypeGenerationOptions(document.Project.Services), model, n, cancellationToken))
-                                  .FirstOrDefault(a => !a.IsEmpty);
+        var generators = token.Parent
+            .GetAncestorsOrThis<TypeSyntax>()
+            .Where(_interfaceName)
+            .Select(n => service.GetGenerators(document, context.Options.GetImplementTypeGenerationOptions(document.Project.Services), model, n, cancellationToken))
+            .FirstOrDefault(a => !a.IsEmpty);
 
-        if (actions.IsDefaultOrEmpty)
+        if (generators.IsDefaultOrEmpty)
             return;
 
-        context.RegisterFixes(actions, context.Diagnostics);
+        context.RegisterFixes(generators.SelectAsArray(
+            g => CodeAction.Create(
+                g.Title,
+                cancellationToken => g.ImplementInterfaceAsync(document, cancellationToken),
+                g.EquivalenceKey)), context.Diagnostics);
     }
 
     public sealed override FixAllProvider GetFixAllProvider()
