@@ -94,7 +94,7 @@ internal abstract partial class AbstractImplementInterfaceService
         bool abstractly,
         ISymbol? throughMember) : ImplementInterfaceGenerator(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
     {
-        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementWithDisposePatternCodeAction(
+        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementWithDisposePattern(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
@@ -103,7 +103,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return new ImplementInterfaceWithDisposePatternGenerator(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
         }
 
-        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementExplicitlyWithDisposePatternCodeAction(
+        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementExplicitlyWithDisposePattern(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,

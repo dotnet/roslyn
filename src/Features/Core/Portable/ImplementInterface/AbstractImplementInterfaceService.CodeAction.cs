@@ -56,7 +56,7 @@ internal abstract partial class AbstractImplementInterfaceService
             _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!);
         }
 
-        public static ImplementInterfaceGenerator CreateImplementAbstractlyCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementAbstractly(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
@@ -74,7 +74,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
         }
 
-        public static ImplementInterfaceGenerator CreateImplementExplicitlyCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementExplicitly(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
@@ -83,7 +83,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return new ImplementInterfaceGenerator(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
         }
 
-        public static ImplementInterfaceGenerator CreateImplementThroughMemberCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementThroughMember(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
@@ -93,7 +93,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
         }
 
-        public static ImplementInterfaceGenerator CreateImplementRemainingExplicitlyCodeAction(
+        public static ImplementInterfaceGenerator CreateImplementRemainingExplicitly(
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
