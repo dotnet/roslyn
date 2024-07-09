@@ -32,8 +32,6 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
-    - powershell: eng/toggle-dumps.ps1 -enable -logDir  '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
-      displayName: Enable Dumps
     - task: PowerShell@2
       displayName: Enable Dumps
       inputs:
