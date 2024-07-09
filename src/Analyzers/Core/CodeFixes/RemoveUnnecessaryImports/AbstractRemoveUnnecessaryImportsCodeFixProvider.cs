@@ -30,7 +30,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFi
         context.RegisterCodeFix(
             CodeAction.Create(
                 title,
-                c => RemoveUnnecessaryImportsAsync(context.Document, context.GetOptionsProvider(), c),
+                c => RemoveUnnecessaryImportsAsync(context.Document, c),
                 title),
             context.Diagnostics);
         return Task.CompletedTask;
@@ -40,12 +40,11 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFi
 
     private async Task<Document> RemoveUnnecessaryImportsAsync(
         Document document,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
 
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
         var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
         return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
     }

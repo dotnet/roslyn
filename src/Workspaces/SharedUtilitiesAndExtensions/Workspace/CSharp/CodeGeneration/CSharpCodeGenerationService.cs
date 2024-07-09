@@ -35,8 +35,8 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
     public override CodeGenerationOptions DefaultOptions
         => CSharpCodeGenerationOptions.Default;
 
-    public override CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions)
-        => new CSharpCodeGenerationOptions(options, (CSharpCodeGenerationOptions?)fallbackOptions);
+    public override CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options)
+        => new CSharpCodeGenerationOptions(options);
 
     public override CSharpCodeGenerationContextInfo GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions)
         => new(context, (CSharpCodeGenerationOptions)options, this, ((CSharpParseOptions)parseOptions).LanguageVersion);

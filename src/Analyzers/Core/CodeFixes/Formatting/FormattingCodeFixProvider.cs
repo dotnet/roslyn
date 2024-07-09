@@ -62,16 +62,16 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
-        var options = await context.Document.GetCodeFixOptionsAsync(context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+        var options = await context.Document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
         var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
         var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, SyntaxFormatting, formattingOptions, diagnostic, cancellationToken).ConfigureAwait(false);
         return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
         var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
         var updatedRoot = Formatter.Format(editor.OriginalRoot, SyntaxFormatting, formattingOptions, cancellationToken);
         editor.ReplaceNode(editor.OriginalRoot, updatedRoot);

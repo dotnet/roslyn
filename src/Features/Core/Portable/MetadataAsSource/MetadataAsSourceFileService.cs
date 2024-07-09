@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -71,7 +72,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         ISymbol symbol,
         bool signaturesOnly,
         MetadataAsSourceOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         if (sourceProject == null)
             throw new ArgumentNullException(nameof(sourceProject));

@@ -237,7 +237,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
     }
 
     [Fact]
-    public void TestHostAnalyzerOrdering()
+    public async Task TestHostAnalyzerOrderingAsync()
     {
         using var workspace = CreateWorkspace();
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
@@ -265,7 +265,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
         var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-        var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
+        var analyzers = await incrementalAnalyzer.GetAnalyzersTestOnlyAsync(project, CancellationToken.None).ConfigureAwait(false);
+        var analyzersArray = analyzers.ToArray();
 
         AssertEx.Equal(new[]
         {
@@ -278,7 +279,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             typeof(Priority10Analyzer),
             typeof(Priority15Analyzer),
             typeof(Priority20Analyzer)
-        }, analyzers.Select(a => a.GetType()));
+        }, analyzersArray.Select(a => a.GetType()));
     }
 
     [Fact]

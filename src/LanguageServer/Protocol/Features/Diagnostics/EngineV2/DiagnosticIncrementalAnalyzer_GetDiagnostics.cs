@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return [];
                 }
 
-                var stateSet = StateManager.GetOrCreateStateSet(project, analyzer);
+                var stateSet = await StateManager.GetOrCreateStateSetAsync(project, analyzer, cancellationToken).ConfigureAwait(false);
                 if (stateSet == null)
                 {
                     return [];
@@ -238,7 +238,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Action<DiagnosticData> callback, CancellationToken cancellationToken)
             {
                 // get analyzers that are not suppressed.
-                var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
+                var stateSetsForProject = await StateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+                var stateSets = stateSetsForProject.Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
                 var ideOptions = Owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 

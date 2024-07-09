@@ -481,6 +481,9 @@ Actual: {editorConfigString}
 
             # IDE0320
             dotnet_diagnostic.IDE0320.severity = %value%
+            
+            # IDE0330
+            dotnet_diagnostic.IDE0330.severity = %value%
 
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
@@ -896,6 +899,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             ("IDE0304", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
             ("IDE0305", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
             ("IDE0320", "csharp_prefer_static_anonymous_function", "true"),
+            ("IDE0330", "csharp_prefer_system_threading_lock", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

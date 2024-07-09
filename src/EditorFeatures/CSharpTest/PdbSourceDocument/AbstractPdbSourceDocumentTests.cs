@@ -130,7 +130,7 @@ public abstract class AbstractPdbSourceDocumentTests
         try
         {
             // Using default settings here because none of the tests exercise any of the settings
-            var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, MetadataAsSourceOptions.GetDefault(project.Services), CancellationToken.None).ConfigureAwait(false);
+            var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
             if (expectNullResult)
             {

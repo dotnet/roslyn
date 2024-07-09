@@ -25,12 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class EventHookupSessionManager(
     IThreadingContext threadingContext,
-    IToolTipService toolTipService,
-    IGlobalOptionService globalOptions)
+    IToolTipService toolTipService)
 {
     public readonly IThreadingContext ThreadingContext = threadingContext;
     private readonly IToolTipService _toolTipService = toolTipService;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     private IToolTipPresenter _toolTipPresenter;
 
@@ -113,7 +111,7 @@ internal sealed partial class EventHookupSessionManager(
         Mutex testSessionHookupMutex)
     {
         CurrentSession = new EventHookupSession(
-            this, eventHookupCommandHandler, textView, subjectBuffer, position, document, asyncListener, _globalOptions, testSessionHookupMutex);
+            this, eventHookupCommandHandler, textView, subjectBuffer, position, document, asyncListener, testSessionHookupMutex);
     }
 
     public void DismissExistingSessions()

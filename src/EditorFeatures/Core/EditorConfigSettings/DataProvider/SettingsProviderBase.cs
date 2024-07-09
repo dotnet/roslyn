@@ -134,7 +134,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
                 return false;
             }
 
-            if (_projectDirectoryConfigData.Value.AnalyzerOptions.TryGetValue(key, out value))
+            if (_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(key, out value))
             {
                 return true;
             }
@@ -162,7 +162,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
                 if (!_projectDirectoryConfigData.HasValue)
                     yield break;
 
-                foreach (var key in _projectDirectoryConfigData.Value.AnalyzerOptions.Keys)
+                foreach (var key in _projectDirectoryConfigData.Value.ConfigOptions.Keys)
                 {
                     if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out _))
                         yield return key;
@@ -172,7 +172,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
                 {
                     var diagnosticKey = "dotnet_diagnostic." + key + ".severity";
                     if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(diagnosticKey, out _) &&
-                        !_projectDirectoryConfigData.Value.AnalyzerOptions.TryGetKey(diagnosticKey, out _))
+                        !_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(diagnosticKey, out _))
                     {
                         yield return diagnosticKey;
                     }

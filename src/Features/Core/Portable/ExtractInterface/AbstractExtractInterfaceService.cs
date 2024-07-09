@@ -194,7 +194,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             refactoringResult.DocumentToExtractFrom.Folders,
             extractedInterfaceSymbol,
             refactoringResult.DocumentToExtractFrom,
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -210,7 +209,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var completedSolution = await GetFormattedSolutionAsync(
             completedUnformattedSolution,
             symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(unformattedInterfaceDocument.Id),
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         return new ExtractInterfaceResult(
@@ -236,7 +234,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             document,
             extractedInterfaceSymbol,
             symbolMapping,
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         var unformattedSolution = documentWithInterface.Project.Solution;
@@ -251,7 +248,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var completedSolution = await GetFormattedSolutionAsync(
             unformattedSolutionWithUpdatedType,
             symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(refactoringResult.DocumentToExtractFrom.Id),
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         return new ExtractInterfaceResult(
@@ -273,7 +269,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
         var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
         var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
         var service = document.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
@@ -290,7 +286,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         // Since code action performs formatting and simplification on a single document, 
         // this ensures that anything marked with formatter or simplifier annotations gets 
@@ -300,7 +296,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         {
             var document = formattedSolution.GetDocument(documentId);
 
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var formattedDocument = await Formatter.FormatAsync(
                 document,

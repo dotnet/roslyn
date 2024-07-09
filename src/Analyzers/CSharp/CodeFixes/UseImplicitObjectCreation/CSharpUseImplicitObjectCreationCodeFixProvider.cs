@@ -48,7 +48,7 @@ internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBase
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         // process from inside->out so that outer rewrites see the effects of inner changes.
         var nodes = diagnostics
@@ -58,7 +58,7 @@ internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBase
 #if CODE_STYLE
         var options = CSharpSimplifierOptions.Default;
 #else
-        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
         // Bulk apply these, except at the expression level.  One fix at the expression level may prevent another fix

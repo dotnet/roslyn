@@ -350,15 +350,7 @@ internal partial class DocumentState : TextDocumentState
 
     private DocumentState SetParseOptions(ParseOptions options, bool onlyPreprocessorDirectiveChange)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        if (!SupportsSyntaxTree)
-        {
-            throw new InvalidOperationException();
-        }
+        Contract.ThrowIfFalse(SupportsSyntaxTree);
 
         ITreeAndVersionSource? newTreeSource = null;
 
@@ -413,42 +405,37 @@ internal partial class DocumentState : TextDocumentState
         return this.SetParseOptions(this.ParseOptions.WithKind(kind), onlyPreprocessorDirectiveChange: false);
     }
 
-    // TODO: https://github.com/dotnet/roslyn/issues/37125
-    // if FilePath is null, then this will change the name of the underlying tree, but we aren't producing a new tree in that case.
     public DocumentState UpdateName(string name)
         => UpdateAttributes(Attributes.With(name: name));
+
+    public DocumentState UpdateFilePath(string? path)
+        => UpdateAttributes(Attributes.With(filePath: path));
 
     public DocumentState UpdateFolders(IReadOnlyList<string> folders)
         => UpdateAttributes(Attributes.With(folders: folders));
 
-    private DocumentState UpdateAttributes(DocumentInfo.DocumentAttributes attributes)
+    private DocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
     {
-        Debug.Assert(attributes != Attributes);
-
-        return new DocumentState(
-            LanguageServices,
-            Services,
-            attributes,
-            _options,
-            TextAndVersionSource,
-            LoadTextOptions,
-            _treeSource);
-    }
-
-    public DocumentState UpdateFilePath(string? filePath)
-    {
-        var newAttributes = Attributes.With(filePath: filePath);
         Debug.Assert(newAttributes != Attributes);
 
-        // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have to do is update the
-        // file path and diagnostic options for that tree.
-        var newTreeSource = SupportsSyntaxTree ?
-            CreateLazyFullyParsedTree(
-                TextAndVersionSource,
-                LoadTextOptions,
-                newAttributes.SyntaxTreeFilePath,
-                _options,
-                LanguageServices) : null;
+        ITreeAndVersionSource? newTreeSource;
+
+        if (newAttributes.SyntaxTreeFilePath != Attributes.SyntaxTreeFilePath)
+        {
+            // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have to do is update the
+            // file path and diagnostic options for that tree.
+            newTreeSource = SupportsSyntaxTree ?
+                CreateLazyFullyParsedTree(
+                    TextAndVersionSource,
+                    LoadTextOptions,
+                    newAttributes.SyntaxTreeFilePath,
+                    _options,
+                    LanguageServices) : null;
+        }
+        else
+        {
+            newTreeSource = _treeSource;
+        }
 
         return new DocumentState(
             LanguageServices,

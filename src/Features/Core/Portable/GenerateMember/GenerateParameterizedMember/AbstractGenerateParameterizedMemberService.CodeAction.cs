@@ -23,20 +23,17 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
         private readonly bool _isAbstract;
         private readonly bool _generateProperty;
         private readonly string _equivalenceKey;
-        private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
         public GenerateParameterizedMemberCodeAction(
             TService service,
             Document document,
             State state,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
             bool isAbstract,
             bool generateProperty)
         {
             _service = service;
             _document = document;
             _state = state;
-            _fallbackOptions = fallbackOptions;
             _isAbstract = isAbstract;
             _generateProperty = generateProperty;
             _equivalenceKey = Title;
@@ -78,8 +75,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                         _document.Project.Solution,
                         new CodeGenerationContext(
                             afterThisLocation: _state.IdentifierToken.GetLocation(),
-                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
-                        _fallbackOptions),
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
                     _state.TypeToGenerateIn,
                     property,
                     cancellationToken).ConfigureAwait(false);
@@ -95,8 +91,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                        _document.Project.Solution,
                        new CodeGenerationContext(
                            afterThisLocation: _state.Location,
-                           generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
-                       _fallbackOptions),
+                           generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
                     _state.TypeToGenerateIn,
                     method,
                     cancellationToken)

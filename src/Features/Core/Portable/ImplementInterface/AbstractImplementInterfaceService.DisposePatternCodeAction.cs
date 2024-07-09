@@ -153,7 +153,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 sortMembers: false,
                 autoInsertionLocation: false);
 
-            var info = await document.GetCodeGenerationInfoAsync(context, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
             var typeDeclarationWithAllMembers = info.Service.AddMembers(
                 typeDeclarationWithCoreMembers,
@@ -344,7 +344,7 @@ internal abstract partial class AbstractImplementInterfaceService
             CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
-                SymbolKind.Field, Accessibility.Private, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
 
             var requireAccessiblity = await GetAccessibilityModifiersRequiredAsync(document, cancellationToken).ConfigureAwait(false);
 
