@@ -12,8 +12,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
     private sealed class CodeActionAll(
         Document document,
         State state,
-        IList<IMethodSymbol> constructors,
-        CodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, constructors, FeaturesResources.Generate_all, fallbackOptions)
+        IList<IMethodSymbol> constructors) : AbstractCodeAction(document, state, constructors, FeaturesResources.Generate_all)
     {
     }
 }

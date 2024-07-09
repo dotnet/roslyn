@@ -74,14 +74,13 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         var semanticModel = await GetSemanticModelAsync(document).ConfigureAwait(false);
 
-        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
+        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
         // The naming rule we need to follow if we synthesize new private fields.
         var fieldNameRule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
             DeclarationModifiers.None,
             Accessibility.Private,
-            optionsProvider,
             cancellationToken).ConfigureAwait(false);
 
         // Get the named type and all its parameters for use during the rewrite.

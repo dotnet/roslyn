@@ -43,7 +43,7 @@ internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCo
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<Location>.GetInstance(out var declaratorLocations);
         using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);

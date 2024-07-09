@@ -338,7 +338,7 @@ public static class Formatter
         else
         {
             syntaxFormattingOptions = null;
-            lineFormattingOptions = optionSet.GetLineFormattingOptions(document.Project.Language, fallbackOptions: null);
+            lineFormattingOptions = optionSet.GetLineFormattingOptions(document.Project.Language);
         }
 
         return (syntaxFormattingOptions, lineFormattingOptions);

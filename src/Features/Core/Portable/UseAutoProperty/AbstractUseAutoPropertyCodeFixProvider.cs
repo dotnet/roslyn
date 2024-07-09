@@ -138,7 +138,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         var resolution = await filteredLocations.ResolveConflictsAsync(
             fieldSymbol, propertySymbol.Name,
             nonConflictSymbolKeys: [propertySymbol.GetSymbolKey(cancellationToken)],
-            context.Options, cancellationToken).ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
 
         Contract.ThrowIfFalse(resolution.IsSuccessful);
 

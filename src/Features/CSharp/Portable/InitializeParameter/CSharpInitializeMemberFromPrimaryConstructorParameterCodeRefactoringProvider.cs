@@ -69,7 +69,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
         // field/prop if we can find one, or add a new field/prop if we can't.
         var fallbackOptions = context.Options;
-        var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
         if (parameterNameParts.BaseName == "")
             return;

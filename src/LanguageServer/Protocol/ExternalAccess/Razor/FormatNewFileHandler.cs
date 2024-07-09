@@ -64,7 +64,7 @@ internal sealed class FormatNewFileHandler : ILspServiceRequestHandler<FormatNew
         if (formattingService is not null)
         {
             var hintDocument = project.Documents.FirstOrDefault();
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
             document = await formattingService.FormatNewDocumentAsync(document, hintDocument, cleanupOptions, cancellationToken).ConfigureAwait(false);
         }
 
