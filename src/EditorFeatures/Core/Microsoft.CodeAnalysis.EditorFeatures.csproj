@@ -28,9 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" />
-    <!-- The ImageCatalog reference is only used at compile time, not at runtime, because it is not supported on Mac.
-         There is a test to ensure this doesn't regress in src\EditorFeatures\Test\AssemblyReferenceTests.cs -->
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" />
     <PackageReference Include="Microsoft.VisualStudio.Language" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
     <PackageReference Include="Microsoft.ServiceHub.Client" />
