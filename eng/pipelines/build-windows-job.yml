@@ -32,29 +32,17 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
-    - task: PowerShell@2
+    - powershell: eng/toggle-dumps.ps1 -enable -logDir '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
       displayName: Enable Dumps
-      inputs:
-        filePath: eng/toggle-dumps.ps1
-        arguments: -enable -logDir  '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
 
-    - task: PowerShell@2
+    - powershell: eng/build.ps1 -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
       displayName: Restore
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
 
-    - task: PowerShell@2
+    - powershell: eng/build.ps1 -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
       displayName: Build
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
-    - task: PowerShell@2
+    - powershell: eng/prepare-tests.ps1 -configuration ${{ parameters.configuration }}
       displayName: Prepare Unit Tests
-      inputs:
-        filePath: eng/prepare-tests.ps1
-        arguments: -configuration ${{ parameters.configuration }}
       condition: and(ne(variables['artifactName'], ''), succeeded())
 
     - task: PublishPipelineArtifact@1
