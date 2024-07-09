@@ -146,11 +146,6 @@ internal sealed class CSharpEditorInlineRenameService(
         CancellationToken cancellationToken)
             where T : CSharpSyntaxNode
     {
-        if (document.Project.Language is not LanguageNames.CSharp)
-        {
-            return null;
-        }
-
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
         {
