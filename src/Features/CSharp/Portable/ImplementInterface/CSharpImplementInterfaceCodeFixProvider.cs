@@ -62,7 +62,7 @@ internal class CSharpImplementInterfaceCodeFixProvider : CodeFixProvider
         context.RegisterFixes(generators.SelectAsArray(
             g => CodeAction.Create(
                 g.Title,
-                cancellationToken => g.ImplementInterfaceAsync(document, cancellationToken),
+                cancellationToken => g.ImplementInterfaceAsync(cancellationToken),
                 g.EquivalenceKey)), context.Diagnostics);
     }
 

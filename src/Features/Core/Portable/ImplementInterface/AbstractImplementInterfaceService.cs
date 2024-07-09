@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -19,13 +18,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
-internal abstract partial class AbstractImplementInterfaceService : IImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService() : IImplementInterfaceService
 {
     protected const string DisposingName = "disposing";
-
-    protected AbstractImplementInterfaceService()
-    {
-    }
 
     protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
 
