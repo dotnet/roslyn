@@ -49,7 +49,12 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1", symbolValidator: module =>
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1", symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "1").VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
         {
             var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var ms = c.GetMembers("M").Cast<MethodSymbol>();
@@ -64,10 +69,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                     Assert.Equal(0, m.OverloadResolutionPriority);
                 }
             }
-        }).VerifyDiagnostics();
-
-        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
-        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "1").VerifyDiagnostics();
+        };
     }
 
     [Theory, CombinatorialData]
@@ -169,18 +171,20 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         );
 
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
-        CompileAndVerify(comp, symbolValidator: module =>
-        {
-            var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var ms = c.GetMembers("M").Cast<MethodSymbol>();
-            Assert.All(ms, m => Assert.Equal(0, m.OverloadResolutionPriority));
-        }).VerifyDiagnostics();
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
         CreateCompilation(executable, references: [AsReference(comp, useMetadataReference)]).VerifyDiagnostics(
             // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1)' and 'C.M(I2)'
             // C.M(i3);
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(I1)", "C.M(I2)").WithLocation(2, 3)
         );
+
+        static void validate(ModuleSymbol module)
+        {
+            var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var ms = c.GetMembers("M").Cast<MethodSymbol>();
+            Assert.All(ms, m => Assert.Equal(0, m.OverloadResolutionPriority));
+        }
     }
 
     [Theory]
