@@ -53,7 +53,7 @@ internal abstract partial class AbstractImplementInterfaceService
             _onlyRemaining = onlyRemaining;
             Explicitly = explicitly;
             ThroughMember = throughMember;
-            _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!);
+            _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!.Replace("Generator", "CodeAction")!);
         }
 
         public static ImplementInterfaceGenerator CreateImplementAbstractly(
@@ -159,6 +159,9 @@ internal abstract partial class AbstractImplementInterfaceService
         public string EquivalenceKey => _equivalenceKey;
 
         public Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken)
+            => GetUpdatedDocumentAsync(cancellationToken);
+
+        public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
         {
             var unimplementedMembers = Explicitly
                 ? _onlyRemaining

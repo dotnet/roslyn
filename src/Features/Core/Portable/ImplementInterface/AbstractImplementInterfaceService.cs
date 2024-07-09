@@ -51,7 +51,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
                 ? ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePattern(this, document, options, state)
                 : ImplementInterfaceGenerator.CreateImplement(this, document, options, state);
 
-            return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
+            return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
