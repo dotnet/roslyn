@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
+                                        .Where(a => !a.IsOpenFileOnly(ideOptions.SimplifierOptions));
 
                 CompilationWithAnalyzers? compilationWithAnalyzers = null;
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 internal interface ISyntaxFormatting
 {
     SyntaxFormattingOptions DefaultOptions { get; }
-    SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions);
+    SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options);
 
     ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
     IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken);

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // We can't return here if we have open file only analyzers since saved data for open file only analyzer
                     // is incomplete -- it only contains info on open files rather than whole project.
-                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.CleanupOptions?.SimplifierOptions))
+                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.SimplifierOptions))
                     {
                         return existingData;
                     }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 if (existing.TryGetValue(analyzer, out var analysisResult) &&
                     analysisResult.Version == version &&
-                    !analyzer.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions))
+                    !analyzer.IsOpenFileOnly(ideOptions.SimplifierOptions))
                 {
                     // we already have up to date result.
                     continue;
