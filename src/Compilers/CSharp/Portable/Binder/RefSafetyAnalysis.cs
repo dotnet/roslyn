@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // At the moment this is only a hypothetical problem. Because the language 
                         // doesn't support ref field of ref struct mixing like this could not actually
                         // happen in practice. At the same time we want to error on this now so that 
-                        // in a future that we do have ref filed to ref struct this is not a breaking 
+                        // in a future when we do have ref field to ref struct this is not a breaking 
                         // change. Customers can respond to failures like this by putting scoped on
                         // such parameters in the constructor.
                         var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
