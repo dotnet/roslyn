@@ -716,6 +716,55 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        internal const string OverloadResolutionPriorityAttributeDefinition = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+            public sealed class OverloadResolutionPriorityAttribute(int priority) : Attribute
+            {
+                public int Priority => priority;
+            }
+            """;
+
+        internal const string OverloadResolutionPriorityAttributeILDefinition = """
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute
+                extends [mscorlib]System.Attribute
+            {
+                .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+                    01 00 e0 00 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+                    4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+                    72 69 74 65 64 00
+                )
+                .field private int32 '<priority>P'
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        int32 priority
+                    ) cil managed 
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::'<priority>P'
+                    ldarg.0
+                    call instance void [mscorlib]System.Attribute::.ctor()
+                    ret
+                }
+                .method public hidebysig specialname 
+                    instance int32 get_Priority () cil managed 
+                {
+                    ldarg.0
+                    ldfld int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::'<priority>P'
+                    ret
+                }
+                .property instance int32 Priority()
+                {
+                    .get instance int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::get_Priority()
+                }
+            }
+            """;
+
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
         {
             return GetSyntaxes<T>(tree, text).Single();
