@@ -260,11 +260,6 @@ internal interface IEditorInlineRenameService : ILanguageService
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns whether this language service can return optional context from <see cref="GetRenameContextAsync(IInlineRenameInfo, IInlineRenameLocationSet, CancellationToken)"/>.
-    /// </summary>
-    bool IsRenameContextSupported { get; }
-
-    /// <summary>
     /// Returns optional context used in Copilot addition to inline rename feature.
     /// </summary>
     /// <param name="inlineRenameInfo"></param>

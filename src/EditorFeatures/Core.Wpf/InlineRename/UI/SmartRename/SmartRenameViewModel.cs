@@ -173,17 +173,13 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             var document = this.BaseViewModel.Session.TriggerDocument;
             var smartRenameContext = ImmutableDictionary<string, string[]>.Empty;
             var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-            if (editorRenameService.IsRenameContextSupported)
-            {
-                var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
-                    .ConfigureAwait(false);
-                var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
-                    .ConfigureAwait(false);
-                smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
-                    context
-                    .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
-            }
-
+            var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+                .ConfigureAwait(false);
+            var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
+                .ConfigureAwait(false);
+            smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
+                context
+                .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
             _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
                 .ConfigureAwait(false);
         }

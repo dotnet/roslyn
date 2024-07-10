@@ -31,8 +31,6 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
     private const int MaxDefinitionCount = 10;
     private const int MaxReferenceCount = 50;
 
-    public override bool IsRenameContextSupported => true;
-
     /// <summary>
     /// Uses semantic information of renamed symbol to produce a map containing contextual information for use in Copilot rename feature
     /// </summary>

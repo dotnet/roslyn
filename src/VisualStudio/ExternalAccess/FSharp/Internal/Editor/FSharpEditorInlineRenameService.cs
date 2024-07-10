@@ -202,8 +202,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public bool IsRenameContextSupported => false;
-
         public Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);

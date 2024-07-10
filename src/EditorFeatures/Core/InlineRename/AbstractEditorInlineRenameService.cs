@@ -29,8 +29,6 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
             _refactorNotifyServices, symbolicInfo, cancellationToken);
     }
 
-    public virtual bool IsRenameContextSupported => false;
-
     public virtual Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
         return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);
