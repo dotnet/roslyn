@@ -38,12 +38,12 @@ internal abstract partial class AbstractImplementInterfaceService
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private async Task<Document> ImplementDisposePatternAsync(
-            Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             INamedTypeSymbol classType,
             SyntaxNode classDecl,
             CancellationToken cancellationToken)
         {
+            var document = this.Document;
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var disposedValueField = await CreateDisposedValueFieldAsync(

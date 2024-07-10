@@ -26,13 +26,14 @@ internal abstract partial class AbstractImplementInterfaceService
 {
     private sealed partial class ImplementInterfaceGenerator
     {
+        private readonly Document Document;
+
         private readonly bool Explicitly;
         private readonly bool Abstractly;
         private readonly bool _onlyRemaining;
         private readonly bool _implementDisposePattern;
 
         private readonly ISymbol? ThroughMember;
-        private readonly Document Document;
         private readonly ImplementTypeGenerationOptions Options;
         private readonly IImplementInterfaceInfo State;
         private readonly AbstractImplementInterfaceService Service;
@@ -69,37 +70,29 @@ internal abstract partial class AbstractImplementInterfaceService
                     ? State.MembersWithoutExplicitOrImplicitImplementation
                     : State.MembersWithoutExplicitImplementation
                 : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-            return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
-        }
 
-        private Task<Document> GetUpdatedDocumentAsync(
-            Document document,
-            ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-            INamedTypeSymbol classOrStructType,
-            SyntaxNode classOrStructDecl,
-            CancellationToken cancellationToken)
-        {
             if (_implementDisposePattern)
             {
                 return ImplementDisposePatternAsync(
-                    document, unimplementedMembers, classOrStructType, classOrStructDecl, cancellationToken);
+                    unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
             else
             {
                 return GetUpdatedDocumentAsync(
-                    document, unimplementedMembers, classOrStructType, classOrStructDecl,
+                    unimplementedMembers,
+                    State.ClassOrStructType, State.ClassOrStructDecl,
                     extraMembers: [], cancellationToken);
             }
         }
 
         private async Task<Document> GetUpdatedDocumentAsync(
-            Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             INamedTypeSymbol classOrStructType,
             SyntaxNode classOrStructDecl,
             ImmutableArray<ISymbol> extraMembers,
             CancellationToken cancellationToken)
         {
+            var document = this.Document;
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
