@@ -10,18 +10,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.RoslynTools.PRFinder.Formatters
 {
-    internal class ChangelogFormatter : IPRLogFormatter
+    internal class ChangelogFormatter : DefaultFormatter
     {
-        public string FormatChangesHeader(string previous, string previousUrl, string current, string currentUrl)
-            => $"### Changes from [{previous}]({previousUrl}) to [{current}]({currentUrl}):";
-
-        public virtual string FormatCommitListItem(string comment, string shortSHA, string commitUrl)
-            => $"- [{comment} ({shortSHA})]({commitUrl})";
-
-        public virtual string FormatDiffHeader(string diffUrl)
-            => $"[View Complete Diff of Changes]({diffUrl})";
-
-        public virtual string FormatPRListItem(string comment, string prNumber, string prUrl)
+        public override string FormatPRListItem(string comment, string prNumber, string prUrl)
         {
             prNumber = prNumber.StartsWith("#")
                 ? prNumber
@@ -29,11 +20,5 @@ namespace Microsoft.RoslynTools.PRFinder.Formatters
 
             return $"  * {comment} (PR: [{prNumber}]({prUrl}))";
         }
-
-        public virtual string GetCommitSectionHeader()
-            => "### Commits since last PR:";
-
-        public virtual string GetPRSectionHeader()
-            => "### Merged PRs:";
     }
 }
