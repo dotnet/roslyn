@@ -150,8 +150,8 @@ internal static class CodeActionOptionsProviders
 #endif
 
 #if !CODE_STYLE
-    public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
-        => new(provider.GetOptions(languageServices).ImplementTypeOptions, provider);
+    public static ImplementTypeOptions GetImplementTypeOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
+        => provider.GetOptions(languageServices).ImplementTypeOptions;
 
     public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
     {

@@ -88,7 +88,7 @@ internal abstract partial class AbstractImplementInterfaceService
     private sealed class ImplementInterfaceWithDisposePatternCodeAction(
         AbstractImplementInterfaceService service,
         Document document,
-        ImplementTypeGenerationOptions options,
+        ImplementTypeOptions options,
         State state,
         bool explicitly,
         bool abstractly,
@@ -97,7 +97,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state)
         {
             return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
@@ -106,7 +106,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state)
         {
             return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
