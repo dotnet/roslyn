@@ -5,11 +5,13 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService;
 
@@ -46,21 +48,27 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
 
                 var info = await service.AnalyzeAsync(
                     document, type, cancellationToken).ConfigureAwait(false);
-                var generators = GetGenerators(
-                    document, options, info, cancellationToken).ToImmutableArray();
+                using var _ = ArrayBuilder<IImplementInterfaceGenerator>.GetInstance(out var generators);
+                await foreach (var generator in GetGeneratorsAsync(document, options, info, cancellationToken))
+                    generators.AddIfNotNull(generator);
 
-                context.RegisterFixes(generators.SelectAsArray(
-                    g => CodeAction.Create(
-                        g.Title,
-                        cancellationToken => g.ImplementInterfaceAsync(cancellationToken),
-                        g.EquivalenceKey)), context.Diagnostics);
+                if (generators.Count > 0)
+                {
+                    context.RegisterFixes(generators.SelectAsArray(
+                        g => CodeAction.Create(
+                            g.Title,
+                            cancellationToken => g.ImplementInterfaceAsync(cancellationToken),
+                            g.EquivalenceKey)), context.Diagnostics);
+                }
+
                 break;
             }
         }
     }
 
-    private async IEnumerable<IImplementInterfaceGenerator> GetGenerators(
-        Document document, ImplementTypeGenerationOptions options, IImplementInterfaceInfo? state, CancellationToken cancellationToken)
+    private async IAsyncEnumerable<IImplementInterfaceGenerator> GetGeneratorsAsync(
+        Document document, ImplementTypeGenerationOptions options, IImplementInterfaceInfo? state,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (state == null)
         {
