@@ -24,16 +24,18 @@ using static ImplementHelpers;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    private partial class ImplementInterfaceGenerator
+    private sealed partial class ImplementInterfaceGenerator
     {
-        protected readonly bool Explicitly;
-        protected readonly bool Abstractly;
+        private readonly bool Explicitly;
+        private readonly bool Abstractly;
         private readonly bool _onlyRemaining;
-        protected readonly ISymbol? ThroughMember;
-        protected readonly Document Document;
-        protected readonly ImplementTypeGenerationOptions Options;
-        protected readonly IImplementInterfaceInfo State;
-        protected readonly AbstractImplementInterfaceService Service;
+        private readonly bool _implementDisposePattern;
+
+        private readonly ISymbol? ThroughMember;
+        private readonly Document Document;
+        private readonly ImplementTypeGenerationOptions Options;
+        private readonly IImplementInterfaceInfo State;
+        private readonly AbstractImplementInterfaceService Service;
 
         internal ImplementInterfaceGenerator(
             AbstractImplementInterfaceService service,
@@ -43,6 +45,7 @@ internal abstract partial class AbstractImplementInterfaceService
             bool explicitly,
             bool abstractly,
             bool onlyRemaining,
+            bool implementDisposePattern,
             ISymbol? throughMember)
         {
             Service = service;
@@ -51,6 +54,7 @@ internal abstract partial class AbstractImplementInterfaceService
             Options = options;
             Abstractly = abstractly;
             _onlyRemaining = onlyRemaining;
+            _implementDisposePattern = implementDisposePattern;
             Explicitly = explicitly;
             ThroughMember = throughMember;
         }
@@ -68,19 +72,27 @@ internal abstract partial class AbstractImplementInterfaceService
             return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
         }
 
-        protected virtual Task<Document> GetUpdatedDocumentAsync(
+        private Task<Document> GetUpdatedDocumentAsync(
             Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             INamedTypeSymbol classOrStructType,
             SyntaxNode classOrStructDecl,
             CancellationToken cancellationToken)
         {
-            return GetUpdatedDocumentAsync(
-                document, unimplementedMembers, classOrStructType, classOrStructDecl,
-                [], cancellationToken);
+            if (_implementDisposePattern)
+            {
+                return ImplementDisposePatternAsync(
+                    document, unimplementedMembers, classOrStructType, classOrStructDecl, cancellationToken);
+            }
+            else
+            {
+                return GetUpdatedDocumentAsync(
+                    document, unimplementedMembers, classOrStructType, classOrStructDecl,
+                    extraMembers: [], cancellationToken);
+            }
         }
 
-        protected async Task<Document> GetUpdatedDocumentAsync(
+        private async Task<Document> GetUpdatedDocumentAsync(
             Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             INamedTypeSymbol classOrStructType,

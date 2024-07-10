@@ -25,27 +25,19 @@ using static ImplementHelpers;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
-    // the naming style that the user has specified.
-    private static readonly ImmutableArray<string> s_disposedValueNameParts =
-        ["disposed", "value"];
-
-    // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
-    private static readonly SymbolDisplayFormat s_format = new(
-        memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
-        parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
-        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-    private sealed class ImplementInterfaceWithDisposePatternGenerator(
-        AbstractImplementInterfaceService service,
-        Document document,
-        ImplementTypeGenerationOptions options,
-        IImplementInterfaceInfo state,
-        bool explicitly,
-        bool abstractly,
-        ISymbol? throughMember) : ImplementInterfaceGenerator(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
+    private sealed partial class ImplementInterfaceGenerator
     {
-        protected override async Task<Document> GetUpdatedDocumentAsync(
+        // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
+        // the naming style that the user has specified.
+        private static readonly ImmutableArray<string> s_disposedValueNameParts = ["disposed", "value"];
+
+        // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
+        private static readonly SymbolDisplayFormat s_format = new(
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private async Task<Document> ImplementDisposePatternAsync(
             Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             INamedTypeSymbol classType,
