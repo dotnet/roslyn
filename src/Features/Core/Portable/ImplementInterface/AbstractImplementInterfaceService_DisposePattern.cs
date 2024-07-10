@@ -35,56 +35,6 @@ internal abstract partial class AbstractImplementInterfaceService
         parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
         miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-    private static IMethodSymbol? TryGetIDisposableDispose(Compilation compilation)
-    {
-        // Get symbol for 'System.IDisposable'.
-        var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
-        if (idisposable?.TypeKind == TypeKind.Interface)
-        {
-            var idisposableMembers = idisposable.GetMembers(nameof(IDisposable.Dispose));
-            foreach (var member in idisposableMembers)
-            {
-                if (member is IMethodSymbol disposeMethod &&
-                    !disposeMethod.IsStatic &&
-                    disposeMethod.ReturnsVoid &&
-                    disposeMethod.Arity == 0 &&
-                    disposeMethod.Parameters.Length == 0)
-                {
-                    return disposeMethod;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static bool ShouldImplementDisposePattern(State state, bool explicitly)
-    {
-        // Dispose pattern should be implemented only if -
-        // 1. An interface named 'System.IDisposable' is unimplemented.
-        // 2. This interface has one and only one member - a non-generic method named 'Dispose' that takes no arguments and returns 'void'.
-        // 3. The implementing type is a class that does not already declare any conflicting members named 'disposedValue' or 'Dispose'
-        //    (because we will be generating a 'disposedValue' field and a couple of methods named 'Dispose' as part of implementing 
-        //    the dispose pattern).
-        if (state.ClassOrStructType.TypeKind != TypeKind.Class)
-            return false;
-
-        var disposeMethod = TryGetIDisposableDispose(state.Model.Compilation);
-        if (disposeMethod == null)
-            return false;
-
-        var idisposableType = disposeMethod.ContainingType;
-        var unimplementedMembers = explicitly
-            ? state.MembersWithoutExplicitImplementation
-            : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-        if (!unimplementedMembers.Any(static (m, idisposableType) => m.type.Equals(idisposableType), idisposableType))
-            return false;
-
-        // The dispose pattern is only applicable if the implementing type does
-        // not already have an implementation of IDisposableDispose.
-        return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
-    }
-
     private sealed class ImplementInterfaceWithDisposePatternGenerator(
         AbstractImplementInterfaceService service,
         Document document,

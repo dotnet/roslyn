@@ -245,4 +245,47 @@ internal static class ImplementHelpers
 
         return false;
     }
+
+    private static bool ShouldImplementDisposePattern(Compilation compilation, IImplementInterfaceInfo state, bool explicitly)
+    {
+        // Dispose pattern should be implemented only if -
+        // 1. An interface named 'System.IDisposable' is unimplemented.
+        // 2. This interface has one and only one member - a non-generic method named 'Dispose' that takes no arguments and returns 'void'.
+        // 3. The implementing type is a class that does not already declare any conflicting members named 'disposedValue' or 'Dispose'
+        //    (because we will be generating a 'disposedValue' field and a couple of methods named 'Dispose' as part of implementing
+        //    the dispose pattern).
+        if (state.ClassOrStructType.TypeKind != TypeKind.Class)
+            return false;
+
+        var disposeMethod = TryGetIDisposableDispose(compilation);
+        if (disposeMethod == null)
+            return false;
+
+        var idisposableType = disposeMethod.ContainingType;
+        var unimplementedMembers = explicitly
+            ? state.MembersWithoutExplicitImplementation
+            : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
+        if (!unimplementedMembers.Any(static (m, idisposableType) => m.type.Equals(idisposableType), idisposableType))
+            return false;
+
+        // The dispose pattern is only applicable if the implementing type does
+        // not already have an implementation of IDisposableDispose.
+        return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
+    }
+
+    private static IMethodSymbol? TryGetIDisposableDispose(Compilation compilation)
+    {
+        // Get symbol for 'System.IDisposable'.
+        var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
+        if (idisposable?.TypeKind == TypeKind.Interface)
+        {
+            foreach (var member in idisposable.GetMembers(nameof(IDisposable.Dispose)))
+            {
+                if (member is IMethodSymbol { IsStatic: false, ReturnsVoid: true, Arity: 0, Parameters.Length: 0 } disposeMethod)
+                    return disposeMethod;
+            }
+        }
+
+        return null;
+    }
 }
