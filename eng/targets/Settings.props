@@ -66,9 +66,6 @@
       Related to https://github.com/dotnet/sdk/issues/41791.
     -->
     <BuildWithNetFrameworkHostedCompiler>false</BuildWithNetFrameworkHostedCompiler>
-
-    <!-- https://github.com/dotnet/msbuild/issues/10306 -->
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);ResolveKeySource</CoreCompileDependsOn> 
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
