@@ -54,7 +54,7 @@ internal partial class GenerateOverridesCodeRefactoringProvider(IPickMembersServ
 
         context.RegisterRefactoring(
             new GenerateOverridesWithDialogCodeAction(
-                this, document, textSpan, containingType, overridableMembers, context.Options),
+                this, document, textSpan, containingType, overridableMembers),
             typeDeclaration.Span);
     }
 }

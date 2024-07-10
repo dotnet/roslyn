@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3135,6 +3136,141 @@ struct A : System.IDisposable
                     verifier.VerifyDiagnostics();
                 }
             }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_01(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F++;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_02(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F += 2;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "2").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_03(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.S.Inc();
+                }
+
+                Console.Write(v.S.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                    public void Dispose() { }
+                }
+                                
+                struct V
+                {
+                    public S S;
+                }
+
+                struct S
+                {
+                    public int F;
+                    public void Inc() => F++;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_04(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F++;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref readonly V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (7,5): error CS8332: Cannot assign to a member of field 'V' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //     d.V.F++;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "d.V.F").WithArguments("field", "V").WithLocation(7, 5));
         }
     }
 }

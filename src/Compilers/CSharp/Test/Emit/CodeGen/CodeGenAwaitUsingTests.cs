@@ -3123,9 +3123,9 @@ ref struct C
                 """;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 16));
 
             var expectedDiagnostics = new[]
             {
@@ -3134,7 +3134,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
             };
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3167,7 +3167,7 @@ ref struct C
             };
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3205,7 +3205,7 @@ ref struct C
             var expectedOutput = "123CD 123CD456";
 
             CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -3242,13 +3242,13 @@ ref struct C
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using ((await GetC()).GetR())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(await GetC()).GetR()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "(await GetC()).GetR()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 16));
 
             var expectedOutput = "1GaGbC2D3";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, verify: Verification.FailsILVerify).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
@@ -3281,13 +3281,13 @@ ref struct C
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (10,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 16));
 
             var expectedOutput = "12C3D45";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -3330,7 +3330,7 @@ ref struct C
             var expectedOutput = "1a2C3D4b5";
 
             CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -3363,13 +3363,13 @@ ref struct C
                 }
                 """;
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 22));
 
             var expectedOutput = "1C2D3";
 
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
@@ -3398,9 +3398,9 @@ ref struct C
                 """;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22));
 
             var expectedDiagnostics = new[]
             {
@@ -3409,7 +3409,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 22)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3436,9 +3436,9 @@ ref struct C
                 """ + AsyncStreamsTypes;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (7,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22));
 
             var expectedDiagnostics = new[]
             {
@@ -3447,7 +3447,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(7, 22)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3472,9 +3472,9 @@ ref struct C
                 """ + AsyncStreamsTypes;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using var _ = new R();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 21));
 
             var expectedDiagnostics = new[]
             {
@@ -3483,7 +3483,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "_ = new R()").WithArguments("R").WithLocation(7, 25)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3523,13 +3523,13 @@ ref struct C
                 }
                 """ + AsyncStreamsTypes;
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (15,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(15, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 22));
 
             var expectedOutput = "1CD 1CD2";
 
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);

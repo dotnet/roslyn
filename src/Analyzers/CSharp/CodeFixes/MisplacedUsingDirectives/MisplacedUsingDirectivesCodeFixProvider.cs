@@ -62,7 +62,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var simplifierOptions = options.GetSimplifierOptions();
 
         // Read the preferred placement option and verify if it can be applied to this code file. There are cases

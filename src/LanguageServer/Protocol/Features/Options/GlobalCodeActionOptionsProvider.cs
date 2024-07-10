@@ -55,7 +55,7 @@ internal static class CodeActionOptionsStorage
             => ValueTaskFactory.FromResult(_globalOptions.GetSimplifierOptions(languageServices));
 
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetAddImportPlacementOptions(languageServices));
+            => ValueTaskFactory.FromResult(_globalOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions: null));
 
         ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetOrganizeImportsOptions(languageServices.Language));

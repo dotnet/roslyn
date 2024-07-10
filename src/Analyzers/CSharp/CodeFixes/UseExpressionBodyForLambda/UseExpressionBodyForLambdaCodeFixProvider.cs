@@ -47,10 +47,10 @@ internal sealed class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBa
         return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        => FixAllAsync(document, diagnostics, editor, cancellationToken);
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        => FixAllImplAsync(document, diagnostics, editor, cancellationToken);
 
-    private static async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    private static async Task FixAllImplAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         foreach (var diagnostic in diagnostics)
@@ -62,7 +62,7 @@ internal sealed class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBa
 
     private static Task<Document> FixWithSyntaxEditorAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         => FixAllWithEditorAsync(
-            document, editor => FixAllAsync(document, [diagnostic], editor, cancellationToken), cancellationToken);
+            document, editor => FixAllImplAsync(document, [diagnostic], editor, cancellationToken), cancellationToken);
 
     private static void AddEdits(
         SyntaxEditor editor, SemanticModel semanticModel,

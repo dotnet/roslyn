@@ -75,13 +75,13 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         return true;
     }
 
-    public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateConstructor, cancellationToken))
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var state = await State.GenerateAsync((TService)this, semanticDocument, node, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
             if (state != null)
             {
                 Contract.ThrowIfNull(state.TypeToGenerateIn);

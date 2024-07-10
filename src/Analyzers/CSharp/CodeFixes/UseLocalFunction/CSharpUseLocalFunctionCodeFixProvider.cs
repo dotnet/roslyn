@@ -55,7 +55,7 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -97,7 +97,7 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
             var info = new CSharpCodeGenerationContextInfo(
                 CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.GetExtendedLanguageServices().LanguageServices), root.SyntaxTree.Options.LanguageVersion());
 #else
-            var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 #endif
 
             var options = (CSharpCodeGenerationOptions)info.Options;

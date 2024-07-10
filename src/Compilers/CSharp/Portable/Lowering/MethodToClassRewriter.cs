@@ -369,7 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (proxies.TryGetValue(parameterOrLocal, out CapturedSymbolReplacement? proxy))
             {
-                replacement = proxy.Replacement(syntax, frameType => FramePointer(syntax, frameType));
+                replacement = proxy.Replacement(
+                    syntax,
+                    static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
+                    (syntax, self: this));
+
                 return true;
             }
 

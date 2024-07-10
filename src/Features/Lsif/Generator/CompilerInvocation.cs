@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     name: Path.GetFileNameWithoutExtension(invocationInfo.ProjectFilePath),
                     assemblyName: parsedCommandLine.CompilationName!,
                     language: languageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm: parsedCommandLine.ChecksumAlgorithm,
                     filePath: invocationInfo.ProjectFilePath,
                     outputFilePath: parsedCommandLine.OutputFileName),

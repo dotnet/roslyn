@@ -35,14 +35,14 @@ internal record class SimplifierOptions
     {
     }
 
-    private protected SimplifierOptions(IOptionsReader options, SimplifierOptions fallbackOptions, string language)
+    private protected SimplifierOptions(IOptionsReader options, string language)
     {
-        QualifyFieldAccess = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, language, fallbackOptions.QualifyFieldAccess);
-        QualifyPropertyAccess = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language, fallbackOptions.QualifyPropertyAccess);
-        QualifyMethodAccess = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, language, fallbackOptions.QualifyMethodAccess);
-        QualifyEventAccess = options.GetOption(CodeStyleOptions2.QualifyEventAccess, language, fallbackOptions.QualifyEventAccess);
-        PreferPredefinedTypeKeywordInMemberAccess = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess);
-        PreferPredefinedTypeKeywordInDeclaration = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration);
+        QualifyFieldAccess = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, language);
+        QualifyPropertyAccess = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language);
+        QualifyMethodAccess = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, language);
+        QualifyEventAccess = options.GetOption(CodeStyleOptions2.QualifyEventAccess, language);
+        PreferPredefinedTypeKeywordInMemberAccess = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language);
+        PreferPredefinedTypeKeywordInDeclaration = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
     }
 
     public bool TryGetQualifyMemberAccessOption(SymbolKind symbolKind, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
@@ -75,16 +75,13 @@ internal interface SimplifierOptionsProvider
 internal static partial class SimplifierOptionsProviders
 {
 #if !CODE_STYLE
-    public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, LanguageServices languageServices, SimplifierOptions? fallbackOptions)
-        => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options, fallbackOptions) ?? fallbackOptions ?? SimplifierOptions.CommonDefaults;
+    public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, LanguageServices languageServices)
+        => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options) ?? SimplifierOptions.CommonDefaults;
 
-    public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetSimplifierOptions(document.Project.Services, fallbackOptions);
+        return configOptions.GetSimplifierOptions(document.Project.Services);
     }
-
-    public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await document.GetSimplifierOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

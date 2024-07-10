@@ -1484,7 +1484,7 @@ class C
 }
 ";
 
-            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var spanReference = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
@@ -1540,7 +1540,7 @@ class C
 }
 ";
 
-            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var spanReference = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (16,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
@@ -1592,7 +1592,7 @@ class C
 }
 ";
 
-            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var spanReference = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (16,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
@@ -1648,7 +1648,7 @@ class C
 }
 ";
 
-            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var spanReference = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (16,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')

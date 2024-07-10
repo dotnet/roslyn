@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
             var options = new object[]
             {
-                ExtractMethodOptions.Default,
                 AddImportPlacementOptions.Default,
                 LineFormattingOptions.Default,
                 DocumentFormattingOptions.Default,
