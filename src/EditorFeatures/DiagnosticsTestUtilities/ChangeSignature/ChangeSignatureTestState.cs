@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public async Task<ChangeSignatureResult> ChangeSignatureAsync()
         {
-            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, Workspace.GlobalOptions.CreateProvider(), CancellationToken.None).ConfigureAwait(false);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None).ConfigureAwait(false);
             var options = AbstractChangeSignatureService.GetChangeSignatureOptions(context);
             return await ChangeSignatureService.ChangeSignatureWithContextAsync(context, options, CancellationToken.None);
         }
 
         public async Task<ParameterConfiguration> GetParameterConfigurationAsync()
         {
-            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, Workspace.GlobalOptions.CreateProvider(), CancellationToken.None);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
             if (context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext)
             {
                 return changeSignatureAnalyzedSucceedContext.ParameterConfiguration;

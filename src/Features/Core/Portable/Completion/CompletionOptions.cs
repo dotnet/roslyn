@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared;
@@ -51,7 +50,6 @@ internal sealed record class CompletionOptions
     public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
     public bool ShowNewSnippetExperienceFeatureFlag { get; init; } = true;
     public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
-    public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
     public static readonly CompletionOptions Default = new();
 

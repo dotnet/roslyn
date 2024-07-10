@@ -48,7 +48,7 @@ internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBase
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         // process from inside->out so that outer rewrites see the effects of inner changes.
         var nodes = diagnostics

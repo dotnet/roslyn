@@ -69,7 +69,7 @@ internal static class TextBufferOptionProviders
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var configOptions = editorOptions.ToAnalyzerConfigOptions(fallbackOptions);
-        return configOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions, fallbackOptions: null);
+        return configOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions);
     }
 
     public static CodeCleanupOptions GetCodeCleanupOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, StructuredAnalyzerConfigOptions fallbackOptions, LanguageServices languageServices, bool explicitFormat, bool allowImportsInHiddenRegions)
@@ -77,7 +77,7 @@ internal static class TextBufferOptionProviders
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var configOptions = editorOptions.ToAnalyzerConfigOptions(fallbackOptions);
 
-        var options = configOptions.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions: null);
+        var options = configOptions.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, optionsProvider.IndentationManager, explicitFormat);
 
         return options with { FormattingOptions = options.FormattingOptions with { LineFormatting = lineFormattingOptions } };

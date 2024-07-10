@@ -55,6 +55,9 @@ internal sealed class EditorConfigValueSerializer<T>(
         return editorConfigStringForValue;
     }
 
-    public string Serialize(object? value)
+    public string Serialize(T value)
+        => serializeValue(value);
+
+    string IEditorConfigValueSerializer.Serialize(object? value)
         => GetEditorConfigStringValue((T)value!);
 }

@@ -35,14 +35,14 @@ internal record class SimplifierOptions
     {
     }
 
-    private protected SimplifierOptions(IOptionsReader options, SimplifierOptions fallbackOptions, string language)
+    private protected SimplifierOptions(IOptionsReader options, string language)
     {
-        QualifyFieldAccess = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, language, fallbackOptions.QualifyFieldAccess);
-        QualifyPropertyAccess = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language, fallbackOptions.QualifyPropertyAccess);
-        QualifyMethodAccess = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, language, fallbackOptions.QualifyMethodAccess);
-        QualifyEventAccess = options.GetOption(CodeStyleOptions2.QualifyEventAccess, language, fallbackOptions.QualifyEventAccess);
-        PreferPredefinedTypeKeywordInMemberAccess = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess);
-        PreferPredefinedTypeKeywordInDeclaration = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration);
+        QualifyFieldAccess = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, language);
+        QualifyPropertyAccess = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language);
+        QualifyMethodAccess = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, language);
+        QualifyEventAccess = options.GetOption(CodeStyleOptions2.QualifyEventAccess, language);
+        PreferPredefinedTypeKeywordInMemberAccess = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language);
+        PreferPredefinedTypeKeywordInDeclaration = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
     }
 
     public bool TryGetQualifyMemberAccessOption(SymbolKind symbolKind, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)

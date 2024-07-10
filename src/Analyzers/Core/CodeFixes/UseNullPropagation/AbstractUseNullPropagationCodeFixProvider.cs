@@ -67,7 +67,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = editor.OriginalRoot;
@@ -102,9 +102,8 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
         var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
         var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
         syntaxFacts.GetPartsOfConditionalExpression(
-            conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
+            conditionalExpression, out _, out var whenTrue, out _);
         whenTrue = syntaxFacts.WalkDownParentheses(whenTrue);
-        whenFalse = syntaxFacts.WalkDownParentheses(whenFalse);
 
         var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
         editor.ReplaceNode(
@@ -116,12 +115,14 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
 
                 var currentWhenPartToCheck = whenPart == whenTrue ? currentWhenTrue : currentWhenFalse;
 
+                var unwrappedCurrentWhenPartToCheck = syntaxFacts.WalkDownParentheses(currentWhenPartToCheck);
+
                 var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                     TSyntaxKind, TExpressionSyntax, TStatementSyntax,
                     TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
                     TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax, TMemberAccessExpressionSyntax,
                     TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(
-                        syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)currentWhenPartToCheck, cancellationToken);
+                        syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)unwrappedCurrentWhenPartToCheck, cancellationToken);
                 if (match == null)
                 {
                     return conditionalExpression;

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
         End Sub
 
         Public Function GetSimplifierOptions() As VisualBasicSimplifierOptions
-            Return New VisualBasicSimplifierOptions(_options, fallbackOptions:=Nothing)
+            Return New VisualBasicSimplifierOptions(_options)
         End Function
 
         Public ReadOnly Property PreferredModifierOrder As CodeStyleOption2(Of String)
