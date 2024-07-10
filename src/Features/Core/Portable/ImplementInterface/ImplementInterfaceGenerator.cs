@@ -72,9 +72,8 @@ internal abstract partial class AbstractImplementInterfaceService
             ImmutableArray<ISymbol> extraMembers,
             CancellationToken cancellationToken)
         {
-            var document = this.Document;
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await this.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await this.Document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
@@ -89,7 +88,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
-                    document.Project.Solution,
+                    this.Document.Project.Solution,
                     new CodeGenerationContext(
                         contextLocation: State.ClassOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
