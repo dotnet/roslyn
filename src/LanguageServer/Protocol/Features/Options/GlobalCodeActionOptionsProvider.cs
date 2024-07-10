@@ -38,9 +38,6 @@ internal static class CodeActionOptionsStorage
         CodeActionOptions CodeActionOptionsProvider.GetOptions(LanguageServices languageServices)
             => _globalOptions.GetCodeActionOptions(languageServices);
 
-        ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetLineFormattingOptions(languageServices.Language));
-
         ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetSyntaxFormattingOptions(languageServices));
 

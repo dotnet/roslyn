@@ -52,11 +52,10 @@ internal record class SyntaxFormattingOptions
 #endif
 }
 
-internal interface SyntaxFormattingOptionsProvider :
+internal interface SyntaxFormattingOptionsProvider
 #if !CODE_STYLE
-    OptionsProvider<SyntaxFormattingOptions>,
+    : OptionsProvider<SyntaxFormattingOptions>
 #endif
-    LineFormattingOptionsProvider
 {
 }
 

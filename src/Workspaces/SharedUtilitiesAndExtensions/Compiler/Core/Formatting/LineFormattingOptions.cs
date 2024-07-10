@@ -22,13 +22,6 @@ internal sealed record class LineFormattingOptions
     [DataMember] public string NewLine { get; init; } = Environment.NewLine;
 }
 
-internal interface LineFormattingOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<LineFormattingOptions>
-#endif
-{
-}
-
 internal static partial class LineFormattingOptionsProviders
 {
     public static LineFormattingOptions GetLineFormattingOptions(this IOptionsReader options, string language)

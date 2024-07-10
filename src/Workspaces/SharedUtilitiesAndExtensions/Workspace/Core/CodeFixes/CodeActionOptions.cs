@@ -73,9 +73,6 @@ internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsPro
     public abstract CodeActionOptions GetOptions(LanguageServices languageServices);
 
 #if !CODE_STYLE
-    ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions.LineFormatting);
-
     ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions);
 
