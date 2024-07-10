@@ -47,10 +47,10 @@ internal abstract partial class AbstractImplementInterfaceService
                 document, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
 
             var disposeMethod = TryGetIDisposableDispose(compilation)!;
-            var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, State.ClassOrStructType, disposeMethod, disposedValueField);
+            var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, disposeMethod, disposedValueField);
 
             // First, implement all the interfaces (except for IDisposable).
-            var docWithCoreMembers = await GetUpdatedDocumentAsync(
+            var docWithCoreMembers = await ImplementInterfaceAsync(
                 unimplementedMembers.WhereAsArray(m => !m.type.Equals(disposeMethod.ContainingType)),
                 extraMembers: [disposedValueField],
                 cancellationToken).ConfigureAwait(false);
@@ -110,40 +110,36 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private (ImmutableArray<ISymbol>, SyntaxNode) CreateDisposableMethods(
             Compilation compilation,
-            Document document,
-            INamedTypeSymbol classType,
             IMethodSymbol disposeMethod,
             IFieldSymbol disposedValueField)
         {
-            var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classType, disposeMethod, disposedValueField);
+            var disposeImplMethod = CreateDisposeImplementationMethod(compilation, disposeMethod, disposedValueField);
 
             var disposeMethodDisplayString = this.Service.ToDisplayString(disposeImplMethod, s_format);
 
             var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
-                compilation, document, disposeMethod, disposeMethodDisplayString);
+                compilation, disposeMethod, disposeMethodDisplayString);
 
-            var g = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var finalizer = Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
+            var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var finalizer = Service.CreateFinalizer(g, State.ClassOrStructType, disposeMethodDisplayString);
 
             return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
         }
 
         private IMethodSymbol CreateDisposeImplementationMethod(
             Compilation compilation,
-            Document document,
-            INamedTypeSymbol classType,
             IMethodSymbol disposeMethod,
             IFieldSymbol disposedValueField)
         {
-            var accessibility = classType.IsSealed
+            var accessibility = State.ClassOrStructType.IsSealed
                 ? Accessibility.Private
                 : Accessibility.Protected;
 
-            var modifiers = classType.IsSealed
+            var modifiers = State.ClassOrStructType.IsSealed
                 ? DeclarationModifiers.None
                 : DeclarationModifiers.Virtual;
 
-            var g = document.GetRequiredLanguageService<SyntaxGenerator>();
+            var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // if (disposing)
             // {
@@ -170,7 +166,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 disposeMethod,
-                containingType: classType,
+                containingType: State.ClassOrStructType,
                 accessibility: accessibility,
                 modifiers: modifiers,
                 name: disposeMethod.Name,
@@ -183,14 +179,13 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private IMethodSymbol CreateDisposeInterfaceMethod(
             Compilation compilation,
-            Document document,
             IMethodSymbol disposeMethod,
             string disposeMethodDisplayString)
         {
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
 
-            var g = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var syntaxFacts = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // // Do not change...
             // Dispose(true);

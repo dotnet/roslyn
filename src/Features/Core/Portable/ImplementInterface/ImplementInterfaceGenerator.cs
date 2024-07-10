@@ -64,10 +64,10 @@ internal abstract partial class AbstractImplementInterfaceService
 
             return ImplementDisposePattern
                 ? ImplementDisposePatternAsync(unimplementedMembers, cancellationToken)
-                : GetUpdatedDocumentAsync(unimplementedMembers, extraMembers: [], cancellationToken);
+                : ImplementInterfaceAsync(unimplementedMembers, extraMembers: [], cancellationToken);
         }
 
-        private async Task<Document> GetUpdatedDocumentAsync(
+        private async Task<Document> ImplementInterfaceAsync(
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
             ImmutableArray<ISymbol> extraMembers,
             CancellationToken cancellationToken)
