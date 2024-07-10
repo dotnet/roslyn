@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null);
             }
 
-            internal static MethodInfo Create(PropertySymbol property, MethodSymbol? method)
-            {
-                return new MethodInfo(property, method, null);
-            }
-
             internal static MethodInfo Create(Symbol symbol, BoundExpression? expr)
             {
                 if (symbol is MethodSymbol method)

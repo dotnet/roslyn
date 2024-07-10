@@ -34,7 +34,7 @@
                                          '$(_MaxSupportedLangVersion)' == ''">13.0</_MaxSupportedLangVersion>
 
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
-    <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersior)</LangVersion>
+    <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
 
   <Target Name="CoreCompile"
