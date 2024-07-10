@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
+using static ImplementHelpers;
+
 internal abstract partial class AbstractImplementInterfaceService() : IImplementInterfaceService
 {
     protected const string DisposingName = "disposing";
@@ -80,7 +82,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
                 {
                     totalMemberCount++;
 
-                    if (AccessibilityHelper.IsLessAccessibleThan(member, state.ClassOrStructType))
+                    if (IsLessAccessibleThan(member, state.ClassOrStructType))
                     {
                         inaccessibleMemberCount++;
                     }

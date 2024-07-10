@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -20,6 +19,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
+
+using static ImplementHelpers;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
@@ -353,7 +354,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
                 // If the member is less accessible than type, for which we are implementing it,
                 // then only explicit implementation is valid.
-                if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
+                if (IsLessAccessibleThan(member, State.ClassOrStructType))
                     return true;
             }
 
