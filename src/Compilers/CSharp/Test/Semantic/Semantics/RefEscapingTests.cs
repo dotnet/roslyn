@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.CodeDom.Compiler;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -3579,7 +3578,7 @@ class Program
 
                         S1 local;
                         local = new S1() { [0] =  stackSpan }; // 1
-                        local = new S1() { [0] =  heapSpan }; // 0
+                        local = new S1() { [0] =  heapSpan };
                     }
                 }
 
