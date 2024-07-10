@@ -13,6 +13,7 @@ internal class PRFinder
 {
     public const string DefaultFormat = "default";
     public const string OmniSharpFormat = "o#";
+    public const string ChangelogFormat = "changelog";
 
     /// <summary>
     /// Finds the PRs merged between two given commits.
@@ -93,9 +94,13 @@ internal class PRFinder
             ? new Hosts.GitHub(repoUrl, logger)
             : new Hosts.Azure(repoUrl);
 
-        IPRLogFormatter formatter = format == DefaultFormat
-            ? new Formatters.DefaultFormatter()
-            : new Formatters.OmniSharpFormatter();
+        IPRLogFormatter formatter = format switch
+        {
+            DefaultFormat => new Formatters.DefaultFormatter(),
+            OmniSharpFormat => new Formatters.OmniSharpFormatter(),
+            ChangelogFormat => new Formatters.ChangelogFormatter(),
+            _ => throw new InvalidOperationException($"Uknown format '{format}'")
+        };
 
         // Get commit history starting at the current commit and ending at the previous commit
         var commitLog = repo.Commits.QueryBy(
