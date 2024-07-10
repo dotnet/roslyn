@@ -44,11 +44,10 @@ internal sealed record class CodeCleanupOptions
 #endif
 }
 
-internal interface CodeCleanupOptionsProvider :
+internal interface CodeCleanupOptionsProvider
 #if !CODE_STYLE
-    OptionsProvider<CodeCleanupOptions>,
+    : OptionsProvider<CodeCleanupOptions>
 #endif
-    DocumentFormattingOptionsProvider
 {
 }
 
