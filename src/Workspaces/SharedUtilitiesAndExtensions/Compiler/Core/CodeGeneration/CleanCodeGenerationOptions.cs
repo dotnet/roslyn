@@ -73,23 +73,11 @@ internal abstract class AbstractCleanCodeGenerationOptionsProvider : AbstractCod
 
 internal static class CleanCodeGenerationOptionsProviders
 {
-    public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CleanCodeGenerationOptions fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
         => new()
         {
-            GenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.GenerationOptions, cancellationToken).ConfigureAwait(false),
-            CleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions.CleanupOptions, cancellationToken).ConfigureAwait(false)
+            GenerationOptions = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false),
+            CleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false)
         };
-
-    public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CleanCodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await document.GetCleanCodeGenerationOptionsAsync(await ((OptionsProvider<CleanCodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-
-    private sealed class Provider(OptionsProvider<CleanCodeGenerationOptions> provider) : AbstractCleanCodeGenerationOptionsProvider
-    {
-        public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => provider.GetOptionsAsync(languageServices, cancellationToken);
-    }
-
-    public static CleanCodeGenerationOptionsProvider ToCleanCodeGenerationOptionsProvider(this OptionsProvider<CleanCodeGenerationOptions> provider)
-        => new Provider(provider);
 }
 #endif

@@ -42,7 +42,6 @@ internal sealed class CSharpUseNameofInAttributeCodeFixProvider : SyntaxEditorBa
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)

@@ -43,7 +43,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
@@ -76,7 +76,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
@@ -158,7 +158,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
@@ -190,7 +190,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
@@ -275,7 +275,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
@@ -313,7 +313,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
@@ -405,7 +405,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
@@ -437,7 +437,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
@@ -523,7 +523,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
@@ -561,7 +561,7 @@ public interface I
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
@@ -807,7 +807,7 @@ public struct C : I
 
                 CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-                CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                     // (8,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     [UnscopedRef]
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 6)
@@ -841,7 +841,7 @@ public struct C : I
 
                 CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-                CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                     // (8,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     [UnscopedRef]
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 6)
@@ -1349,7 +1349,7 @@ public struct C : I
 
                     CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
+                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
                     if (onImplementationGet)
                     {
                         comp7.VerifyDiagnostics(
@@ -1402,7 +1402,7 @@ public struct C : I
 
                     CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
+                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
                     if (onImplementationProperty)
                     {
                         if (onImplementationGet)
@@ -1925,7 +1925,7 @@ public struct C : I
 
                     CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
+                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
                     if (onImplementationGet)
                     {
                         comp7.VerifyDiagnostics(
@@ -1978,7 +1978,7 @@ public struct C : I
 
                     CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
 
-                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
+                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
                     if (onImplementationProperty)
                     {
                         if (onImplementationGet)
@@ -4379,23 +4379,23 @@ public class C<T>
                 AssertEx.Equal("C<T> where T : allows ref struct", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
             Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics));
 
             CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (3,22): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,22): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(3, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(3, 22)
                 );
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            comp = CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (3,22): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
                 );
             Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics));
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (3,22): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
@@ -4430,15 +4430,15 @@ public class C
                 Assert.True(t.AllowsRefLikeType);
             }
 
-            CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
             CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (5,26): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,26): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(5, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 26)
                 );
 
-            CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (5,26): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(5, 26)
@@ -5459,12 +5459,12 @@ class C2 : C1
             var t2 = method2.TypeParameters.Single();
             Assert.True(t2.HasUnmanagedTypeConstraint);
 
-            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
             CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (4,29): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,29): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     public override void M1<T>()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("allows ref struct constraint").WithLocation(4, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "T").WithArguments("allows ref struct constraint", "13.0").WithLocation(4, 29)
                 );
 
             var comp2 = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
@@ -5592,12 +5592,12 @@ class C2 : C1
             var t2 = method2.TypeParameters.Single();
             Assert.True(t2.HasUnmanagedTypeConstraint);
 
-            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
             CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (4,16): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,16): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     void C1.M1<T>()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("allows ref struct constraint").WithLocation(4, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "T").WithArguments("allows ref struct constraint", "13.0").WithLocation(4, 16)
                 );
 
             var comp2 = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
@@ -5858,7 +5858,7 @@ struct S2 : I1
 
             CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (5,17): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref struct S1 : I1
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("ref struct interfaces").WithLocation(5, 17)
@@ -7176,7 +7176,7 @@ class C
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -7236,6 +7236,16 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.IDisposable").WithArguments("ref struct interfaces").WithLocation(2, 24)
                 );
 
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         using (new S2())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref struct interfaces").WithLocation(6, 16),
+                // (10,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         using (var s = new S2())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var s = new S2()").WithArguments("ref struct interfaces").WithLocation(10, 16)
+                );
+
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
 
@@ -7260,7 +7270,7 @@ class C
             var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp3.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -7287,12 +7297,12 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (4,67): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,67): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static void Test<T>(T t) where T : System.IDisposable, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(4, 67)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(4, 67)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -8588,7 +8598,7 @@ class C
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -8644,6 +8654,13 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "IEnumerable<int>").WithArguments("ref struct interfaces").WithLocation(4, 23)
                 );
 
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,27): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (var i in new S())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 27)
+                );
+
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
 
@@ -8664,7 +8681,7 @@ class C
             var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp3.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -8689,12 +8706,12 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (6,65): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,65): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static void Test<T>(T t) where T : IEnumerable<int>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(6, 65)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(6, 65)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -8728,12 +8745,12 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (4,67): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,67): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static void Test<T>(T t) where T : IMyEnumerable<int>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(4, 67)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(4, 67)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -11658,7 +11675,7 @@ class C
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -11711,14 +11728,14 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,9): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (var i in new S1()) {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "foreach (var i in new S1()) {}").WithArguments("ref struct interfaces").WithLocation(6, 9)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (10,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S2 : System.IDisposable
@@ -11743,7 +11760,7 @@ class C
             var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp3.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -11777,18 +11794,18 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (8,105): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,105): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, System.IDisposable, allows ref struct 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(8, 105),
-                // (16,65): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(8, 105),
+                // (16,65): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where TEnumerable : IGetEnumerator<TEnumerator>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(16, 65),
-                // (17,75): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(16, 65),
+                // (17,75): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where TEnumerator : ICustomEnumerator, System.IDisposable, allows ref struct 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(17, 75)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(17, 75)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -13607,15 +13624,15 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22),
-                // (10,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S2()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22),
+                // (10,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 22)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -13668,12 +13685,12 @@ class C
                 // (6,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using (new S2())
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref struct interfaces").WithLocation(6, 22),
-                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22),
-                // (10,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S2()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22),
+                // (10,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 22),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 22),
                 // (10,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using (var s = new S2())
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "var s = new S2()").WithArguments("ref struct interfaces").WithLocation(10, 22)
@@ -13684,12 +13701,29 @@ class C
                 // (5,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S2 : IAsyncDisposable
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncDisposable").WithArguments("ref struct interfaces").WithLocation(5, 24),
-                // (25,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (25,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(25, 22),
-                // (29,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S2()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(25, 22),
+                // (29,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(29, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(29, 22)
+                );
+
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using (new S2())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref struct interfaces").WithLocation(6, 22),
+                // (10,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using (var s = new S2())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var s = new S2()").WithArguments("ref struct interfaces").WithLocation(10, 22)
+                );
+
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (5,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public ref struct S2 : IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncDisposable").WithArguments("ref struct interfaces").WithLocation(5, 24)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
@@ -13716,7 +13750,7 @@ class C
             var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp3.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -13754,21 +13788,21 @@ namespace System
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (7,75): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,75): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static async Task Test<T>() where T : IAsyncDisposable, new(), allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(7, 75),
-                // (9,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(7, 75),
+                // (9,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new T()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 22),
-                // (13,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new T()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 22),
+                // (13,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (var s = new T())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 22),
-                // (23,63): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(13, 22),
+                // (23,63): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //          public static T CreateInstance<T>() where T : allows ref struct => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(23, 63)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(23, 63)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -13811,21 +13845,21 @@ interface IMyAsyncDisposable
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (7,77): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,77): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static async Task Test<T>() where T : IMyAsyncDisposable, new(), allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(7, 77),
-                // (9,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(7, 77),
+                // (9,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new T()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 22),
-                // (13,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new T()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 22),
+                // (13,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (var s = new T())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 22),
-                // (23,63): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(13, 22),
+                // (23,63): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //          public static T CreateInstance<T>() where T : allows ref struct => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(23, 63)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(23, 63)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -16041,7 +16075,7 @@ class C
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -16080,7 +16114,7 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
 
             // Even though semantic analysis didn't produce any errors in C# 12 compiler, an attempt to emit was failing with
             // "Unable to determine specific cause of the failure" error.
@@ -16090,7 +16124,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 33)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S : IAsyncEnumerable<int>
@@ -16117,7 +16151,7 @@ class C
             var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp3.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -16143,12 +16177,12 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (7,73): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,73): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static async Task Test<T>() where T : IAsyncEnumerable<int>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(7, 73)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(7, 73)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -16186,12 +16220,12 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,75): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,75): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static async Task Test<T>() where T : IMyAsyncEnumerable<int>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(6, 75)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(6, 75)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -17261,7 +17295,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(10, 15)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (10,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
                 //         await foreach (var i in new S1())
@@ -17326,7 +17360,7 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,9): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (var i in new S1()) {}
@@ -17336,7 +17370,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (14,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S2 : IAsyncDisposable
@@ -17372,7 +17406,7 @@ class C
             var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp3.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -17411,21 +17445,21 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (13,85): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,85): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(13, 85),
-                // (21,65): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(13, 85),
+                // (21,65): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where TEnumerable : IGetEnumerator<TEnumerator>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(21, 65),
-                // (22,73): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(21, 65),
+                // (22,73): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where TEnumerator : ICustomEnumerator, IAsyncDisposable, allows ref struct 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(22, 73),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(22, 73),
                 // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
                 //         await foreach (var i in default(TEnumerable)) {}
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(24, 15)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
                 // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
                 //         await foreach (var i in default(TEnumerable)) {}
@@ -18765,7 +18799,7 @@ class C
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -18802,14 +18836,14 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,27): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (var i in new S())
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 27)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (4,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S : IEnumerable
@@ -18836,7 +18870,7 @@ class C
             var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp3.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -18861,12 +18895,12 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (6,60): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,60): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static void Test<T>(T t) where T : IEnumerable, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(6, 60)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(6, 60)
                 );
 
-            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -18900,12 +18934,12 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (4,62): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,62): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static void Test<T>(T t) where T : IMyEnumerable, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(4, 62)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(4, 62)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -19899,11 +19933,11 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (100,54): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (100,54): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     public static void Test<T>(T x) where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(100, 54)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(100, 54)
                 );
 
             var comp1Ref = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).ToMetadataReference();
@@ -19912,11 +19946,11 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (200,9): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (200,9): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         Helper.Test(new S1());
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Helper.Test").WithArguments("allows ref struct constraint").WithLocation(200, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Helper.Test").WithArguments("allows ref struct constraint", "13.0").WithLocation(200, 9)
                 );
 
             CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
@@ -19944,17 +19978,17 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (100,54): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (100,54): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     public static void Test<T>(T x) where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(100, 54)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(100, 54)
                 );
 
             comp = CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
-            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
 
             CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
@@ -20156,11 +20190,11 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (100,41): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (100,41): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public class Helper<T> where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(100, 41)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(100, 41)
                 );
 
             var comp1Ref = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).ToMetadataReference();
@@ -20169,11 +20203,11 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (200,16): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (200,16): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         Helper<S1>.Test(new S1());
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("allows ref struct constraint").WithLocation(200, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "S1").WithArguments("allows ref struct constraint", "13.0").WithLocation(200, 16)
                 );
 
             CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
@@ -20201,17 +20235,17 @@ class C
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (100,41): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (100,41): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public class Helper<T> where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(100, 41)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(100, 41)
                 );
 
             comp = CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
-            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
 
             CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
@@ -25433,9 +25467,9 @@ class C
 
             comp = CreateCompilation(text, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,39): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,39): error CS8936: Feature 'allows ref struct constraint' is not available in C# 10.0. Please use language version 13.0 or greater.
                 //     class Program<T> where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(3, 39),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(3, 39),
                 // (3,39): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     class Program<T> where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 39),
@@ -25854,18 +25888,18 @@ public class C<R> where R : struct, IR<R>, allows ref struct
 ";
             var comp = CreateCompilation(text, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,50): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     class Program<S1> where S1 : IS1<S1>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(3, 50),
-                // (3,50): error CS9240: Target runtime doesn't support by-ref-like generics.
-                //     class Program<S1> where S1 : IS1<S1>, allows ref struct
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 50),
-                // (31,50): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (31,50): error CS8936: Feature 'allows ref struct constraint' is not available in C# 10.0. Please use language version 13.0 or greater.
                 //     interface IS1<S1> where S1 : IS1<S1>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(31, 50),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(31, 50),
                 // (31,50): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     interface IS1<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(31, 50),
+                // (3,50): error CS8936: Feature 'allows ref struct constraint' is not available in C# 10.0. Please use language version 13.0 or greater.
+                //     class Program<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(3, 50),
+                // (3,50): error CS9240: Target runtime doesn't support by-ref-like generics.
+                //     class Program<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 50),
                 // (33,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //         public abstract static S1 NotSlice(int x);
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "NotSlice").WithArguments("abstract", "10.0", "11.0").WithLocation(33, 35),
@@ -25878,7 +25912,7 @@ public class C<R> where R : struct, IR<R>, allows ref struct
                 // (21,21): error CS8347: Cannot use a result of 'Program<S1>.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //                 x = MayWrap(ref inner).Slice(1);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program<S1>.MayWrap(ref System.Span<int>)", "arg").WithLocation(21, 21)
-            );
+                );
         }
 
         [Fact]
@@ -25934,18 +25968,18 @@ interface IS1<S1> where S1 : IS1<S1>, allows ref struct
 ";
             var comp = CreateCompilation(new[] { text, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // 0.cs(38,46): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(38, 46),
-                // 0.cs(38,46): error CS9240: Target runtime doesn't support by-ref-like generics.
-                // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(38, 46),
-                // 0.cs(3,46): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // 0.cs(3,46): error CS8936: Feature 'allows ref struct constraint' is not available in C# 10.0. Please use language version 13.0 or greater.
                 // class Program<S1> where S1 : IS1<S1>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(3, 46),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(3, 46),
                 // 0.cs(3,46): error CS9240: Target runtime doesn't support by-ref-like generics.
                 // class Program<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 46),
+                // 0.cs(38,46): error CS8936: Feature 'allows ref struct constraint' is not available in C# 10.0. Please use language version 13.0 or greater.
+                // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(38, 46),
+                // 0.cs(38,46): error CS9240: Target runtime doesn't support by-ref-like generics.
+                // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(38, 46),
                 // 0.cs(20,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             x[0] = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(20, 32),
@@ -27764,28 +27798,35 @@ namespace System
 
             var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (5,37): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,37): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where T : I1, new(), allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(5, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 37),
                 // (12,39): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write((new S() { 200, 40, 6 }).P);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ 200, 40, 6 }").WithArguments("ref struct interfaces").WithLocation(12, 39),
-                // (20,62): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (20,62): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         public static T CreateInstance<T>() where T : allows ref struct => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(20, 62)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(20, 62)
                 );
 
             comp2 = CreateCompilation(text2 + text1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (5,37): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,37): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where T : I1, new(), allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(5, 37),
-                // (20,62): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 37),
+                // (20,62): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         public static T CreateInstance<T>() where T : allows ref struct => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(20, 62),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(20, 62),
                 // (24,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public ref struct S : I1
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("ref struct interfaces").WithLocation(24, 23)
+                );
+
+            comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (12,39): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((new S() { 200, 40, 6 }).P);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ 200, 40, 6 }").WithArguments("ref struct interfaces").WithLocation(12, 39)
                 );
 
             comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
@@ -27806,7 +27847,7 @@ class Program
             var comp3 = CreateCompilation(text3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics();
 
-            comp3 = CreateCompilation(text3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(text3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp3.VerifyEmitDiagnostics();
 
             comp3 = CreateCompilation(text3, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -27845,34 +27886,34 @@ class Program
 
             var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (4,17): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,17): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static C<T> Test<T>()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Test").WithArguments("allows ref struct constraint").WithLocation(4, 17),
-                // (4,22): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Test").WithArguments("allows ref struct constraint", "13.0").WithLocation(4, 17),
+                // (4,22): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static C<T> Test<T>()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("allows ref struct constraint").WithLocation(4, 22),
-                // (5,33): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "T").WithArguments("allows ref struct constraint", "13.0").WithLocation(4, 22),
+                // (5,33): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where T : I1<T>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(5, 33),
-                // (7,22): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 33),
+                // (7,22): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new C<T>() { PT = { 100, 20, 3 } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("allows ref struct constraint").WithLocation(7, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "T").WithArguments("allows ref struct constraint", "13.0").WithLocation(7, 22)
                 );
 
             comp2 = CreateCompilation(text2 + text1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (5,33): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,33): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where T : I1<T>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(5, 33),
-                // (12,29): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 33),
+                // (12,29): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     where T : I1<T>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(12, 29),
-                // (18,29): error CS8652: The feature 'allows ref struct constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(12, 29),
+                // (18,29): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     where T : I1<T>, allows ref struct
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("allows ref struct constraint").WithLocation(18, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(18, 29)
                 );
 
-            comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);

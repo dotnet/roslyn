@@ -772,6 +772,11 @@
         <target state="translated">功能“{0}”在 C# 12.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">功能“{0}”在 C# 8.0 中不可用。请使用语言版本 {1} 或更高版本。</target>

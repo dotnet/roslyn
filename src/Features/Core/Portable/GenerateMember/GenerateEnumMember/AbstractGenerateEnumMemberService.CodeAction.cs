@@ -15,14 +15,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
 
 internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class GenerateEnumMemberCodeAction(
-        Document document,
-        State state,
-        CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeAction
+    private partial class GenerateEnumMemberCodeAction(Document document, State state) : CodeAction
     {
         private readonly Document _document = document;
         private readonly State _state = state;
-        private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
@@ -38,8 +34,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
                 new CodeGenerationSolutionContext(
                     _document.Project.Solution,
                     new CodeGenerationContext(
-                        contextLocation: _state.IdentifierToken.GetLocation()),
-                    _fallbackOptions),
+                        contextLocation: _state.IdentifierToken.GetLocation())),
                 _state.TypeToGenerateIn,
                 CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,

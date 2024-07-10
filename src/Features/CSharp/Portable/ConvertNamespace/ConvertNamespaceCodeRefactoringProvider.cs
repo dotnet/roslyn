@@ -24,14 +24,10 @@ using static ConvertNamespaceAnalysis;
 using static ConvertNamespaceTransform;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertNamespace), Shared]
-internal class ConvertNamespaceCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public ConvertNamespaceCodeRefactoringProvider()
-    {
-    }
-
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes
         => [FixAllScope.Project, FixAllScope.Solution];
 
@@ -51,7 +47,7 @@ internal class ConvertNamespaceCodeRefactoringProvider : SyntaxEditorBasedCodeRe
         if (!IsValidPosition(namespaceDecl, position))
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferRefactoring(namespaceDecl, root, options, out var info))
             return;
 
@@ -96,7 +92,7 @@ internal class ConvertNamespaceCodeRefactoringProvider : SyntaxEditorBasedCodeRe
         CancellationToken cancellationToken)
     {
         var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var namespaceDecl = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
         if (!CanOfferRefactoring(namespaceDecl, root, options, out var info)
             || info.Value.equivalenceKey != equivalenceKey)

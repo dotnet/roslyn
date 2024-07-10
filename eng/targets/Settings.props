@@ -60,6 +60,12 @@
 
     <!-- TODO --> 
     <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
+
+    <!--
+      Needed to avoid error NU1010: The PackageReference items Microsoft.Net.Compilers.Toolset.Framework do not have corresponding PackageVersion.
+      Related to https://github.com/dotnet/sdk/issues/41791.
+    -->
+    <BuildWithNetFrameworkHostedCompiler>false</BuildWithNetFrameworkHostedCompiler>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />

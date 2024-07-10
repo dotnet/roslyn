@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddService<ILifeCycleManager>(lifeCycleManager);
             AddService(new ServerInfoProvider(serverKind, supportedLanguages));
             AddLazyService<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
-            AddLazyService<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
             AddLazyService<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
+            AddLazyService<AbstractHandlerProvider>((_) => HandlerProvider);
             AddService<IInitializeManager>(new InitializeManager());
             AddService<IMethodHandler>(new InitializeHandler());
             AddService<IMethodHandler>(new InitializedHandler());
@@ -164,13 +164,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return Task.CompletedTask;
         }
 
-        protected override string GetLanguageForRequest(string methodName, JsonElement? parameters)
+        public override string GetLanguageForRequest(string methodName, object? serializedParameters)
         {
-            if (parameters == null)
+            if (serializedParameters == null)
             {
                 Logger.LogInformation("No request parameters given, using default language handler");
                 return LanguageServerConstants.DefaultLanguageName;
             }
+
+            // We implement the STJ language server so this must be a JsonElement.
+            var parameters = (JsonElement)serializedParameters;
 
             // For certain requests like text syncing we'll always use the default language handler
             // as we do not want languages to be able to override them.
@@ -185,8 +188,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "textDocument": { "uri": "<uri>" ... } ... }
             //
             // We can easily identify the URI for the request by looking for this structure
-            if (parameters.Value.TryGetProperty("textDocument", out var textDocumentToken) ||
-                parameters.Value.TryGetProperty("_vs_textDocument", out textDocumentToken))
+            if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
+                parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
             {
                 var uriToken = textDocumentToken.GetProperty("uri");
                 var uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
@@ -201,7 +204,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             //
             // We can deserialize the data object using our unified DocumentResolveData.
             //var dataToken = parameters["data"];
-            if (parameters.Value.TryGetProperty("data", out var dataToken))
+            if (parameters.TryGetProperty("data", out var dataToken))
             {
                 var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
                 Contract.ThrowIfNull(data, "Failed to document resolve data object");

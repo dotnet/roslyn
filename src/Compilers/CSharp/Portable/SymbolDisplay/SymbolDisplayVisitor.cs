@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolDisplayPartKind.ClassName:
                 case SymbolDisplayPartKind.RecordClassName:
                 case SymbolDisplayPartKind.StructName:
+                case SymbolDisplayPartKind.RecordStructName:
                 case SymbolDisplayPartKind.InterfaceName:
                 case SymbolDisplayPartKind.EnumName:
                 case SymbolDisplayPartKind.DelegateName:

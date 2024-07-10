@@ -33,20 +33,17 @@ internal class VisualStudioExtractClassOptionsService : IExtractClassOptionsServ
     private readonly IThreadingContext _threadingContext;
     private readonly IGlyphService _glyphService;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-    private readonly IGlobalOptionService _globalOptions;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioExtractClassOptionsService(
         IThreadingContext threadingContext,
         IGlyphService glyphService,
-        IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IGlobalOptionService globalOptions)
+        IUIThreadOperationExecutor uiThreadOperationExecutor)
     {
         _threadingContext = threadingContext;
         _glyphService = glyphService;
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
-        _globalOptions = globalOptions;
     }
 
     public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
@@ -77,7 +74,7 @@ internal class VisualStudioExtractClassOptionsService : IExtractClassOptionsServ
             ? string.Empty
             : selectedType.ContainingNamespace.ToDisplayString();
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, selectedType, membersInType, cancellationToken);
 
         var viewModel = new ExtractClassViewModel(

@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
+                var stateSetsForProject = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+                var stateSets = GetStateSetsForFullSolutionAnalysis(stateSetsForProject, project);
 
                 // get driver only with active analyzers.
                 var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
+                                        .Where(a => !a.IsOpenFileOnly(ideOptions.SimplifierOptions));
 
                 CompilationWithAnalyzers? compilationWithAnalyzers = null;
 

@@ -84,32 +84,20 @@ internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsP
 internal static class CodeCleanupOptionsProviders
 {
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
         => new()
         {
-            FormattingOptions = options.GetSyntaxFormattingOptions(languageServices, fallbackOptions?.FormattingOptions),
-            SimplifierOptions = options.GetSimplifierOptions(languageServices, fallbackOptions?.SimplifierOptions),
-            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions),
-            DocumentFormattingOptions = options.GetDocumentFormattingOptions(fallbackOptions?.DocumentFormattingOptions),
+            FormattingOptions = options.GetSyntaxFormattingOptions(languageServices),
+            SimplifierOptions = options.GetSimplifierOptions(languageServices),
+            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions),
+            DocumentFormattingOptions = options.GetDocumentFormattingOptions(),
         };
 
-    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeCleanupOptions(document.Project.Services, document.AllowImportsInHiddenRegions(), fallbackOptions);
+        return configOptions.GetCodeCleanupOptions(document.Project.Services, document.AllowImportsInHiddenRegions());
     }
-
-    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await document.GetCodeCleanupOptionsAsync(await ((OptionsProvider<CodeCleanupOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-
-    private sealed class Provider(OptionsProvider<CodeCleanupOptions> provider) : AbstractCodeCleanupOptionsProvider
-    {
-        public override ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => provider.GetOptionsAsync(languageServices, cancellationToken);
-    }
-
-    public static CodeCleanupOptionsProvider ToCodeCleanupOptionsProvider(this OptionsProvider<CodeCleanupOptions> provider)
-        => new Provider(provider);
 #endif
 }
 

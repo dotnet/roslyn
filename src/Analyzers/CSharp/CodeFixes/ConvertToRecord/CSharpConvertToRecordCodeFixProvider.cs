@@ -46,7 +46,7 @@ internal class CSharpConvertToRecordCodeFixProvider : CodeFixProvider
             return;
 
         var action = await ConvertToRecordEngine.GetCodeActionAsync(
-            document, typeDeclaration, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+            document, typeDeclaration, cancellationToken).ConfigureAwait(false);
 
         if (action != null)
             context.RegisterCodeFix(action, context.Diagnostics);

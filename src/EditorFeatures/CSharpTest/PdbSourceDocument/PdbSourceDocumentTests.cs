@@ -881,11 +881,11 @@ public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
             var service = workspace.GetService<IMetadataAsSourceFileService>();
             try
             {
-                var options = MetadataAsSourceOptions.GetDefault(project.Services) with
+                var options = MetadataAsSourceOptions.Default with
                 {
                     NavigateToSourceLinkAndEmbeddedSources = false
                 };
-                var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options, CancellationToken.None).ConfigureAwait(false);
+                var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options: options, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
                 Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
             }

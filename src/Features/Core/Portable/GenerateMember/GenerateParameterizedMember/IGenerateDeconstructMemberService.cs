@@ -14,5 +14,5 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 internal interface IGenerateDeconstructMemberService : ILanguageService
 {
     Task<ImmutableArray<CodeAction>> GenerateDeconstructMethodAsync(
-        Document document, SyntaxNode targetVariables, INamedTypeSymbol typeToGenerateIn, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Document document, SyntaxNode targetVariables, INamedTypeSymbol typeToGenerateIn, CancellationToken cancellationToken);
 }
