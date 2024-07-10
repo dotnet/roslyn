@@ -64,22 +64,16 @@ internal abstract partial class AbstractImplementInterfaceService
 
             if (ImplementDisposePattern)
             {
-                return ImplementDisposePatternAsync(
-                    unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
+                return ImplementDisposePatternAsync(unimplementedMembers, cancellationToken);
             }
             else
             {
-                return GetUpdatedDocumentAsync(
-                    unimplementedMembers,
-                    State.ClassOrStructType, State.ClassOrStructDecl,
-                    extraMembers: [], cancellationToken);
+                return GetUpdatedDocumentAsync(unimplementedMembers, extraMembers: [], cancellationToken);
             }
         }
 
         private async Task<Document> GetUpdatedDocumentAsync(
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-            INamedTypeSymbol classOrStructType,
-            SyntaxNode classOrStructDecl,
             ImmutableArray<ISymbol> extraMembers,
             CancellationToken cancellationToken)
         {
@@ -102,10 +96,10 @@ internal abstract partial class AbstractImplementInterfaceService
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
                     new CodeGenerationContext(
-                        contextLocation: classOrStructDecl.GetLocation(),
+                        contextLocation: State.ClassOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers)),
-                classOrStructType,
+                State.ClassOrStructType,
                 memberDefinitions.Concat(extraMembers),
                 cancellationToken).ConfigureAwait(false);
         }

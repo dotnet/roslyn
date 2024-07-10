@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -39,24 +38,20 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private async Task<Document> ImplementDisposePatternAsync(
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-            INamedTypeSymbol classType,
-            SyntaxNode classDecl,
             CancellationToken cancellationToken)
         {
             var document = this.Document;
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var disposedValueField = await CreateDisposedValueFieldAsync(
-                document, classType, cancellationToken).ConfigureAwait(false);
+                document, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
 
             var disposeMethod = TryGetIDisposableDispose(compilation)!;
-            var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, classType, disposeMethod, disposedValueField);
+            var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, State.ClassOrStructType, disposeMethod, disposedValueField);
 
             // First, implement all the interfaces (except for IDisposable).
             var docWithCoreMembers = await GetUpdatedDocumentAsync(
                 unimplementedMembers.WhereAsArray(m => !m.type.Equals(disposeMethod.ContainingType)),
-                classType,
-                classDecl,
                 extraMembers: [disposedValueField],
                 cancellationToken).ConfigureAwait(false);
 
