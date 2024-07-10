@@ -39,15 +39,12 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
             {
                 var generators = service.GetGenerators(
                     document, options, model, type, cancellationToken);
-                if (!generators.IsEmpty)
-                {
-                    context.RegisterFixes(generators.SelectAsArray(
-                        g => CodeAction.Create(
-                            g.Title,
-                            cancellationToken => g.ImplementInterfaceAsync(cancellationToken),
-                            g.EquivalenceKey)), context.Diagnostics);
-                    return;
-                }
+                context.RegisterFixes(generators.SelectAsArray(
+                    g => CodeAction.Create(
+                        g.Title,
+                        cancellationToken => g.ImplementInterfaceAsync(cancellationToken),
+                        g.EquivalenceKey)), context.Diagnostics);
+                break;
             }
         }
     }
