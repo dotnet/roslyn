@@ -44,21 +44,26 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
             if (this.IsTypeInInterfaceBaseList(type))
             {
                 var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
-                var options = context.Options.GetImplementTypeGenerationOptions(document.Project.Services);
+                var generationOptions = context.Options.GetImplementTypeGenerationOptions(document.Project.Services);
 
                 var info = await service.AnalyzeAsync(
                     document, type, cancellationToken).ConfigureAwait(false);
-                using var _ = ArrayBuilder<IImplementInterfaceGenerator>.GetInstance(out var generators);
-                await foreach (var generator in GetGeneratorsAsync(document, options, info, cancellationToken))
-                    generators.AddIfNotNull(generator);
-
-                if (generators.Count > 0)
+                if (info is not null)
                 {
-                    context.RegisterFixes(generators.SelectAsArray(
-                        g => CodeAction.Create(
-                            g.Title,
-                            cancellationToken => g.ImplementInterfaceAsync(cancellationToken),
-                            g.EquivalenceKey)), context.Diagnostics);
+                    using var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
+                    await foreach (var implementOptions in GetImplementOptionsAsync(document, info, cancellationToken))
+                    {
+                        var title = GetTitle(implementOptions);
+                        var equivalenceKey = GetEquivalenceKey(implementOptions);
+                        codeActions.Add(CodeAction.Create(
+                            title,
+                            cancellationToken => service.ImplementInterfaceAsync(
+                                document, info, implementOptions, generationOptions, cancellationToken),
+                            equivalenceKey));
+                    }
+
+                    if (codeActions.Count > 0)
+                        context.RegisterFixes(codeActions, context.Diagnostics);
                 }
 
                 break;
@@ -66,15 +71,9 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         }
     }
 
-    private async IAsyncEnumerable<IImplementInterfaceGenerator> GetGeneratorsAsync(
-        Document document, ImplementTypeGenerationOptions options, IImplementInterfaceInfo? state,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    private static async IAsyncEnumerable<ImplementInterfaceOptions> GetImplementOptionsAsync(
+        Document document, IImplementInterfaceInfo state, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        if (state == null)
-        {
-            yield break;
-        }
-
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
@@ -89,50 +88,36 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                     totalMemberCount++;
 
                     if (IsLessAccessibleThan(member, state.ClassOrStructType))
-                    {
                         inaccessibleMemberCount++;
-                    }
                 }
             }
 
             // If all members to implement are inaccessible, then "Implement interface" codeaction
             // will be the same as "Implement interface explicitly", so there is no point in having both of them
             if (totalMemberCount != inaccessibleMemberCount)
-            {
-                yield return ImplementInterfaceGenerator.CreateImplement(this, document, options, state);
-            }
+                yield return new() { OnlyRemaining = true };
 
             if (ShouldImplementDisposePattern(compilation, state, explicitly: false))
-            {
-                yield return ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePattern(this, document, options, state);
-            }
+                yield return new() { ImplementDisposePattern = true };
 
             var delegatableMembers = GetDelegatableMembers(document, state, cancellationToken);
             foreach (var member in delegatableMembers)
-            {
-                yield return ImplementInterfaceGenerator.CreateImplementThroughMember(this, document, options, state, member);
-            }
+                yield return new() { ThroughMember = member };
 
             if (state.ClassOrStructType.IsAbstract)
-            {
-                yield return ImplementInterfaceGenerator.CreateImplementAbstractly(this, document, options, state);
-            }
+                yield return new() { OnlyRemaining = true, Abstractly = true };
         }
 
         if (state.MembersWithoutExplicitImplementation.Length > 0)
         {
-            yield return ImplementInterfaceGenerator.CreateImplementExplicitly(this, document, options, state);
+            yield return new() { Explicitly = true };
 
             if (ShouldImplementDisposePattern(compilation, state, explicitly: true))
-            {
-                yield return ImplementInterfaceWithDisposePatternGenerator.CreateImplementExplicitlyWithDisposePattern(this, document, options, state);
-            }
+                yield return new() { ImplementDisposePattern = true, Explicitly = true };
         }
 
         if (AnyImplementedImplicitly(state))
-        {
-            yield return ImplementInterfaceGenerator.CreateImplementRemainingExplicitly(this, document, options, state);
-        }
+            yield return new() { Explicitly = true, OnlyRemaining = true };
     }
 
     private static bool AnyImplementedImplicitly(IImplementInterfaceInfo state)

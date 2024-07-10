@@ -32,13 +32,13 @@ internal interface IImplementInterfaceInfo
     ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; }
 }
 
-internal readonly record struct ImplementInterfaceOptions(
-    bool ImplementDisposePattern,
-    bool Explicitly,
-    bool Abstractly,
-    bool OnlyRemaining,
-    ISymbol? ThroughMember)
+internal readonly record struct ImplementInterfaceOptions
 {
+    public bool ImplementDisposePattern { get; init; }
+    public bool Explicitly { get; init; }
+    public bool Abstractly { get; init; }
+    public bool OnlyRemaining { get; init; }
+    public ISymbol? ThroughMember { get; init; }
 }
 
 internal interface IImplementInterfaceService : ILanguageService
