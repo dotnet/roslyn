@@ -922,8 +922,10 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         CompileAndVerify(source).VerifyDiagnostics();
     }
 
-    [Fact]
-    public void CycleOnOverloadResolutionPriorityConstructor_02()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void CycleOnOverloadResolutionPriorityConstructor_02(int ctorToForce)
     {
         var source = """
             namespace System.Runtime.CompilerServices;
@@ -963,8 +965,17 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var secondCtor = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Skip(ctorToForce).First();
+
+        // Explicitly pull on the attributes to force binding of any attributes. This exposes a potential race condition in early attribute binding.
+        var ctor = model.GetDeclaredSymbol(secondCtor)!.GetSymbol<SourceConstructorSymbol>();
+        _ = ctor.GetAttributes();
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
         var attr = ((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute");
         var ctors = attr!.GetMembers(".ctor");
 
