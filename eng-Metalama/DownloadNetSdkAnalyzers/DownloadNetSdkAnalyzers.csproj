@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NuGet.Versioning" Version="6.6.1" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.0-*" />
+    <PackageReference Include="NuGet.Versioning" Version="6.10.1" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
   
 </Project>
