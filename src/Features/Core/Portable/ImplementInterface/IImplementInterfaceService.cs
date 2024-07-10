@@ -10,11 +10,6 @@ using Microsoft.CodeAnalysis.ImplementType;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
-internal interface IImplementInterfaceGenerator
-{
-    Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken);
-}
-
 internal interface IImplementInterfaceInfo
 {
     INamedTypeSymbol ClassOrStructType { get; }

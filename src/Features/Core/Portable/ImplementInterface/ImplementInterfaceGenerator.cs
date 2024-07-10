@@ -24,7 +24,7 @@ using static ImplementHelpers;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    private partial class ImplementInterfaceGenerator : IImplementInterfaceGenerator
+    private partial class ImplementInterfaceGenerator
     {
         protected readonly bool Explicitly;
         protected readonly bool Abstractly;
