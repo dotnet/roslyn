@@ -42,7 +42,6 @@ internal sealed record class CodeActionOptions
     [DataMember] public required IdeCodeStyleOptions CodeStyleOptions { get; init; }
     [DataMember] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
     [DataMember] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
-    [DataMember] public ExtractMethodOptions ExtractMethodOptions { get; init; } = ExtractMethodOptions.Default;
     [DataMember] public bool HideAdvancedMembers { get; init; } = false;
 
     public static CodeActionOptions GetDefault(LanguageServices languageServices)
@@ -163,7 +162,6 @@ internal static class CodeActionOptionsProviders
         {
             CodeGenerationOptions = codeActionOptions.CodeGenerationOptions,
             CodeCleanupOptions = codeActionOptions.CleanupOptions,
-            ExtractOptions = codeActionOptions.ExtractMethodOptions,
         };
     }
 #endif

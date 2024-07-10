@@ -52,7 +52,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
         Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
         ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan,
-        CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         return SpecializedTasks.EmptyImmutableArray<CodeAction>();
     }
@@ -64,7 +64,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         SyntaxNode constructorDeclaration,
         IMethodSymbol method,
         IBlockOperation? blockStatement,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // Only supported for constructor parameters.
