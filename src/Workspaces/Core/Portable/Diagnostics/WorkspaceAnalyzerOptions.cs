@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed class WorkspaceAnalyzerOptions(AnalyzerOptions options, IdeAnalyzerOptions ideOptions) : AnalyzerOptions(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
 {
     /// <summary>
-    /// Currently needed to implement <see cref="IBuiltInAnalyzer.OpenFileOnly(SimplifierOptions?)"/>.
     /// Should be removed: https://github.com/dotnet/roslyn/issues/74048
     /// </summary>
     public IdeAnalyzerOptions IdeOptions { get; } = ideOptions;
