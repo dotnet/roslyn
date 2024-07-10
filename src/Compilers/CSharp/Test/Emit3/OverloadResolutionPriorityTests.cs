@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.DiaSymReader.PortablePdb;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2543,5 +2542,51 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ObjectInitializers()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            class C : IEnumerable<int>
+            {
+                private List<int> _list = new();
+                public void Add(int x) { throw null; }
+                [OverloadResolutionPriority(1)] public void Add(int x, int y = 0) { _list.Add(x); }
+                public IEnumerator<int> GetEnumerator() => _list.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => null;
+
+                [OverloadResolutionPriority(1)]
+                public int this[int i, int y = 0]
+                {
+                    set { _list.Add(i); _list.Add(value); }
+                }
+
+                public int this[int i]
+                {
+                    set => throw null;
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C c = new() { 1 };
+                    foreach (var i in c) Console.Write(i);
+                    c = [2];
+                    foreach (var i in c) Console.Write(i);
+                    c = new() { [3] = 4 };
+                    foreach (var i in c) Console.Write(i);
+                }
+            }
+            """;
+
+        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1234");
     }
 }

@@ -1721,12 +1721,10 @@ outerDefault:
             //     - All members that have a lower *overload_resolution_priority* than the highest found within its declaring type group are removed.
             // - The reduced groups are then recombined into the final set of applicable candidate function members.
 
-            switch (results)
+            if (results.Count < 2)
             {
                 // Can't prune anything unless there's at least 2 candidates
-                case []:
-                case [_]:
-                    return;
+                return;
             }
 
             // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
