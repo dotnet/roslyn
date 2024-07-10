@@ -40,11 +40,10 @@ internal readonly record struct CleanCodeGenerationOptions
 #endif
 }
 
-internal interface CleanCodeGenerationOptionsProvider :
+internal interface CleanCodeGenerationOptionsProvider
 #if !CODE_STYLE
-    OptionsProvider<CleanCodeGenerationOptions>,
+    : OptionsProvider<CleanCodeGenerationOptions>
 #endif
-    CodeAndImportGenerationOptionsProvider
 {
 }
 

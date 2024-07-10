@@ -28,7 +28,6 @@ internal static class CodeActionOptionsStorage
         SyntaxFormattingOptionsProvider,
         SimplifierOptionsProvider,
         CleanCodeGenerationOptionsProvider,
-        CodeAndImportGenerationOptionsProvider,
         CodeActionOptionsProvider
     {
         private readonly IGlobalOptionService _globalOptions;
@@ -53,8 +52,5 @@ internal static class CodeActionOptionsStorage
 
         ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetCleanCodeGenerationOptions(languageServices));
-
-        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetCodeAndImportGenerationOptions(languageServices));
     }
 }

@@ -61,23 +61,7 @@ internal readonly record struct CodeAndImportGenerationOptions
             GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
             AddImportOptions = AddImportPlacementOptions.Default
         };
-
-    internal CodeAndImportGenerationOptionsProvider CreateProvider()
-        => new Provider(this);
-
-    private sealed class Provider(CodeAndImportGenerationOptions options) : CodeAndImportGenerationOptionsProvider
-    {
-        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(options);
-    }
 #endif
-}
-
-internal interface CodeAndImportGenerationOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<CodeAndImportGenerationOptions>
-#endif    
-{
 }
 
 internal static class CodeGenerationOptionsProviders

@@ -60,7 +60,6 @@ internal sealed record class CodeActionOptions
 internal interface CodeActionOptionsProvider :
 #if !CODE_STYLE
     CleanCodeGenerationOptionsProvider,
-    CodeAndImportGenerationOptionsProvider,
     OrganizeImportsOptionsProvider,
 #endif
     SyntaxFormattingOptionsProvider,
@@ -93,16 +92,6 @@ internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsPro
         {
             GenerationOptions = codeActionOptions.CodeGenerationOptions,
             CleanupOptions = codeActionOptions.CleanupOptions
-        });
-    }
-
-    ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-    {
-        var codeActionOptions = GetOptions(languageServices);
-        return ValueTaskFactory.FromResult(new CodeAndImportGenerationOptions()
-        {
-            GenerationOptions = codeActionOptions.CodeGenerationOptions,
-            AddImportOptions = codeActionOptions.CleanupOptions.AddImportOptions
         });
     }
 #endif
