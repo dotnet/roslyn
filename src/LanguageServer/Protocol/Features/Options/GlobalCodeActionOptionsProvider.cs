@@ -2,19 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.OrganizeImports;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -25,7 +14,6 @@ internal static class CodeActionOptionsStorage
 
     // TODO: we can implement providers directly on IGlobalOptionService once it moves to LSP layer
     public sealed class Provider :
-        CleanCodeGenerationOptionsProvider,
         CodeActionOptionsProvider
     {
         private readonly IGlobalOptionService _globalOptions;
@@ -35,8 +23,5 @@ internal static class CodeActionOptionsStorage
 
         CodeActionOptions CodeActionOptionsProvider.GetOptions(LanguageServices languageServices)
             => _globalOptions.GetCodeActionOptions(languageServices);
-
-        ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetCleanCodeGenerationOptions(languageServices));
     }
 }
