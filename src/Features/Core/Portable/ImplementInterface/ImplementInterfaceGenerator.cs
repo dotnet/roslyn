@@ -24,7 +24,7 @@ using static ImplementHelpers;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    internal partial class ImplementInterfaceGenerator : IImplementInterfaceGenerator
+    private partial class ImplementInterfaceGenerator : IImplementInterfaceGenerator
     {
         protected readonly bool Explicitly;
         protected readonly bool Abstractly;
@@ -34,7 +34,6 @@ internal abstract partial class AbstractImplementInterfaceService
         protected readonly ImplementTypeGenerationOptions Options;
         protected readonly IImplementInterfaceInfo State;
         protected readonly AbstractImplementInterfaceService Service;
-        private readonly string _equivalenceKey;
 
         internal ImplementInterfaceGenerator(
             AbstractImplementInterfaceService service,
@@ -54,110 +53,7 @@ internal abstract partial class AbstractImplementInterfaceService
             _onlyRemaining = onlyRemaining;
             Explicitly = explicitly;
             ThroughMember = throughMember;
-            _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!.Replace("Generator", "CodeAction")!);
         }
-
-        public static ImplementInterfaceGenerator CreateImplementAbstractly(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
-        }
-
-        public static ImplementInterfaceGenerator CreateImplement(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
-        }
-
-        public static ImplementInterfaceGenerator CreateImplementExplicitly(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
-        }
-
-        public static ImplementInterfaceGenerator CreateImplementThroughMember(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state,
-            ISymbol throughMember)
-        {
-            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
-        }
-
-        public static ImplementInterfaceGenerator CreateImplementRemainingExplicitly(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceGenerator(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
-        }
-
-        public virtual string Title
-        {
-            get
-            {
-                if (Explicitly)
-                {
-                    if (_onlyRemaining)
-                    {
-                        return FeaturesResources.Implement_remaining_members_explicitly;
-                    }
-                    else
-                    {
-                        return FeaturesResources.Implement_all_members_explicitly;
-                    }
-                }
-                else if (Abstractly)
-                {
-                    return FeaturesResources.Implement_interface_abstractly;
-                }
-                else if (ThroughMember != null)
-                {
-                    return string.Format(FeaturesResources.Implement_interface_through_0, ThroughMember.Name);
-                }
-                else
-                {
-                    return FeaturesResources.Implement_interface;
-                }
-            }
-        }
-
-        private static string ComputeEquivalenceKey(
-            IImplementInterfaceInfo state,
-            bool explicitly,
-            bool abstractly,
-            bool onlyRemaining,
-            ISymbol? throughMember,
-            string codeActionTypeName)
-        {
-            var interfaceType = state.InterfaceTypes.First();
-            var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var assemblyName = interfaceType.ContainingAssembly.Name;
-
-            // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
-            // in the same manner.  Note: 'implement through member' means implementing the same interface through
-            // an applicable member with the same name in the destination.
-            return explicitly.ToString() + ";" +
-               abstractly.ToString() + ";" +
-               onlyRemaining.ToString() + ":" +
-               typeName + ";" +
-               assemblyName + ";" +
-               codeActionTypeName + ";" +
-               throughMember?.Name;
-        }
-
-        public string EquivalenceKey => _equivalenceKey;
 
         public Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken)
             => GetUpdatedDocumentAsync(cancellationToken);

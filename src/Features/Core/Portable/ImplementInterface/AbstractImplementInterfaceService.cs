@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -46,8 +43,8 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             // While implementing just one default action, like in the case of pressing enter after interface name in VB,
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
             var generator = ShouldImplementDisposePattern(model.Compilation, state, explicitly: false)
-                ? ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePattern(this, document, options, state)
-                : ImplementInterfaceGenerator.CreateImplement(this, document, options, state);
+                ? new ImplementInterfaceWithDisposePatternGenerator(this, document, options, state, explicitly: false, abstractly: false, throughMember: null)
+                : new ImplementInterfaceGenerator(this, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
 
             return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
         }

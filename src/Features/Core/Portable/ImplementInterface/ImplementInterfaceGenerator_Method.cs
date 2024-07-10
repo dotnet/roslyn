@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    internal partial class ImplementInterfaceGenerator
+    private partial class ImplementInterfaceGenerator
     {
         private ISymbol GenerateMethod(
             Compilation compilation,

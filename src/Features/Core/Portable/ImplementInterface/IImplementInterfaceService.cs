@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 internal interface IImplementInterfaceGenerator
 {
-    string Title { get; }
-    string EquivalenceKey { get; }
-
     Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken);
 }
 

@@ -73,16 +73,17 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
 
     private static string GetTitle(ImplementInterfaceOptions options)
     {
-        if (options.Explicitly)
+        if (options.ImplementDisposePattern)
         {
-            if (options.OnlyRemaining)
-            {
-                return FeaturesResources.Implement_remaining_members_explicitly;
-            }
-            else
-            {
-                return FeaturesResources.Implement_all_members_explicitly;
-            }
+            return options.Explicitly
+                ? FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern
+                : FeaturesResources.Implement_interface_with_Dispose_pattern;
+        }
+        else if (options.Explicitly)
+        {
+            return options.OnlyRemaining
+                ? FeaturesResources.Implement_remaining_members_explicitly
+                : FeaturesResources.Implement_all_members_explicitly;
         }
         else if (options.Abstractly)
         {

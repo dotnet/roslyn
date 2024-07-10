@@ -46,29 +46,6 @@ internal abstract partial class AbstractImplementInterfaceService
         bool abstractly,
         ISymbol? throughMember) : ImplementInterfaceGenerator(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
     {
-        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementWithDisposePattern(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceWithDisposePatternGenerator(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
-        }
-
-        public static ImplementInterfaceWithDisposePatternGenerator CreateImplementExplicitlyWithDisposePattern(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceWithDisposePatternGenerator(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
-        }
-
-        public override string Title
-            => Explicitly
-                ? FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern
-                : FeaturesResources.Implement_interface_with_Dispose_pattern;
-
         protected override async Task<Document> GetUpdatedDocumentAsync(
             Document document,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
