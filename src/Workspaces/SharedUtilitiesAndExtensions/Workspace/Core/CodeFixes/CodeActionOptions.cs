@@ -20,28 +20,13 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 [DataContract]
 internal sealed record class CodeActionOptions
 {
-#if CODE_STYLE
-    public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
-#else
-    public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls));
-#endif
+    public static readonly CodeActionOptions Default = new();
+    public static readonly CodeActionOptionsProvider DefaultProvider = Default.CreateProvider();
 
 #if !CODE_STYLE
-    [DataMember] public required CodeCleanupOptions CleanupOptions { get; init; }
-    [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
     [DataMember] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
     [DataMember] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
     [DataMember] public bool HideAdvancedMembers { get; init; } = false;
-
-    public static CodeActionOptions GetDefault(LanguageServices languageServices)
-        => new()
-        {
-            CleanupOptions = CodeCleanupOptions.GetDefault(languageServices),
-            CodeGenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
-        };
-#else
-    public static CodeActionOptions GetDefault(LanguageServices languageServices)
-        => new();
 #endif
     public CodeActionOptionsProvider CreateProvider()
         => new DelegatingCodeActionOptionsProvider(_ => this);
