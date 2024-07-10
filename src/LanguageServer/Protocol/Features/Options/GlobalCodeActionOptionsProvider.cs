@@ -27,7 +27,6 @@ internal static class CodeActionOptionsStorage
     public sealed class Provider :
         SyntaxFormattingOptionsProvider,
         SimplifierOptionsProvider,
-        AddImportPlacementOptionsProvider,
         CleanCodeGenerationOptionsProvider,
         CodeAndImportGenerationOptionsProvider,
         CodeActionOptionsProvider
@@ -48,9 +47,6 @@ internal static class CodeActionOptionsStorage
 
         ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetSimplifierOptions(languageServices));
-
-        ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions: null));
 
         ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetOrganizeImportsOptions(languageServices.Language));

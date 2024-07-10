@@ -50,7 +50,6 @@ internal interface CodeCleanupOptionsProvider :
 #endif
     SyntaxFormattingOptionsProvider,
     SimplifierOptionsProvider,
-    AddImportPlacementOptionsProvider,
     DocumentFormattingOptionsProvider
 {
 }
