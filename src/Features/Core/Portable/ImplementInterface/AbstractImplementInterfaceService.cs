@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,7 +37,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     {
         using (Logger.LogBlock(FunctionId.Refactoring_ImplementInterface, cancellationToken))
         {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var state = State.Generate(this, document, model, node, cancellationToken);
             if (state == null)
             {
@@ -57,6 +55,13 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         }
     }
 
+    public async Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
+    {
+        var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var state = State.Generate(this, document, model, interfaceType, cancellationToken);
+        return state;
+    }
+
     public ImmutableArray<IImplementInterfaceGenerator> GetGenerators(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
     {
         var state = State.Generate(this, document, model, node, cancellationToken);
@@ -64,7 +69,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     }
 
     private IEnumerable<IImplementInterfaceGenerator> GetGenerators(
-        Document document, ImplementTypeGenerationOptions options, State state, CancellationToken cancellationToken)
+        Document document, ImplementTypeGenerationOptions options, State? state, CancellationToken cancellationToken)
     {
         if (state == null)
         {

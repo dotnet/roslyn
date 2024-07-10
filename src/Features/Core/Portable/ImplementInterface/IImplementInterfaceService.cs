@@ -34,6 +34,6 @@ internal interface IImplementInterfaceService : ILanguageService
     Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken);
     ImmutableArray<IImplementInterfaceGenerator> GetGenerators(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode interfaceType, CancellationToken cancellationToken);
 
-    Task<IImplementInterfaceInfo> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
+    Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
     Task<Document> ImplementInterfaceAsync(Document document, IImplementInterfaceInfo info, ImplementInterfaceOptions options, CancellationToken cancellationToken);
 }
