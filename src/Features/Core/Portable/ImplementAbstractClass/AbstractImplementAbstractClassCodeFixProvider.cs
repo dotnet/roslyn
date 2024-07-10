@@ -39,7 +39,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
             return;
 
         var data = await ImplementAbstractClassData.TryGetDataAsync(
-            document, classNode, GetClassIdentifier(classNode), context.Options.GetImplementTypeOptions(document.Project.Services), cancellationToken).ConfigureAwait(false);
+            document, classNode, GetClassIdentifier(classNode), context.Options.GetOptions(document.Project.Services).ImplementTypeOptions, cancellationToken).ConfigureAwait(false);
         if (data == null)
             return;
 

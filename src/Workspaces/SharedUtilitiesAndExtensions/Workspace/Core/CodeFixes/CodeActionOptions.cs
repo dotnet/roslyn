@@ -4,23 +4,13 @@
 
 using System;
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.OrganizeImports;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
@@ -88,20 +78,5 @@ internal static class CodeActionOptionsProviders
 #else
     internal static CodeActionOptionsProvider GetOptionsProvider(this IFixAllContext context)
         => context.State.CodeActionOptionsProvider;
-#endif
-
-#if !CODE_STYLE
-    public static ImplementTypeOptions GetImplementTypeOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
-        => provider.GetOptions(languageServices).ImplementTypeOptions;
-
-    public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
-    {
-        var codeActionOptions = provider.GetOptions(languageServices);
-        return new()
-        {
-            CodeGenerationOptions = codeActionOptions.CodeGenerationOptions,
-            CodeCleanupOptions = codeActionOptions.CleanupOptions,
-        };
-    }
 #endif
 }
