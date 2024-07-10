@@ -170,7 +170,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         }
 
         if (AnyImplementedImplicitly(state))
-            yield return new() { Explicitly = true };
+            yield return new() { OnlyRemaining = true, Explicitly = true };
     }
 
     private static bool AnyImplementedImplicitly(IImplementInterfaceInfo state)
