@@ -211,8 +211,7 @@ internal abstract partial class AbstractImplementInterfaceService
                     new CodeGenerationContext(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
-                    Options.FallbackOptions),
+                        sortMembers: groupMembers)),
                 classOrStructType,
                 memberDefinitions.Concat(extraMembers),
                 cancellationToken).ConfigureAwait(false);

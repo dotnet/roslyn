@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
         {
-            // Update the locale for this request to the desired LSP locale.
-            CultureInfo.CurrentUICulture = GetCultureForRequest();
             if (rethrowExceptions)
             {
                 return nonMutatingRequestTask;
@@ -37,6 +35,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 return nonMutatingRequestTask.ReportNonFatalErrorAsync();
             }
+        }
+
+        protected internal override void BeforeRequest<TRequest>(TRequest request)
+        {
+            // Update the locale for this request to the desired LSP locale.
+            CultureInfo.CurrentUICulture = GetCultureForRequest();
         }
 
         /// <summary>

@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
 internal interface IMoveToNamespaceService : ILanguageService
 {
-    Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CodeCleanupOptionsProvider options, CancellationToken cancellationToken);
+    Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
-    Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CodeCleanupOptionsProvider options, CancellationToken cancellationToken);
+    Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
     MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
     IMoveToNamespaceOptionsService OptionsService { get; }
 }
@@ -50,7 +50,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
         Document document,
         TextSpan span,
-        CodeCleanupOptionsProvider cleanupOptions,
         CancellationToken cancellationToken)
     {
         // Code actions cannot be completed without the options needed
@@ -61,7 +60,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
 
             if (typeAnalysisResult.CanPerform)
             {
-                return [AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult, cleanupOptions)];
+                return [AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult)];
             }
         }
 
@@ -168,7 +167,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
         MoveToNamespaceAnalysisResult analysisResult,
         string targetNamespace,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         if (!analysisResult.CanPerform)
@@ -178,8 +176,8 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
 
         return analysisResult.Container switch
         {
-            MoveToNamespaceAnalysisResult.ContainerType.Namespace => MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, fallbackOptions, cancellationToken),
-            MoveToNamespaceAnalysisResult.ContainerType.NamedType => MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, fallbackOptions, cancellationToken),
+            MoveToNamespaceAnalysisResult.ContainerType.Namespace => MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
+            MoveToNamespaceAnalysisResult.ContainerType.NamedType => MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
             _ => throw new InvalidOperationException(),
         };
     }
@@ -210,7 +208,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         Document document,
         SyntaxNode container,
         string targetNamespace,
-        CodeCleanupOptionsProvider options,
         CancellationToken cancellationToken)
     {
         var memberSymbols = await GetMemberSymbolsAsync(document, container, cancellationToken).ConfigureAwait(false);
@@ -229,7 +226,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             document,
             container,
             targetNamespace,
-            options,
             cancellationToken).ConfigureAwait(false);
 
         return new MoveToNamespaceResult(originalSolution, changedSolution, document.Id, newNameOriginalSymbolMapping);
@@ -239,7 +235,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         Document document,
         SyntaxNode container,
         string targetNamespace,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var moveTypeService = document.GetLanguageService<IMoveTypeService>();
@@ -256,7 +251,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             document,
             moveSpan,
             MoveTypeOperationKind.MoveTypeNamespaceScope,
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
         var modifiedDocument = modifiedSolution.GetDocument(document.Id);
 
@@ -276,7 +270,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             mergedDocument,
             syntaxNode,
             targetNamespace,
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
     }
 

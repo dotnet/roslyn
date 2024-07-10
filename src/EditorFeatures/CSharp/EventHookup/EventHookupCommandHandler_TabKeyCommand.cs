@@ -209,7 +209,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         }
     }
 
-    private async Task<(Solution solution, TextSpan renameSpan)?> TryGetNewSolutionWithAddedMethodAsync(
+    private static async Task<(Solution solution, TextSpan renameSpan)?> TryGetNewSolutionWithAddedMethodAsync(
         Document document, Task<string?> eventNameTask, int position, CancellationToken cancellationToken)
     {
         var eventHandlerMethodName = await eventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
@@ -224,16 +224,14 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
         var semanticDocument = await SemanticDocument.CreateAsync(
             documentWithNameAndAnnotationsAdded, cancellationToken).ConfigureAwait(false);
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(
-            _globalOptions, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var updatedRoot = AddGeneratedHandlerMethodToSolution(
             semanticDocument, options, eventHandlerMethodName, cancellationToken);
 
         if (updatedRoot == null)
             return null;
 
-        var cleanupOptions = await documentWithNameAndAnnotationsAdded.GetCodeCleanupOptionsAsync(
-            _globalOptions, cancellationToken).ConfigureAwait(false);
+        var cleanupOptions = await documentWithNameAndAnnotationsAdded.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplifiedDocument = await Simplifier.ReduceAsync(
             documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         var formattedDocument = await Formatter.FormatAsync(

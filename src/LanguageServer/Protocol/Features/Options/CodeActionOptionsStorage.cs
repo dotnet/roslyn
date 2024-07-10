@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 CodeStyleOptions = globalOptions.GetCodeStyleOptions(languageServices),
                 SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language),
                 ImplementTypeOptions = globalOptions.GetImplementTypeOptions(languageServices.Language),
-                ExtractMethodOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
             };
 

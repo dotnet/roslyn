@@ -25,7 +25,6 @@ internal abstract partial class AbstractGenerateDeconstructMethodService<TServic
         Document document,
         SyntaxNode leftSide,
         INamedTypeSymbol typeToGenerateIn,
-        CodeAndImportGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
@@ -35,7 +34,7 @@ internal abstract partial class AbstractGenerateDeconstructMethodService<TServic
             var state = await State.GenerateDeconstructMethodStateAsync(
                 (TService)this, semanticDocument, leftSide, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
 
-            return state != null ? await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false) : [];
+            return state != null ? await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false) : [];
         }
     }
 }

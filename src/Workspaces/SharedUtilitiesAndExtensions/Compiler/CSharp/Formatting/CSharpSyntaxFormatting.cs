@@ -40,7 +40,7 @@ internal class CSharpSyntaxFormatting : AbstractSyntaxFormatting
         => CSharpSyntaxFormattingOptions.Default;
 
     public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options)
-        => new CSharpSyntaxFormattingOptions(options, fallbackOptions: null);
+        => new CSharpSyntaxFormattingOptions(options);
 
     protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans = null)
         => new AggregatedFormattingResult(node, results, formattingSpans);

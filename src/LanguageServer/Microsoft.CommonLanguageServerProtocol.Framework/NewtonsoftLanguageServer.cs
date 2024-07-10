@@ -25,21 +25,41 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext>(
 {
     private readonly JsonSerializer _jsonSerializer = jsonSerializer;
 
-    protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
+    public override TRequest DeserializeRequest<TRequest>(object? serializedRequest, RequestHandlerMetadata metadata)
     {
-        return new NewtonsoftDelegatingEntryPoint(method, handlersForMethod, this);
+        var requestTypeRef = metadata.RequestTypeRef;
+
+        if (serializedRequest is null)
+        {
+            if (requestTypeRef is not null)
+            {
+                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+            }
+
+            // We checked that TRequest is typeof(NoValue).
+            return (TRequest)(object)NoValue.Instance;
+        }
+
+        // request is not null
+        if (requestTypeRef is null)
+        {
+            throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
+        }
+
+        var request = (JToken)serializedRequest;
+
+        return request.ToObject<TRequest>(_jsonSerializer)
+            ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
     }
 
-    protected virtual string GetLanguageForRequest(string methodName, JToken? parameters)
+    protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method)
     {
-        Logger.LogInformation($"Using default language handler for {methodName}");
-        return LanguageServerConstants.DefaultLanguageName;
+        return new NewtonsoftDelegatingEntryPoint(method, this);
     }
 
     private class NewtonsoftDelegatingEntryPoint(
         string method,
-        IGrouping<string, RequestHandlerMetadata> handlersForMethod,
-        NewtonsoftLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, target.TypeRefResolver, handlersForMethod)
+        NewtonsoftLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method)
     {
         private static readonly MethodInfo s_entryPoint = typeof(NewtonsoftDelegatingEntryPoint).GetMethod(nameof(NewtonsoftDelegatingEntryPoint.ExecuteRequestAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
@@ -57,49 +77,13 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext>(
             var queue = target.GetRequestExecutionQueue();
             var lspServices = target.GetLspServices();
 
-            // Retrieve the language of the request so we know how to deserialize it.
-            var language = target.GetLanguageForRequest(_method, request);
-
-            // Find the correct request and response types for the given request and language.
-            var requestInfo = GetMethodInfo(language);
-
-            // Deserialize the request parameters (if any).
-            var requestObject = DeserializeRequest(request, requestInfo.Metadata, target._jsonSerializer);
-
-            var result = await InvokeAsync(requestInfo.MethodInfo, queue, requestObject, language, lspServices, cancellationToken).ConfigureAwait(false);
+            var result = await InvokeAsync(queue, request, lspServices, cancellationToken).ConfigureAwait(false);
             if (result is null)
             {
                 return null;
             }
 
             return JToken.FromObject(result, target._jsonSerializer);
-        }
-
-        private object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
-        {
-            var requestTypeRef = metadata.RequestTypeRef;
-
-            if (request is null)
-            {
-                if (requestTypeRef is not null)
-                {
-                    throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
-                }
-
-                return NoValue.Instance;
-            }
-
-            // request is not null
-            if (requestTypeRef is null)
-            {
-                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
-            }
-
-            var requestType = _typeRefResolver.Resolve(requestTypeRef)
-                ?? throw new InvalidOperationException($"Could not resolve type: '{requestTypeRef}'");
-
-            return request.ToObject(requestType, jsonSerializer)
-                ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
         }
     }
 }

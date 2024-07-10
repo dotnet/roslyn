@@ -116,6 +116,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        /// <summary>
+        /// Use to set specified editorconfig options as <see cref="Solution.FallbackAnalyzerOptions"/>.
+        /// </summary>
         public void SetAnalyzerFallbackOptions(string language, params (string name, string value)[] options)
         {
             SetCurrentSolution(

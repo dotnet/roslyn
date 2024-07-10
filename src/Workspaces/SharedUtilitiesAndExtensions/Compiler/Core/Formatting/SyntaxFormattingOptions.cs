@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 #endif
 
@@ -33,13 +32,13 @@ internal record class SyntaxFormattingOptions
     {
     }
 
-    private protected SyntaxFormattingOptions(IOptionsReader options, SyntaxFormattingOptions fallbackOptions, string language)
+    private protected SyntaxFormattingOptions(IOptionsReader options, string language)
     {
-        LineFormatting = options.GetLineFormattingOptions(language, fallbackOptions.LineFormatting);
-        SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.SeparateImportDirectiveGroups);
-        AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language, fallbackOptions.AccessibilityModifiersRequired);
-        WrappingColumn = options.GetOption(FormattingOptions2.WrappingColumn, language, fallbackOptions.WrappingColumn);
-        ConditionalExpressionWrappingLength = options.GetOption(FormattingOptions2.ConditionalExpressionWrappingLength, language, fallbackOptions.ConditionalExpressionWrappingLength);
+        LineFormatting = options.GetLineFormattingOptions(language);
+        SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language);
+        AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language);
+        WrappingColumn = options.GetOption(FormattingOptions2.WrappingColumn, language);
+        ConditionalExpressionWrappingLength = options.GetOption(FormattingOptions2.ConditionalExpressionWrappingLength, language);
     }
 
     public bool UseTabs => LineFormatting.UseTabs;

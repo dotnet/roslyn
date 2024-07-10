@@ -32,7 +32,6 @@ internal static class CSharpCollectionExpressionRewriter
     /// </summary>
     public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
-        CodeActionOptionsProvider fallbackOptions,
         TParentExpression expressionToReplace,
         ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
