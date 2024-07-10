@@ -44,13 +44,6 @@ internal sealed record class CodeCleanupOptions
 #endif
 }
 
-internal interface CodeCleanupOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<CodeCleanupOptions>
-#endif
-{
-}
-
 internal static class CodeCleanupOptionsProviders
 {
 #if !CODE_STYLE
