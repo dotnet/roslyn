@@ -59,7 +59,6 @@ internal sealed record class CodeActionOptions
 
 internal interface CodeActionOptionsProvider :
 #if !CODE_STYLE
-    CodeCleanupOptionsProvider,
     CodeGenerationOptionsProvider,
     CleanCodeGenerationOptionsProvider,
     CodeAndImportGenerationOptionsProvider,
@@ -80,9 +79,6 @@ internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsPro
     ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions.LineFormatting);
 
-    ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.DocumentFormattingOptions);
-
     ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions);
 
@@ -94,9 +90,6 @@ internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsPro
 
     ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.GetOrganizeImportsOptions());
-
-    ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions);
 
     ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CodeGenerationOptions);

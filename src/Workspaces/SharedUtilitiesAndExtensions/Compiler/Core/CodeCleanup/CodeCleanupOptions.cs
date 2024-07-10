@@ -55,32 +55,6 @@ internal interface CodeCleanupOptionsProvider :
 {
 }
 
-#if !CODE_STYLE
-internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsProvider
-{
-    public abstract ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken);
-
-    ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => GetCodeCleanupOptionsAsync(languageServices, cancellationToken);
-
-    async ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions.LineFormatting;
-
-    async ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).DocumentFormattingOptions;
-
-    async ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions;
-
-    async ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions;
-
-    async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions;
-}
-
-#endif
-
 internal static class CodeCleanupOptionsProviders
 {
 #if !CODE_STYLE

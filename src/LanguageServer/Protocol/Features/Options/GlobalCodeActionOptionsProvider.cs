@@ -28,7 +28,6 @@ internal static class CodeActionOptionsStorage
         SyntaxFormattingOptionsProvider,
         SimplifierOptionsProvider,
         AddImportPlacementOptionsProvider,
-        CodeCleanupOptionsProvider,
         CodeGenerationOptionsProvider,
         CleanCodeGenerationOptionsProvider,
         CodeAndImportGenerationOptionsProvider,
@@ -45,9 +44,6 @@ internal static class CodeActionOptionsStorage
         ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetLineFormattingOptions(languageServices.Language));
 
-        ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetDocumentFormattingOptions());
-
         ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetSyntaxFormattingOptions(languageServices));
 
@@ -59,9 +55,6 @@ internal static class CodeActionOptionsStorage
 
         ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetOrganizeImportsOptions(languageServices.Language));
-
-        ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetCodeCleanupOptions(languageServices));
 
         ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetCodeGenerationOptions(languageServices));
