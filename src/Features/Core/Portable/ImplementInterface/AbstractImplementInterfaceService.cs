@@ -62,17 +62,6 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         return state;
     }
 
-    private static ImmutableArray<ISymbol> GetDelegatableMembers(State state, CancellationToken cancellationToken)
-    {
-        var firstInterfaceType = state.InterfaceTypes.First();
-
-        return ImplementHelpers.GetDelegatableMembers(
-            state.Document,
-            state.ClassOrStructType,
-            t => t.GetAllInterfacesIncludingThis().Contains(firstInterfaceType),
-            cancellationToken);
-    }
-
     protected static TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode
         => AddComments(g, [comment], node);
 

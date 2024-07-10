@@ -21,6 +21,7 @@ internal interface IImplementInterfaceGenerator
 internal interface IImplementInterfaceInfo
 {
     INamedTypeSymbol ClassOrStructType { get; }
+    ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; }
 
     ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; }
     ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementation { get; }

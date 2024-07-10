@@ -17,13 +17,13 @@ internal abstract partial class AbstractImplementInterfaceService
         SyntaxNode interfaceNode,
         SyntaxNode classOrStructDecl,
         INamedTypeSymbol classOrStructType,
-        IEnumerable<INamedTypeSymbol> interfaceTypes,
+        ImmutableArray<INamedTypeSymbol> interfaceTypes,
         SemanticModel model) : IImplementInterfaceInfo
     {
         public SyntaxNode Location { get; } = interfaceNode;
         public SyntaxNode ClassOrStructDecl { get; } = classOrStructDecl;
         public INamedTypeSymbol ClassOrStructType { get; } = classOrStructType;
-        public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
+        public ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
         public SemanticModel Model { get; } = model;
 
         public readonly Document Document = document;

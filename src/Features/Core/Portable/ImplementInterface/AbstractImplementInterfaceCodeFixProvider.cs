@@ -107,7 +107,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                 yield return ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePattern(this, document, options, state);
             }
 
-            var delegatableMembers = GetDelegatableMembers(state, cancellationToken);
+            var delegatableMembers = GetDelegatableMembers(document, state, cancellationToken);
             foreach (var member in delegatableMembers)
             {
                 yield return ImplementInterfaceGenerator.CreateImplementThroughMember(this, document, options, state, member);
@@ -123,7 +123,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         {
             yield return ImplementInterfaceGenerator.CreateImplementExplicitly(this, document, options, state);
 
-            if (ShouldImplementDisposePattern(state, explicitly: true))
+            if (ShouldImplementDisposePattern(compilation, state, explicitly: true))
             {
                 yield return ImplementInterfaceWithDisposePatternGenerator.CreateImplementExplicitlyWithDisposePattern(this, document, options, state);
             }
@@ -158,5 +158,17 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         }
 
         return false;
+    }
+
+    private static ImmutableArray<ISymbol> GetDelegatableMembers(
+        Document document, IImplementInterfaceInfo state, CancellationToken cancellationToken)
+    {
+        var firstInterfaceType = state.InterfaceTypes.First();
+
+        return ImplementHelpers.GetDelegatableMembers(
+            document,
+            state.ClassOrStructType,
+            t => t.GetAllInterfacesIncludingThis().Contains(firstInterfaceType),
+            cancellationToken);
     }
 }
