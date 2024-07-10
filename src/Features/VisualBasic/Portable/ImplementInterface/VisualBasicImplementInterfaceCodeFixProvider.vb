@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ImplementInterface
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ImplementInterface), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementAbstractClass)>
     Friend Class VisualBasicImplementInterfaceCodeFixProvider
-        Inherits CodeFixProvider
+        Inherits AbstractImplementInterfaceCodeFixProvider(Of TypeSyntax)
 
         Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub goo()' for interface 'igoo'.
 
@@ -25,50 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30149)
 
-        Public NotOverridable Overrides Function GetFixAllProvider() As FixAllProvider
-            Return WellKnownFixAllProviders.BatchFixer
-        End Function
-
-        Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            Dim document = context.Document
-            Dim span = context.Span
-            Dim cancellationToken = context.CancellationToken
-            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-
-            Dim token = root.FindToken(span.Start)
-            If Not token.Span.IntersectsWith(span) Then
-                Return
-            End If
-
-            Dim implementsNode = token.GetAncestors(Of ImplementsStatementSyntax) _
-                                 .FirstOrDefault(Function(c) c.Span.IntersectsWith(span))
-            If implementsNode Is Nothing Then
-                Return
-            End If
-
-            Dim typeNode = implementsNode.Types.Where(Function(c) c.Span.IntersectsWith(span)) _
-                           .FirstOrDefault(Function(c) c.Span.IntersectsWith(span))
-
-            If typeNode Is Nothing Then
-                Return
-            End If
-
-            Dim service = document.GetLanguageService(Of IImplementInterfaceService)()
-            Dim generators = service.GetGenerators(
-                document,
-                context.Options.GetImplementTypeGenerationOptions(document.Project.Services),
-                Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False),
-                typeNode,
-                cancellationToken)
-            Dim actions = generators.SelectAsArray(Function(g) CodeAction.Create(
-                g.Title,
-                Function(c) g.ImplementInterfaceAsync(c),
-                g.EquivalenceKey))
-            If actions.IsEmpty Then
-                Return
-            End If
-
-            context.RegisterFixes(actions, context.Diagnostics)
+        Protected Overrides Function IsTypeInInterfaceBaseList(type As TypeSyntax) As Boolean
+            Return TypeOf type.Parent Is ImplementsStatementSyntax
         End Function
     End Class
 End Namespace
