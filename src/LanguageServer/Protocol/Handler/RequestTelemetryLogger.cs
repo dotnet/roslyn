@@ -22,7 +22,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
     /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
     /// run alongside other non-mutating requests.
     /// </summary>
-    private readonly ConcurrentDictionary<string, Counter> _requestCounters;
+    private readonly ConcurrentDictionary<(string Method, string? Language), Counter> _requestCounters;
 
     private readonly CountLogAggregator<string> _findDocumentResults;
 
@@ -57,6 +57,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
 
     public void UpdateTelemetryData(
         string methodName,
+        string? language,
         TimeSpan queuedDuration,
         TimeSpan requestDuration,
         Result result)
@@ -69,6 +70,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
             m["server"] = _serverTypeName;
             m["method"] = methodName;
+            m["language"] = language;
         }));
 
         TelemetryLogging.LogAggregated(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
@@ -78,9 +80,10 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             m[TelemetryLogging.KeyMetricName] = "RequestDuration";
             m["server"] = _serverTypeName;
             m["method"] = methodName;
+            m["language"] = language;
         }));
 
-        _requestCounters.GetOrAdd(methodName, (_) => new Counter()).IncrementCount(result);
+        _requestCounters.GetOrAdd((methodName, language), (_) => new Counter()).IncrementCount(result);
     }
 
     /// <summary>
@@ -107,7 +110,8 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             TelemetryLogging.Log(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
                 m["server"] = _serverTypeName;
-                m["method"] = kvp.Key;
+                m["method"] = kvp.Key.Method;
+                m["language"] = kvp.Key.Language;
                 m["successful"] = kvp.Value.SucceededCount;
                 m["failed"] = kvp.Value.FailedCount;
                 m["cancelled"] = kvp.Value.CancelledCount;

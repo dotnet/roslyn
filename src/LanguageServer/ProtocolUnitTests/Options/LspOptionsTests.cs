@@ -30,7 +30,7 @@ public class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLang
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
-        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project));
+        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project, allowInHiddenRegions: null));
         Assert.NotNull(globalOptions.GetCodeGenerationOptions(project));
         Assert.NotNull(globalOptions.GetCodeStyleOptions(project));
         Assert.NotNull(globalOptions.GetSyntaxFormattingOptions(project));
@@ -44,7 +44,7 @@ public class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLang
         await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace);
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
-        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project));
+        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project, allowInHiddenRegions: null));
         Assert.NotNull(globalOptions.GetCodeGenerationOptions(project));
         Assert.NotNull(globalOptions.GetCodeStyleOptions(project));
         Assert.NotNull(globalOptions.GetSyntaxFormattingOptions(project));

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.SourceGeneration;
 
 [DataContract]
-internal readonly record struct RegularCompilationTrackerSourceGenerationInfo(
+internal readonly record struct SourceGeneratedDocmentInfo(
     [property: DataMember(Order = 0)] SourceGeneratedDocumentIdentity DocumentIdentity,
     [property: DataMember(Order = 1)] SourceGeneratedDocumentContentIdentity ContentIdentity,
     [property: DataMember(Order = 2)] DateTime GenerationDateTime);
@@ -27,24 +27,22 @@ internal interface IRemoteSourceGenerationService
     /// compare that to the prior generated documents it has to see if it can reuse those directly, or if it needs to
     /// remove any documents no longer around, add any new documents, or change the contents of any existing documents.
     /// </summary>
-    /// <remarks>
-    /// Should only be called by the "RegularCompilationTracker", and should only return data from its view of the
-    /// world.  Not from the view of a "GeneratedFileReplacingCompilationTracker".
-    /// </remarks>
-    ValueTask<ImmutableArray<RegularCompilationTrackerSourceGenerationInfo>> GetRegularCompilationTrackerSourceGenerationInfoAsync(
-        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+    /// <param name="withFrozenSourceGeneratedDocuments">Controls if the caller wants frozen source generator documents
+    /// included in the result, or if only the most underlying generated documents (produced by the real compiler <see
+    /// cref="GeneratorDriver"/> should be included.</param>
+    ValueTask<ImmutableArray<SourceGeneratedDocmentInfo>> GetSourceGeneratedDocumentInfoAsync(
+        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a particular set of generated document ids, returns the fully generated content for those documents.
     /// Should only be called by the host for documents it does not know about, or documents whose checksum contents are
     /// different than the last time the document was queried.
     /// </summary>
-    /// <remarks>
-    /// Should only be called by the "RegularCompilationTracker", and should only return data from its view of the
-    /// world.  Not from the view of a "GeneratedFileReplacingCompilationTracker".
-    /// </remarks>
-    ValueTask<ImmutableArray<string>> GetRegularCompilationTrackerContentsAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+    /// <param name="withFrozenSourceGeneratedDocuments">Controls if the caller wants frozen source generator documents
+    /// included in the result, or if only the most underlying generated documents (produced by the real compiler <see
+    /// cref="GeneratorDriver"/> should be included.</param>
+    ValueTask<ImmutableArray<string>> GetContentsAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
     /// <summary>
     /// Whether or not the specified analyzer references have source generators or not.

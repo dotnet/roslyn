@@ -4,20 +4,23 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
 [ExportWorkspaceServiceFactory(typeof(ISettingsAggregator), ServiceLayer.Default), Shared]
-internal class SettingsAggregatorFactory : IWorkspaceServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SettingsAggregatorFactory(
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SettingsAggregatorFactory()
-    {
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new SettingsAggregator(workspaceServices.Workspace);
+        => new SettingsAggregator(workspaceServices.Workspace, _threadingContext, _listener);
 }

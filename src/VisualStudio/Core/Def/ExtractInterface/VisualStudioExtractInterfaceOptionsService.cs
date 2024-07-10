@@ -50,7 +50,6 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         string languageName,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -90,8 +89,7 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
                 includedMembers: includedMembers.AsImmutable(),
                 interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
                 fileName: viewModel.DestinationViewModel.FileName.Trim(),
-                location: GetLocation(viewModel.DestinationViewModel.Destination),
-                fallbackOptions);
+                location: GetLocation(viewModel.DestinationViewModel.Destination));
         }
         else
         {

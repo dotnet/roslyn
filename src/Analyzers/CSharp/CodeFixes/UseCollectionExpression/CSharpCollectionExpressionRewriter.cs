@@ -32,7 +32,6 @@ internal static class CSharpCollectionExpressionRewriter
     /// </summary>
     public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
-        CodeActionOptionsProvider fallbackOptions,
         TParentExpression expressionToReplace,
         ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
@@ -50,8 +49,7 @@ internal static class CSharpCollectionExpressionRewriter
 #if CODE_STYLE
         var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 #else
-        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(
-            fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
         var indentationOptions = new IndentationOptions(formattingOptions);
