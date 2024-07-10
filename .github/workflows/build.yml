@@ -112,4 +112,4 @@ jobs:
       shell: pwsh
       timeout-minutes: 3
       continue-on-error: true
-      if: always()
+      if: env.codecov_token != ''
