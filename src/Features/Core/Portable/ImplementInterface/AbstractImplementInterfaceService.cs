@@ -40,14 +40,12 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var state = State.Generate(this, document, model, node, cancellationToken);
             if (state == null)
-            {
                 return document;
-            }
 
             // TODO: https://github.com/dotnet/roslyn/issues/60990
             // While implementing just one default action, like in the case of pressing enter after interface name in VB,
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
-            var generator = ShouldImplementDisposePattern(state, explicitly: false)
+            var generator = ShouldImplementDisposePattern(model.Compilation, state, explicitly: false)
                 ? ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePattern(this, document, options, state)
                 : ImplementInterfaceGenerator.CreateImplement(this, document, options, state);
 
@@ -82,5 +80,30 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         }
 
         return new SyntaxTriviaList(trivia);
+    }
+
+    public async Task<Document> ImplementInterfaceAsync(
+        Document document,
+        IImplementInterfaceInfo info,
+        ImplementInterfaceOptions options,
+        ImplementTypeGenerationOptions generationOptions,
+        CancellationToken cancellationToken)
+    {
+        if (options.ImplementDisposePattern)
+        {
+            var generator = new ImplementInterfaceWithDisposePatternGenerator(
+                this, document, generationOptions, info, options.Explicitly, abstractly: false, throughMember: null);
+            return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            var generator = new ImplementInterfaceGenerator(
+                this, document, generationOptions, info,
+                options.Explicitly,
+                options.Abstractly,
+                options.OnlyRemaining,
+                options.ThroughMember);
+            return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

@@ -28,7 +28,12 @@ internal interface IImplementInterfaceInfo
     ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; }
 }
 
-internal readonly struct ImplementInterfaceOptions
+internal readonly record struct ImplementInterfaceOptions(
+    bool ImplementDisposePattern,
+    bool Explicitly,
+    bool Abstractly,
+    bool OnlyRemaining,
+    ISymbol? ThroughMember)
 {
 }
 
@@ -37,5 +42,10 @@ internal interface IImplementInterfaceService : ILanguageService
     Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken);
 
     Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
-    Task<Document> ImplementInterfaceAsync(Document document, IImplementInterfaceInfo info, ImplementInterfaceOptions options, CancellationToken cancellationToken);
+    Task<Document> ImplementInterfaceAsync(
+        Document document,
+        IImplementInterfaceInfo info,
+        ImplementInterfaceOptions options,
+        ImplementTypeGenerationOptions generationOptions,
+        CancellationToken cancellationToken);
 }
