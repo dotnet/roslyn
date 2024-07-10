@@ -945,23 +945,20 @@ class A
         }
     }
 
-    private class OpenFileOnlyAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
-    {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    //private class OpenFileOnlyAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    //{
+    //    internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
+    //    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
 
-        public override void Initialize(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
+    //    public override void Initialize(AnalysisContext context)
+    //        => context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+    //    public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+    //        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-        public bool IsHighPriority => false;
-
-        public bool OpenFileOnly(SimplifierOptions options)
-            => true;
-    }
+    //    public bool IsHighPriority => false;
+    //}
 
     private class NoNameAnalyzer : DocumentDiagnosticAnalyzer
     {

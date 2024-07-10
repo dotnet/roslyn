@@ -74,10 +74,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
         {
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
-
-        public bool OpenFileOnly(SimplifierOptions options)
-        {
-            return true;
-        }
     }
 }
