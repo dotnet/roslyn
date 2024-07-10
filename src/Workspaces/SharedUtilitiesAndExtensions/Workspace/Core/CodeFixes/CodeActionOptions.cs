@@ -58,9 +58,6 @@ internal sealed record class CodeActionOptions
 }
 
 internal interface CodeActionOptionsProvider
-#if !CODE_STYLE
-    : CleanCodeGenerationOptionsProvider
-#endif
 {
     CodeActionOptions GetOptions(LanguageServices languageService);
 }
@@ -68,18 +65,6 @@ internal interface CodeActionOptionsProvider
 internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsProvider
 {
     public abstract CodeActionOptions GetOptions(LanguageServices languageServices);
-
-#if !CODE_STYLE
-    ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-    {
-        var codeActionOptions = GetOptions(languageServices);
-        return ValueTaskFactory.FromResult(new CleanCodeGenerationOptions()
-        {
-            GenerationOptions = codeActionOptions.CodeGenerationOptions,
-            CleanupOptions = codeActionOptions.CleanupOptions
-        });
-    }
-#endif
 }
 
 internal sealed class DelegatingCodeActionOptionsProvider(Func<LanguageServices, CodeActionOptions> @delegate) : AbstractCodeActionOptionsProvider
