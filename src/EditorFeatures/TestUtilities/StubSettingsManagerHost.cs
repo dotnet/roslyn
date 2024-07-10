@@ -78,7 +78,7 @@ internal sealed class StubSettingsManagerHost : ISettingsManagerHost5
         throw new NotImplementedException();
     }
 
-    Task<Stream> ISettingsManagerHost5.GetServiceStreamAsync(string serviceMoniker, CancellationToken cancellationToken)
+    Task<Stream> ISettingsManagerHost5.GetServiceStreamAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
