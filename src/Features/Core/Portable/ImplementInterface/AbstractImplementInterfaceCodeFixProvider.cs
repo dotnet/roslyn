@@ -151,7 +151,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                 yield return new() { OnlyRemaining = true };
 
             if (ShouldImplementDisposePattern(compilation, state, explicitly: false))
-                yield return new() { ImplementDisposePattern = true };
+                yield return new() { OnlyRemaining = true, ImplementDisposePattern = true, };
 
             var delegatableMembers = GetDelegatableMembers(document, state, cancellationToken);
             foreach (var member in delegatableMembers)
@@ -170,7 +170,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         }
 
         if (AnyImplementedImplicitly(state))
-            yield return new() { Explicitly = true, OnlyRemaining = true };
+            yield return new() { Explicitly = true };
     }
 
     private static bool AnyImplementedImplicitly(IImplementInterfaceInfo state)
