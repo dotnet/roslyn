@@ -798,10 +798,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
+            Binder enclosing = _enclosing;
             while (true)
             {
-                Visit(node.Condition, _enclosing);
-                VisitPossibleEmbeddedStatement(node.Statement, _enclosing);
+                Visit(node.Condition, enclosing);
+                VisitPossibleEmbeddedStatement(node.Statement, enclosing);
 
                 if (node.Else == null)
                 {
@@ -812,10 +813,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (elseStatementSyntax is IfStatementSyntax ifStatementSyntax)
                 {
                     node = ifStatementSyntax;
+                    enclosing = GetBinderForPossibleEmbeddedStatement(node, enclosing);
                 }
                 else
                 {
-                    VisitPossibleEmbeddedStatement(elseStatementSyntax, _enclosing);
+                    VisitPossibleEmbeddedStatement(elseStatementSyntax, enclosing);
                     break;
                 }
             }
@@ -1037,23 +1039,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private Binder GetBinderForPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing)
+        {
+            CSharpSyntaxNode embeddedScopeDesignator;
+            // Some statements by default do not introduce its own scope for locals.
+            // For example: Expression Statement, Return Statement, etc. However,
+            // when a statement like that is an embedded statement (like IfStatementSyntax.Statement),
+            // then it should introduce a scope for locals declared within it. Here we are detecting
+            // such statements and creating a binder that should own the scope.
+            enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
+
+            if (embeddedScopeDesignator != null)
+            {
+                AddToMap(embeddedScopeDesignator, enclosing);
+            }
+
+            return enclosing;
+        }
+
         private void VisitPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing)
         {
             if (statement != null)
             {
-                CSharpSyntaxNode embeddedScopeDesignator;
-                // Some statements by default do not introduce its own scope for locals.
-                // For example: Expression Statement, Return Statement, etc. However,
-                // when a statement like that is an embedded statement (like IfStatementSyntax.Statement),
-                // then it should introduce a scope for locals declared within it. Here we are detecting
-                // such statements and creating a binder that should own the scope.
-                enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
-
-                if (embeddedScopeDesignator != null)
-                {
-                    AddToMap(embeddedScopeDesignator, enclosing);
-                }
-
+                enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing);
                 Visit(statement, enclosing);
             }
         }

@@ -2497,45 +2497,61 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundStatement BindIfStatement(IfStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var stack = ArrayBuilder<(IfStatementSyntax IfStatementSyntax, BoundExpression Condition, BoundStatement Consequence)>.GetInstance();
+            return bindIfStatement(this, node, diagnostics);
 
-            BoundStatement? alternative;
-            while (true)
+            static BoundStatement bindIfStatement(Binder binder, IfStatementSyntax node, BindingDiagnosticBag diagnostics)
             {
-                var condition = BindBooleanExpression(node.Condition, diagnostics);
-                var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-                stack.Push((node, condition, consequence));
+                var stack = ArrayBuilder<(Binder, IfStatementSyntax IfStatementSyntax, BoundExpression Condition, BoundStatement Consequence, bool WrapWithVariables)>.GetInstance();
 
-                if (node.Else == null)
+                BoundStatement? alternative;
+                bool wrapWithVariables = false;
+                while (true)
                 {
-                    alternative = null;
-                    break;
+                    var condition = binder.BindBooleanExpression(node.Condition, diagnostics);
+                    var consequence = binder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+                    stack.Push((binder, node, condition, consequence, wrapWithVariables));
+
+                    if (node.Else == null)
+                    {
+                        alternative = null;
+                        break;
+                    }
+
+                    var elseStatementSyntax = node.Else.Statement;
+                    if (elseStatementSyntax is IfStatementSyntax ifStatementSyntax)
+                    {
+                        var b = binder.GetBinder(ifStatementSyntax);
+                        Debug.Assert(b != null);
+                        binder = b;
+                        node = ifStatementSyntax;
+                        wrapWithVariables = true;
+                    }
+                    else
+                    {
+                        alternative = binder.BindPossibleEmbeddedStatement(elseStatementSyntax, diagnostics);
+                        break;
+                    }
                 }
 
-                var elseStatementSyntax = node.Else.Statement;
-                if (elseStatementSyntax is IfStatementSyntax ifStatementSyntax)
+                BoundStatement result;
+                do
                 {
-                    node = ifStatementSyntax;
+                    BoundExpression condition;
+                    BoundStatement consequence;
+                    (binder, node, condition, consequence, wrapWithVariables) = stack.Pop();
+                    result = new BoundIfStatement(node, condition, consequence, alternative);
+                    if (wrapWithVariables)
+                    {
+                        result = binder.WrapWithVariablesIfAny(node, result);
+                    }
+                    alternative = result;
                 }
-                else
-                {
-                    alternative = BindPossibleEmbeddedStatement(elseStatementSyntax, diagnostics);
-                    break;
-                }
+                while (stack.Any());
+
+                stack.Free();
+
+                return result;
             }
-
-            BoundStatement result;
-            do
-            {
-                var (ifStatementSyntax, condition, consequence) = stack.Pop();
-                result = new BoundIfStatement(ifStatementSyntax, condition, consequence, alternative);
-                alternative = result;
-            }
-            while (stack.Any());
-
-            stack.Free();
-
-            return result;
         }
 #nullable disable
 
