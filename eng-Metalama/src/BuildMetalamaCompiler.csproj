@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <Import Project="../../eng/Versions.props"/>
+    <Import Project="../../Directory.Packages.props" />
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -10,6 +11,7 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <NoWarn>SA0001;CS8002</NoWarn>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <ItemGroup>

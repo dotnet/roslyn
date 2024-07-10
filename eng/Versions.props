@@ -2,11 +2,6 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <!-- <Metalama> -->
-  <!-- Set the default versions of dependencies -->
-  <PropertyGroup>
-    <PostSharpEngineeringVersion>2023.2.109</PostSharpEngineeringVersion>
-  </PropertyGroup>
-
   <!-- Set the deafult versions of auto-updated dependencies -->
   <Import Project="..\eng-Metalama\AutoUpdatedVersions.props" />
 

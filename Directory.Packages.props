@@ -1,7 +1,13 @@
-﻿<Project>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+<!-- <Metalama> -->
+  <PropertyGroup>
+    <PostSharpEngineeringVersion>2023.2.110</PostSharpEngineeringVersion>
+  </PropertyGroup>
+<!-- </Metalama> -->
   <Import Project="eng\Directory.Packages.props" />
 </Project>
