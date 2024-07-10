@@ -62,8 +62,7 @@ internal interface CodeActionOptionsProvider :
     CleanCodeGenerationOptionsProvider,
     OrganizeImportsOptionsProvider,
 #endif
-    SyntaxFormattingOptionsProvider,
-    SimplifierOptionsProvider
+    SyntaxFormattingOptionsProvider
 {
     CodeActionOptions GetOptions(LanguageServices languageService);
 }
@@ -75,9 +74,6 @@ internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsPro
 #if !CODE_STYLE
     ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions);
-
-    ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.SimplifierOptions);
 
     ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.GetOrganizeImportsOptions());

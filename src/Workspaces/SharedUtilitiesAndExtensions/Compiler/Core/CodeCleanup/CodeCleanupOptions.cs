@@ -49,7 +49,6 @@ internal interface CodeCleanupOptionsProvider :
     OptionsProvider<CodeCleanupOptions>,
 #endif
     SyntaxFormattingOptionsProvider,
-    SimplifierOptionsProvider,
     DocumentFormattingOptionsProvider
 {
 }
