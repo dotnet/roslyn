@@ -52,13 +52,6 @@ internal record class SyntaxFormattingOptions
 #endif
 }
 
-internal interface SyntaxFormattingOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<SyntaxFormattingOptions>
-#endif
-{
-}
-
 internal static partial class SyntaxFormattingOptionsProviders
 {
 #if !CODE_STYLE

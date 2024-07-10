@@ -57,12 +57,11 @@ internal sealed record class CodeActionOptions
         => new DelegatingCodeActionOptionsProvider(_ => this);
 }
 
-internal interface CodeActionOptionsProvider :
+internal interface CodeActionOptionsProvider
 #if !CODE_STYLE
-    CleanCodeGenerationOptionsProvider,
-    OrganizeImportsOptionsProvider,
+    : CleanCodeGenerationOptionsProvider,
+    OrganizeImportsOptionsProvider
 #endif
-    SyntaxFormattingOptionsProvider
 {
     CodeActionOptions GetOptions(LanguageServices languageService);
 }
@@ -72,9 +71,6 @@ internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsPro
     public abstract CodeActionOptions GetOptions(LanguageServices languageServices);
 
 #if !CODE_STYLE
-    ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions);
-
     ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.GetOrganizeImportsOptions());
 

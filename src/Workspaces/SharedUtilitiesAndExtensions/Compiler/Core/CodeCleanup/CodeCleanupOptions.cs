@@ -48,7 +48,6 @@ internal interface CodeCleanupOptionsProvider :
 #if !CODE_STYLE
     OptionsProvider<CodeCleanupOptions>,
 #endif
-    SyntaxFormattingOptionsProvider,
     DocumentFormattingOptionsProvider
 {
 }
