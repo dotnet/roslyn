@@ -19,6 +19,7 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\VisualStudio\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj" />
   </ItemGroup>
 
   <ItemGroup>

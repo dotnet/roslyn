@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CodeLens</RootNamespace>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>netstandard20;$(NetVS)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
