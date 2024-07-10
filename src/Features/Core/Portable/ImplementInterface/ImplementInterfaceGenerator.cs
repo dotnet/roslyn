@@ -32,26 +32,26 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private readonly IImplementInterfaceInfo State;
         private readonly ImplementTypeGenerationOptions GenerationOptions;
-        private readonly ImplementInterfaceOptions ImplementOptions;
+        private readonly ImplementInterfaceConfiguration Configuration;
 
-        private bool Explicitly => ImplementOptions.Explicitly;
-        private bool Abstractly => ImplementOptions.Abstractly;
-        private bool OnlyRemaining => ImplementOptions.OnlyRemaining;
-        private bool ImplementDisposePattern => ImplementOptions.ImplementDisposePattern;
-        private ISymbol? ThroughMember => ImplementOptions.ThroughMember;
+        private bool Explicitly => Configuration.Explicitly;
+        private bool Abstractly => Configuration.Abstractly;
+        private bool OnlyRemaining => Configuration.OnlyRemaining;
+        private bool ImplementDisposePattern => Configuration.ImplementDisposePattern;
+        private ISymbol? ThroughMember => Configuration.ThroughMember;
 
         internal ImplementInterfaceGenerator(
             AbstractImplementInterfaceService service,
             Document document,
             IImplementInterfaceInfo state,
             ImplementTypeGenerationOptions generationOptions,
-            ImplementInterfaceOptions implementOptions)
+            ImplementInterfaceConfiguration configuration)
         {
             Service = service;
             Document = document;
             State = state;
             GenerationOptions = generationOptions;
-            ImplementOptions = implementOptions;
+            Configuration = configuration;
         }
 
         public Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken)

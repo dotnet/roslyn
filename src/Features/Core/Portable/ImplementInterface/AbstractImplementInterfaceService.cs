@@ -83,11 +83,11 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         Document document,
         IImplementInterfaceInfo info,
         ImplementTypeGenerationOptions generationOptions,
-        ImplementInterfaceOptions implementOptions,
+        ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken)
     {
         var generator = new ImplementInterfaceGenerator(
-            this, document, info, generationOptions, implementOptions);
+            this, document, info, generationOptions, configuration);
         return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
     }
 }

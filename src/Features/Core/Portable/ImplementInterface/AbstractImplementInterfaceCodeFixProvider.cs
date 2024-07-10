@@ -69,7 +69,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         }
     }
 
-    private static string GetTitle(ImplementInterfaceOptions options)
+    private static string GetTitle(ImplementInterfaceConfiguration options)
     {
         if (options.ImplementDisposePattern)
         {
@@ -99,7 +99,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
 
     private static string GetEquivalenceKey(
         IImplementInterfaceInfo state,
-        ImplementInterfaceOptions options)
+        ImplementInterfaceConfiguration options)
     {
         var interfaceType = state.InterfaceTypes.First();
         var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -122,7 +122,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
            options.ThroughMember?.Name;
     }
 
-    private static async IAsyncEnumerable<ImplementInterfaceOptions> GetImplementOptionsAsync(
+    private static async IAsyncEnumerable<ImplementInterfaceConfiguration> GetImplementOptionsAsync(
         Document document, IImplementInterfaceInfo state, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);

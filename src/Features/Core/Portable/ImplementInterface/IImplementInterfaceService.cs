@@ -37,7 +37,7 @@ internal interface IImplementInterfaceInfo
     ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; }
 }
 
-internal readonly record struct ImplementInterfaceOptions
+internal readonly record struct ImplementInterfaceConfiguration
 {
     public bool ImplementDisposePattern { get; init; }
     public bool Explicitly { get; init; }
@@ -55,6 +55,6 @@ internal interface IImplementInterfaceService : ILanguageService
         Document document,
         IImplementInterfaceInfo info,
         ImplementTypeGenerationOptions generationOptions,
-        ImplementInterfaceOptions implementOptions,
+        ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken);
 }
