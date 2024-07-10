@@ -62,14 +62,9 @@ internal abstract partial class AbstractImplementInterfaceService
                     : State.MembersWithoutExplicitImplementation
                 : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
 
-            if (ImplementDisposePattern)
-            {
-                return ImplementDisposePatternAsync(unimplementedMembers, cancellationToken);
-            }
-            else
-            {
-                return GetUpdatedDocumentAsync(unimplementedMembers, extraMembers: [], cancellationToken);
-            }
+            return ImplementDisposePattern
+                ? ImplementDisposePatternAsync(unimplementedMembers, cancellationToken)
+                : GetUpdatedDocumentAsync(unimplementedMembers, extraMembers: [], cancellationToken);
         }
 
         private async Task<Document> GetUpdatedDocumentAsync(
