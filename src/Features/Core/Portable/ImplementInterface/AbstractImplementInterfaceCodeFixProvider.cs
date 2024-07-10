@@ -54,7 +54,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                     await foreach (var implementOptions in GetImplementOptionsAsync(document, info, cancellationToken))
                     {
                         var title = GetTitle(implementOptions);
-                        var equivalenceKey = GetEquivalenceKey(implementOptions);
+                        var equivalenceKey = GetEquivalenceKey(info, implementOptions);
                         codeActions.Add(CodeAction.Create(
                             title,
                             cancellationToken => service.ImplementInterfaceAsync(
@@ -69,6 +69,58 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                 break;
             }
         }
+    }
+
+    private static string GetTitle(ImplementInterfaceOptions options)
+    {
+        if (options.Explicitly)
+        {
+            if (options.OnlyRemaining)
+            {
+                return FeaturesResources.Implement_remaining_members_explicitly;
+            }
+            else
+            {
+                return FeaturesResources.Implement_all_members_explicitly;
+            }
+        }
+        else if (options.Abstractly)
+        {
+            return FeaturesResources.Implement_interface_abstractly;
+        }
+        else if (options.ThroughMember != null)
+        {
+            return string.Format(FeaturesResources.Implement_interface_through_0, options.ThroughMember.Name);
+        }
+        else
+        {
+            return FeaturesResources.Implement_interface;
+        }
+    }
+
+    private static string GetEquivalenceKey(
+        IImplementInterfaceInfo state,
+        ImplementInterfaceOptions options)
+    {
+        var interfaceType = state.InterfaceTypes.First();
+        var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var assemblyName = interfaceType.ContainingAssembly.Name;
+
+        // Legacy part of the equivalence key.  Kept the same to avoid test churn.
+        var codeActionTypeName = options.ImplementDisposePattern
+            ? "Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction"
+            : "Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction";
+
+        // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
+        // in the same manner.  Note: 'implement through member' means implementing the same interface through
+        // an applicable member with the same name in the destination.
+        return options.Explicitly.ToString() + ";" +
+           options.Abstractly.ToString() + ";" +
+           options.OnlyRemaining.ToString() + ":" +
+           typeName + ";" +
+           assemblyName + ";" +
+           codeActionTypeName + ";" +
+           options.ThroughMember?.Name;
     }
 
     private static async IAsyncEnumerable<ImplementInterfaceOptions> GetImplementOptionsAsync(
