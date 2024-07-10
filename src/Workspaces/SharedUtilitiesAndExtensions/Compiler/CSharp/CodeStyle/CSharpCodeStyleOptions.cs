@@ -221,13 +221,13 @@ internal static partial class CSharpCodeStyleOptions
     internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatement = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "csharp_style_unused_value_expression_statement_preference",
-        defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent),
+        defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent),
         serializerFactory: CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
     internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignment = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "csharp_style_unused_value_assignment_preference",
-        defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion),
+        defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion),
         serializerFactory: CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
     public static readonly Option2<CodeStyleOption2<bool>> ImplicitObjectCreationWhenTypeIsApparent = CreateOption(
