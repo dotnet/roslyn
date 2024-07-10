@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                var activeAnalyzers = stateSets
-                                        .Select(s => s.Analyzer)
-                                        .Where(a => !a.IsOpenFileOnly(ideOptions.SimplifierOptions));
+                var activeAnalyzers = stateSets.Select(s => s.Analyzer);
 
                 CompilationWithAnalyzers? compilationWithAnalyzers = null;
 
