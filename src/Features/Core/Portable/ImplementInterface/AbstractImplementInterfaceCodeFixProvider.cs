@@ -59,13 +59,15 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         }
     }
 
-    private IEnumerable<IImplementInterfaceGenerator> GetGenerators(
+    private async IEnumerable<IImplementInterfaceGenerator> GetGenerators(
         Document document, ImplementTypeGenerationOptions options, IImplementInterfaceInfo? state, CancellationToken cancellationToken)
     {
         if (state == null)
         {
             yield break;
         }
+
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
         {
@@ -92,7 +94,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                 yield return ImplementInterfaceGenerator.CreateImplement(this, document, options, state);
             }
 
-            if (ShouldImplementDisposePattern(state, explicitly: false))
+            if (ShouldImplementDisposePattern(compilation, state, explicitly: false))
             {
                 yield return ImplementInterfaceWithDisposePatternGenerator.CreateImplementWithDisposePattern(this, document, options, state);
             }
