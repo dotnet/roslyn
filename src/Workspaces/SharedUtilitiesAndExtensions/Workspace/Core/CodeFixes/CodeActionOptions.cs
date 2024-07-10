@@ -59,7 +59,6 @@ internal sealed record class CodeActionOptions
 
 internal interface CodeActionOptionsProvider :
 #if !CODE_STYLE
-    CodeGenerationOptionsProvider,
     CleanCodeGenerationOptionsProvider,
     CodeAndImportGenerationOptionsProvider,
     OrganizeImportsOptionsProvider,
@@ -90,12 +89,6 @@ internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsPro
 
     ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.GetOrganizeImportsOptions());
-
-    ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetOptions(languageServices).CodeGenerationOptions);
-
-    ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetOptions(languageServices).CodeGenerationOptions.NamingStyle);
 
     ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
     {

@@ -70,31 +70,16 @@ internal readonly record struct CodeAndImportGenerationOptions
         ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options);
 
-        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(options.GenerationOptions);
-
-        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(options.GenerationOptions.NamingStyle);
-
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.AddImportOptions);
     }
 #endif
 }
 
-internal interface CodeGenerationOptionsProvider :
-#if !CODE_STYLE
-    OptionsProvider<CodeGenerationOptions>,
-#endif
-    NamingStylePreferencesProvider
-{
-}
-
 internal interface CodeAndImportGenerationOptionsProvider :
 #if !CODE_STYLE
     OptionsProvider<CodeAndImportGenerationOptions>,
 #endif
-    CodeGenerationOptionsProvider,
     AddImportPlacementOptionsProvider
 {
 }

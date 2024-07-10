@@ -44,7 +44,6 @@ internal interface CleanCodeGenerationOptionsProvider :
 #if !CODE_STYLE
     OptionsProvider<CleanCodeGenerationOptions>,
 #endif
-    CodeGenerationOptionsProvider,
     CodeAndImportGenerationOptionsProvider
 {
 }

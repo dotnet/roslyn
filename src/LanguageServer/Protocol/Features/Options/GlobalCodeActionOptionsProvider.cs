@@ -28,7 +28,6 @@ internal static class CodeActionOptionsStorage
         SyntaxFormattingOptionsProvider,
         SimplifierOptionsProvider,
         AddImportPlacementOptionsProvider,
-        CodeGenerationOptionsProvider,
         CleanCodeGenerationOptionsProvider,
         CodeAndImportGenerationOptionsProvider,
         CodeActionOptionsProvider
@@ -55,12 +54,6 @@ internal static class CodeActionOptionsStorage
 
         ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetOrganizeImportsOptions(languageServices.Language));
-
-        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetCodeGenerationOptions(languageServices));
-
-        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetNamingStylePreferences(languageServices.Language));
 
         ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetCleanCodeGenerationOptions(languageServices));
