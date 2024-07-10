@@ -26,7 +26,7 @@
     <SystemDiagnosticsEventLogVersion>8.0.0</SystemDiagnosticsEventLogVersion>
     <SystemCollectionsImmutableVersion>8.0.0</SystemCollectionsImmutableVersion>
     <SystemComponentModelCompositionVersion>8.0.0</SystemComponentModelCompositionVersion>
-    <SystemDiagnosticsDiagnosticSourceVersion>8.0.0</SystemDiagnosticsDiagnosticSourceVersion>
+    <SystemDiagnosticsDiagnosticSourceVersion>8.0.1</SystemDiagnosticsDiagnosticSourceVersion>
     <SystemIOHashingVersion>8.0.0</SystemIOHashingVersion>
     <SystemIOPipelinesVersion>8.0.0</SystemIOPipelinesVersion>
     <SystemReflectionMetadataVersion>8.0.0</SystemReflectionMetadataVersion>
@@ -35,7 +35,7 @@
     <SystemSecurityPermissionsVersion>8.0.0</SystemSecurityPermissionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextEncodingsWebVersion>8.0.0</SystemTextEncodingsWebVersion>
-    <SystemTextJsonVersion>8.0.0</SystemTextJsonVersion>
+    <SystemTextJsonVersion>8.0.3</SystemTextJsonVersion>
     <SystemThreadingTasksDataflowVersion>8.0.0</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>8.0.0</SystemWindowsExtensionsVersion>
     <MicrosoftBclAsyncInterfacesVersion>8.0.0</MicrosoftBclAsyncInterfacesVersion>
