@@ -9489,6 +9489,150 @@ public struct Vec4
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63852")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_RegressionTest1(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    public S1(Span<int> span) { }
+                    public static S1 operator +(S1 a, S1 b) => default;
+
+                    static void Test()
+                    {
+                        S1 stackLocal = new S1(stackalloc int[1]);
+                        S1 heapLocal = new S1(default);
+
+                        stackLocal += stackLocal;
+                        stackLocal += heapLocal;
+                        heapLocal += heapLocal;
+                        heapLocal += stackLocal; // 1
+
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (16,9): error CS8347: Cannot use a result of 'S1.operator +(S1, S1)' in this context because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("S1.operator +(S1, S1)", "b").WithLocation(16, 9),
+                // (16,22): error CS8352: Cannot use variable 'stackLocal' in this context because it may expose referenced variables outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackLocal").WithArguments("stackLocal").WithLocation(16, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63852")]
+        public void  UserDefinedBinaryOperator_RefStruct_Compound_RegressionTest2()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    public S1(Span<int> span) { }
+                    public static S1 operator +(S1 a, S1 b) => default;
+
+                    static void Test()
+                    {
+                        S1 stackLocal = new(stackalloc int[1]);
+                        S1 heapLocal = new(default);
+
+                        stackLocal += stackLocal;
+                        stackLocal += heapLocal;
+                        heapLocal += heapLocal;
+                        heapLocal += stackLocal; // 1
+
+                    }
+                }
+
+                public ref struct S2
+                {
+                    public S2(Span<int> span) { }
+                    public static S2 operator +(S2 a, scoped S2 b) => default;
+
+                    static void Test()
+                    {
+                        S2 stackLocal = new(stackalloc int[1]);
+                        S2 heapLocal = new(default);
+
+                        stackLocal += stackLocal;
+                        stackLocal += heapLocal;
+                        heapLocal += heapLocal;
+                        heapLocal += stackLocal; 
+                    }
+                }
+
+                public ref struct S3
+                {
+                    public S3(Span<int> span) { }
+                    public static S3 operator +(in S3 a, in S3 b) => default;
+
+                    static void Test()
+                    {
+                        S3 stackLocal = new(stackalloc int[1]);
+                        S3 heapLocal = new(default);
+
+                        stackLocal += stackLocal;
+                        stackLocal += heapLocal;
+                        heapLocal += heapLocal; // 2
+                        heapLocal += stackLocal;  // 3
+                    }
+                }
+
+                public ref struct S4
+                {
+                    public S4(Span<int> span) { }
+                    public static S4 operator +(scoped in S4 a, scoped in S4 b) => default;
+
+                    static void Test()
+                    {
+                        S4 stackLocal = new(stackalloc int[1]);
+                        S4 heapLocal = new(default);
+
+                        stackLocal += stackLocal;
+                        stackLocal += heapLocal;
+                        heapLocal += heapLocal;
+                        heapLocal += stackLocal; // 4
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (16,9): error CS8347: Cannot use a result of 'S1.operator +(S1, S1)' in this context because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("S1.operator +(S1, S1)", "b").WithLocation(16, 9),
+                // (16,22): error CS8352: Cannot use variable 'stackLocal' in this context because it may expose referenced variables outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackLocal").WithArguments("stackLocal").WithLocation(16, 22),
+                // (50,9): error CS8168: Cannot return local 'heapLocal' by reference because it is not a ref local
+                //         heapLocal += heapLocal; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "heapLocal").WithArguments("heapLocal").WithLocation(50, 9),
+                // (50,9): error CS8347: Cannot use a result of 'S3.operator +(in S3, in S3)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         heapLocal += heapLocal; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += heapLocal").WithArguments("S3.operator +(in S3, in S3)", "a").WithLocation(50, 9),
+                // (51,9): error CS8168: Cannot return local 'heapLocal' by reference because it is not a ref local
+                //         heapLocal += stackLocal;  // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "heapLocal").WithArguments("heapLocal").WithLocation(51, 9),
+                // (51,9): error CS8347: Cannot use a result of 'S3.operator +(in S3, in S3)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         heapLocal += stackLocal;  // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("S3.operator +(in S3, in S3)", "a").WithLocation(51, 9),
+                // (68,9): error CS8347: Cannot use a result of 'S4.operator +(scoped in S4, scoped in S4)' in this context because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         heapLocal += stackLocal; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("S4.operator +(scoped in S4, scoped in S4)", "b").WithLocation(68, 9),
+                // (68,22): error CS8352: Cannot use variable 'stackLocal' in this context because it may expose referenced variables outside of their declaration scope
+                //         heapLocal += stackLocal; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackLocal").WithArguments("stackLocal").WithLocation(68, 22)
+                );
+        }
+
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedUnaryOperator_RefStruct()
         {
