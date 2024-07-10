@@ -30,8 +30,8 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private readonly bool Explicitly;
         private readonly bool Abstractly;
-        private readonly bool _onlyRemaining;
-        private readonly bool _implementDisposePattern;
+        private readonly bool OnlyRemaining;
+        private readonly bool ImplementDisposePattern;
 
         private readonly ISymbol? ThroughMember;
         private readonly ImplementTypeGenerationOptions Options;
@@ -54,8 +54,8 @@ internal abstract partial class AbstractImplementInterfaceService
             State = state;
             Options = options;
             Abstractly = abstractly;
-            _onlyRemaining = onlyRemaining;
-            _implementDisposePattern = implementDisposePattern;
+            OnlyRemaining = onlyRemaining;
+            ImplementDisposePattern = implementDisposePattern;
             Explicitly = explicitly;
             ThroughMember = throughMember;
         }
@@ -66,12 +66,12 @@ internal abstract partial class AbstractImplementInterfaceService
         public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
         {
             var unimplementedMembers = Explicitly
-                ? _onlyRemaining
+                ? OnlyRemaining
                     ? State.MembersWithoutExplicitOrImplicitImplementation
                     : State.MembersWithoutExplicitImplementation
                 : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
 
-            if (_implementDisposePattern)
+            if (ImplementDisposePattern)
             {
                 return ImplementDisposePatternAsync(
                     unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
