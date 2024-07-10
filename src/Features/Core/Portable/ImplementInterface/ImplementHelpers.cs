@@ -273,7 +273,7 @@ internal static class ImplementHelpers
         return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
     }
 
-    private static IMethodSymbol? TryGetIDisposableDispose(Compilation compilation)
+    public static IMethodSymbol? TryGetIDisposableDispose(Compilation compilation)
     {
         // Get symbol for 'System.IDisposable'.
         var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);

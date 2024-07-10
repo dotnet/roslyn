@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
+using static ImplementHelpers;
+
 internal abstract partial class AbstractImplementInterfaceService
 {
     // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
@@ -39,7 +41,7 @@ internal abstract partial class AbstractImplementInterfaceService
         AbstractImplementInterfaceService service,
         Document document,
         ImplementTypeGenerationOptions options,
-        State state,
+        IImplementInterfaceInfo state,
         bool explicitly,
         bool abstractly,
         ISymbol? throughMember) : ImplementInterfaceGenerator(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
@@ -156,8 +158,7 @@ internal abstract partial class AbstractImplementInterfaceService
             var disposeMethodDisplayString = this.Service.ToDisplayString(disposeImplMethod, s_format);
 
             var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
-                compilation, document, classType, disposeMethod,
-                disposedValueField, disposeMethodDisplayString);
+                compilation, document, disposeMethod, disposeMethodDisplayString);
 
             var g = document.GetRequiredLanguageService<SyntaxGenerator>();
             var finalizer = Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
@@ -221,9 +222,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private IMethodSymbol CreateDisposeInterfaceMethod(
             Compilation compilation,
             Document document,
-            INamedTypeSymbol classType,
             IMethodSymbol disposeMethod,
-            IFieldSymbol disposedValueField,
             string disposeMethodDisplayString)
         {
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);

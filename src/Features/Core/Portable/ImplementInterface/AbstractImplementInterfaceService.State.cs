@@ -20,7 +20,7 @@ internal abstract partial class AbstractImplementInterfaceService
         ImmutableArray<INamedTypeSymbol> interfaceTypes,
         SemanticModel model) : IImplementInterfaceInfo
     {
-        public SyntaxNode Location { get; } = interfaceNode;
+        public SyntaxNode InterfaceNode { get; } = interfaceNode;
         public SyntaxNode ClassOrStructDecl { get; } = classOrStructDecl;
         public INamedTypeSymbol ClassOrStructType { get; } = classOrStructType;
         public ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;

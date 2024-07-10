@@ -32,7 +32,7 @@ internal abstract partial class AbstractImplementInterfaceService
         protected readonly ISymbol? ThroughMember;
         protected readonly Document Document;
         protected readonly ImplementTypeGenerationOptions Options;
-        protected readonly State State;
+        protected readonly IImplementInterfaceInfo State;
         protected readonly AbstractImplementInterfaceService Service;
         private readonly string _equivalenceKey;
 
@@ -40,7 +40,7 @@ internal abstract partial class AbstractImplementInterfaceService
             AbstractImplementInterfaceService service,
             Document document,
             ImplementTypeGenerationOptions options,
-            State state,
+            IImplementInterfaceInfo state,
             bool explicitly,
             bool abstractly,
             bool onlyRemaining,
@@ -134,7 +134,7 @@ internal abstract partial class AbstractImplementInterfaceService
         }
 
         private static string ComputeEquivalenceKey(
-            State state,
+            IImplementInterfaceInfo state,
             bool explicitly,
             bool abstractly,
             bool onlyRemaining,
@@ -327,7 +327,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // Check if we need to add 'unsafe' to the signature we're generating.
             var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.Location);
+            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.InterfaceNode);
 
             return GenerateMembers(
                 compilation, member, memberName, generateInvisibleMember, generateAbstractly,
