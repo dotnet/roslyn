@@ -83,13 +83,6 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
 
 internal static partial class AnalyzerOptionsProviders
 {
-    public static IdeAnalyzerOptions GetIdeOptions(this AnalyzerOptions options)
-#if CODE_STYLE
-        => IdeAnalyzerOptions.CommonDefault;
-#else
-        => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CommonDefault;
-#endif
-
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree)
         => new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), syntaxTree.Options.Language);
 
@@ -107,10 +100,4 @@ internal static partial class AnalyzerOptionsProviders
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this CodeBlockAnalysisContext context)
         => GetAnalyzerOptions(context.Options, context.CodeBlock.SyntaxTree);
-
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this SemanticModelAnalysisContext context)
-        => context.Options.GetIdeOptions();
-
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this SyntaxNodeAnalysisContext context)
-        => context.Options.GetIdeOptions();
 }

@@ -24,7 +24,6 @@ internal static class IdeAnalyzerOptionsStorage
         return new()
         {
             CrashOnAnalyzerException = globalOptions.GetOption(CrashOnAnalyzerException),
-            SimplifierOptions = supportsLanguageSpecificOptions ? globalOptions.GetSimplifierOptions(languageServices) : null,
         };
     }
 

@@ -164,7 +164,7 @@ public class PreviewWorkspaceTests
     {
         var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
         var project = previewWorkspace.CurrentSolution.Projects.Single();
-        var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
+        var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
         var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, ideAnalyzerOptions);
         var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
         var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;

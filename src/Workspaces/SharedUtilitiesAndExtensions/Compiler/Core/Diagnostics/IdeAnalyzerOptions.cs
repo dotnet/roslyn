@@ -3,12 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CodeStyle;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Simplification;
-#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 

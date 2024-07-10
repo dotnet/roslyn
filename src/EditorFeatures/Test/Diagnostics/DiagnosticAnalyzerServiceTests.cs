@@ -702,7 +702,7 @@ class A
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
+        var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
@@ -750,7 +750,7 @@ class B
         workspace.TryApplyChanges(project.Solution);
 
         project = workspace.CurrentSolution.Projects.Single();
-        var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
+        var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
         var document = project.Documents.Single();
         var additionalDocument = project.AdditionalDocuments.Single();
 
@@ -821,7 +821,7 @@ class A
         var document = project.Documents.Single();
         var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
-        var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
+        var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
         var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
         var analyzerIds = new[] { analyzer.GetAnalyzerId() };
 
