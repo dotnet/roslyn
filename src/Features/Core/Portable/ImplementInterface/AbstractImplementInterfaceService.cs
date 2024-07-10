@@ -44,9 +44,9 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
             var implementDisposePattern = ShouldImplementDisposePattern(model.Compilation, state, explicitly: false);
             var generator = new ImplementInterfaceGenerator(
-                this, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, implementDisposePattern, throughMember: null);
+                this, document, state, options, new() { OnlyRemaining = true, ImplementDisposePattern = implementDisposePattern });
 
-            return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -82,17 +82,12 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     public async Task<Document> ImplementInterfaceAsync(
         Document document,
         IImplementInterfaceInfo info,
-        ImplementInterfaceOptions options,
         ImplementTypeGenerationOptions generationOptions,
+        ImplementInterfaceOptions implementOptions,
         CancellationToken cancellationToken)
     {
         var generator = new ImplementInterfaceGenerator(
-            this, document, generationOptions, info,
-            options.Explicitly,
-            options.Abstractly,
-            options.OnlyRemaining,
-            options.ImplementDisposePattern,
-            options.ThroughMember);
-        return await generator.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            this, document, info, generationOptions, implementOptions);
+        return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
     }
 }

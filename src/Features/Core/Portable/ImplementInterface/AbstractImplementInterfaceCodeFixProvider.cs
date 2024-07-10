@@ -56,7 +56,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                         codeActions.Add(CodeAction.Create(
                             title,
                             cancellationToken => service.ImplementInterfaceAsync(
-                                document, info, implementOptions, generationOptions, cancellationToken),
+                                document, info, generationOptions, implementOptions, cancellationToken),
                             equivalenceKey));
                     }
 

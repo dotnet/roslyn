@@ -54,7 +54,7 @@ internal interface IImplementInterfaceService : ILanguageService
     Task<Document> ImplementInterfaceAsync(
         Document document,
         IImplementInterfaceInfo info,
-        ImplementInterfaceOptions options,
         ImplementTypeGenerationOptions generationOptions,
+        ImplementInterfaceOptions implementOptions,
         CancellationToken cancellationToken);
 }

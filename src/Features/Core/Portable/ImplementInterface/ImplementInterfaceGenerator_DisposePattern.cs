@@ -54,7 +54,6 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // First, implement all the interfaces (except for IDisposable).
             var docWithCoreMembers = await GetUpdatedDocumentAsync(
-                document,
                 unimplementedMembers.WhereAsArray(m => !m.type.Equals(disposeMethod.ContainingType)),
                 classType,
                 classDecl,

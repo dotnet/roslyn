@@ -28,42 +28,33 @@ internal abstract partial class AbstractImplementInterfaceService
     {
         private readonly Document Document;
 
-        private readonly bool Explicitly;
-        private readonly bool Abstractly;
-        private readonly bool OnlyRemaining;
-        private readonly bool ImplementDisposePattern;
-
-        private readonly ISymbol? ThroughMember;
-        private readonly ImplementTypeGenerationOptions Options;
-        private readonly IImplementInterfaceInfo State;
         private readonly AbstractImplementInterfaceService Service;
+
+        private readonly IImplementInterfaceInfo State;
+        private readonly ImplementTypeGenerationOptions GenerationOptions;
+        private readonly ImplementInterfaceOptions ImplementOptions;
+
+        private bool Explicitly => ImplementOptions.Explicitly;
+        private bool Abstractly => ImplementOptions.Abstractly;
+        private bool OnlyRemaining => ImplementOptions.OnlyRemaining;
+        private bool ImplementDisposePattern => ImplementOptions.ImplementDisposePattern;
+        private ISymbol? ThroughMember => ImplementOptions.ThroughMember;
 
         internal ImplementInterfaceGenerator(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
             IImplementInterfaceInfo state,
-            bool explicitly,
-            bool abstractly,
-            bool onlyRemaining,
-            bool implementDisposePattern,
-            ISymbol? throughMember)
+            ImplementTypeGenerationOptions generationOptions,
+            ImplementInterfaceOptions implementOptions)
         {
             Service = service;
             Document = document;
             State = state;
-            Options = options;
-            Abstractly = abstractly;
-            OnlyRemaining = onlyRemaining;
-            ImplementDisposePattern = implementDisposePattern;
-            Explicitly = explicitly;
-            ThroughMember = throughMember;
+            GenerationOptions = generationOptions;
+            ImplementOptions = implementOptions;
         }
 
         public Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken)
-            => GetUpdatedDocumentAsync(cancellationToken);
-
-        public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
         {
             var unimplementedMembers = Explicitly
                 ? OnlyRemaining
@@ -99,13 +90,13 @@ internal abstract partial class AbstractImplementInterfaceService
             var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
             var memberDefinitions = GenerateMembers(
-                compilation, tree.Options, unimplementedMembers, Options.ImplementTypeOptions.PropertyGenerationBehavior);
+                compilation, tree.Options, unimplementedMembers, GenerationOptions.ImplementTypeOptions.PropertyGenerationBehavior);
 
             // Only group the members in the destination if the user wants that *and* 
             // it's not a ComImport interface.  Member ordering in ComImport interfaces 
             // matters, so we don't want to much with them.
             var groupMembers = !isComImport &&
-                Options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                GenerationOptions.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
