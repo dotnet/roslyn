@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ImplementInterface), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementAbstractClass)>
-    Friend Class VisualBasicImplementInterfaceCodeFixProvider
+    Friend NotInheritable Class VisualBasicImplementInterfaceCodeFixProvider
         Inherits AbstractImplementInterfaceCodeFixProvider(Of TypeSyntax)
 
         Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub goo()' for interface 'igoo'.
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         Public Sub New()
         End Sub
 
-        Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30149)
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30149)
 
         Protected Overrides Function IsTypeInInterfaceBaseList(type As TypeSyntax) As Boolean
             Return TypeOf type.Parent Is ImplementsStatementSyntax
