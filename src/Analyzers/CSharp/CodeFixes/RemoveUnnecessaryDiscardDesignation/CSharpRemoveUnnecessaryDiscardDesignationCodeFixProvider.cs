@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,19 +14,14 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryDiscardDesignation), Shared]
-internal partial class CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId];
 
