@@ -39168,5 +39168,127 @@ class Program
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "long", "MyCollection").WithLocation(5, 14)
                 );
         }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Fact]
+        public void UserDefinedConversion_Nullable_01()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+                public class Class1
+                {
+                    public Container<object> CreateDiagnostic()
+                    {
+                        return [new object()];
+                    }
+                }
+
+                public class Container<T> : IEnumerable<T>
+                {
+                    public Container() { }
+
+                    public IEnumerator<T> GetEnumerator() => null;
+
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+
+                    public static implicit operator Container<T>(in ImmutableArray<T>? items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): error CS1061: 'Container<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<object>' could be found (are you missing a using directive or an assembly reference?)
+                //         return [new object()];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[new object()]").WithArguments("Container<object>", "Add").WithLocation(9, 16));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Theory]
+        [InlineData("ImmutableArray<T>")]
+        [InlineData("ImmutableArray<T>?")]
+        public void UserDefinedConversion_Nullable_02(string sourceParameterType)
+        {
+            var source = $$"""
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container<object> x = [new object()];
+                    }
+                }
+
+                public class Container<T>
+                {
+                    public static implicit operator Container<T>({{sourceParameterType}} items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS9174: Cannot initialize type 'Container<object>' with a collection expression because the type is not constructible.
+                //         Container<object> x = [new object()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new object()]").WithArguments("Container<object>").WithLocation(7, 31));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Theory]
+        [InlineData("ImmutableArray<T>")]
+        [InlineData("ImmutableArray<T>?")]
+        public void UserDefinedConversion_Nullable_03(string sourceParameterType)
+        {
+            var source = $$"""
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = (Container<object>)[new object()];
+                    }
+                }
+
+                public class Container<T>
+                {
+                    public static implicit operator Container<T>({{sourceParameterType}} items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,36): error CS9174: Cannot initialize type 'Container<object>' with a collection expression because the type is not constructible.
+                //         var x = (Container<object>)[new object()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new object()]").WithArguments("Container<object>").WithLocation(7, 36));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Theory]
+        [InlineData("ImmutableArray<T>")]
+        [InlineData("ImmutableArray<T>?")]
+        public void UserDefinedConversion_Nullable_04(string sourceParameterType)
+        {
+            var source = $$"""
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        (Container<int>, int) x = ([1, 2], 3);
+                    }
+                }
+
+                public class Container<T>
+                {
+                    public static implicit operator Container<T>({{sourceParameterType}} items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,36): error CS9174: Cannot initialize type 'Container<int>' with a collection expression because the type is not constructible.
+                //         (Container<int>, int) x = ([1, 2], 3);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("Container<int>").WithLocation(7, 36));
+        }
     }
 }
