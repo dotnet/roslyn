@@ -26,7 +26,7 @@ internal static class CompletionOptionsStorage
             TriggerInArgumentLists = options.GetOption(TriggerInArgumentLists, language),
             EnterKeyBehavior = options.GetOption(EnterKeyBehavior, language),
             SnippetsBehavior = options.GetOption(SnippetsBehavior, language),
-            HideAdvancedMembers = options.GetOption(MemberDisplayOptionsStorage.HideAdvancedMembers, language),
+            MemberDisplayOptions = options.GetMemberDisplayOptions(language),
             ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
             ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
             UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),

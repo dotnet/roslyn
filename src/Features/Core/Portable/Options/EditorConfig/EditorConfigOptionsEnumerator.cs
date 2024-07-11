@@ -32,11 +32,7 @@ internal sealed class EditorConfigOptionsEnumerator(
 
     internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions(bool includeUnsupported)
     {
-        yield return (WorkspacesResources.Core_EditorConfig_Options,
-        [
-            .. FormattingOptions2.EditorConfigOptions,
-            .. MemberDisplayOptionsStorage.EditorConfigOptions
-        ]);
+        yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.EditorConfigOptions);
 
         if (includeUnsupported)
         {
@@ -46,6 +42,8 @@ internal sealed class EditorConfigOptionsEnumerator(
             yield return ("unsupported", FormatStringValidationOptionStorage.UnsupportedOptions);
             yield return ("unsupported", RegexOptionsStorage.UnsupportedOptions);
         }
+
+        yield return (FeaturesResources.NET_Code_Actions, MemberDisplayOptionsStorage.EditorConfigOptions);
 
         yield return (WorkspacesResources.dot_NET_Coding_Conventions,
         [

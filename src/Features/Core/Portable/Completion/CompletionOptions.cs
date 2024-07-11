@@ -18,7 +18,7 @@ internal sealed record class CompletionOptions
     public bool TriggerInArgumentLists { get; init; } = true;
     public EnterKeyRule EnterKeyBehavior { get; init; } = EnterKeyRule.Default;
     public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
-    public bool HideAdvancedMembers { get; init; } = MemberDisplayOptionsStorage.HideAdvancedMembers.DefaultValue;
+    public MemberDisplayOptions MemberDisplayOptions { get; init; } = MemberDisplayOptions.Default;
     public bool ShowNameSuggestions { get; init; } = true;
     public bool? ShowItemsFromUnimportedNamespaces { get; init; } = true;
     public bool UnnamedSymbolCompletionDisabled { get; init; } = false;
@@ -59,7 +59,7 @@ internal sealed record class CompletionOptions
         => new()
         {
             FilterOutOfScopeLocals = FilterOutOfScopeLocals,
-            HideAdvancedMembers = HideAdvancedMembers
+            HideAdvancedMembers = MemberDisplayOptions.HideAdvancedMembers
         };
 
     /// <summary>

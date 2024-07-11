@@ -26,7 +26,6 @@ internal sealed record class CodeActionOptions
 #if !CODE_STYLE
     [DataMember] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
     [DataMember] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
-    [DataMember] public bool HideAdvancedMembers { get; init; } = false;
 #endif
     public CodeActionOptionsProvider CreateProvider()
         => new DelegatingCodeActionOptionsProvider(_ => this);

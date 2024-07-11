@@ -192,7 +192,7 @@ public class GlobalOptionsTests
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetDocumentationCommentOptions(globalOptions.GetLineFormattingOptions(language), language), DocumentationCommentOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetImplementTypeOptions(language), ImplementTypeOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(), MetadataAsSourceOptions.Default, language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSignatureHelpOptions(language), SignatureHelpOptions.Default, language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMemberDisplayOptions(language), MemberDisplayOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSymbolSearchOptions(language), SymbolSearchOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetWorkspaceConfigurationOptions(), WorkspaceConfigurationOptions.Default);
     }

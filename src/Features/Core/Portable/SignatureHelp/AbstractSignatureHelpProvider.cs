@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -34,7 +35,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
     public abstract bool IsTriggerCharacter(char ch);
     public abstract bool IsRetriggerCharacter(char ch);
 
-    protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
+    protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 
     protected static SignatureHelpItems? CreateSignatureHelpItems(
         IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItemIndex, int parameterIndexOverride)
@@ -240,7 +241,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
     }
 
     public async Task<SignatureHelpItems?> GetItemsAsync(
-        Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+        Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
         if (itemsForCurrentDocument == null)

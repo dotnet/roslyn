@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language),
                 ImplementTypeOptions = globalOptions.GetImplementTypeOptions(languageServices.Language),
-                HideAdvancedMembers = globalOptions.GetOption(MemberDisplayOptionsStorage.HideAdvancedMembers, languageServices.Language),
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 options = options with { ForceExpandedCompletionIndexCreation = ForceExpandedCompletionIndexCreation.Value };
 
             if (HideAdvancedMembers.HasValue)
-                options = options with { HideAdvancedMembers = HideAdvancedMembers.Value };
+                options = options with { MemberDisplayOptions = new() { HideAdvancedMembers = HideAdvancedMembers.Value } };
 
             if (ShowNameSuggestions.HasValue)
                 options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
