@@ -24,8 +24,7 @@ internal sealed class CSharpTransposeRecordKeywordCodeFixProvider() : SyntaxEdit
 {
     private const string CS9012 = nameof(CS9012); // Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
 
-    public override ImmutableArray<string> FixableDiagnosticIds
-        => [CS9012];
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS9012];
 
     private static bool TryGetRecordDeclaration(
         Diagnostic diagnostic, CancellationToken cancellationToken, [NotNullWhen(true)] out RecordDeclarationSyntax? recordDeclaration)
