@@ -3176,7 +3176,7 @@ class Program
                     }
                 }
 
-                public rEf struct S4
+                public ref struct S4
                 {
                     public S4(in Span<int> span) { }
                     int this[Span<int> span] { get => 0; set {} }
@@ -3198,6 +3198,94 @@ class Program
                 // (14,33): error CS8350: This combination of arguments to 'S1.S1(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
                 //         var local2 = new S1(ref heapSpan) { [stackSpan] = 0 };  // 1
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("S1.S1(ref System.Span<int>)", "span").WithLocation(14, 33));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingObjectInitializer3()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+                #pragma warning disable 9113
+
+                public ref struct S1<T>(ref T t) where T: allows ref struct
+                {
+                    int this[T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S1<T>(ref heapT) { [heapT] = 0 };
+                        var local2 = new S1<T>(ref heapT) { [stackT] = 0 };  // 1
+                        var local3 = new S1<T>(ref stackT) { [heapT] = 0 };
+                        var local4 = new S1<T>(ref stackT) { [stackT] = 0 };
+                    }
+                }
+
+                public ref struct S2<T>(scoped ref T t) where T: allows ref struct
+                {
+                    int this[T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S2<T>(ref heapT) { [heapT] = 0 };
+                        var local2 = new S2<T>(ref heapT) { [stackT] = 0 };
+                        var local3 = new S2<T>(ref stackT) { [heapT] = 0 };
+                        var local4 = new S2<T>(ref stackT) { [stackT] = 0 };
+                    }
+                }
+
+                public ref struct S3<T>(ref T t) where T: allows ref struct
+                {
+                    int this[scoped T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S3<T>(ref heapT) { [heapT] = 0 };
+                        var local2 = new S3<T>(ref heapT) { [stackT] = 0 };
+                        var local3 = new S3<T>(ref stackT) { [heapT] = 0 };
+                        var local4 = new S3<T>(ref stackT) { [stackT] = 0 };
+                    }
+                }
+
+                public ref struct S4<T>(in T t) where T: allows ref struct
+                {
+                    int this[T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S4<T>(in heapT) { [heapT] = 0 };
+                        var local2 = new S4<T>(in heapT) { [stackT] = 0 };
+                        var local3 = new S4<T>(in stackT) { [heapT] = 0 };
+                        var local4 = new S4<T>(in stackT) { [stackT] = 0 };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp13));
+            var comp = CreateCompilation(tree, targetFramework: TargetFramework.Net90, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (16,36): error CS8350: This combination of arguments to 'S1<T>.S1(ref T)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         var local2 = new S1<T>(ref heapT) { [stackT] = 0 };  // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapT").WithArguments("S1<T>.S1(ref T)", "t").WithLocation(16, 36)
+                );
         }
 
         [Theory]
@@ -3411,7 +3499,7 @@ class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void RefLikeObjInitializersIndexer1(LanguageVersion languageVersion)
+        public void ObjectInitializer_Indexer_RefLikeType_Mixed(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3495,7 +3583,7 @@ class Program
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
-        public void RefLikeObjInitializersIndexer2(LanguageVersion languageVersion)
+        public void ObjectInitializer_Arguments_Escape(LanguageVersion languageVersion)
         {
             var tree = SyntaxFactory.ParseSyntaxTree("""
                 using System;
@@ -3540,7 +3628,7 @@ class Program
         }
 
         [Fact]
-        public void RefLikeObjInitializersIndexer3()
+        public void ObjectInitializer_Indexer_Arguments_Escape_Updated()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("""
                 using System;
@@ -3579,7 +3667,7 @@ class Program
         }
 
         [Fact]
-        public void RefLikeObjInitializersIndexer4()
+        public void ObjectInitializer_Indexer_RefLikeType()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("""
                 using System;
@@ -3623,7 +3711,7 @@ class Program
         }
 
         [Fact]
-        public void RefLikeObjInitializersIndexer5()
+        public void ObjectInitializer_Constructor_Escape()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("""
                 using System;
@@ -3675,7 +3763,7 @@ class Program
                         Span<int> heapSpan = default;
 
                         S3 local;
-                        local = new S3(stackSpan) { [0] = stackSpan } // 6
+                        local = new S3(stackSpan) { [0] = stackSpan }; // 6
                         local = new S3(stackSpan) { [0] = heapSpan }; // 7
                         local = new S3(heapSpan) { [0] = stackSpan }; 
                         local = new S3(heapSpan) { [0] = heapSpan };
@@ -3725,20 +3813,84 @@ class Program
                 //         local = new S2(heapSpan) { [0] = stackSpan }; // 5
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] = stackSpan }").WithArguments("[0] = stackSpan").WithLocation(34, 34),
                 // (50,17): error CS8347: Cannot use a result of 'S3.S3(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //         local = new S3(stackSpan) { [0] = stackSpan } // 6
+                //         local = new S3(stackSpan) { [0] = stackSpan }; // 6
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new S3(stackSpan) { [0] = stackSpan }").WithArguments("S3.S3(System.Span<int>)", "span").WithLocation(50, 17),
                 // (50,24): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
-                //         local = new S3(stackSpan) { [0] = stackSpan } // 6
+                //         local = new S3(stackSpan) { [0] = stackSpan }; // 6
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(50, 24),
-                // (50,54): error CS1002: ; expected
-                //         local = new S3(stackSpan) { [0] = stackSpan } // 6
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(50, 54),
                 // (51,17): error CS8347: Cannot use a result of 'S3.S3(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
                 //         local = new S3(stackSpan) { [0] = heapSpan }; // 7
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new S3(stackSpan) { [0] = heapSpan }").WithArguments("S3.S3(System.Span<int>)", "span").WithLocation(51, 17),
                 // (51,24): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local = new S3(stackSpan) { [0] = heapSpan }; // 7
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(51, 24));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(51, 24)
+                );
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void ObjectInitializer_Property_RefLikeType(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    Span<int> Prop { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local;
+                        local = new () { Prop = stackSpan }; // 1
+                        local = new () { Prop = heapSpan };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    Span<int> Prop { get => default; readonly set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local;
+                        local = new () { Prop = stackSpan };
+                        local = new () { Prop = heapSpan };
+                    }
+                }
+
+                public ref struct S3
+                {
+                    ref Span<int> Prop { get => throw null!; }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S3 local;
+                        local = new () { Prop = stackSpan }; // 2
+                        local = new () { Prop = heapSpan };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (13,24): error CS8352: Cannot use variable 'Prop = stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new () { Prop = stackSpan }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Prop = stackSpan }").WithArguments("Prop = stackSpan").WithLocation(13, 24),
+                // (43,24): error CS8352: Cannot use variable 'Prop = stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new () { Prop = stackSpan }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Prop = stackSpan }").WithArguments("Prop = stackSpan").WithLocation(43, 24)
+                );
         }
 
         [Theory]

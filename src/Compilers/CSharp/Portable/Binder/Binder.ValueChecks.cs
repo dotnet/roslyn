@@ -73,39 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null);
             }
 
-            internal static MethodInfo Create(Symbol symbol, BoundExpression? expr)
-            {
-                if (symbol is MethodSymbol method)
-                {
-                    return new MethodInfo(symbol, method, setMethod: null);
-                }
-
-                if (symbol is PropertySymbol property)
-                {
-                    if (expr is BoundIndexerAccess indexer)
-                    {
-                        return Create(indexer);
-                    }
-
-                    // For properties the compiler prefers the `get` method over the `set` irrespective
-                    // of which one is actually used in the code. This simplification does lead to 
-                    // one case where the compiler incorrectly flags code as a ref safety error 
-                    // when it's not (when a readonly set is involved). That is tracked by the following
-                    // issue.
-                    //
-                    // If that issue raises to a high enough priority then likely it should take a similar
-                    // approach as BoundIndexerAccess.AccessKind
-                    //
-                    // https://github.com/dotnet/roslyn/issues/73872
-                    return new MethodInfo(
-                        symbol,
-                        property.GetOwnOrInheritedGetMethod() ?? property.GetOwnOrInheritedSetMethod(),
-                        null);
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(symbol);
-            }
-
             internal static MethodInfo Create(PropertySymbol property, AccessorKind accessorKind) =>
                 accessorKind switch
                 {
@@ -3471,7 +3438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerSymbol = indexerAccess.Indexer;
 
                         return GetInvocationEscapeScope(
-                            MethodInfo.Create(indexerSymbol, indexerAccess),
+                            MethodInfo.Create(indexerAccess),
                             indexerAccess.ReceiverOpt,
                             indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
@@ -4606,21 +4573,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? GetRefEscape(assignment.Right, scopeOfTheContainingExpression)
                     : GetValEscape(assignment.Right, scopeOfTheContainingExpression);
 
-                uint leftEscape;
                 var left = (BoundObjectInitializerMember)assignment.Left;
-                if (left.MemberSymbol is PropertySymbol { IsIndexer: true } property)
+                result = left.MemberSymbol switch
                 {
-                    Debug.Assert(left.AccessorKind != AccessorKind.Unknown);
-                    MethodInfo methodInfo = MethodInfo.Create(property, left.AccessorKind);
-                    leftEscape = getIndexerEscape(methodInfo, left, rightEscape);
-                }
-                else
-                {
-                    leftEscape = GetValEscape(left.Arguments, scopeOfTheContainingExpression);
-                    leftEscape = Math.Max(leftEscape, rightEscape);
-                }
-
-                result = leftEscape;
+                    PropertySymbol { IsIndexer: true } indexer => getIndexerEscape(indexer, left, rightEscape),
+                    PropertySymbol property => getPropertyEscape(property, rightEscape),
+                    _ => rightEscape
+                };
             }
             else
             {
@@ -4630,10 +4589,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
 
             uint getIndexerEscape(
-                in MethodInfo methodInfo,
+                PropertySymbol indexer,
                 BoundObjectInitializerMember expr,
                 uint rightEscapeScope)
             {
+                Debug.Assert(expr.AccessorKind != AccessorKind.Unknown);
+                var methodInfo = MethodInfo.Create(indexer, expr.AccessorKind);
                 Debug.Assert(methodInfo.Method is not null);
 
                 // If the indexer is readonly then none of the arguments can contribute to 
@@ -4644,7 +4605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
-                GetEscapeValuesForUpdatedRules(
+                GetEscapeValues(
                     methodInfo,
                     // This is calculating the actual receiver scope
                     null,
@@ -4668,6 +4629,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 escapeValues.Free();
                 return Math.Max(receiverEscapeScope, rightEscapeScope);
+            }
+
+            uint getPropertyEscape(
+                PropertySymbol property,
+                uint rightEscapeScope)
+            {
+                var accessorKind = property.RefKind == RefKind.None ? AccessorKind.Set : AccessorKind.Get;
+                var methodInfo = MethodInfo.Create(property, accessorKind);
+                if (methodInfo.Method is null || methodInfo.Method.IsEffectivelyReadOnly)
+                {
+                    return CallingMethodScope;
+                }
+
+                return rightEscapeScope;
             }
         }
 
