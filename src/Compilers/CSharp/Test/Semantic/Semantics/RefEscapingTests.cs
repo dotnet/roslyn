@@ -3175,6 +3175,23 @@ class Program
                         var local4 = new S3(ref stackSpan) { [stackSpan] = 0 };
                     }
                 }
+
+                public rEf struct S4
+                {
+                    public S4(in Span<int> span) { }
+                    int this[Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S4(in heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S4(in heapSpan) { [stackSpan] = 0 };
+                        var local3 = new S4(in stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S4(in stackSpan) { [stackSpan] = 0 };
+                    }
+                }
                 """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
             var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(

@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // change. Customers can respond to failures like this by putting scoped on
                         // such parameters in the constructor.
                         var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
-                        var escapeTo = GetValEscape(node.InitializerExpressionOpt, _localScopeDepth);
+                        var escapeFrom = GetValEscape(node.InitializerExpressionOpt, _localScopeDepth);
                         GetEscapeValues(
                             in methodInfo,
                             receiver: null,
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            if (escapeTo > GetValEscape(argument, _localScopeDepth))
+                            if (escapeFrom > GetValEscape(argument, _localScopeDepth))
                             {
                                 Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, constructor, parameter.Name);
                             }
