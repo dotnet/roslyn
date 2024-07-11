@@ -1042,8 +1042,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 Dim version As Version = Nothing
                 If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=Not _compilation.IsEmitDeterministic, version:=version) Then
-                    diagnostics.Add(ERRID.ERR_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                    Dim attributeArgumentSyntaxLocation As Location = GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt)
+                    If _compilation.IsEmitDeterministic AndAlso verString.Contains("*"c) Then
+                        diagnostics.Add(ERRID.ERR_InvalidVersionFormatDeterministic, attributeArgumentSyntaxLocation)
+                    Else
+                        diagnostics.Add(ERRID.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation)
+                    End If
                 End If
+
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyVersionAttributeSetting = version
             ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute) Then
                 Dim dummy As Version = Nothing
