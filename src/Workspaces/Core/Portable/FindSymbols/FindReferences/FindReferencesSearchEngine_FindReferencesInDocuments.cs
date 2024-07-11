@@ -26,6 +26,14 @@ internal partial class FindReferencesSearchEngine
         // the starting symbol.
         Debug.Assert(_options.UnidirectionalHierarchyCascade);
 
+        // Mapping from symbols (unified across metadata/retargeting) and the set of symbols that was produced for 
+        // them in the case of linked files across projects.  This allows references to be found to any of the unified
+        // symbols, while the user only gets a single reported group back that corresponds to that entire set.
+        //
+        // This is a normal dictionary that is not locked.  It is only ever read and written to serially from within the
+        // high level project-walking code in this method.
+        var symbolToGroup = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
+
         var unifiedSymbols = new MetadataUnifyingSymbolHashSet
         {
             originalSymbol
@@ -43,7 +51,8 @@ internal partial class FindReferencesSearchEngine
         var symbolSet = await SymbolSet.DetermineInitialSearchSymbolsAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
 
         // Safe to call as we're in the entry-point method, and nothing is running concurrently with this call.
-        var allSymbolsAndGroups = await ReportGroupsSeriallyAsync([.. symbolSet], cancellationToken).ConfigureAwait(false);
+        var allSymbolsAndGroups = await ReportGroupsSeriallyAsync(
+            [.. symbolSet], symbolToGroup, cancellationToken).ConfigureAwait(false);
 
         // Process projects in dependency graph order so that any compilations built by one are available for later
         // projects. We only have to examine the projects containing the documents requested though.
@@ -58,12 +67,14 @@ internal partial class FindReferencesSearchEngine
 
             // Safe to call as we're in the entry-point method, and it's only serially looping over the projects when
             // calling into this.
-            await PerformSearchInProjectSeriallyAsync(allSymbolsAndGroups, currentProject).ConfigureAwait(false);
+            await PerformSearchInProjectSeriallyAsync(
+                currentProject, allSymbolsAndGroups, symbolToGroup).ConfigureAwait(false);
         }
 
         return;
 
-        async ValueTask PerformSearchInProjectSeriallyAsync(ImmutableArray<(ISymbol symbol, SymbolGroup group)> symbols, Project project)
+        async ValueTask PerformSearchInProjectSeriallyAsync(
+            Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> symbols, Dictionary<ISymbol, SymbolGroup> symbolToGroup)
         {
             using var _ = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
             try
@@ -78,7 +89,8 @@ internal partial class FindReferencesSearchEngine
                         continue;
 
                     // Safe to call as we're only in a serial context ourselves.
-                    await PerformSearchInDocumentSeriallyAsync(symbols, document, symbolToGlobalAliases).ConfigureAwait(false);
+                    await PerformSearchInDocumentSeriallyAsync(
+                        document, symbols, symbolToGroup, symbolToGlobalAliases).ConfigureAwait(false);
                 }
             }
             finally
@@ -88,8 +100,9 @@ internal partial class FindReferencesSearchEngine
         }
 
         async ValueTask PerformSearchInDocumentSeriallyAsync(
-            ImmutableArray<(ISymbol symbol, SymbolGroup group)> symbols,
             Document document,
+            ImmutableArray<(ISymbol symbol, SymbolGroup group)> symbols,
+            Dictionary<ISymbol, SymbolGroup> symbolToGroup,
             PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
         {
             // We're doing to do all of our processing of this document at once.  This will necessitate all the
@@ -104,11 +117,13 @@ internal partial class FindReferencesSearchEngine
                     cache, TryGet(symbolToGlobalAliases, symbol));
 
                 // Safe to call as we're only in a serial context ourselves.
-                await PerformSearchInDocumentSeriallyWorkerAsync(symbol, group, state).ConfigureAwait(false);
+                await PerformSearchInDocumentSeriallyWorkerAsync(
+                    symbol, group, symbolToGroup, state).ConfigureAwait(false);
             }
         }
 
-        async ValueTask PerformSearchInDocumentSeriallyWorkerAsync(ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state)
+        async ValueTask PerformSearchInDocumentSeriallyWorkerAsync(
+            ISymbol symbol, SymbolGroup group, Dictionary<ISymbol, SymbolGroup> symbolToGroup, FindReferencesDocumentState state)
         {
             // Always perform a normal search, looking for direct references to exactly that symbol.
             await DirectSymbolSearchAsync(symbol, group, state).ConfigureAwait(false);
@@ -117,7 +132,7 @@ internal partial class FindReferencesSearchEngine
             // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
             //
             // Safe to call as we're only in a serial context ourselves.
-            await InheritanceSymbolSearchSeriallyAsync(symbol, state).ConfigureAwait(false);
+            await InheritanceSymbolSearchSeriallyAsync(symbol, symbolToGroup, state).ConfigureAwait(false);
         }
 
         async ValueTask DirectSymbolSearchAsync(ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state)
@@ -163,7 +178,8 @@ internal partial class FindReferencesSearchEngine
             return result.ToImmutableAndClear();
         }
 
-        async ValueTask InheritanceSymbolSearchSeriallyAsync(ISymbol symbol, FindReferencesDocumentState state)
+        async ValueTask InheritanceSymbolSearchSeriallyAsync(
+            ISymbol symbol, Dictionary<ISymbol, SymbolGroup> symbolToGroup, FindReferencesDocumentState state)
         {
             if (InvolvesInheritance(symbol))
             {
@@ -179,7 +195,8 @@ internal partial class FindReferencesSearchEngine
                     {
                         // Ensure we report this new symbol/group in case it's the first time we're seeing it.
                         // Safe to call this as we're only being called from within a serial context ourselves.
-                        var candidateGroup = await ReportGroupSeriallyAsync(candidate, cancellationToken).ConfigureAwait(false);
+                        var candidateGroup = await ReportGroupSeriallyAsync(
+                            candidate, symbolToGroup, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
                         await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);
