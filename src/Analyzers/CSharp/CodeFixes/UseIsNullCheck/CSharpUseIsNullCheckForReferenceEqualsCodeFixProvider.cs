@@ -18,7 +18,9 @@ using static SyntaxFactory;
 using static UseIsNullCheckHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckForReferenceEquals), Shared]
-internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider()
     : AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<ExpressionSyntax>
 {
     private static readonly LiteralExpressionSyntax s_nullLiteralExpression
@@ -26,12 +28,6 @@ internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider
 
     private static readonly ConstantPatternSyntax s_nullLiteralPattern
         = ConstantPattern(s_nullLiteralExpression);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider()
-    {
-    }
 
     protected override string GetTitle(bool negated, ParseOptions options)
         => UseIsNullCheckHelpers.GetTitle(negated, options);
