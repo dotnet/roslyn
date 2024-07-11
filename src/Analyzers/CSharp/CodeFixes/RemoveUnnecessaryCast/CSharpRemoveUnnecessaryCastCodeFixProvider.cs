@@ -25,14 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-internal partial class CSharpRemoveUnnecessaryCastCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpRemoveUnnecessaryCastCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpRemoveUnnecessaryCastCodeFixProvider()
-    {
-    }
-
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId];
 
