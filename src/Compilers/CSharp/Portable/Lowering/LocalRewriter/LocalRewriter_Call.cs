@@ -235,7 +235,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case (not null, null):
                 case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
-                        || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind:
+                        || (methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind
+                            // In the specific situation where a readonly original method is intercepted with a static method,
+                            // it's permitted for the interceptor this parameter to have either `in` or `ref readonly` ref kind.
+                            && !(needToReduce && method.IsEffectivelyReadOnly && interceptorThisParameterForCompare.RefKind is RefKind.In or RefKind.RefReadOnly)):
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
                     return;
                 case (null, not null):

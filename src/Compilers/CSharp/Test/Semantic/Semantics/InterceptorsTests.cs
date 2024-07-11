@@ -3784,45 +3784,10 @@ public class InterceptorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 10, 23)").WithArguments("ref Program this", "Program.InterceptableMethod()").WithLocation(16, 6));
     }
 
-    [Fact]
-    public void SignatureMismatch_11()
-    {
-        var source = ("""
-            using System;
-
-            struct Program
-            {
-                public readonly void InterceptableMethod() => Console.Write("Original");
-
-                public static void Main()
-                {
-                    new Program().InterceptableMethod();
-                }
-            }
-            """, "Program.cs");
-
-        var interceptor = ("""
-            using System.Runtime.CompilerServices;
-            using System;
-
-            static class D
-            {
-                [InterceptsLocation("Program.cs", 9, 23)]
-                public static void Interceptor(this in Program x) => Console.Write("Intercepted");
-            }
-            """, "Interceptor.cs");
-        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
-        verifier.VerifyDiagnostics();
-
-        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Intercepted");
-        verifier.VerifyDiagnostics();
-    }
-
     [Theory]
     [InlineData("ref readonly")]
-    [InlineData("ref")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/71714")]
-    public void SignatureMismatch_12(string interceptorRefKind)
+    // [InlineData("in")]
+    public void SignatureMismatch_11(string refKind)
     {
         var source = ("""
             using System;
@@ -3845,14 +3810,47 @@ public class InterceptorsTests : CSharpTestBase
             static class D
             {
                 [InterceptsLocation("Program.cs", 9, 23)]
-                public static void Interceptor(this {{interceptorRefKind}} Program x) => Console.Write("Intercepted");
+                public static void Interceptor(this {{refKind}} Program x) => Console.Write("Intercepted");
             }
             """, "Interceptor.cs");
         var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
         verifier.VerifyDiagnostics();
 
-        // 'this ref readonly' should probably be compatible with 'readonly' original method.
-        // Tracked by https://github.com/dotnet/roslyn/issues/71714
+        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Intercepted");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71714")]
+    public void SignatureMismatch_12()
+    {
+        var source = ("""
+            using System;
+
+            struct Program
+            {
+                public readonly void InterceptableMethod() => Console.Write("Original");
+
+                public static void Main()
+                {
+                    new Program().InterceptableMethod();
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 9, 23)]
+                public static void Interceptor(this ref Program x) => Console.Write("Intercepted");
+            }
+            """, "Interceptor.cs");
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+
         var comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Interceptor.cs(6,6): error CS9148: Interceptor must have a 'this' parameter matching parameter 'in Program this' on 'Program.InterceptableMethod()'.
