@@ -58,11 +58,11 @@
     <!--
       Visual Studio
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.12.38181-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.10.234-preview.1" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.36524" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.2.1017" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.12.38208-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
     <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.0.1051901-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
