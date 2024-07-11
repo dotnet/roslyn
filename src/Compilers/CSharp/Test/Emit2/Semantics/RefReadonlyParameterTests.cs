@@ -6766,6 +6766,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
+            // (9,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         get
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("in int x", "ref readonly int x").WithLocation(9, 9),
             // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
@@ -6806,6 +6809,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
+            // (9,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         get
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("in int x", "ref readonly int x").WithLocation(9, 9),
             // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
