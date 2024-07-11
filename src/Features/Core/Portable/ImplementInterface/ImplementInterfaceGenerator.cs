@@ -30,7 +30,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private readonly AbstractImplementInterfaceService Service;
 
         private readonly IImplementInterfaceInfo State;
-        private readonly ImplementTypeOptions GenerationOptions;
+        private readonly ImplementTypeOptions Options;
         private readonly ImplementInterfaceConfiguration Configuration;
 
         private bool Explicitly => Configuration.Explicitly;
@@ -43,13 +43,13 @@ internal abstract partial class AbstractImplementInterfaceService
             AbstractImplementInterfaceService service,
             Document document,
             IImplementInterfaceInfo state,
-            ImplementTypeOptions generationOptions,
+            ImplementTypeOptions options,
             ImplementInterfaceConfiguration configuration)
         {
             Service = service;
             Document = document;
             State = state;
-            GenerationOptions = generationOptions;
+            Options = options;
             Configuration = configuration;
         }
 
@@ -77,13 +77,13 @@ internal abstract partial class AbstractImplementInterfaceService
             var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
             var memberDefinitions = GenerateMembers(
-                compilation, tree.Options, unimplementedMembers, GenerationOptions.PropertyGenerationBehavior);
+                compilation, tree.Options, unimplementedMembers, Options.PropertyGenerationBehavior);
 
             // Only group the members in the destination if the user wants that *and* 
             // it's not a ComImport interface.  Member ordering in ComImport interfaces 
             // matters, so we don't want to much with them.
             var groupMembers = !isComImport &&
-                GenerationOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                Options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(

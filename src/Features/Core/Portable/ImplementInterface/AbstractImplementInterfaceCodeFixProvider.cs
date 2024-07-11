@@ -42,7 +42,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
             if (this.IsTypeInInterfaceBaseList(type))
             {
                 var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
-                var generationOptions = context.Options.GetImplementTypeOptions(document.Project.Services);
+                var options = context.Options.GetImplementTypeOptions(document.Project.Services);
 
                 var info = await service.AnalyzeAsync(
                     document, type, cancellationToken).ConfigureAwait(false);
@@ -56,7 +56,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                         codeActions.Add(CodeAction.Create(
                             title,
                             cancellationToken => service.ImplementInterfaceAsync(
-                                document, info, generationOptions, implementOptions, cancellationToken),
+                                document, info, options, implementOptions, cancellationToken),
                             equivalenceKey));
                     }
 

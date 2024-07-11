@@ -82,12 +82,12 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     public async Task<Document> ImplementInterfaceAsync(
         Document document,
         IImplementInterfaceInfo info,
-        ImplementTypeOptions generationOptions,
+        ImplementTypeOptions options,
         ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken)
     {
         var generator = new ImplementInterfaceGenerator(
-            this, document, info, generationOptions, configuration);
+            this, document, info, options, configuration);
         return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
     }
 }
