@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (node.InitializerExpressionOpt is { })
                     {
-                        // Object initializers are different than a normal constuctor in that the 
+                        // Object initializers are different than a normal constructor in that the 
                         // scope of the receiver is determined by evaluating the inputs to the constructor
                         // *and* all of the initializers. Another way of thinking about this is that
                         // every argument in an initializer that can escape to the receiver is 
