@@ -239,12 +239,7 @@ internal partial class FindReferencesSearchEngine(
 
                     foreach (var document in foundDocuments)
                     {
-                        if (!documentToSymbolsWithin.TryGetValue(document, out var symbolsWithin))
-                        {
-                            symbolsWithin = s_symbolToGroupPool.AllocateAndClear();
-                            documentToSymbolsWithin.Add(document, symbolsWithin);
-                        }
-
+                        var symbolsWithin = documentToSymbolsWithin.GetOrAdd(document, static _ => s_symbolToGroupPool.AllocateAndClear());
                         symbolsWithin[symbol] = group;
                     }
 
