@@ -4364,6 +4364,7 @@ partial class B
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74315")]
         public async Task TestOperationConstructorBlockCallbackOnInvalidBaseCall()
         {
+            // lang=C#-Test
             string source = """
                 record B(int I) : A(I);
                 """;
