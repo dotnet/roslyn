@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
@@ -41,10 +39,10 @@ internal sealed class CSharpRemoveUnusedValuesCodeFixProvider()
     protected override SyntaxToken GetForEachStatementIdentifier(ForEachStatementSyntax node)
         => node.Identifier;
 
-    protected override LocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(VariableDeclaratorSyntax declarator)
+    protected override LocalDeclarationStatementSyntax? GetCandidateLocalDeclarationForRemoval(VariableDeclaratorSyntax declarator)
         => declarator.Parent?.Parent as LocalDeclarationStatementSyntax;
 
-    protected override SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName)
+    protected override SyntaxNode? TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName)
     {
         switch (node.Kind())
         {
@@ -91,7 +89,7 @@ internal sealed class CSharpRemoveUnusedValuesCodeFixProvider()
         }
     }
 
-    protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
+    protected override SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
     {
         if (newNameNode.IsKind(SyntaxKind.DiscardDesignation))
         {
@@ -179,7 +177,7 @@ internal sealed class CSharpRemoveUnusedValuesCodeFixProvider()
         {
             // Switch section without any statements is an error case.
             // Insert before containing switch statement.
-            editor.InsertBefore(switchCaseBlock.Parent, declarationStatement);
+            editor.InsertBefore(switchCaseBlock.GetRequiredParent(), declarationStatement);
         }
     }
 
