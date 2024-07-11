@@ -3644,12 +3644,12 @@ public class FirstClassSpanTests : CSharpTestBase
             static class C
             {
                 public static void R(Expression<Action> e) => e.Compile()();
-                public static void M(object[] x) => Console.Write(" a" + (x?[0] ?? "null"));
-                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x.Length);
+                public static void M(object[] x) => Console.Write(" 1" + (x?[0] ?? "null"));
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" 2" + x.Length);
             }
             """;
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        CompileAndVerify(comp, expectedOutput: "anull anull").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "1null 1null").VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
