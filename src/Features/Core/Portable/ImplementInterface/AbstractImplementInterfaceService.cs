@@ -53,15 +53,14 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     public async Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
     {
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var state = State.Generate(this, document, model, interfaceType, cancellationToken);
-        return state;
+        return State.Generate(this, document, model, interfaceType, cancellationToken);
     }
 
     protected static TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode
         => AddComments(g, [comment], node);
 
     protected static TNode AddComments<TNode>(SyntaxGenerator g, string comment1, string comment2, TNode node) where TNode : SyntaxNode
-        => AddComments(g, [comment1, comment2,], node);
+        => AddComments(g, [comment1, comment2], node);
 
     protected static TNode AddComments<TNode>(SyntaxGenerator g, string[] comments, TNode node) where TNode : SyntaxNode
         => node.WithPrependedLeadingTrivia(CreateCommentTrivia(g, comments));
