@@ -217,7 +217,7 @@ internal partial class FindReferencesSearchEngine(
         Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols, Action<Reference> onReferenceFound, CancellationToken cancellationToken)
     {
         using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
-        using var _2 = PooledDictionary<Document, Dictionary<ISymbol, SymbolGroup>>.GetInstance(out var documentToSymbolAndGroup);
+        using var _2 = PooledDictionary<Document, Dictionary<ISymbol, SymbolGroup>>.GetInstance(out var documentToSymbolsWithin);
         try
         {
             // scratch hashset to place results in. Populated/inspected/cleared in inner loop.
@@ -239,13 +239,13 @@ internal partial class FindReferencesSearchEngine(
 
                     foreach (var document in foundDocuments)
                     {
-                        if (!documentToSymbolAndGroup.TryGetValue(document, out var symbolAndGroup))
+                        if (!documentToSymbolsWithin.TryGetValue(document, out var symbolsWithin))
                         {
-                            symbolAndGroup = s_symbolToGroupPool.AllocateAndClear();
-                            documentToSymbolAndGroup.Add(document, symbolAndGroup);
+                            symbolsWithin = s_symbolToGroupPool.AllocateAndClear();
+                            documentToSymbolsWithin.Add(document, symbolsWithin);
                         }
 
-                        symbolAndGroup[symbol] = group;
+                        symbolsWithin[symbol] = group;
                     }
 
                     foundDocuments.Clear();
@@ -253,17 +253,17 @@ internal partial class FindReferencesSearchEngine(
             }
 
             await RoslynParallel.ForEachAsync(
-                documentToSymbolAndGroup,
+                documentToSymbolsWithin,
                 GetParallelOptions(cancellationToken),
                 (kvp, cancellationToken) =>
                     ProcessDocumentAsync(kvp.Key, kvp.Value, symbolToGlobalAliases, onReferenceFound, cancellationToken)).ConfigureAwait(false);
         }
         finally
         {
-            foreach (var (_, symbolAndGroupMap) in documentToSymbolAndGroup)
+            foreach (var (_, symbolsWithin) in documentToSymbolsWithin)
             {
-                symbolAndGroupMap.Clear();
-                s_symbolToGroupPool.Free(symbolAndGroupMap);
+                symbolsWithin.Clear();
+                s_symbolToGroupPool.Free(symbolsWithin);
             }
 
             FreeGlobalAliases(symbolToGlobalAliases);
@@ -277,7 +277,7 @@ internal partial class FindReferencesSearchEngine(
 
     private async ValueTask ProcessDocumentAsync(
         Document document,
-        Dictionary<ISymbol, SymbolGroup> symbolToSymbolGroup,
+        Dictionary<ISymbol, SymbolGroup> symbolsToSearchFor,
         Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
         Action<Reference> onReferenceFound,
         CancellationToken cancellationToken)
@@ -297,32 +297,32 @@ internal partial class FindReferencesSearchEngine(
         // Note: cascaded symbols will normally have the same name.  That's ok.  The second call to
         // FindMatchingIdentifierTokens with the same name will short circuit since it will already see the result of
         // the prior call.
-        foreach (var (symbol, _) in symbolToSymbolGroup)
+        foreach (var (symbol, _) in symbolsToSearchFor)
         {
             if (symbol.CanBeReferencedByName)
                 cache.FindMatchingIdentifierTokens(symbol.Name, cancellationToken);
         }
 
         await RoslynParallel.ForEachAsync(
-            symbolToSymbolGroup,
+            symbolsToSearchFor,
             GetParallelOptions(cancellationToken),
             (kvp, cancellationToken) =>
             {
-                var (symbol, group) = kvp;
+                var (symbolToSearchFor, symbolGroup) = kvp;
 
                 // symbolToGlobalAliases is safe to read in parallel.  It is created fully before this point and is no
                 // longer mutated.
                 var state = new FindReferencesDocumentState(
-                    cache, TryGet(symbolToGlobalAliases, symbol));
+                    cache, TryGet(symbolToGlobalAliases, symbolToSearchFor));
 
-                ProcessDocument(symbol, group, state, onReferenceFound);
+                ProcessDocument(symbolToSearchFor, symbolGroup, state, onReferenceFound);
                 return ValueTaskFactory.CompletedTask;
             }).ConfigureAwait(false);
 
         return;
 
         void ProcessDocument(
-            ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state, Action<Reference> onReferenceFound)
+            ISymbol symbolToSearchFor, SymbolGroup symbolGroup, FindReferencesDocumentState state, Action<Reference> onReferenceFound)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -334,9 +334,9 @@ internal partial class FindReferencesSearchEngine(
                 foreach (var finder in _finders)
                 {
                     finder.FindReferencesInDocument(
-                        symbol, state,
-                        static (loc, tuple) => tuple.onReferenceFound((tuple.group, tuple.symbol, loc.Location)),
-                        (group, symbol, onReferenceFound),
+                        symbolToSearchFor, state,
+                        static (loc, tuple) => tuple.onReferenceFound((tuple.symbolGroup, tuple.symbolToSearchFor, loc.Location)),
+                        (symbolGroup, symbolToSearchFor, onReferenceFound),
                         _options,
                         cancellationToken);
                 }
