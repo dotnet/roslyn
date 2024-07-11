@@ -174,8 +174,7 @@ internal partial class FindReferencesSearchEngine
             return result.ToImmutableAndClear();
         }
 
-        async ValueTask InheritanceSymbolSearchSeriallyAsync(
-            ISymbol symbol, FindReferencesDocumentState state)
+        async ValueTask InheritanceSymbolSearchSeriallyAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
             if (InvolvesInheritance(symbol))
             {
