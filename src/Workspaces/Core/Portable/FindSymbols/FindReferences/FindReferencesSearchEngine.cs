@@ -23,14 +23,19 @@ using Reference = (SymbolGroup group, ISymbol symbol, ReferenceLocation location
 
 internal partial class FindReferencesSearchEngine
 {
+    /// <summary>
+    /// Scheduler we use when we're doing operations in the BG and we want to rate limit them to not saturate the threadpool.
+    /// </summary>
+    private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
+
+    private static readonly ObjectPool<Dictionary<ISymbol, SymbolGroup>> s_symbolToGroupPool = new(() => new(MetadataUnifyingEquivalenceComparer.Instance));
+
     private readonly Solution _solution;
     private readonly IImmutableSet<Document>? _documents;
     private readonly ImmutableArray<IReferenceFinder> _finders;
     private readonly IStreamingProgressTracker _progressTracker;
     private readonly IStreamingFindReferencesProgress _progress;
     private readonly FindReferencesSearchOptions _options;
-
-    private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
     /// <summary>
     /// Mapping from symbols (unified across metadata/retargeting) and the set of symbols that was produced for 
@@ -124,7 +129,7 @@ internal partial class FindReferencesSearchEngine
                 tuple.project, tuple.allSymbols, onReferenceFound, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
     }
 
-    private async IAsyncEnumerable<(Project project, ImmutableArray<ISymbol> allSymbols)> GetProjectsAndSymbolsToSearchAsync(
+    private async IAsyncEnumerable<(Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols)> GetProjectsAndSymbolsToSearchAsync(
         SymbolSet symbolSet,
         ImmutableArray<Project> projectsToSearch,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -146,12 +151,11 @@ internal partial class FindReferencesSearchEngine
             // which is why we do it in this loop and not inside the concurrent project processing that happens
             // below.
             await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
-            var allSymbols = symbolSet.GetAllSymbols();
 
             // Report any new symbols we've cascaded to to our caller.
-            await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+            var allSymbolsAndGroups = await ReportGroupsAsync(symbolSet.GetAllSymbols(), cancellationToken).ConfigureAwait(false);
 
-            yield return (currentProject, allSymbols);
+            yield return (currentProject, allSymbolsAndGroups);
         }
     }
 
@@ -160,10 +164,15 @@ internal partial class FindReferencesSearchEngine
     /// them once per symbol group, but we may have to notify about new symbols each time we expand our symbol set
     /// when we walk into a new project.
     /// </summary>
-    private async Task ReportGroupsAsync(ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<(ISymbol symbol, SymbolGroup group)>> ReportGroupsAsync(
+        ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
     {
+        var result = new FixedSizeArrayBuilder<(ISymbol symbol, SymbolGroup group)>(symbols.Length);
+
         foreach (var symbol in symbols)
-            await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+            result.Add((symbol, await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false)));
+
+        return result.MoveToImmutable();
     }
 
     private async ValueTask<SymbolGroup> ReportGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
@@ -206,10 +215,10 @@ internal partial class FindReferencesSearchEngine
     }
 
     private async ValueTask ProcessProjectAsync(
-        Project project, ImmutableArray<ISymbol> allSymbols, Action<Reference> onReferenceFound, CancellationToken cancellationToken)
+        Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols, Action<Reference> onReferenceFound, CancellationToken cancellationToken)
     {
         using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
-        using var _2 = PooledDictionary<Document, MetadataUnifyingSymbolHashSet>.GetInstance(out var documentToSymbols);
+        using var _2 = PooledDictionary<Document, Dictionary<ISymbol, SymbolGroup>>.GetInstance(out var documentToSymbolAndGroup);
         try
         {
             // scratch hashset to place results in. Populated/inspected/cleared in inner loop.
@@ -217,7 +226,7 @@ internal partial class FindReferencesSearchEngine
 
             await AddGlobalAliasesAsync(project, allSymbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
-            foreach (var symbol in allSymbols)
+            foreach (var (symbol, group) in allSymbols)
             {
                 var globalAliases = TryGet(symbolToGlobalAliases, symbol);
 
@@ -230,30 +239,38 @@ internal partial class FindReferencesSearchEngine
                         _options, cancellationToken).ConfigureAwait(false);
 
                     foreach (var document in foundDocuments)
-                        GetSymbolSet(documentToSymbols, document).Add(symbol);
+                    {
+                        if (!documentToSymbolAndGroup.TryGetValue(document, out var symbolAndGroup))
+                        {
+                            symbolAndGroup = s_symbolToGroupPool.AllocateAndClear();
+                            documentToSymbolAndGroup.Add(document, symbolAndGroup);
+                        }
+
+                        symbolAndGroup[symbol] = group;
+                    }
 
                     foundDocuments.Clear();
                 }
             }
 
             await RoslynParallel.ForEachAsync(
-                documentToSymbols,
+                documentToSymbolAndGroup,
                 GetParallelOptions(cancellationToken),
                 (kvp, cancellationToken) =>
                     ProcessDocumentAsync(kvp.Key, kvp.Value, symbolToGlobalAliases, onReferenceFound, cancellationToken)).ConfigureAwait(false);
         }
         finally
         {
-            foreach (var (_, symbols) in documentToSymbols)
-                MetadataUnifyingSymbolHashSet.ClearAndFree(symbols);
+            foreach (var (_, symbolAndGroupMap) in documentToSymbolAndGroup)
+            {
+                symbolAndGroupMap.Clear();
+                s_symbolToGroupPool.Free(symbolAndGroupMap);
+            }
 
             FreeGlobalAliases(symbolToGlobalAliases);
 
             await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        static MetadataUnifyingSymbolHashSet GetSymbolSet<T>(PooledDictionary<T, MetadataUnifyingSymbolHashSet> dictionary, T key) where T : notnull
-            => dictionary.GetOrAdd(key, static _ => MetadataUnifyingSymbolHashSet.AllocateFromPool());
     }
 
     private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
@@ -261,7 +278,7 @@ internal partial class FindReferencesSearchEngine
 
     private async ValueTask ProcessDocumentAsync(
         Document document,
-        MetadataUnifyingSymbolHashSet symbols,
+        Dictionary<ISymbol, SymbolGroup> symbolToSymbolGroup,
         Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
         Action<Reference> onReferenceFound,
         CancellationToken cancellationToken)
@@ -281,39 +298,37 @@ internal partial class FindReferencesSearchEngine
         // Note: cascaded symbols will normally have the same name.  That's ok.  The second call to
         // FindMatchingIdentifierTokens with the same name will short circuit since it will already see the result of
         // the prior call.
-        foreach (var symbol in symbols)
+        foreach (var (symbol, _) in symbolToSymbolGroup)
         {
             if (symbol.CanBeReferencedByName)
                 cache.FindMatchingIdentifierTokens(symbol.Name, cancellationToken);
         }
 
         await RoslynParallel.ForEachAsync(
-            symbols,
+            symbolToSymbolGroup,
             GetParallelOptions(cancellationToken),
-            (symbol, cancellationToken) =>
+            (kvp, cancellationToken) =>
             {
+                var (symbol, group) = kvp;
+
                 // symbolToGlobalAliases is safe to read in parallel.  It is created fully before this point and is no
                 // longer mutated.
                 var state = new FindReferencesDocumentState(
                     cache, TryGet(symbolToGlobalAliases, symbol));
 
-                ProcessDocument(symbol, state, onReferenceFound);
+                ProcessDocument(symbol, group, state, onReferenceFound);
                 return ValueTaskFactory.CompletedTask;
             }).ConfigureAwait(false);
 
         return;
 
         void ProcessDocument(
-            ISymbol symbol, FindReferencesDocumentState state, Action<Reference> onReferenceFound)
+            ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state, Action<Reference> onReferenceFound)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
             {
-                // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                // happened.  So there must be a group for this symbol in our map.
-                var group = _symbolToGroup[symbol];
-
                 // Note: nearly every finder will no-op when passed a in a symbol it's not applicable to.  So it's
                 // simple to just iterate over all of them, knowing that will quickly skip all the irrelevant ones,
                 // and only do interesting work on the single relevant one.
@@ -332,11 +347,11 @@ internal partial class FindReferencesSearchEngine
 
     private async Task AddGlobalAliasesAsync(
         Project project,
-        ImmutableArray<ISymbol> allSymbols,
+        ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols,
         PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
         CancellationToken cancellationToken)
     {
-        foreach (var symbol in allSymbols)
+        foreach (var (symbol, _) in allSymbols)
         {
             foreach (var finder in _finders)
             {
