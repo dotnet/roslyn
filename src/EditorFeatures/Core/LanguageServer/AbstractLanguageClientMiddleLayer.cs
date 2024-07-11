@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Newtonsoft.Json.Linq;
@@ -10,12 +11,12 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 
 #pragma warning disable CS0618 // Type or member is obsolete - blocked on Razor switching to new APIs for STJ - https://github.com/dotnet/roslyn/issues/73317
-internal abstract class AbstractLanguageClientMiddleLayer : ILanguageClientMiddleLayer
+internal abstract class AbstractLanguageClientMiddleLayer : ILanguageClientMiddleLayer2<JsonElement>
 #pragma warning restore CS0618 // Type or member is obsolete
 {
     public abstract bool CanHandle(string methodName);
 
-    public abstract Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification);
+    public abstract Task HandleNotificationAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task> sendNotification);
 
-    public abstract Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest);
+    public abstract Task<JsonElement> HandleRequestAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task<JsonElement>> sendRequest);
 }

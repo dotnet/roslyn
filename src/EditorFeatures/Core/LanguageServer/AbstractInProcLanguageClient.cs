@@ -19,6 +19,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -31,12 +32,10 @@ internal abstract partial class AbstractInProcLanguageClient(
     ILspServiceLoggerFactory lspLoggerFactory,
     IThreadingContext threadingContext,
     ExportProvider exportProvider,
-    AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
+    AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2, IPropertyOwner
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-#pragma warning disable CS0618 // Type or member is obsolete - blocked on Razor switching to new APIs for STJ - https://github.com/dotnet/roslyn/issues/73317
-    private readonly ILanguageClientMiddleLayer? _middleLayer = middleLayer;
-#pragma warning restore CS0618 // Type or member is obsolete
+    private readonly ILanguageClientMiddleLayer2<JsonElement>? _middleLayer = middleLayer;
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
     private readonly ExportProvider _exportProvider = exportProvider;
 
@@ -101,6 +100,8 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// Files that we care about are already provided and watched by the workspace.
     /// </summary>
     public IEnumerable<string>? FilesToWatch { get; }
+
+    public PropertyCollection Properties { get; } = CreateStjPropertyCollection();
 
     public event AsyncEventHandler<EventArgs>? StartAsync;
 
@@ -266,6 +267,13 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// This method is called after the language server has been activated, but connection has not been established.
     /// </summary>
     public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
+
+    private static PropertyCollection CreateStjPropertyCollection()
+    {
+        var collection = new PropertyCollection();
+        collection.AddProperty("lsp-serialization", "stj");
+        return collection;
+    }
 
     internal TestAccessor GetTestAccessor()
     {
