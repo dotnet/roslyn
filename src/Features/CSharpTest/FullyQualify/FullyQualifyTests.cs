@@ -6,10 +6,10 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1656,7 +1656,7 @@ class Program
 </Workspace>";
 
         await TestMissingAsync(initialWorkspace, new TestParameters(
-            globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+            globalOptions: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
     }
 }

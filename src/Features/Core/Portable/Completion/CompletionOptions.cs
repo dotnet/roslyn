@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared;
 
@@ -16,7 +18,7 @@ internal sealed record class CompletionOptions
     public bool TriggerInArgumentLists { get; init; } = true;
     public EnterKeyRule EnterKeyBehavior { get; init; } = EnterKeyRule.Default;
     public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
-    public bool HideAdvancedMembers { get; init; } = false;
+    public bool HideAdvancedMembers { get; init; } = MemberDisplayOptionsStorage.HideAdvancedMembers.DefaultValue;
     public bool ShowNameSuggestions { get; init; } = true;
     public bool? ShowItemsFromUnimportedNamespaces { get; init; } = true;
     public bool UnnamedSymbolCompletionDisabled { get; init; } = false;

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
@@ -31,7 +32,11 @@ internal sealed class EditorConfigOptionsEnumerator(
 
     internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions(bool includeUnsupported)
     {
-        yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.EditorConfigOptions);
+        yield return (WorkspacesResources.Core_EditorConfig_Options,
+        [
+            .. FormattingOptions2.EditorConfigOptions,
+            .. MemberDisplayOptionsStorage.EditorConfigOptions
+        ]);
 
         if (includeUnsupported)
         {
@@ -42,6 +47,10 @@ internal sealed class EditorConfigOptionsEnumerator(
             yield return ("unsupported", RegexOptionsStorage.UnsupportedOptions);
         }
 
-        yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.EditorConfigOptions.AddRange(CodeStyleOptions2.EditorConfigOptions));
+        yield return (WorkspacesResources.dot_NET_Coding_Conventions,
+        [
+            .. GenerationOptions.EditorConfigOptions,
+            .. CodeStyleOptions2.EditorConfigOptions
+        ]);
     }
 }

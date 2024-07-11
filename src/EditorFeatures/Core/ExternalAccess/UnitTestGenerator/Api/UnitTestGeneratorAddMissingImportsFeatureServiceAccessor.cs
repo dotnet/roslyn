@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -57,7 +56,7 @@ internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor(IGlobalO
 
         var options = new AddMissingImportsOptions(
             CleanupOptions: cleanupOptions,
-            HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
+            HideAdvancedMembers: _globalOptions.GetOption(MemberDisplayOptionsStorage.HideAdvancedMembers, document.Project.Language));
 
         return options;
     }

@@ -5,11 +5,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -6365,7 +6365,7 @@ class Program
 </Workspace>";
 
         await TestMissingAsync(initialWorkspace, new TestParameters(
-            globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+            globalOptions: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
     }
 
