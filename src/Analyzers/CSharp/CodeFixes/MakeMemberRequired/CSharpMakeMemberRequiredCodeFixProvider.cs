@@ -27,8 +27,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
 {
     private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring it as nullable.
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        [CS8618];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS8618];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {

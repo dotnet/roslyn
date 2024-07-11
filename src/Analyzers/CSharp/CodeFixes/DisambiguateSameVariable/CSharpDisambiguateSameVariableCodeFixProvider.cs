@@ -32,8 +32,7 @@ internal sealed class CSharpDisambiguateSameVariableCodeFixProvider() : SyntaxEd
     private const string CS1717 = nameof(CS1717); // Assignment made to same variable; did you mean to assign something else?
     private const string CS1718 = nameof(CS1718); // Comparison made to same variable; did you mean to compare something else?
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = [CS1717, CS1718];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1717, CS1718];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {

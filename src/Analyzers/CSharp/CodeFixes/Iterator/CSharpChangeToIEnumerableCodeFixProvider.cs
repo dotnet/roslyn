@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ChangeReturnType), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class CSharpChangeToIEnumerableCodeFixProvider() : AbstractIteratorCodeFixProvider
+internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractIteratorCodeFixProvider
 {
     /// <summary>
     /// CS1624: The body of 'x' cannot be an iterator block because 'y' is not an iterator interface type

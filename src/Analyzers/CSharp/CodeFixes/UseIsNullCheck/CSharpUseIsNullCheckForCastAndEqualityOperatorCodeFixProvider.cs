@@ -26,7 +26,7 @@ using static UseIsNullCheckHelpers;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckForCastAndEqualityOperator), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseIsNullCheckDiagnosticId];

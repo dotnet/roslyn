@@ -25,8 +25,7 @@ internal sealed class CSharpFixIncorrectConstraintCodeFixProvider() : SyntaxEdit
     private const string CS9010 = nameof(CS9010); // Keyword 'enum' cannot be used as a constraint.Did you mean 'struct, System.Enum'?	Net6 C:\github\repo_find_refs\Net6\Class1.cs 1	Active
     private const string CS9011 = nameof(CS9011); // 'delegate' cannot be used as a constraint.Did you mean 'System.Delegate'?	Net6 C:\github\repo_find_refs\Net6\Class1.cs 1	Active
 
-    public override ImmutableArray<string> FixableDiagnosticIds
-        => [CS9010, CS9011];
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS9010, CS9011];
 
     private static bool TryGetConstraint(
         Diagnostic diagnostic,
