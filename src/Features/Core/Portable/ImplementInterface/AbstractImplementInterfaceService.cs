@@ -30,7 +30,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
     public async Task<Document> ImplementInterfaceAsync(
-        Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken)
+        Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_ImplementInterface, cancellationToken))
         {
@@ -82,7 +82,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     public async Task<Document> ImplementInterfaceAsync(
         Document document,
         IImplementInterfaceInfo info,
-        ImplementTypeGenerationOptions generationOptions,
+        ImplementTypeOptions generationOptions,
         ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken)
     {

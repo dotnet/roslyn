@@ -42,7 +42,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
             if (this.IsTypeInInterfaceBaseList(type))
             {
                 var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
-                var generationOptions = context.Options.GetImplementTypeGenerationOptions(document.Project.Services);
+                var generationOptions = context.Options.GetImplementTypeOptions(document.Project.Services);
 
                 var info = await service.AnalyzeAsync(
                     document, type, cancellationToken).ConfigureAwait(false);
@@ -60,8 +60,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                             equivalenceKey));
                     }
 
-                    if (codeActions.Count > 0)
-                        context.RegisterFixes(codeActions, context.Diagnostics);
+                    context.RegisterFixes(codeActions, context.Diagnostics);
                 }
 
                 break;

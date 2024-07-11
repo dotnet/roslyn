@@ -27,11 +27,10 @@ internal abstract partial class AbstractImplementInterfaceService
     private sealed partial class ImplementInterfaceGenerator
     {
         private readonly Document Document;
-
         private readonly AbstractImplementInterfaceService Service;
 
         private readonly IImplementInterfaceInfo State;
-        private readonly ImplementTypeGenerationOptions GenerationOptions;
+        private readonly ImplementTypeOptions GenerationOptions;
         private readonly ImplementInterfaceConfiguration Configuration;
 
         private bool Explicitly => Configuration.Explicitly;
@@ -44,7 +43,7 @@ internal abstract partial class AbstractImplementInterfaceService
             AbstractImplementInterfaceService service,
             Document document,
             IImplementInterfaceInfo state,
-            ImplementTypeGenerationOptions generationOptions,
+            ImplementTypeOptions generationOptions,
             ImplementInterfaceConfiguration configuration)
         {
             Service = service;
@@ -78,13 +77,13 @@ internal abstract partial class AbstractImplementInterfaceService
             var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
             var memberDefinitions = GenerateMembers(
-                compilation, tree.Options, unimplementedMembers, GenerationOptions.ImplementTypeOptions.PropertyGenerationBehavior);
+                compilation, tree.Options, unimplementedMembers, GenerationOptions.PropertyGenerationBehavior);
 
             // Only group the members in the destination if the user wants that *and* 
             // it's not a ComImport interface.  Member ordering in ComImport interfaces 
             // matters, so we don't want to much with them.
             var groupMembers = !isComImport &&
-                GenerationOptions.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                GenerationOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(

@@ -48,13 +48,13 @@ internal readonly record struct ImplementInterfaceConfiguration
 
 internal interface IImplementInterfaceService : ILanguageService
 {
-    Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken);
+    Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken);
 
     Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
     Task<Document> ImplementInterfaceAsync(
         Document document,
         IImplementInterfaceInfo info,
-        ImplementTypeGenerationOptions generationOptions,
+        ImplementTypeOptions options,
         ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken);
 }

@@ -33,12 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                     var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
-                    // We can't return here if we have open file only analyzers since saved data for open file only analyzer
-                    // is incomplete -- it only contains info on open files rather than whole project.
-                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.SimplifierOptions))
-                    {
+                    if (existingData.Version == version)
                         return existingData;
-                    }
 
                     var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideOptions, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
 
@@ -54,24 +50,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     throw ExceptionUtilities.Unreachable();
                 }
             }
-        }
-
-        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilationWithAnalyzers, SimplifierOptions? options)
-        {
-            if (compilationWithAnalyzers == null)
-            {
-                return false;
-            }
-
-            foreach (var analyzer in compilationWithAnalyzers.Analyzers)
-            {
-                if (analyzer.IsOpenFileOnly(options))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
@@ -151,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
-                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, ideOptions, out var analyzersToRun))
+                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, out var analyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                     // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
@@ -203,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static bool TryReduceAnalyzersToRun(
             CompilationWithAnalyzers compilationWithAnalyzers, VersionStamp version,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, IdeAnalyzerOptions ideOptions,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
             out ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             analyzers = default;
@@ -213,8 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             foreach (var analyzer in existingAnalyzers)
             {
                 if (existing.TryGetValue(analyzer, out var analysisResult) &&
-                    analysisResult.Version == version &&
-                    !analyzer.IsOpenFileOnly(ideOptions.SimplifierOptions))
+                    analysisResult.Version == version)
                 {
                     // we already have up to date result.
                     continue;

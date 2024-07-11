@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             Project project,
             IdeAnalyzerOptions ideOptions,
-            IEnumerable<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
             bool includeSuppressedDiagnostics,
             CancellationToken cancellationToken)
         {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Create driver that holds onto compilation and associated analyzers
-            var filteredAnalyzers = analyzers.Where(a => !a.IsWorkspaceDiagnosticAnalyzer()).ToImmutableArrayOrEmpty();
+            var filteredAnalyzers = analyzers.WhereAsArray(a => !a.IsWorkspaceDiagnosticAnalyzer());
 
             // PERF: there is no analyzers for this compilation.
             //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
