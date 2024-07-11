@@ -3369,6 +3369,89 @@ class Program
                 );
         }
 
+        [Fact]
+        public void RefLikeEscapeMixingObjectInitializer4()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    public S1(ref Span<int> span) { }
+                    int this[in Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S1(ref heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S1(ref heapSpan) { [stackSpan] = 0 };  // 1
+                        var local3 = new S1(ref stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S1(ref stackSpan) { [stackSpan] = 0 };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    public S2(scoped ref Span<int> span) { }
+                    int this[Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S2(ref heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S2(ref heapSpan) { [stackSpan] = 0 };
+                        var local3 = new S2(ref stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S2(ref stackSpan) { [stackSpan] = 0 };
+                    }
+                }
+
+                public ref struct S3
+                {
+                    public S3(ref Span<int> span) { }
+                    int this[scoped Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S3(ref heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S3(ref heapSpan) { [stackSpan] = 0 };
+                        var local3 = new S3(ref stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S3(ref stackSpan) { [stackSpan] = 0 };
+                    }
+                }
+
+                public struct S5
+                {
+                    public S5(Span<int> span) { }
+                    Span<int> this[int index] { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S5 local;
+                        local = new S5(stackSpan) { [0] = stackSpan };
+                        local = new S5(stackSpan) { [0] = heapSpan };
+                        local = new S5(heapSpan) { [0] = stackSpan };
+                        local = new S5(heapSpan) { [0] = heapSpan };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,33): error CS8350: This combination of arguments to 'S1.S1(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         var local2 = new S1(ref heapSpan) { [stackSpan] = 0 };  // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("S1.S1(ref System.Span<int>)", "span").WithLocation(14, 33)
+                );
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3943,6 +4026,94 @@ class Program
                 // (51,24): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local = new S3(stackSpan) { [0] = heapSpan }; // 7
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(51, 24)
+                );
+        }
+
+        [Fact]
+        public void ObjectInitializer_Indexer_In_Escape()
+        {
+            var code = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public ref struct S1
+                {
+                    public S1() { }
+                    string this[in int x] { get => default; set { } }
+
+                    static void Test(int[] array, int x)
+                    {
+                        int y = 0;
+                        S1 local;
+
+                        local = new() { [in array[0]] = "" };
+                        local = new() { [in x] = "" };
+                        local = new() { [in y] = "" };
+                        local = new() { [0] = "" };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    public S2() { }
+                    string this[[UnscopedRef] in int x] { get => default; set { } }
+
+                    static void Test(int[] array, int x)
+                    {
+                        int y = 0;
+                        S2 local;
+
+                        local = new() { [in array[0]] = "" };
+                        local = new() { [in x] = "" }; // 1
+                        local = new() { [in y] = "" }; // 2
+                        local = new() { [0] = "" }; // 3
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithSpan([code, UnscopedRefAttributeDefinition], TestOptions.UnsafeDebugDll, TestOptions.Regular11);
+            comp.VerifyEmitDiagnostics(
+                // (32,23): error CS8352: Cannot use variable '[in x] = ""' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new() { [in x] = "" }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [in x] = """" }").WithArguments(@"[in x] = """"").WithLocation(32, 23),
+                // (33,23): error CS8352: Cannot use variable '[in y] = ""' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new() { [in y] = "" }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [in y] = """" }").WithArguments(@"[in y] = """"").WithLocation(33, 23),
+                // (34,23): error CS8352: Cannot use variable '[0] = ""' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new() { [0] = "" }; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [0] = """" }").WithArguments(@"[0] = """"").WithLocation(34, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66056")]
+        public void ObjectInitializer_Indexer_Unscoped()
+        {
+            var code = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public ref struct S1
+                {
+                    public S1() { }
+                    string this[[UnscopedRef] in int x] { get => default; set { } }
+
+                    static S1 Test1(int x) => new S1() { [in x] = "" }; // 1
+                    static S1 Test2(in int x) => new S1() { [in x] = "" };
+                    static S1 Test3(scoped in int x) => new S1() { [in x] = "" }; // 2
+                    static S1 Test3(int[] x) => new S1() { [in x[0]] = "" }; // 2
+                }
+
+                """;
+
+            var comp = CreateCompilationWithSpan([code, UnscopedRefAttributeDefinition], TestOptions.UnsafeDebugDll, TestOptions.Regular11);
+            comp.VerifyEmitDiagnostics(
+                // (9,40): error CS8352: Cannot use variable '[in x] = ""' in this context because it may expose referenced variables outside of their declaration scope
+                //     static S1 Test1(int x) => new S1() { [in x] = "" }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [in x] = """" }").WithArguments(@"[in x] = """"").WithLocation(9, 40),
+                // (11,50): error CS8352: Cannot use variable '[in x] = ""' in this context because it may expose referenced variables outside of their declaration scope
+                //     static S1 Test3(scoped in int x) => new S1() { [in x] = "" }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [in x] = """" }").WithArguments(@"[in x] = """"").WithLocation(11, 50)
                 );
         }
 
