@@ -25,17 +25,13 @@ using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedValues), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-internal class CSharpRemoveUnusedValuesCodeFixProvider :
-    AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax,
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpRemoveUnusedValuesCodeFixProvider()
+    : AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax,
         ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
         ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpRemoveUnusedValuesCodeFixProvider()
-    {
-    }
-
     protected override ISyntaxFormatting GetSyntaxFormatting()
         => CSharpSyntaxFormatting.Instance;
 
