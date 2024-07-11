@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParameter), Shared]
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.GenerateConstructor)]
-internal class CSharpAddParameterCodeFixProvider : AbstractAddParameterCodeFixProvider<
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpAddParameterCodeFixProvider() : AbstractAddParameterCodeFixProvider<
     ArgumentSyntax,
     AttributeArgumentSyntax,
     ArgumentListSyntax,
@@ -33,12 +35,6 @@ internal class CSharpAddParameterCodeFixProvider : AbstractAddParameterCodeFixPr
     private const string CS1739 = nameof(CS1739); // error CS1739: The best overload for 'M' does not have a parameter named 'x'
 
     private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds = [CS1501, CS1503, CS1660, CS1729, CS1739];
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpAddParameterCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => AddParameterFixableDiagnosticIds;

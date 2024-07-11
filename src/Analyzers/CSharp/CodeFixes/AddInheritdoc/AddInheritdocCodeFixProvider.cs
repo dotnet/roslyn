@@ -21,18 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc;
 using static CSharpSyntaxTokens;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddInheritdoc), Shared]
-internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AddInheritdocCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     /// <summary>
     /// CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
     /// </summary>
     private const string CS1591 = nameof(CS1591);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AddInheritdocCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS1591];
 
