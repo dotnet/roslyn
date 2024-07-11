@@ -88,13 +88,13 @@ internal partial class FindReferencesSearchEngine(
         //
         // This is a normal dictionary that is not locked.  It is only ever read and written to serially from within the
         // high level project-walking code in this method.
-        var symbolToGroup = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
+        using var _1 = s_symbolToGroupPool.GetPooledObject(out var symbolToGroup);
 
         var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
         unifiedSymbols.AddRange(symbols);
 
         var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
-        await using var _ = disposable.ConfigureAwait(false);
+        await using var _2 = disposable.ConfigureAwait(false);
 
         // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
         // we'll expand this set as we discover new symbols to search for in each project.

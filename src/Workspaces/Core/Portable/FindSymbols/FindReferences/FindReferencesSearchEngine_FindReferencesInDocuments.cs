@@ -32,7 +32,7 @@ internal partial class FindReferencesSearchEngine
         //
         // This is a normal dictionary that is not locked.  It is only ever read and written to serially from within the
         // high level project-walking code in this method.
-        var symbolToGroup = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
+        using var _ = s_symbolToGroupPool.GetPooledObject(out var symbolToGroup);
 
         var unifiedSymbols = new MetadataUnifyingSymbolHashSet
         {
