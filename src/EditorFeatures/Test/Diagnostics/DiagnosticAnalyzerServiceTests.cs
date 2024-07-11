@@ -244,9 +244,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
         var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
             new Priority20Analyzer(),
-            new Priority15Analyzer(),
             new Priority10Analyzer(),
-            new Priority1Analyzer(),
             new Priority0Analyzer(),
             new CSharpCompilerDiagnosticAnalyzer(),
             new Analyzer()
@@ -275,9 +273,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             typeof(CSharpCompilerDiagnosticAnalyzer),
             typeof(Analyzer),
             typeof(Priority0Analyzer),
-            typeof(Priority1Analyzer),
             typeof(Priority10Analyzer),
-            typeof(Priority15Analyzer),
             typeof(Priority20Analyzer)
         }, analyzersArray.Select(a => a.GetType()));
     }
@@ -290,7 +286,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         var solution = workspace.CurrentSolution;
 
         var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
-            new LeakDocumentAnalyzer(), new LeakProjectAnalyzer()));
+            new LeakDocumentAnalyzer()));
 
         var globalOptions = GetGlobalOptions(workspace);
         globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
@@ -963,19 +959,9 @@ class A
         public Priority20Analyzer() : base(priority: 20) { }
     }
 
-    private class Priority15Analyzer : PriorityTestProjectDiagnosticAnalyzer
-    {
-        public Priority15Analyzer() : base(priority: 15) { }
-    }
-
     private class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
         public Priority10Analyzer() : base(priority: 10) { }
-    }
-
-    private class Priority1Analyzer : PriorityTestProjectDiagnosticAnalyzer
-    {
-        public Priority1Analyzer() : base(priority: 1) { }
     }
 
     private class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
@@ -996,17 +982,6 @@ class A
             => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
-    private class PriorityTestProjectDiagnosticAnalyzer : ProjectDiagnosticAnalyzer
-    {
-        protected PriorityTestProjectDiagnosticAnalyzer(int priority)
-            => Priority = priority;
-
-        public override int Priority { get; }
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-    }
-
     private class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
@@ -1021,13 +996,6 @@ class A
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
             => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
-    }
-
-    private class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
-    {
-        private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("project", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken) => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
