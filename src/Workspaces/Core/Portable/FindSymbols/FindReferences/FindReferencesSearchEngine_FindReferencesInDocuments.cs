@@ -41,7 +41,9 @@ internal partial class FindReferencesSearchEngine
         // Create and report the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
         // not walk up/down the inheritance hierarchy.
         var symbolSet = await SymbolSet.DetermineInitialSearchSymbolsAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
-        var allSymbolsAndGroups = await ReportGroupsAsync([.. symbolSet], cancellationToken).ConfigureAwait(false);
+
+        // Safe to call as we're in the entry-point method, and nothing is running concurrently with this call.
+        var allSymbolsAndGroups = await ReportGroupsSeriallyAsync([.. symbolSet], cancellationToken).ConfigureAwait(false);
 
         // Process projects in dependency graph order so that any compilations built by one are available for later
         // projects. We only have to examine the projects containing the documents requested though.
@@ -51,13 +53,17 @@ internal partial class FindReferencesSearchEngine
         foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
         {
             var currentProject = _solution.GetRequiredProject(projectId);
-            if (projectsToSearch.Contains(currentProject))
-                await PerformSearchInProjectAsync(allSymbolsAndGroups, currentProject).ConfigureAwait(false);
+            if (!projectsToSearch.Contains(currentProject))
+                continue;
+
+            // Safe to call as we're in the entry-point method, and it's only serially looping over the projects when
+            // calling into this.
+            await PerformSearchInProjectSeriallyAsync(allSymbolsAndGroups, currentProject).ConfigureAwait(false);
         }
 
         return;
 
-        async ValueTask PerformSearchInProjectAsync(ImmutableArray<(ISymbol symbol, SymbolGroup group)> symbols, Project project)
+        async ValueTask PerformSearchInProjectSeriallyAsync(ImmutableArray<(ISymbol symbol, SymbolGroup group)> symbols, Project project)
         {
             using var _ = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
             try
@@ -68,8 +74,11 @@ internal partial class FindReferencesSearchEngine
 
                 foreach (var document in documents)
                 {
-                    if (document.Project == project)
-                        await PerformSearchInDocumentAsync(symbols, document, symbolToGlobalAliases).ConfigureAwait(false);
+                    if (document.Project != project)
+                        continue;
+
+                    // Safe to call as we're only in a serial context ourselves.
+                    await PerformSearchInDocumentSeriallyAsync(symbols, document, symbolToGlobalAliases).ConfigureAwait(false);
                 }
             }
             finally
@@ -78,7 +87,7 @@ internal partial class FindReferencesSearchEngine
             }
         }
 
-        async ValueTask PerformSearchInDocumentAsync(
+        async ValueTask PerformSearchInDocumentSeriallyAsync(
             ImmutableArray<(ISymbol symbol, SymbolGroup group)> symbols,
             Document document,
             PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
@@ -94,18 +103,21 @@ internal partial class FindReferencesSearchEngine
                 var state = new FindReferencesDocumentState(
                     cache, TryGet(symbolToGlobalAliases, symbol));
 
-                await PerformSearchInDocumentWorkerAsync(symbol, group, state).ConfigureAwait(false);
+                // Safe to call as we're only in a serial context ourselves.
+                await PerformSearchInDocumentSeriallyWorkerAsync(symbol, group, state).ConfigureAwait(false);
             }
         }
 
-        async ValueTask PerformSearchInDocumentWorkerAsync(ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state)
+        async ValueTask PerformSearchInDocumentSeriallyWorkerAsync(ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state)
         {
             // Always perform a normal search, looking for direct references to exactly that symbol.
             await DirectSymbolSearchAsync(symbol, group, state).ConfigureAwait(false);
 
             // Now, for symbols that could involve inheritance, look for references to the same named entity, and
             // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
-            await InheritanceSymbolSearchAsync(symbol, state).ConfigureAwait(false);
+            //
+            // Safe to call as we're only in a serial context ourselves.
+            await InheritanceSymbolSearchSeriallyAsync(symbol, state).ConfigureAwait(false);
         }
 
         async ValueTask DirectSymbolSearchAsync(ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state)
@@ -151,7 +163,7 @@ internal partial class FindReferencesSearchEngine
             return result.ToImmutableAndClear();
         }
 
-        async ValueTask InheritanceSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
+        async ValueTask InheritanceSymbolSearchSeriallyAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
             if (InvolvesInheritance(symbol))
             {
@@ -166,7 +178,8 @@ internal partial class FindReferencesSearchEngine
                     if (matched)
                     {
                         // Ensure we report this new symbol/group in case it's the first time we're seeing it.
-                        var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
+                        // Safe to call this as we're only being called from within a serial context ourselves.
+                        var candidateGroup = await ReportGroupSeriallyAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
                         await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);

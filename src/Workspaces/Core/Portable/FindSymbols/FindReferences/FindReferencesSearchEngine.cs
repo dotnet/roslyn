@@ -42,7 +42,11 @@ internal partial class FindReferencesSearchEngine
     /// them in the case of linked files across projects.  This allows references to be found to any of the unified
     /// symbols, while the user only gets a single reported group back that corresponds to that entire set.
     /// </summary>
-    private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new(MetadataUnifyingEquivalenceComparer.Instance);
+    /// <remarks>
+    /// This is a normal dictionary that is not locked.  It is only ever read and written to serially from within the
+    /// high level project-walking code in this class.
+    /// </remarks>
+    private readonly Dictionary<ISymbol, SymbolGroup> _symbolToGroup_mustBeAccessedSerially = new(MetadataUnifyingEquivalenceComparer.Instance);
 
     public FindReferencesSearchEngine(
         Solution solution,
@@ -113,7 +117,9 @@ internal partial class FindReferencesSearchEngine
 
         // Report the initial set of symbols to the caller.
         var allSymbols = symbolSet.GetAllSymbols();
-        await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+
+        // Safe to call as we're in the entry-point method, and nothing is running concurrently with this call.
+        await ReportGroupsSeriallyAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
         // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
         // set of documents to search, we only bother with those.
@@ -123,13 +129,15 @@ internal partial class FindReferencesSearchEngine
 
         // Pull off and start searching each project as soon as we can once we've done the inheritance cascade into it.
         await RoslynParallel.ForEachAsync(
-            GetProjectsAndSymbolsToSearchAsync(symbolSet, projectsToSearch, cancellationToken),
+            // ForEachAsync will serially pull on the IAsyncEnumerable returned here, kicking off the processing to then
+            // happen in parallel.
+            GetProjectsAndSymbolsToSearchSeriallyAsync(symbolSet, projectsToSearch, cancellationToken),
             GetParallelOptions(cancellationToken),
             async (tuple, cancellationToken) => await ProcessProjectAsync(
                 tuple.project, tuple.allSymbols, onReferenceFound, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
     }
 
-    private async IAsyncEnumerable<(Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols)> GetProjectsAndSymbolsToSearchAsync(
+    private async IAsyncEnumerable<(Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols)> GetProjectsAndSymbolsToSearchSeriallyAsync(
         SymbolSet symbolSet,
         ImmutableArray<Project> projectsToSearch,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -152,8 +160,9 @@ internal partial class FindReferencesSearchEngine
             // below.
             await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
 
-            // Report any new symbols we've cascaded to to our caller.
-            var allSymbolsAndGroups = await ReportGroupsAsync(symbolSet.GetAllSymbols(), cancellationToken).ConfigureAwait(false);
+            // Report any new symbols we've cascaded to to our caller.  This is safe to call here as we're abiding by
+            // the serial requirements of ReportGroupsSeriallyAsync
+            var allSymbolsAndGroups = await ReportGroupsSeriallyAsync(symbolSet.GetAllSymbols(), cancellationToken).ConfigureAwait(false);
 
             yield return (currentProject, allSymbolsAndGroups);
         }
@@ -164,18 +173,19 @@ internal partial class FindReferencesSearchEngine
     /// them once per symbol group, but we may have to notify about new symbols each time we expand our symbol set
     /// when we walk into a new project.
     /// </summary>
-    private async Task<ImmutableArray<(ISymbol symbol, SymbolGroup group)>> ReportGroupsAsync(
+    private async Task<ImmutableArray<(ISymbol symbol, SymbolGroup group)>> ReportGroupsSeriallyAsync(
         ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
     {
         var result = new FixedSizeArrayBuilder<(ISymbol symbol, SymbolGroup group)>(symbols.Length);
 
+        // Safe to call this as we're only being called from within a serial context ourselves.
         foreach (var symbol in symbols)
-            result.Add((symbol, await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false)));
+            result.Add((symbol, await ReportGroupSeriallyAsync(symbol, cancellationToken).ConfigureAwait(false)));
 
         return result.MoveToImmutable();
     }
 
-    private async ValueTask<SymbolGroup> ReportGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
+    private async ValueTask<SymbolGroup> ReportGroupSeriallyAsync(ISymbol symbol, CancellationToken cancellationToken)
     {
         // See if this is the first time we're running across this symbol.  Note: no locks are needed
         // here between checking and then adding because this is only ever called serially from within
@@ -183,7 +193,7 @@ internal partial class FindReferencesSearchEngine
         // symbols will happen later in ProcessDocumentAsync.  However, those reads will only happen
         // after the dependent symbol values were written in, so it will be safe to blindly read them
         // out.
-        if (!_symbolToGroup.TryGetValue(symbol, out var group))
+        if (!_symbolToGroup_mustBeAccessedSerially.TryGetValue(symbol, out var group))
         {
             var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(linkedSymbols.Contains(symbol), "Linked symbols did not contain the very symbol we started with.");
@@ -192,11 +202,11 @@ internal partial class FindReferencesSearchEngine
             Contract.ThrowIfFalse(group.Symbols.Contains(symbol), "Symbol group did not contain the very symbol we started with.");
 
             foreach (var groupSymbol in group.Symbols)
-                _symbolToGroup.TryAdd(groupSymbol, group);
+                _symbolToGroup_mustBeAccessedSerially.TryAdd(groupSymbol, group);
 
             // Since "symbol" was in group.Symbols, and we just added links from all of group.Symbols to that group, then "symbol" 
             // better now be in _symbolToGroup.
-            Contract.ThrowIfFalse(_symbolToGroup.ContainsKey(symbol));
+            Contract.ThrowIfFalse(_symbolToGroup_mustBeAccessedSerially.ContainsKey(symbol));
 
             await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
         }
