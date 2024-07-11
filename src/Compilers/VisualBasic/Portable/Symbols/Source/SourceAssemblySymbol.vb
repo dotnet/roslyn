@@ -1043,7 +1043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim version As Version = Nothing
                 If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=Not _compilation.IsEmitDeterministic, version:=version) Then
                     Dim attributeArgumentSyntaxLocation As Location = GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt)
-                    If _compilation.IsEmitDeterministic AndAlso verString.Contains("*"c) Then
+                    If _compilation.IsEmitDeterministic AndAlso verString?.Contains("*"c) = True Then
                         diagnostics.Add(ERRID.ERR_InvalidVersionFormatDeterministic, attributeArgumentSyntaxLocation)
                     Else
                         diagnostics.Add(ERRID.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation)
