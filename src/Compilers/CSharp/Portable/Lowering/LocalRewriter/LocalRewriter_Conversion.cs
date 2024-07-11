@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
 
-                            if (_compilation.IsReadOnlySpanType(spanType))
+                            if (!_inExpressionLambda && _compilation.IsReadOnlySpanType(spanType))
                             {
                                 return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, spanType) { WasCompilerGenerated = true };
                             }

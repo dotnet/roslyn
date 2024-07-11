@@ -1827,6 +1827,196 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Implicit_ExpressionTree_01(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    {
+        var source = $$"""
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(a => C.M(a));
+
+            static class C
+            {
+                public static void R(Expression<Action<string[]>> e) => e.Compile()(new string[] { "a" });
+                public static void M({{type}}<string> x) => Console.Write(x.Length + " " + x[0]);
+            }
+            """;
+
+        var expectedOutput = "1 a";
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+            {
+              // Code size      108 (0x6c)
+              .maxstack  9
+              .locals init (System.Linq.Expressions.ParameterExpression V_0)
+              IL_0000:  ldtoken    "string[]"
+              IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_000a:  ldstr      "a"
+              IL_000f:  call       "System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)"
+              IL_0014:  stloc.0
+              IL_0015:  ldnull
+              IL_0016:  ldtoken    "void C.M(System.{{type}}<string>)"
+              IL_001b:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)"
+              IL_0020:  castclass  "System.Reflection.MethodInfo"
+              IL_0025:  ldc.i4.1
+              IL_0026:  newarr     "System.Linq.Expressions.Expression"
+              IL_002b:  dup
+              IL_002c:  ldc.i4.0
+              IL_002d:  ldloc.0
+              IL_002e:  ldtoken    "System.{{type}}<string>"
+              IL_0033:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_0038:  ldtoken    "System.{{type}}<string> System.{{type}}<string>.op_Implicit(string[])"
+              IL_003d:  ldtoken    "System.{{type}}<string>"
+              IL_0042:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)"
+              IL_0047:  castclass  "System.Reflection.MethodInfo"
+              IL_004c:  call       "System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)"
+              IL_0051:  stelem.ref
+              IL_0052:  call       "System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])"
+              IL_0057:  ldc.i4.1
+              IL_0058:  newarr     "System.Linq.Expressions.ParameterExpression"
+              IL_005d:  dup
+              IL_005e:  ldc.i4.0
+              IL_005f:  ldloc.0
+              IL_0060:  stelem.ref
+              IL_0061:  call       "System.Linq.Expressions.Expression<System.Action<string[]>> System.Linq.Expressions.Expression.Lambda<System.Action<string[]>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])"
+              IL_0066:  call       "void C.R(System.Linq.Expressions.Expression<System.Action<string[]>>)"
+              IL_006b:  ret
+            }
+            """);
+
+        var expectedIl = $$"""
+            {
+              // Code size      108 (0x6c)
+              .maxstack  11
+              .locals init (System.Linq.Expressions.ParameterExpression V_0)
+              IL_0000:  ldtoken    "string[]"
+              IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_000a:  ldstr      "a"
+              IL_000f:  call       "System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)"
+              IL_0014:  stloc.0
+              IL_0015:  ldnull
+              IL_0016:  ldtoken    "void C.M(System.{{type}}<string>)"
+              IL_001b:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)"
+              IL_0020:  castclass  "System.Reflection.MethodInfo"
+              IL_0025:  ldc.i4.1
+              IL_0026:  newarr     "System.Linq.Expressions.Expression"
+              IL_002b:  dup
+              IL_002c:  ldc.i4.0
+              IL_002d:  ldnull
+              IL_002e:  ldtoken    "System.{{type}}<string> System.{{type}}<string>.op_Implicit(string[])"
+              IL_0033:  ldtoken    "System.{{type}}<string>"
+              IL_0038:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)"
+              IL_003d:  castclass  "System.Reflection.MethodInfo"
+              IL_0042:  ldc.i4.1
+              IL_0043:  newarr     "System.Linq.Expressions.Expression"
+              IL_0048:  dup
+              IL_0049:  ldc.i4.0
+              IL_004a:  ldloc.0
+              IL_004b:  stelem.ref
+              IL_004c:  call       "System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])"
+              IL_0051:  stelem.ref
+              IL_0052:  call       "System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])"
+              IL_0057:  ldc.i4.1
+              IL_0058:  newarr     "System.Linq.Expressions.ParameterExpression"
+              IL_005d:  dup
+              IL_005e:  ldc.i4.0
+              IL_005f:  ldloc.0
+              IL_0060:  stelem.ref
+              IL_0061:  call       "System.Linq.Expressions.Expression<System.Action<string[]>> System.Linq.Expressions.Expression.Lambda<System.Action<string[]>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])"
+              IL_0066:  call       "void C.R(System.Linq.Expressions.Expression<System.Action<string[]>>)"
+              IL_006b:  ret
+            }
+            """;
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
+
+        comp = CreateCompilationWithSpan(source);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Implicit_ExpressionTree_02(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    {
+        var source = $$"""
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(() => C.M(null));
+
+            static class C
+            {
+                public static void R(Expression<Action> e) { }
+                public static void M({{type}}<string> x) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+            {
+              // Code size       97 (0x61)
+              .maxstack  9
+              IL_0000:  ldnull
+              IL_0001:  ldtoken    "void C.M(System.{{type}}<string>)"
+              IL_0006:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)"
+              IL_000b:  castclass  "System.Reflection.MethodInfo"
+              IL_0010:  ldc.i4.1
+              IL_0011:  newarr     "System.Linq.Expressions.Expression"
+              IL_0016:  dup
+              IL_0017:  ldc.i4.0
+              IL_0018:  ldnull
+              IL_0019:  ldtoken    "string[]"
+              IL_001e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_0023:  call       "System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)"
+              IL_0028:  ldtoken    "System.{{type}}<string>"
+              IL_002d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_0032:  ldtoken    "System.{{type}}<string> System.{{type}}<string>.op_Implicit(string[])"
+              IL_0037:  ldtoken    "System.{{type}}<string>"
+              IL_003c:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)"
+              IL_0041:  castclass  "System.Reflection.MethodInfo"
+              IL_0046:  call       "System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)"
+              IL_004b:  stelem.ref
+              IL_004c:  call       "System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])"
+              IL_0051:  call       "System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()"
+              IL_0056:  call       "System.Linq.Expressions.Expression<System.Action> System.Linq.Expressions.Expression.Lambda<System.Action>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])"
+              IL_005b:  call       "void C.R(System.Linq.Expressions.Expression<System.Action>)"
+              IL_0060:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Implicit_ExpressionTree_03(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    {
+        var source = $$"""
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(() => C.M(default));
+
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M({{type}}<string> x) => Console.Write(x.Length);
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,15): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+            // C.R(() => C.M(default));
+            Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments(type).WithLocation(4, 15));
+    }
+
+    [Theory, CombinatorialData]
     public void Conversion_Array_ReadOnlySpan_Covariant(
         [CombinatorialLangVersions] LanguageVersion langVersion,
         bool cast)
@@ -3352,6 +3542,136 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_06(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.M(default(object[]));
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExpressionTree_01(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            var a = new string[] { "a" };
+            C.R(() => C.M(a));
+
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M(string[] x) => Console.Write(" s" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" o" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "sa").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExpressionTree_02()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            var a = new string[] { "a" };
+            C.R(() => C.M(a));
+
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+
+        var expectedOutput = "ra";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExpressionTree_03(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            var a = new object[] { "a" };
+            C.R(() => C.M(a));
+
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExpressionTree_04(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+            
+            C.R(() => C.M(null));
+            C.R(() => C.M(default));
+            
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M(object[] x) => Console.Write(" a" + (x?[0] ?? "null"));
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x.Length);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "anull anull").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExpressionTree_05(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(() => C.M(default(object[])));
+
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M(object[] x) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+    }
+
     [Fact]
     public void OverloadResolution_ReadOnlySpanVsArray_Params_01()
     {
@@ -3573,6 +3893,102 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsArray_ExtensionMethodReceiver_01(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            a.M();
+
+            static class C
+            {
+                public static void M(this string[] x) => Console.Write(" a" + x[0]);
+                public static void M(this Span<string> x) => Console.Write(" s" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsArray_ExtensionMethodReceiver_02()
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            a.M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this Span<string> x) => Console.Write(" s" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+
+        var expectedOutput = "sa";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsArray_ExtensionMethodReceiver_ExpressionTree_01(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            var a = new string[] { "a" };
+            C.R(() => a.M());
+
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M(this string[] x) => Console.Write(" a" + x[0]);
+                public static void M(this Span<string> x) => Console.Write(" s" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsArray_ExtensionMethodReceiver_ExpressionTree_02()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            var a = new string[] { "a" };
+            C.R(() => a.M());
+
+            static class C
+            {
+                public static void R(Expression<Action> e) => e.Compile()();
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this Span<string> x) => Console.Write(" s" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+
+        var expectedOutput = "sa";
+
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
