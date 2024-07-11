@@ -30,10 +30,7 @@ internal class CSharpChangeToIEnumerableCodeFixProvider() : AbstractIteratorCode
     /// </summary>
     private const string CS1624 = nameof(CS1624);
 
-    public override ImmutableArray<string> FixableDiagnosticIds
-    {
-        get { return [CS1624]; }
-    }
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS1624];
 
     protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
     {
