@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -21,178 +20,59 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
+using static ImplementHelpers;
+
 internal abstract partial class AbstractImplementInterfaceService
 {
-    internal partial class ImplementInterfaceCodeAction : CodeAction
+    private sealed partial class ImplementInterfaceGenerator
     {
-        protected readonly bool Explicitly;
-        protected readonly bool Abstractly;
-        private readonly bool _onlyRemaining;
-        protected readonly ISymbol? ThroughMember;
-        protected readonly Document Document;
-        protected readonly ImplementTypeOptions Options;
-        protected readonly State State;
-        protected readonly AbstractImplementInterfaceService Service;
-        private readonly string _equivalenceKey;
+        private readonly Document Document;
+        private readonly AbstractImplementInterfaceService Service;
 
-        internal ImplementInterfaceCodeAction(
+        private readonly IImplementInterfaceInfo State;
+        private readonly ImplementTypeOptions Options;
+        private readonly ImplementInterfaceConfiguration Configuration;
+
+        private bool Explicitly => Configuration.Explicitly;
+        private bool Abstractly => Configuration.Abstractly;
+        private bool OnlyRemaining => Configuration.OnlyRemaining;
+        private bool ImplementDisposePattern => Configuration.ImplementDisposePattern;
+        private ISymbol? ThroughMember => Configuration.ThroughMember;
+
+        internal ImplementInterfaceGenerator(
             AbstractImplementInterfaceService service,
             Document document,
+            IImplementInterfaceInfo state,
             ImplementTypeOptions options,
-            State state,
-            bool explicitly,
-            bool abstractly,
-            bool onlyRemaining,
-            ISymbol? throughMember)
+            ImplementInterfaceConfiguration configuration)
         {
             Service = service;
             Document = document;
             State = state;
             Options = options;
-            Abstractly = abstractly;
-            _onlyRemaining = onlyRemaining;
-            Explicitly = explicitly;
-            ThroughMember = throughMember;
-            _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!);
+            Configuration = configuration;
         }
 
-        public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeOptions options,
-            State state)
-        {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
-        }
-
-        public static ImplementInterfaceCodeAction CreateImplementCodeAction(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeOptions options,
-            State state)
-        {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
-        }
-
-        public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeOptions options,
-            State state)
-        {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
-        }
-
-        public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeOptions options,
-            State state,
-            ISymbol throughMember)
-        {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
-        }
-
-        public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeOptions options,
-            State state)
-        {
-            return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
-        }
-
-        public override string Title
-        {
-            get
-            {
-                if (Explicitly)
-                {
-                    if (_onlyRemaining)
-                    {
-                        return FeaturesResources.Implement_remaining_members_explicitly;
-                    }
-                    else
-                    {
-                        return FeaturesResources.Implement_all_members_explicitly;
-                    }
-                }
-                else if (Abstractly)
-                {
-                    return FeaturesResources.Implement_interface_abstractly;
-                }
-                else if (ThroughMember != null)
-                {
-                    return string.Format(FeaturesResources.Implement_interface_through_0, ThroughMember.Name);
-                }
-                else
-                {
-                    return FeaturesResources.Implement_interface;
-                }
-            }
-        }
-
-        private static string ComputeEquivalenceKey(
-            State state,
-            bool explicitly,
-            bool abstractly,
-            bool onlyRemaining,
-            ISymbol? throughMember,
-            string codeActionTypeName)
-        {
-            var interfaceType = state.InterfaceTypes.First();
-            var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var assemblyName = interfaceType.ContainingAssembly.Name;
-
-            // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
-            // in the same manner.  Note: 'implement through member' means implementing the same interface through
-            // an applicable member with the same name in the destination.
-            return explicitly.ToString() + ";" +
-               abstractly.ToString() + ";" +
-               onlyRemaining.ToString() + ":" +
-               typeName + ";" +
-               assemblyName + ";" +
-               codeActionTypeName + ";" +
-               throughMember?.Name;
-        }
-
-        public override string EquivalenceKey => _equivalenceKey;
-
-        protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            => GetUpdatedDocumentAsync(cancellationToken);
-
-        public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
+        public Task<Document> ImplementInterfaceAsync(CancellationToken cancellationToken)
         {
             var unimplementedMembers = Explicitly
-                ? _onlyRemaining
+                ? OnlyRemaining
                     ? State.MembersWithoutExplicitOrImplicitImplementation
                     : State.MembersWithoutExplicitImplementation
                 : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-            return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
+
+            return ImplementDisposePattern
+                ? ImplementDisposePatternAsync(unimplementedMembers, cancellationToken)
+                : ImplementInterfaceAsync(unimplementedMembers, extraMembers: [], cancellationToken);
         }
 
-        public virtual Task<Document> GetUpdatedDocumentAsync(
-            Document document,
+        private async Task<Document> ImplementInterfaceAsync(
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-            INamedTypeSymbol classOrStructType,
-            SyntaxNode classOrStructDecl,
-            CancellationToken cancellationToken)
-        {
-            return GetUpdatedDocumentAsync(
-                document, unimplementedMembers, classOrStructType, classOrStructDecl,
-                [], cancellationToken);
-        }
-
-        protected async Task<Document> GetUpdatedDocumentAsync(
-            Document document,
-            ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-            INamedTypeSymbol classOrStructType,
-            SyntaxNode classOrStructDecl,
             ImmutableArray<ISymbol> extraMembers,
             CancellationToken cancellationToken)
         {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await this.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await this.Document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
@@ -207,12 +87,12 @@ internal abstract partial class AbstractImplementInterfaceService
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
-                    document.Project.Solution,
+                    this.Document.Project.Solution,
                     new CodeGenerationContext(
-                        contextLocation: classOrStructDecl.GetLocation(),
+                        contextLocation: State.ClassOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers)),
-                classOrStructType,
+                State.ClassOrStructType,
                 memberDefinitions.Concat(extraMembers),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -326,7 +206,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // Check if we need to add 'unsafe' to the signature we're generating.
             var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.Location);
+            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.InterfaceNode);
 
             return GenerateMembers(
                 compilation, member, memberName, generateInvisibleMember, generateAbstractly,
@@ -353,7 +233,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
                 // If the member is less accessible than type, for which we are implementing it,
                 // then only explicit implementation is valid.
-                if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
+                if (IsLessAccessibleThan(member, State.ClassOrStructType))
                     return true;
             }
 
