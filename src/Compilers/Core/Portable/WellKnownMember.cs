@@ -483,7 +483,6 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__get_Item,
         System_Span_T__get_Length,
         System_Span_T__Slice_Int_Int,
-        System_Span_T__op_Implicit_Array,
 
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
@@ -492,7 +491,6 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
         System_ReadOnlySpan_T__Slice_Int_Int,
-        System_ReadOnlySpan_T__op_Implicit_Array,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 

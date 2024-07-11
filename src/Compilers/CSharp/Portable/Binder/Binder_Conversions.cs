@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -486,18 +487,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.IsSpan)
                 {
+                    Debug.Assert(destination.OriginalDefinition.IsSpan() || destination.OriginalDefinition.IsReadOnlySpan());
+
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureFirstClassSpan, diagnostics);
+
                     // PROTOTYPE: Check runtime APIs used for other span conversions once they are implemented.
-                    if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                    // NOTE: We cannot use well-known members because per the spec
+                    // the Span types involved in the Span conversions can be any that match the type name.
+                    if (TryFindImplicitOperatorFromArray(destination.OriginalDefinition) is { } method)
                     {
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, diagnostics, syntax: syntax);
+                        diagnostics.ReportUseSite(method, syntax);
                     }
                     else
                     {
-                        Debug.Assert(destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_Span_T__op_Implicit_Array, diagnostics, syntax: syntax);
+                        Error(diagnostics,
+                            ErrorCode.ERR_MissingPredefinedMember,
+                            syntax,
+                            destination.OriginalDefinition,
+                            WellKnownMemberNames.ImplicitConversionName);
                     }
                 }
             }
+        }
+
+        internal static MethodSymbol? TryFindImplicitOperatorFromArray(TypeSymbol type)
+        {
+            Debug.Assert(type.IsSpan() || type.IsReadOnlySpan());
+
+            return TryFindSingleMember(type, WellKnownMemberNames.ImplicitConversionName,
+                static (method) => method is
+                {
+                    ParameterCount: 1,
+                    Arity: 0,
+                    IsStatic: true,
+                    DeclaredAccessibility: Accessibility.Public,
+                    Parameters: [{ Type: ArrayTypeSymbol { IsSZArray: true, ElementType: TypeParameterSymbol } }]
+                });
+        }
+
+        private static MethodSymbol? TryFindSingleMember(TypeSymbol type, string name, Func<MethodSymbol, bool> predicate)
+        {
+            var members = type.GetMembers(name);
+            MethodSymbol? result = null;
+            foreach (var member in members)
+            {
+                if (member is MethodSymbol method && predicate(method))
+                {
+                    if (result is not null)
+                    {
+                        // Ambiguous member found.
+                        return null;
+                    }
+
+                    result = method;
+                }
+            }
+
+            return result;
         }
 
         private static void CheckInlineArrayTypeIsSupported(SyntaxNode syntax, TypeSymbol inlineArrayType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
