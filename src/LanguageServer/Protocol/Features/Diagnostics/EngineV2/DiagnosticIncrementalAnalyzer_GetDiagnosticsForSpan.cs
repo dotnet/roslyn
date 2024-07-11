@@ -92,8 +92,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     .Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions))
                     .ToImmutableArray();
 
-                var ideOptions = owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(document.Project);
-
                 // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
                 // We clear out range for such cases as we are computing full document diagnostics.
                 if (range == new TextSpan(0, text.Length))
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // We log performance info when we are computing diagnostics for a span
                 var logPerformanceInfo = range.HasValue;
-                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, we will attempt to perform incremental
                 // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
@@ -116,9 +114,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
                 Project project,
-                IdeAnalyzerOptions ideOptions,
                 ImmutableArray<StateSet> stateSets,
                 bool includeSuppressedDiagnostics,
+                bool crashOnAnalyzerException,
                 CancellationToken cancellationToken)
             {
                 if (s_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
@@ -129,14 +127,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return null;
                     }
 
-                    if (((WorkspaceAnalyzerOptions)projectAndCompilationWithAnalyzers.CompilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions == ideOptions
-                        && HasAllAnalyzers(stateSets, projectAndCompilationWithAnalyzers.CompilationWithAnalyzers))
+                    if (HasAllAnalyzers(stateSets, projectAndCompilationWithAnalyzers.CompilationWithAnalyzers))
                     {
                         return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
                     }
                 }
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
 

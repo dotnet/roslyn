@@ -191,8 +191,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
             var analyzerMap = pooledObject.Object;
 
-            var ideOptions = ((WorkspaceAnalyzerOptions)compilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions;
-
             var analyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
 
             analyzerMap.AppendAnalyzerMap(analyzers);
@@ -211,7 +209,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 documentAnalysisScope?.Kind,
                 project.Id,
                 [.. analyzerMap.Keys],
-                ideOptions,
                 isExplicit);
 
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
