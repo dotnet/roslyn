@@ -43,7 +43,7 @@ internal partial class CSharpUseTupleSwapCodeFixProvider : SyntaxEditorBasedCode
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
             FixOne(editor, diagnostic, cancellationToken);

@@ -332,6 +332,16 @@
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">입력 문자열은 해당 UTF-8 바이트 표현으로 변환할 수 없습니다. {0}</target>
@@ -770,6 +780,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 12.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -2585,6 +2600,11 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

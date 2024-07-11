@@ -186,8 +186,6 @@ public class DiagnosticAnalyzerDriverTests
     {
         public bool IsHighPriority => false;
 
-        public bool OpenFileOnly(SimplifierOptions? options) => false;
-
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
     }

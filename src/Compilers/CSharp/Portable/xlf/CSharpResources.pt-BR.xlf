@@ -332,6 +332,16 @@
         <target state="translated">O atributo AsyncMethodBuilder não é permitido em métodos anônimos sem um tipo de retorno explícito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">A cadeia de caracteres de entrada não pode ser convertida na representação equivalente em bytes UTF-8. {0}</target>
@@ -770,6 +780,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
         <target state="translated">O recurso '{0}' não está disponível em C# 12.0. Use a versão da linguagem {1} ou superior.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -2585,6 +2600,11 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;ausente&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

@@ -51,7 +51,7 @@ internal sealed class CSharpRemoveUnreachableCodeCodeFixProvider() : SyntaxEdito
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {

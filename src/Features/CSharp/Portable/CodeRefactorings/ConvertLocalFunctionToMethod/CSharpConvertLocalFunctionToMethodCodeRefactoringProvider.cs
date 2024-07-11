@@ -58,7 +58,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         context.RegisterRefactoring(
             CodeAction.Create(
                 CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(document, parentBlock, localFunction, container, context.Options, c),
+                c => UpdateDocumentAsync(document, parentBlock, localFunction, container, c),
                 nameof(CSharpFeaturesResources.Convert_to_method)),
             localFunction.Span);
     }
@@ -68,7 +68,6 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         BlockSyntax parentBlock,
         LocalFunctionStatementSyntax localFunction,
         MemberDeclarationSyntax container,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -127,7 +126,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             typeParameters: [.. typeParameters],
             parameters: parameters.AddRange(capturesAsParameters));
 
-        var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
         var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);
 
         if (localFunction.AttributeLists.Count > 0)

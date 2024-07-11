@@ -5,9 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
@@ -22,10 +20,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 CleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices),
                 CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
-                CodeStyleOptions = globalOptions.GetCodeStyleOptions(languageServices),
                 SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language),
                 ImplementTypeOptions = globalOptions.GetImplementTypeOptions(languageServices.Language),
-                ExtractMethodOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
             };
 

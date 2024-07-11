@@ -30,7 +30,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private readonly bool _onlyRemaining;
         protected readonly ISymbol? ThroughMember;
         protected readonly Document Document;
-        protected readonly ImplementTypeGenerationOptions Options;
+        protected readonly ImplementTypeOptions Options;
         protected readonly State State;
         protected readonly AbstractImplementInterfaceService Service;
         private readonly string _equivalenceKey;
@@ -38,7 +38,7 @@ internal abstract partial class AbstractImplementInterfaceService
         internal ImplementInterfaceCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state,
             bool explicitly,
             bool abstractly,
@@ -59,7 +59,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state)
         {
             return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
@@ -68,7 +68,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public static ImplementInterfaceCodeAction CreateImplementCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state)
         {
             return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
@@ -77,7 +77,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state)
         {
             return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
@@ -86,7 +86,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state,
             ISymbol throughMember)
         {
@@ -96,7 +96,7 @@ internal abstract partial class AbstractImplementInterfaceService
         public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
             AbstractImplementInterfaceService service,
             Document document,
-            ImplementTypeGenerationOptions options,
+            ImplementTypeOptions options,
             State state)
         {
             return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
@@ -197,13 +197,13 @@ internal abstract partial class AbstractImplementInterfaceService
             var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
             var memberDefinitions = GenerateMembers(
-                compilation, tree.Options, unimplementedMembers, Options.ImplementTypeOptions.PropertyGenerationBehavior);
+                compilation, tree.Options, unimplementedMembers, Options.PropertyGenerationBehavior);
 
             // Only group the members in the destination if the user wants that *and* 
             // it's not a ComImport interface.  Member ordering in ComImport interfaces 
             // matters, so we don't want to much with them.
             var groupMembers = !isComImport &&
-                Options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                Options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
@@ -211,8 +211,7 @@ internal abstract partial class AbstractImplementInterfaceService
                     new CodeGenerationContext(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
-                    Options.FallbackOptions),
+                        sortMembers: groupMembers)),
                 classOrStructType,
                 memberDefinitions.Concat(extraMembers),
                 cancellationToken).ConfigureAwait(false);

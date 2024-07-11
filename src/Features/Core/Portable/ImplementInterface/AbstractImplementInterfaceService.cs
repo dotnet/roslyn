@@ -38,7 +38,7 @@ internal abstract partial class AbstractImplementInterfaceService : IImplementIn
     protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
     public async Task<Document> ImplementInterfaceAsync(
-        Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken)
+        Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_ImplementInterface, cancellationToken))
         {
@@ -60,14 +60,14 @@ internal abstract partial class AbstractImplementInterfaceService : IImplementIn
         }
     }
 
-    public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+    public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
     {
         var state = State.Generate(this, document, model, node, cancellationToken);
         return GetActions(document, options, state, cancellationToken).ToImmutableArray();
     }
 
     private IEnumerable<CodeAction> GetActions(
-        Document document, ImplementTypeGenerationOptions options, State state, CancellationToken cancellationToken)
+        Document document, ImplementTypeOptions options, State state, CancellationToken cancellationToken)
     {
         if (state == null)
         {

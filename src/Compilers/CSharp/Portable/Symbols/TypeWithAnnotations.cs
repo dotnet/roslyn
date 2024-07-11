@@ -739,7 +739,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (NullableAnnotation != NullableAnnotation.Oblivious)
             {
-                if (!typeSymbol.IsValueType)
+                // IsNullableType check is needed in error scenarios if System.Nullable type is missing.
+                if (!typeSymbol.IsValueType && !typeSymbol.IsNullableType())
                 {
                     return CreateNonLazyType(newTypeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
                 }

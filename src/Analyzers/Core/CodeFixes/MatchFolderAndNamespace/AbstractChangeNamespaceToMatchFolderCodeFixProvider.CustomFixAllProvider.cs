@@ -45,11 +45,6 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
                     fixAllContext.Project.Solution,
                     diagnostics,
                     fixAllContext.Progress,
-#if CODE_STYLE
-                    CodeActionOptions.DefaultProvider,
-#else
-                    fixAllContext.State.CodeActionOptionsProvider,
-#endif
                     cancellationToken),
                 title);
 
@@ -71,7 +66,6 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
             Solution solution,
             ImmutableArray<Diagnostic> diagnostics,
             IProgress<CodeAnalysisProgress> progressTracker,
-            CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             // Use documentId instead of tree here because the
@@ -94,7 +88,7 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
                 var document = newSolution.GetRequiredDocument(documentId);
                 using var _ = progressTracker.ItemCompletedScope(document.Name);
 
-                newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, options, cancellationToken).ConfigureAwait(false);
+                newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, cancellationToken).ConfigureAwait(false);
             }
 
             return newSolution;

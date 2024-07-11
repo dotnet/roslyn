@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied && !IsPartial)
+            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied && !IsPartialDefinition)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     internal sealed class SharedVerifierState
     {
-        private readonly AnalyzerTest<XUnitVerifier> _test;
+        private readonly AnalyzerTest<DefaultVerifier> _test;
         private readonly string _defaultFileExt;
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         /// </summary>
         private Func<Solution, ProjectId, Solution>? _remainingOptionsSolutionTransform;
 
-        public SharedVerifierState(AnalyzerTest<XUnitVerifier> test, string defaultFileExt)
+        public SharedVerifierState(AnalyzerTest<DefaultVerifier> test, string defaultFileExt)
         {
             _test = test;
             _defaultFileExt = defaultFileExt;
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal CodeActionOptionsProvider CodeActionOptions { get; set; } = CodeAnalysis.CodeActions.CodeActionOptions.DefaultProvider;
         internal IdeAnalyzerOptions? IdeAnalyzerOptions { get; set; }
 
-        internal IdeAnalyzerOptions GetIdeAnalyzerOptions(Project project)
-            => IdeAnalyzerOptions ?? IdeAnalyzerOptions.GetDefault(project.Services);
+        internal IdeAnalyzerOptions GetIdeAnalyzerOptions()
+            => IdeAnalyzerOptions ?? IdeAnalyzerOptions.CommonDefault;
 #endif
         internal void Apply()
         {

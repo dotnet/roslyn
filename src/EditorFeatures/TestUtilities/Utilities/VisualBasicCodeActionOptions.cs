@@ -5,7 +5,6 @@
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.VisualBasic.CodeGeneration;
-using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
 using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Microsoft.CodeAnalysis.VisualBasic.Simplification;
 
@@ -21,7 +20,6 @@ internal static class VisualBasicCodeActionOptions
             SimplifierOptions = VisualBasicSimplifierOptions.Default,
         },
         CodeGenerationOptions = VisualBasicCodeGenerationOptions.Default,
-        CodeStyleOptions = VisualBasicIdeCodeStyleOptions.Default
     };
 
     public static CodeActionOptions With(this CodeActionOptions options, VisualBasicSyntaxFormattingOptions value)

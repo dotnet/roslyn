@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using System.Diagnostics.CodeAnalysis;
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         where TCodeRefactoring : CodeRefactoringProvider, new()
     {
-        public class Test : CSharpCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
+        public class Test : CSharpCodeRefactoringTest<TCodeRefactoring, DefaultVerifier>
         {
             private readonly SharedVerifierState _sharedState;
 
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #if !CODE_STYLE
 
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions());
 
             protected override CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
                 => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, cancellationToken);

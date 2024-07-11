@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        public class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+        public class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
         {
             private readonly SharedVerifierState _sharedState;
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #if !CODE_STYLE
 
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions());
 
             protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
                 => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);

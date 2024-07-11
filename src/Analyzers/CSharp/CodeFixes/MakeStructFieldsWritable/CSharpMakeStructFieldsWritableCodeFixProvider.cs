@@ -40,7 +40,7 @@ internal class CSharpMakeStructFieldsWritableCodeFixProvider : SyntaxEditorBased
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {
