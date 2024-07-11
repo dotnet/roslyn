@@ -151,7 +151,8 @@ static class D
 When a call is intercepted, the interceptor and interceptable methods must meet the signature matching requirements detailed below:
 - When an interceptable instance method is compared to a static interceptor method (including a classic extension method), we use the method as if it is an extension in reduced form for comparison. The first parameter of the static method is compared to the instance method `this` parameter.
     - The implementation currently requires the interceptor to be an extension method for this comparison to work. We plan on addressing this before releasing .NET 8.
-- The returns and parameters, including the `this` parameter, must have the same ref kinds and types.
+- The returns and parameters of the respective methods, including the `this` parameter, must have the same ref kinds and types.
+- The `this` parameter of the respective methods must have the same ref kinds and types, except that when a `readonly` struct instance method is intercepted with a static method, it is permitted for the interceptor `this` parameter to be either `in` or `ref readonly`.
 - A warning is reported instead of an error if a type difference is found where the types are not distinct to the runtime. For example, `object` and `dynamic`.
 - No warning or error is reported for a *safe* nullability difference, such as when the interceptable method accepts a `string` parameter, and the interceptor accepts a `string?` parameter.
 - Method names and parameter names are not required to match.
@@ -178,6 +179,38 @@ An interceptor contained in a file-local type is permitted to intercept a call i
 This allows generator authors to avoid *polluting lookup* with interceptors, helps avoid name conflicts, and prevents use of interceptors in *unintended positions* from the interceptor author's point-of-view.
 
 We may also want to consider adjusting behavior of `[EditorBrowsable]` to work in the same compilation.
+
+### Struct rvalue receivers
+
+An interceptor whose `this` parameter takes a struct by-reference can generally be used to intercept a struct instance method call, assuming the methods are compatible per [Signature matching](#signature-matching). This includes a specific situation where the interceptor wouldn't be directly usable as an extension method, due to the receiver being an rvalue. See also [12.8.9.3 Extension method invocations
+](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12893-extension-method-invocations) in the standard.
+
+
+```cs
+using System.Runtime.CompilerServices;
+
+struct S
+{
+    public void Original() { }
+}
+
+static class Program
+{
+    public static void Interceptor()
+    {
+        new S().Original(); // L1: interception is valid, no errors.
+        new S().Interceptor(); // error CS1510: A ref or out value must be an assignable variable
+    }
+}
+
+static class D
+{
+    [InterceptsLocation(1, "..(refers to call at L1)")]
+    public static void Interceptor(this ref S s)
+}
+```
+
+The goal of this is to avoid a "decoder ring" experience where an interceptor author needs to copy exactly the same ref kind sometimes and use a different ref kind other times, depending on the call arguments. We generally want that if your interceptor is accessible at the call site and uses all the same parameter ref kinds and types that you will be allowed to intercept.
 
 ### Editor experience
 
