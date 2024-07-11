@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,16 +18,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixIncorrectConstraint;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FixIncorrectConstraint), Shared]
-internal class CSharpFixIncorrectConstraintCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpFixIncorrectConstraintCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS9010 = nameof(CS9010); // Keyword 'enum' cannot be used as a constraint.Did you mean 'struct, System.Enum'?	Net6 C:\github\repo_find_refs\Net6\Class1.cs 1	Active
     private const string CS9011 = nameof(CS9011); // 'delegate' cannot be used as a constraint.Did you mean 'System.Delegate'?	Net6 C:\github\repo_find_refs\Net6\Class1.cs 1	Active
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpFixIncorrectConstraintCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [CS9010, CS9011];
