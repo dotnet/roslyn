@@ -25,11 +25,6 @@ internal interface IBuiltInAnalyzer
     DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
     /// <summary>
-    /// This indicates whether this built-in analyzer will only run on opened files.
-    /// </summary>
-    bool OpenFileOnly(SimplifierOptions? options);
-
-    /// <summary>
     /// If this analyzer is privileged and should run with higher priority than other analyzers.
     /// </summary>
     bool IsHighPriority { get; }

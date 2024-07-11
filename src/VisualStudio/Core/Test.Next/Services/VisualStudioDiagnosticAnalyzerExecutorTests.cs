@@ -139,7 +139,7 @@ End Class";
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.CSharp));
+            var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
             workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 
             // run analysis
@@ -184,7 +184,7 @@ End Class";
             var runner = CreateAnalyzerRunner();
             var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
 
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
 
             var compilationWithAnalyzers = (await project.GetCompilationAsync())
                 .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
@@ -210,8 +210,8 @@ End Class";
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
             var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
-                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, IdeAnalyzerOptions.GetDefault(project.Services)));
+                analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                new WorkspaceAnalyzerOptions(project.AnalyzerOptions, IdeAnalyzerOptions.CommonDefault));
 
             var result = await executor.AnalyzeProjectAsync(
                 project, analyzerDriver, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);

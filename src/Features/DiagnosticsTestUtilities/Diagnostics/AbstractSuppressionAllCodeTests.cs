@@ -142,8 +142,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public bool IsHighPriority => false;
 
-            public bool OpenFileOnly(SimplifierOptions options) => false;
-
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
