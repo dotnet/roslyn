@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -32,5 +33,28 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
     public virtual Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
         return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);
+    }
+
+    /// <summary>
+    /// Returns the <see cref="TextSpan"/> of the nearest encompassing <see cref="SyntaxNode"/> of type
+    /// <typeparamref name="T"/> of which the supplied <paramref name="textSpan"/> is a part within the supplied
+    /// <paramref name="document"/>.
+    /// </summary>
+    protected static async Task<TextSpan?> TryGetSurroundingNodeSpanAsync<T>(
+        Document document,
+        TextSpan textSpan,
+        CancellationToken cancellationToken)
+            where T : SyntaxNode
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root is null)
+        {
+            return null;
+        }
+
+        var containingNode = root.FindNode(textSpan);
+        var targetNode = containingNode.FirstAncestorOrSelf<T>() ?? containingNode;
+
+        return targetNode.Span;
     }
 }

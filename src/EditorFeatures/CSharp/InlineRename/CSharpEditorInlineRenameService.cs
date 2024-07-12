@@ -131,27 +131,4 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
             }
         }
     }
-
-    /// <summary>
-    /// Returns the <see cref="TextSpan"/> of the nearest encompassing <see cref="CSharpSyntaxNode"/> of type
-    /// <typeparamref name="T"/> of which the supplied <paramref name="textSpan"/> is a part within the supplied
-    /// <paramref name="document"/>.
-    /// </summary>
-    public static async Task<TextSpan?> TryGetSurroundingNodeSpanAsync<T>(
-        Document document,
-        TextSpan textSpan,
-        CancellationToken cancellationToken)
-            where T : CSharpSyntaxNode
-    {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (root is null)
-        {
-            return null;
-        }
-
-        var containingNode = root.FindNode(textSpan);
-        var targetNode = containingNode.FirstAncestorOrSelf<T>() ?? containingNode;
-
-        return targetNode.Span;
-    }
 }
