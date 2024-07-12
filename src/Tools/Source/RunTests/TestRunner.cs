@@ -262,6 +262,8 @@ namespace RunTests
                 // DOTNET_ROOT environment variable set by helix.
                 if (isUnix)
                 {
+                    command.AppendLine(@"powershell -NoProfile -Command { Set-MpPreference -DisableRealtimeMonitoring $true }");
+                    command.AppendLine(@"powershell -NoProfile -Command { Set-MpPreference -ExclusionPath (Resolve-Path 'artifacts') }");
                     // $ is a special character in msbuild so we replace it with %24 in the helix project.
                     // https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2022
                     command.AppendLine("vstestConsolePath=%24(find %24{DOTNET_ROOT} -name \"vstest.console.dll\")");
