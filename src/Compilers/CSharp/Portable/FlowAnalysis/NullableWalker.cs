@@ -12272,7 +12272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            internal void ForEach<TArg>(Action<int, TArg> action, TArg arg)
+            internal void ForEach<TArg>(TArg arg, Action<int, TArg> action)
             {
                 _container?.Value.ForEach(action: action, arg: arg);
                 for (int index = 1; index < Capacity; index++)

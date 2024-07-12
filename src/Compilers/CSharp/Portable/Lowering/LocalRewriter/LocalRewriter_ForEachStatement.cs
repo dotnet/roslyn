@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: We're assuming that sequence points have already been generated.
         /// Otherwise, lowering to for-loops would generated spurious ones.
         /// </remarks>
-        private BoundStatement RewriteForEachStatementAsFor<TArg>(BoundForEachStatement node, GetForEachStatementAsForPreamble? getPreamble, GetForEachStatementAsForItem<TArg> getItem, GetForEachStatementAsForLength<TArg> getLength, TArg arg)
+        private BoundStatement RewriteForEachStatementAsFor<TArg>(BoundForEachStatement node, GetForEachStatementAsForPreamble? getPreamble, TArg arg, GetForEachStatementAsForItem<TArg> getItem, GetForEachStatementAsForLength<TArg> getLength)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 

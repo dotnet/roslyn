@@ -25,7 +25,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static TValue GetOrAdd<TKey, TArg, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument)
+        public static TValue GetOrAdd<TKey, TArg, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, TArg factoryArgument, Func<TKey, TArg, TValue> valueFactory)
             where TKey : notnull
         {
 #if NETCOREAPP
@@ -44,9 +44,9 @@ namespace Roslyn.Utilities
         public static TValue AddOrUpdate<TKey, TValue, TArg>(
             this ConcurrentDictionary<TKey, TValue> dictionary,
             TKey key,
+            TArg factoryArgument,
             Func<TKey, TArg, TValue> addValueFactory,
-            Func<TKey, TValue, TArg, TValue> updateValueFactory,
-            TArg factoryArgument)
+            Func<TKey, TValue, TArg, TValue> updateValueFactory)
             where TKey : notnull
         {
 #if NETCOREAPP

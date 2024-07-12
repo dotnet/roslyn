@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <param name="argument">The argument that is passed to the action whenever it is invoked</param>
-        internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, in TArg argument)
+        internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, in TArg argument, Action<ArrayRankSpecifierSyntax, TArg> action)
         {
             // Use a manual stack here to avoid deeply nested recursion which can blow the real stack
             var stack = ArrayBuilder<SyntaxNode>.GetInstance();

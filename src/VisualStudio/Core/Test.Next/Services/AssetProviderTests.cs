@@ -195,8 +195,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 AssetPath assetPath,
                 ReadOnlyMemory<Checksum> checksums,
                 ISerializerService deserializerService,
-                Action<Checksum, T, TArg> callback,
                 TArg arg,
+                Action<Checksum, T, TArg> callback,
                 CancellationToken cancellationToken)
             {
                 foreach (var (checksum, asset) in map)

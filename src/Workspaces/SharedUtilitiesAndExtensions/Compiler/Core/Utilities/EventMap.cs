@@ -101,7 +101,7 @@ internal class EventMap
         public void Unregister()
             => _handler = null;
 
-        public void Invoke<TArg>(Action<TEventHandler, TArg> invoker, TArg arg)
+        public void Invoke<TArg>(TArg arg, Action<TEventHandler, TArg> invoker)
         {
             var handler = _handler;
             if (handler != null)
@@ -153,7 +153,7 @@ internal class EventMap
             get { return _registries != null && _registries.Length > 0; }
         }
 
-        public readonly void RaiseEvent<TArg>(Action<TEventHandler, TArg> invoker, TArg arg)
+        public readonly void RaiseEvent<TArg>(TArg arg, Action<TEventHandler, TArg> invoker)
         {
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/.
             // We've realized there's a problem with our eventing, where if an exception is encountered while calling into subscribers to Workspace events,

@@ -1238,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private delegate BoundExpression ParamsArrayElementRewriter<TArg>(BoundExpression element, ref TArg arg);
-        private static BoundExpression RewriteParamsArray<TArg>(BoundExpression paramsArray, ParamsArrayElementRewriter<TArg> elementRewriter, ref TArg arg)
+        private static BoundExpression RewriteParamsArray<TArg>(BoundExpression paramsArray, ref TArg arg, ParamsArrayElementRewriter<TArg> elementRewriter)
         {
             Debug.Assert(paramsArray.IsParamsArrayOrCollection);
 

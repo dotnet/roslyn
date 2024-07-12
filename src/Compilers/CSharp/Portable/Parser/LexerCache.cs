@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int keyStart,
             int keyLength,
             int hashCode,
-            Func<TArg, SyntaxTrivia> createTriviaFunction,
-            TArg data)
+            TArg data,
+            Func<TArg, SyntaxTrivia> createTriviaFunction)
         {
             var value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int keyStart,
             int keyLength,
             int hashCode,
-            Func<TArg, SyntaxToken> createTokenFunction,
-            TArg data)
+            TArg data,
+            Func<TArg, SyntaxToken> createTokenFunction)
         {
             var value = _tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 

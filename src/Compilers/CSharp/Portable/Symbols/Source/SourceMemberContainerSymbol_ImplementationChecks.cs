@@ -1235,9 +1235,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol baseMethod,
             MethodSymbol overrideMethod,
             BindingDiagnosticBag diagnostics,
+            TArg extraArgument,
             ReportMismatchInReturnType<TArg> reportMismatchInReturnType,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
-            TArg extraArgument,
             bool invokedAsExtensionMethod = false)
         {
             if (!PerformValidNullableOverrideCheck(compilation, baseMethod, overrideMethod))
@@ -1433,8 +1433,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol? baseMethod,
             MethodSymbol? overrideMethod,
             BindingDiagnosticBag diagnostics,
-            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument,
+            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             bool allowVariance,
             bool invokedAsExtensionMethod)
         {
@@ -1532,8 +1532,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EventSymbol overriddenEvent,
             EventSymbol overridingEvent,
             BindingDiagnosticBag diagnostics,
-            Action<BindingDiagnosticBag, EventSymbol, EventSymbol, TArg> reportMismatch,
-            TArg extraArgument)
+            TArg extraArgument,
+            Action<BindingDiagnosticBag, EventSymbol, EventSymbol, TArg> reportMismatch)
         {
             if (!PerformValidNullableOverrideCheck(compilation, overriddenEvent, overridingEvent))
             {

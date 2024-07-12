@@ -99,10 +99,10 @@ internal sealed class TotalClassificationAggregateTagger(
     public static async Task AddTagsAsync<TArg>(
         NormalizedSnapshotSpanCollection spans,
         SegmentedList<TagSpan<IClassificationTag>> totalTags,
+        TArg arg,
         Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, TArg, Task> addSyntacticSpansAsync,
         Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, TArg, Task> addSemanticSpansAsync,
-        Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, TArg, Task> addEmbeddedSpansAsync,
-        TArg arg)
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, TArg, Task> addEmbeddedSpansAsync)
     {
         // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
         // allows us to understand better what things like identifiers mean), they do take precedence for certain

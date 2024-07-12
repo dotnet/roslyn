@@ -40,8 +40,8 @@ internal partial class SolutionAssetStorage
         public async Task FindAssetsAsync<TArg>(
             AssetPath assetPath,
             ReadOnlyMemory<Checksum> checksums,
-            Action<Checksum, object, TArg> onAssetFound,
             TArg arg,
+            Action<Checksum, object, TArg> onAssetFound,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -66,7 +66,7 @@ internal partial class SolutionAssetStorage
         }
 
         private async Task FindAssetsAsync<TArg>(
-            AssetPath assetPath, HashSet<Checksum> remainingChecksumsToFind, Action<Checksum, object, TArg> onAssetFound, TArg arg, CancellationToken cancellationToken)
+            AssetPath assetPath, HashSet<Checksum> remainingChecksumsToFind, TArg arg, Action<Checksum, object, TArg> onAssetFound, CancellationToken cancellationToken)
         {
             var solutionState = this.CompilationState;
 

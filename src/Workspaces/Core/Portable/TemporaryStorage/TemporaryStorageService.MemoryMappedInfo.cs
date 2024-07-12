@@ -116,7 +116,7 @@ internal partial class TemporaryStorageService
         /// <param name="function">The function to execute.</param>
         /// <param name="argument">The argument to pass to the function.</param>
         /// <returns>The value returned by <paramref name="function"/>.</returns>
-        private static T RunWithCompactingGCFallback<TArg, T>(Func<TArg, T> function, TArg argument)
+        private static T RunWithCompactingGCFallback<TArg, T>(TArg argument, Func<TArg, T> function)
         {
             try
             {

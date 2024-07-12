@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void ExecuteAndCatchIfThrows<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? contextInfo, CancellationToken cancellationToken)
+        internal void ExecuteAndCatchIfThrows<TArg>(DiagnosticAnalyzer analyzer, TArg argument, Action<TArg> analyze, AnalysisContextInfo? contextInfo, CancellationToken cancellationToken)
         {
             SharedStopwatch timer = default;
             if (_analyzerExecutionTimeMap != null)
@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             AllowCaptures = false)]
-        private void ExecuteAndCatchIfThrows_NoLock<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? info, CancellationToken cancellationToken)
+        private void ExecuteAndCatchIfThrows_NoLock<TArg>(DiagnosticAnalyzer analyzer, TArg argument, Action<TArg> analyze, AnalysisContextInfo? info, CancellationToken cancellationToken)
         {
             try
             {

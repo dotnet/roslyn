@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
-        public bool TryGetValue<TArg>(K key, Func<V, TArg, bool> predicate, TArg arg, [MaybeNullWhen(false)] out V value)
+        public bool TryGetValue<TArg>(K key, TArg arg, Func<V, TArg, bool> predicate, [MaybeNullWhen(false)] out V value)
         {
             if (_dictionary is not null && _dictionary.TryGetValue(key, out var valueSet))
             {

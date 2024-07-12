@@ -132,7 +132,7 @@ internal sealed class TextDocumentStates<TState>
             selector: static (state, selector) => selector(state),
             arg: selector);
 
-    public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
+    public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(TArg arg, Func<TState, TArg, TValue> selector)
     {
         var result = new FixedSizeArrayBuilder<TValue>(_map.Count);
         foreach (var (_, state) in _map)
@@ -190,7 +190,7 @@ internal sealed class TextDocumentStates<TState>
         return new(_ids, builder.ToImmutable(), filePathToDocumentIds);
     }
 
-    public TextDocumentStates<TState> UpdateStates<TArg>(Func<TState, TArg, TState> transformation, TArg arg)
+    public TextDocumentStates<TState> UpdateStates<TArg>(TArg arg, Func<TState, TArg, TState> transformation)
     {
         var builder = _map.ToBuilder();
         var filePathsChanged = false;

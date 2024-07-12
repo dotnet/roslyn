@@ -36,7 +36,7 @@ internal sealed class XmlFragmentParser
     /// It is important that the <paramref name="callback"/> action advances the <see cref="XmlReader"/>,
     /// otherwise parsing will never complete.
     /// </remarks>
-    public static void ParseFragment<TArg>(string xmlFragment, Action<XmlReader, TArg> callback, TArg arg)
+    public static void ParseFragment<TArg>(string xmlFragment, TArg arg, Action<XmlReader, TArg> callback)
     {
         var instance = s_pool.Allocate();
         try
@@ -54,7 +54,7 @@ internal sealed class XmlFragmentParser
         DtdProcessing = DtdProcessing.Prohibit,
     };
 
-    private void ParseInternal<TArg>(string text, Action<XmlReader, TArg> callback, TArg arg)
+    private void ParseInternal<TArg>(string text, TArg arg, Action<XmlReader, TArg> callback)
     {
         _textReader.SetText(text);
 

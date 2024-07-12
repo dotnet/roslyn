@@ -43,7 +43,7 @@ namespace Roslyn.Utilities
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
         /// <param name="arg">An argument passed to the value factory.</param>
         /// <returns>The target value.</returns>
-        public static T Initialize<T, TArg>([NotNull] ref T? target, Func<TArg, T> valueFactory, TArg arg)
+        public static T Initialize<T, TArg>([NotNull] ref T? target, TArg arg, Func<TArg, T> valueFactory)
             where T : class
         {
             return Volatile.Read(ref target!) ?? GetOrStore(ref target, valueFactory(arg));
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
         /// calls to the same method may recalculate the target value.
         /// </remarks>
         /// <returns>The target value.</returns>
-        public static int Initialize<TArg>(ref int target, int uninitializedValue, Func<TArg, int> valueFactory, TArg arg)
+        public static int Initialize<TArg>(ref int target, int uninitializedValue, TArg arg, Func<TArg, int> valueFactory)
         {
             var existingValue = Volatile.Read(ref target);
             if (existingValue != uninitializedValue)
@@ -100,7 +100,7 @@ namespace Roslyn.Utilities
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
         /// <param name="arg">An argument passed to the value factory.</param>
         /// <returns>The target value.</returns>
-        public static T? Initialize<T, TArg>([NotNull] ref StrongBox<T?>? target, Func<TArg, T?> valueFactory, TArg arg)
+        public static T? Initialize<T, TArg>([NotNull] ref StrongBox<T?>? target, TArg arg, Func<TArg, T?> valueFactory)
         {
             var box = Volatile.Read(ref target!) ?? GetOrStore(ref target, new StrongBox<T?>(valueFactory(arg)));
             return box.Value;
@@ -180,7 +180,7 @@ namespace Roslyn.Utilities
         /// called if 'target' is already not 'default' at the time this is called.</param>
         /// <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
         /// already initialized, that value value will be returned.</returns>
-        public static ImmutableArray<T> Initialize<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
+        public static ImmutableArray<T> Initialize<T, TArg>(ref ImmutableArray<T> target, TArg arg, Func<TArg, ImmutableArray<T>> createArray)
         {
             if (!target.IsDefault)
             {
@@ -190,7 +190,7 @@ namespace Roslyn.Utilities
             return Initialize_Slow(ref target, createArray: createArray, arg: arg);
         }
 
-        private static ImmutableArray<T> Initialize_Slow<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
+        private static ImmutableArray<T> Initialize_Slow<T, TArg>(ref ImmutableArray<T> target, TArg arg, Func<TArg, ImmutableArray<T>> createArray)
         {
             ImmutableInterlocked.Update(
                 ref target,

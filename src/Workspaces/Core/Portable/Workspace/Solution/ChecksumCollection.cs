@@ -57,8 +57,8 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
         AssetPath assetPath,
         TextDocumentStates<TState> documentStates,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
         var hintDocument = assetPath.DocumentId;
@@ -90,8 +90,8 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
         IReadOnlyList<T> values,
         ChecksumCollection checksums,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken) where T : class
     {
         Contract.ThrowIfFalse(values.Count == checksums.Children.Length);

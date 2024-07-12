@@ -83,7 +83,7 @@ internal static partial class Logger
     /// log a specific event with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static void Log<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, LogLevel logLevel = LogLevel.Debug)
+    public static void Log<TArg>(FunctionId functionId, TArg arg, Func<TArg, string> messageGetter, LogLevel logLevel = LogLevel.Debug)
     {
         if (TryGetActiveLogger(functionId, out var logger))
         {
@@ -180,7 +180,7 @@ internal static partial class Logger
     /// log a start and end pair with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static IDisposable LogBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public static IDisposable LogBlock<TArg>(FunctionId functionId, TArg arg, Func<TArg, string> messageGetter, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetActiveLogger(functionId, out _)
             ? CreateLogBlock(functionId, LogMessage.Create(messageGetter: messageGetter, arg: arg, logLevel: logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;

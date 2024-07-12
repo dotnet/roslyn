@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
 {
     internal static partial class EnumerableExtensions
     {
-        public static int Count<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        public static int Count<T, TArg>(this IEnumerable<T> source, TArg arg, Func<T, TArg, bool> predicate)
         {
             var count = 0;
             foreach (var v in source)
@@ -180,7 +180,7 @@ namespace Roslyn.Utilities
         public static IReadOnlyCollection<T> ToCollection<T>(this IEnumerable<T> sequence)
             => (sequence is IReadOnlyCollection<T> collection) ? collection : sequence.ToList();
 
-        public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, TArg arg, Func<T, TArg, bool> predicate)
         {
             foreach (var item in source)
             {
@@ -191,7 +191,7 @@ namespace Roslyn.Utilities
             return default;
         }
 
-        public static bool Any<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        public static bool Any<T, TArg>(this IEnumerable<T> source, TArg arg, Func<T, TArg, bool> predicate)
         {
             foreach (var item in source)
             {
@@ -229,7 +229,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault(predicate: static (v, predicate) => predicate(v!.Value), arg: predicate);
         }
 
-        public static T? FirstOrNull<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        public static T? FirstOrNull<T, TArg>(this IEnumerable<T> source, TArg arg, Func<T, TArg, bool> predicate)
             where T : struct
         {
             if (source == null)
@@ -404,7 +404,7 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, TArg arg, Func<TItem, TArg, IEnumerable<TResult>> selector)
         {
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
@@ -429,7 +429,7 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, TArg arg, Func<TItem, TArg, IEnumerable<TResult>> selector)
         {
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
@@ -475,7 +475,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
         /// </summary>
-        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, TArg arg, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<TResult>.GetInstance();
 
@@ -487,7 +487,7 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static async ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<IEnumerable<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, TArg arg, Func<TItem, TArg, CancellationToken, ValueTask<IEnumerable<TResult>>> selector, CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<TResult>.GetInstance();
 

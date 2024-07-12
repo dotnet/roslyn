@@ -44,7 +44,7 @@ internal struct SingleInitNullable<T>
     /// resilient to failure paths (including cancellation), ensuring that the type reset itself <em>safely</em> to the
     /// initial state so that other threads were not perpetually stuck in the busy state.
     /// </remarks>
-    public T Initialize<TArg>(Func<TArg, T> valueFactory, TArg arg)
+    public T Initialize<TArg>(TArg arg, Func<TArg, T> valueFactory)
         => ReadIfInitialized() ?? GetOrStore(valueFactory(arg));
 
     private T? ReadIfInitialized()

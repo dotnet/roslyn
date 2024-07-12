@@ -20,8 +20,8 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
         AssetPath assetPath,
         ReadOnlyMemory<Checksum> checksums,
         ISerializerService serializerService,
-        Action<Checksum, T, TArg> assetCallback,
         TArg arg,
+        Action<Checksum, T, TArg> assetCallback,
         CancellationToken cancellationToken)
     {
         // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)

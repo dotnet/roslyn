@@ -171,9 +171,9 @@ internal sealed partial class SolutionCompilationState
     /// <inheritdoc cref="SolutionState.ForkProject"/>
     private SolutionCompilationState ForkProject<TArg>(
         StateChange stateChange,
+        TArg arg,
         Func<StateChange, TArg, TranslationAction?> translate,
-        bool forkTracker,
-        TArg arg)
+        bool forkTracker)
     {
         // If the solution didn't actually change, there's no need to change us.
         if (stateChange.NewSolutionState == this.SolutionState)
@@ -229,8 +229,8 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
         ProjectId changedProjectId,
         ProjectDependencyGraph dependencyGraph,
-        Action<ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Builder, TArg> modifyNewTrackerInfo,
         TArg arg,
+        Action<ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Builder, TArg> modifyNewTrackerInfo,
         bool skipEmptyCallback)
     {
         return CreateCompilationTrackerMap(CanReuse, (changedProjectId, dependencyGraph), modifyNewTrackerInfo, arg, skipEmptyCallback);
@@ -257,8 +257,8 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
         ImmutableArray<ProjectId> changedProjectIds,
         ProjectDependencyGraph dependencyGraph,
-        Action<ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Builder, TArg> modifyNewTrackerInfo,
         TArg arg,
+        Action<ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Builder, TArg> modifyNewTrackerInfo,
         bool skipEmptyCallback)
     {
         return CreateCompilationTrackerMap(CanReuse, (changedProjectIds, dependencyGraph), modifyNewTrackerInfo, arg, skipEmptyCallback);

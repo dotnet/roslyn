@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                       diagnostics: diagnostics);
         }
 
-        private MethodSymbol EnsurePrivateImplClassMethodExists<TArg>(SyntaxNode syntaxNode, string methodName, Func<SynthesizedPrivateImplementationDetailsType, TArg, MethodSymbol> createMethodSymbol, TArg arg, DiagnosticBag diagnostics)
+        private MethodSymbol EnsurePrivateImplClassMethodExists<TArg>(SyntaxNode syntaxNode, string methodName, TArg arg, Func<SynthesizedPrivateImplementationDetailsType, TArg, MethodSymbol> createMethodSymbol, DiagnosticBag diagnostics)
         {
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
             var methodAdapter = privateImplClass.PrivateImplementationDetails.GetMethod(methodName);

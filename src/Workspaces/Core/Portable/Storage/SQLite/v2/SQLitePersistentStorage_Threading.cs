@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2;
 internal partial class SQLitePersistentStorage
 {
     private static async Task<TResult> PerformTaskAsync<TArg, TResult>(
-        Func<TArg, TResult> func, TArg arg,
+        TArg arg, Func<TArg, TResult> func,
         TaskScheduler scheduler, CancellationToken cancellationToken) where TArg : struct
     {
         // Get a pooled delegate that can be used to prevent having to alloc a new lambda that calls 'func' while
@@ -28,7 +28,7 @@ internal partial class SQLitePersistentStorage
 
     // Read tasks go to the concurrent-scheduler where they can run concurrently with other read
     // tasks.
-    private Task<TResult> PerformReadAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
+    private Task<TResult> PerformReadAsync<TArg, TResult>(TArg arg, Func<TArg, TResult> func, CancellationToken cancellationToken) where TArg : struct
     {
         // Suppress ExecutionContext flow for asynchronous operations that write to the database. In addition to
         // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
@@ -43,7 +43,7 @@ internal partial class SQLitePersistentStorage
 
     // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
     // tasks we need to do.
-    public Task<TResult> PerformWriteAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
+    public Task<TResult> PerformWriteAsync<TArg, TResult>(TArg arg, Func<TArg, TResult> func, CancellationToken cancellationToken) where TArg : struct
     {
         // Suppress ExecutionContext flow for asynchronous operations that write to the database. In addition to
         // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone

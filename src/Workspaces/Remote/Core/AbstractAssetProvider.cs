@@ -24,7 +24,7 @@ internal abstract class AbstractAssetProvider
     /// return data of type T whose checksum is the given checksum
     /// </summary>
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
-    public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken);
+    public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, TArg? arg, Action<Checksum, T, TArg>? callback, CancellationToken cancellationToken);
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
@@ -180,7 +180,7 @@ internal static class AbstractAssetProviderExtensions
     }
 
     public static async Task GetAssetsAsync<T, TArg>(
-        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, TArg? arg, Action<Checksum, T, TArg>? callback, CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
 #if NET

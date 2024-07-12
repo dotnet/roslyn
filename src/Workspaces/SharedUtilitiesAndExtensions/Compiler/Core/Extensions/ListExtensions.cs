@@ -21,7 +21,7 @@ internal static class ListExtensions
     /// <param name="transform">A function which transforms each element. The function returns the transformed list
     /// element, or <see langword="null"/> to remove the current item from the list.</param>
     /// <param name="arg">The state argument to pass to the transformation callback.</param>
-    public static void RemoveOrTransformAll<T, TArg>(this List<T> list, Func<T, TArg, T?> transform, TArg arg)
+    public static void RemoveOrTransformAll<T, TArg>(this List<T> list, TArg arg, Func<T, TArg, T?> transform)
         where T : class
     {
         RoslynDebug.AssertNotNull(list);
@@ -40,7 +40,7 @@ internal static class ListExtensions
         list.RemoveRange(targetIndex, list.Count - targetIndex);
     }
 
-    public static void RemoveOrTransformAll<T, TArg>(this List<T> list, Func<T, TArg, T?> transform, TArg arg)
+    public static void RemoveOrTransformAll<T, TArg>(this List<T> list, TArg arg, Func<T, TArg, T?> transform)
         where T : struct
     {
         RoslynDebug.AssertNotNull(list);
@@ -59,7 +59,7 @@ internal static class ListExtensions
         list.RemoveRange(targetIndex, list.Count - targetIndex);
     }
 
-    public static void RemoveOrTransformAll<T, TArg>(this ArrayBuilder<T> list, Func<T, TArg, T?> transform, TArg arg)
+    public static void RemoveOrTransformAll<T, TArg>(this ArrayBuilder<T> list, TArg arg, Func<T, TArg, T?> transform)
         where T : struct
     {
         RoslynDebug.AssertNotNull(list);
@@ -84,7 +84,7 @@ internal static class ListExtensions
     /// <returns>
     /// True if any item has been removed.
     /// </returns>
-    public static bool TryRemoveFirst<T, TArg>(this IList<T> list, Func<T, TArg, bool> selector, TArg arg, [NotNullWhen(true)] out T? removedItem)
+    public static bool TryRemoveFirst<T, TArg>(this IList<T> list, TArg arg, Func<T, TArg, bool> selector, [NotNullWhen(true)] out T? removedItem)
         where T : notnull
     {
         for (var i = 0; i < list.Count; i++)
@@ -115,7 +115,7 @@ internal static class ListExtensions
         return -1;
     }
 
-    public static int IndexOf<T, TArg>(this IList<T> list, Func<T, TArg, bool> predicate, TArg arg)
+    public static int IndexOf<T, TArg>(this IList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
         for (var i = 0; i < list.Count; i++)
         {

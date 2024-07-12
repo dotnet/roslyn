@@ -126,7 +126,7 @@ namespace Roslyn.Utilities
                 OneOrMany.Create(_many.SelectAsArray(selector));
         }
 
-        public OneOrMany<TResult> Select<TResult, TArg>(Func<T, TArg, TResult> selector, TArg arg)
+        public OneOrMany<TResult> Select<TResult, TArg>(TArg arg, Func<T, TArg, TResult> selector)
         {
             return HasOneItem ?
                 OneOrMany.Create(selector(_one, arg)) :
@@ -148,7 +148,7 @@ namespace Roslyn.Utilities
             return _many.FirstOrDefault(predicate);
         }
 
-        public T? FirstOrDefault<TArg>(Func<T, TArg, bool> predicate, TArg arg)
+        public T? FirstOrDefault<TArg>(TArg arg, Func<T, TArg, bool> predicate)
         {
             if (HasOneItem)
             {
@@ -168,7 +168,7 @@ namespace Roslyn.Utilities
         public bool All(Func<T, bool> predicate)
             => HasOneItem ? predicate(_one) : _many.All(predicate);
 
-        public bool All<TArg>(Func<T, TArg, bool> predicate, TArg arg)
+        public bool All<TArg>(TArg arg, Func<T, TArg, bool> predicate)
             => HasOneItem ? predicate(_one, arg) : _many.All(predicate: predicate, arg: arg);
 
         public bool Any()
@@ -177,7 +177,7 @@ namespace Roslyn.Utilities
         public bool Any(Func<T, bool> predicate)
             => HasOneItem ? predicate(_one) : _many.Any(predicate);
 
-        public bool Any<TArg>(Func<T, TArg, bool> predicate, TArg arg)
+        public bool Any<TArg>(TArg arg, Func<T, TArg, bool> predicate)
             => HasOneItem ? predicate(_one, arg) : _many.Any(predicate: predicate, arg: arg);
 
         public ImmutableArray<T> ToImmutable()

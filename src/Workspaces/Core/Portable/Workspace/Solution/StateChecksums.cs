@@ -117,8 +117,8 @@ internal sealed class SolutionCompilationStateChecksums
         ProjectCone? projectCone,
         AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -279,8 +279,8 @@ internal sealed class SolutionStateChecksums(
         ProjectCone? projectCone,
         AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -449,8 +449,8 @@ internal sealed class ProjectStateChecksums(
         ProjectState state,
         AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -535,8 +535,8 @@ internal sealed class DocumentStateChecksums(
         AssetPath assetPath,
         TextDocumentState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken)
     {
         Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
@@ -562,7 +562,7 @@ internal sealed class DocumentStateChecksums(
 /// </summary>
 internal static class ChecksumCache
 {
-    public static Checksum GetOrCreate<TValue, TArg>(TValue value, Func<TValue, TArg, Checksum> checksumCreator, TArg arg)
+    public static Checksum GetOrCreate<TValue, TArg>(TValue value, TArg arg, Func<TValue, TArg, Checksum> checksumCreator)
         where TValue : class
     {
         return StronglyTypedChecksumCache<TValue, Checksum>.GetOrCreate(value, checksumCreator: checksumCreator, arg: arg);
@@ -590,7 +590,7 @@ internal static class ChecksumCache
     {
         private static readonly ConditionalWeakTable<TValue, StrongBox<TResult>> s_objectToChecksumCollectionCache = new();
 
-        public static TResult GetOrCreate<TArg>(TValue value, Func<TValue, TArg, TResult> checksumCreator, TArg arg)
+        public static TResult GetOrCreate<TArg>(TValue value, TArg arg, Func<TValue, TArg, TResult> checksumCreator)
         {
             if (s_objectToChecksumCollectionCache.TryGetValue(value, out var checksumCollection))
                 return checksumCollection.Value;

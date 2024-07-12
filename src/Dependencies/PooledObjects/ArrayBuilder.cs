@@ -229,13 +229,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return -1;
         }
 
-        public int FindIndex<TArg>(Func<T, TArg, bool> match, TArg arg)
+        public int FindIndex<TArg>(TArg arg, Func<T, TArg, bool> match)
             => FindIndex(0, Count, match: match, arg: arg);
 
-        public int FindIndex<TArg>(int startIndex, Func<T, TArg, bool> match, TArg arg)
+        public int FindIndex<TArg>(int startIndex, TArg arg, Func<T, TArg, bool> match)
             => FindIndex(startIndex, Count - startIndex, match: match, arg: arg);
 
-        public int FindIndex<TArg>(int startIndex, int count, Func<T, TArg, bool> match, TArg arg)
+        public int FindIndex<TArg>(int startIndex, int count, TArg arg, Func<T, TArg, bool> match)
         {
             var endIndex = startIndex + count;
             for (var i = startIndex; i < endIndex; i++)
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.RemoveAll(match);
         }
 
-        public void RemoveAll<TArg>(Func<T, TArg, bool> match, TArg arg)
+        public void RemoveAll<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
             var i = 0;
             for (var j = 0; j < _builder.Count; j++)

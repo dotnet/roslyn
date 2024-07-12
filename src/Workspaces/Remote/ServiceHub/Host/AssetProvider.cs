@@ -51,7 +51,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public override async Task GetAssetsAsync<T, TArg>(
-        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken) where TArg : default
+        AssetPath assetPath, HashSet<Checksum> checksums, TArg? arg, Action<Checksum, T, TArg>? callback, CancellationToken cancellationToken) where TArg : default
     {
         await this.SynchronizeAssetsAsync(assetPath, checksums, callback: callback, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
@@ -233,7 +233,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     private async ValueTask SynchronizeAssetsAsync<T, TArg>(
-        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+        AssetPath assetPath, HashSet<Checksum> checksums, TArg? arg, Action<Checksum, T, TArg>? callback, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
