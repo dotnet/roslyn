@@ -163,13 +163,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // We're reading.  All current scenarios have this happening under the concurrent/read-only scheduler.
                 // If this assert fires either a bug has been introduced, or there is a valid scenario for a writing
                 // codepath to read a column and this assert should be adjusted.
-                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ConcurrentScheduler);
+                Contract.ThrowIfFalse(TaskScheduler.Current == this.Storage.Scheduler.ConcurrentScheduler);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+                    using var _ = this.Storage.GetPooledConnection(out var connection);
 
                     // We're in the reading-only scheduler path, so we can't allow TryGetDatabaseId to write.  Note that
                     // this is ok, and actually provides the semantics we want.  Specifically, we can be trying to read
@@ -222,13 +222,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private bool WriteStream(TKey key, string dataName, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
                 // We're writing.  This better always be under the exclusive scheduler.
-                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
+                Contract.ThrowIfFalse(TaskScheduler.Current == this.Storage.Scheduler.ExclusiveScheduler);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+                    using var _ = this.Storage.GetPooledConnection(out var connection);
 
                     // Determine the appropriate data-id to store this stream at.  We already are running
                     // with an exclusive write lock on the DB, so it's safe for us to write the data id to 
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 ReadOnlySpan<byte> dataBytes)
             {
                 // We're writing.  This better always be under the exclusive scheduler.
-                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
+                Contract.ThrowIfFalse(TaskScheduler.Current == this.Storage.Scheduler.ExclusiveScheduler);
 
                 using (var resettableStatement = connection.GetResettableStatement(
                     _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data))

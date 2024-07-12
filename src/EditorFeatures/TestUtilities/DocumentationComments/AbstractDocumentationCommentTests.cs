@@ -6,11 +6,8 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -132,47 +129,45 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             bool trimTrailingWhiteSpace,
             OptionsCollection globalOptions)
         {
-            using (var workspace = CreateTestWorkspace(initialMarkup))
+            using var workspace = CreateTestWorkspace(initialMarkup);
+            var testDocument = workspace.Documents.Single();
+
+            Assert.True(testDocument.CursorPosition.HasValue, "No caret position set!");
+            var startCaretPosition = testDocument.CursorPosition.Value;
+
+            var view = testDocument.GetTextView();
+
+            globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
+
+            var optionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
+            var editorOptions = optionsFactory.GetOptions(view.TextBuffer);
+            editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+            editorOptions.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, newLine);
+            view.Options.SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionId, trimTrailingWhiteSpace);
+
+            if (testDocument.SelectedSpans.Any())
             {
-                var testDocument = workspace.Documents.Single();
+                var selectedSpan = testDocument.SelectedSpans[0];
+                var isReversed = selectedSpan.Start == startCaretPosition;
 
-                Assert.True(testDocument.CursorPosition.HasValue, "No caret position set!");
-                var startCaretPosition = testDocument.CursorPosition.Value;
-
-                var view = testDocument.GetTextView();
-
-                globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
-
-                var optionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
-                var editorOptions = optionsFactory.GetOptions(view.TextBuffer);
-                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
-                editorOptions.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, newLine);
-                view.Options.SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionId, trimTrailingWhiteSpace);
-
-                if (testDocument.SelectedSpans.Any())
-                {
-                    var selectedSpan = testDocument.SelectedSpans[0];
-                    var isReversed = selectedSpan.Start == startCaretPosition;
-
-                    view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
-                }
-
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
-
-                execute(
-                    workspace,
-                    view,
-                    workspace.GetService<IEditorOperationsFactoryService>());
-                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int _);
-
-                var actual = view.TextSnapshot.GetText();
-                Assert.Equal(expectedCode, actual);
-
-                var endCaretPosition = view.Caret.Position.BufferPosition.Position;
-                var actualWithCaret = actual.Insert(endCaretPosition, "$$");
-
-                Assert.Equal(expectedMarkup, actualWithCaret);
+                view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
             }
+
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+
+            execute(
+                workspace,
+                view,
+                workspace.GetService<IEditorOperationsFactoryService>());
+            MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int _);
+
+            var actual = view.TextSnapshot.GetText();
+            Assert.Equal(expectedCode, actual);
+
+            var endCaretPosition = view.Caret.Position.BufferPosition.Position;
+            var actualWithCaret = actual.Insert(endCaretPosition, "$$");
+
+            Assert.Equal(expectedMarkup, actualWithCaret);
         }
     }
 }

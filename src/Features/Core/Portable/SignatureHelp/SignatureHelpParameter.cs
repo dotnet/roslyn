@@ -65,8 +65,7 @@ internal class SignatureHelpSymbolParameter(
     /// </summary>
     public IList<SymbolDisplayPart> SelectedDisplayParts { get; } = selectedDisplayParts.ToImmutableArrayOrEmpty();
 
-    private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
-        _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
+    private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory = _ => [];
 
     internal IEnumerable<SymbolDisplayPart> GetAllParts()
     {
@@ -134,8 +133,7 @@ internal class SignatureHelpParameter(
     /// </summary>
     public IList<TaggedText> SelectedDisplayParts { get; } = selectedDisplayParts.ToImmutableArrayOrEmpty();
 
-    private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
-        _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
+    private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory = _ => [];
 
     // Constructor kept for binary compat with TS.  Remove when they move to the new API.
     public SignatureHelpParameter(

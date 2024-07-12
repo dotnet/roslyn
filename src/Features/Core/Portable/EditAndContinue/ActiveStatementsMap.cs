@@ -25,8 +25,8 @@ internal sealed class ActiveStatementsMap
     public static readonly Comparer<ActiveStatement> Comparer =
         Comparer<ActiveStatement>.Create((x, y) => x.FileSpan.Start.CompareTo(y.FileSpan.Start));
 
-    private static readonly Comparer<(ManagedActiveStatementDebugInfo, SourceFileSpan, int)> s_infoSpanComparer =
-        Comparer<(ManagedActiveStatementDebugInfo, SourceFileSpan span, int)>.Create((x, y) => x.span.Start.CompareTo(y.span.Start));
+    private static readonly Comparer<(ManagedActiveStatementDebugInfo, SourceFileSpan, ActiveStatementId)> s_infoSpanComparer =
+        Comparer<(ManagedActiveStatementDebugInfo, SourceFileSpan span, ActiveStatementId)>.Create((x, y) => x.span.Start.CompareTo(y.span.Start));
 
     /// <summary>
     /// Groups active statements by document path as listed in the PDB.
@@ -60,7 +60,7 @@ internal sealed class ActiveStatementsMap
         ImmutableArray<ManagedActiveStatementDebugInfo> debugInfos,
         ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> remapping)
     {
-        using var _1 = PooledDictionary<string, ArrayBuilder<(ManagedActiveStatementDebugInfo info, SourceFileSpan span, int ordinal)>>.GetInstance(out var updatedSpansByDocumentPath);
+        using var _1 = PooledDictionary<string, ArrayBuilder<(ManagedActiveStatementDebugInfo info, SourceFileSpan span, ActiveStatementId id)>>.GetInstance(out var updatedSpansByDocumentPath);
 
         var ordinal = 0;
         foreach (var debugInfo in debugInfos)
@@ -79,10 +79,10 @@ internal sealed class ActiveStatementsMap
 
             if (!updatedSpansByDocumentPath.TryGetValue(documentName, out var documentInfos))
             {
-                updatedSpansByDocumentPath.Add(documentName, documentInfos = ArrayBuilder<(ManagedActiveStatementDebugInfo, SourceFileSpan, int)>.GetInstance());
+                updatedSpansByDocumentPath.Add(documentName, documentInfos = ArrayBuilder<(ManagedActiveStatementDebugInfo, SourceFileSpan, ActiveStatementId)>.GetInstance());
             }
 
-            documentInfos.Add((debugInfo, new SourceFileSpan(documentName, baseSpan), ordinal++));
+            documentInfos.Add((debugInfo, new SourceFileSpan(documentName, baseSpan), new ActiveStatementId(ordinal++)));
         }
 
         foreach (var (_, infos) in updatedSpansByDocumentPath)
@@ -93,7 +93,7 @@ internal sealed class ActiveStatementsMap
         var byDocumentPath = updatedSpansByDocumentPath.ToImmutableDictionary(
             keySelector: entry => entry.Key,
             elementSelector: entry => entry.Value.SelectAsArray(item => new ActiveStatement(
-                ordinal: item.ordinal,
+                id: item.id,
                 flags: item.info.Flags,
                 span: item.span,
                 instructionId: item.info.ActiveInstruction)));
@@ -236,7 +236,7 @@ internal sealed class ActiveStatementsMap
 
         if (!hasAnyLineDirectives)
         {
-            Debug.Assert(builder.IsEmpty());
+            Debug.Assert(builder.IsEmpty);
 
             if (DocumentPathMap.TryGetValue(oldTree.FilePath, out var activeStatements))
             {
@@ -249,7 +249,7 @@ internal sealed class ActiveStatementsMap
 
         Debug.Assert(builder.IsSorted(Comparer<UnmappedActiveStatement>.Create((x, y) => x.UnmappedSpan.Start.CompareTo(y.UnmappedSpan.End))));
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static LinePositionSpan ReverseMapLinePositionSpan(LinePositionSpan unmappedSection, LinePositionSpan mappedSection, LinePositionSpan mappedSpan)

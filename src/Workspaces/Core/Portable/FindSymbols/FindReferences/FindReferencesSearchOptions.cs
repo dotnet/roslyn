@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -53,13 +52,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// option is the more relevant with knowing if a particular reference would actually result in a call to the
 /// original member, not if it has a relation to the original member.
 /// </param>
+/// <param name="DisplayAllDefinitions">
+/// Displays all definitions regardless of whether they have a reference or not.
+/// </param>
 /// </summary>
+
 [DataContract]
 internal readonly record struct FindReferencesSearchOptions(
     [property: DataMember(Order = 0)] bool AssociatePropertyReferencesWithSpecificAccessor = false,
     [property: DataMember(Order = 1)] bool Cascade = true,
     [property: DataMember(Order = 2)] bool Explicit = true,
-    [property: DataMember(Order = 3)] bool UnidirectionalHierarchyCascade = false)
+    [property: DataMember(Order = 3)] bool UnidirectionalHierarchyCascade = false,
+    [property: DataMember(Order = 4)] bool DisplayAllDefinitions = false)
 {
     public FindReferencesSearchOptions()
         : this(AssociatePropertyReferencesWithSpecificAccessor: false)

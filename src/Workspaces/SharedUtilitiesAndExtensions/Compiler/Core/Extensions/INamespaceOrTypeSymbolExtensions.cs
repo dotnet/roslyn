@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,7 +25,7 @@ internal static partial class INamespaceOrTypeSymbolExtensions
     public static IEnumerable<IPropertySymbol> GetIndexers(this INamespaceOrTypeSymbol? symbol)
     {
         return symbol == null
-            ? SpecializedCollections.EmptyEnumerable<IPropertySymbol>()
+            ? []
             : symbol.GetMembers(WellKnownMemberNames.Indexer).OfType<IPropertySymbol>().Where(p => p.IsIndexer);
     }
 
@@ -89,21 +90,20 @@ internal static partial class INamespaceOrTypeSymbolExtensions
         this INamespaceOrTypeSymbol namespaceOrTypeSymbol,
         CancellationToken cancellationToken)
     {
-        var stack = new Stack<INamespaceOrTypeSymbol>();
+        using var _ = ArrayBuilder<INamespaceOrTypeSymbol>.GetInstance(out var stack);
         stack.Push(namespaceOrTypeSymbol);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
             if (current is INamespaceSymbol currentNs)
             {
-                stack.Push(currentNs.GetMembers());
+                stack.AddRange(currentNs.GetMembers());
             }
             else
             {
                 var namedType = (INamedTypeSymbol)current;
-                stack.Push(namedType.GetTypeMembers());
+                stack.AddRange(namedType.GetTypeMembers());
                 yield return namedType;
             }
         }

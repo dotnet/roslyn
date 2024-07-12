@@ -1,1 +1,5 @@
-
+Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool
+Microsoft.CodeAnalysis.ITypeParameterSymbol.AllowsRefLikeType.get -> bool
+Microsoft.CodeAnalysis.RuntimeCapability.ByRefLikeGenerics = 8 -> Microsoft.CodeAnalysis.RuntimeCapability

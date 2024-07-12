@@ -57,9 +57,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         {
             var result = (PickMembersResult)options;
             if (result.IsCanceled)
-            {
-                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-            }
+                return [];
 
             var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
             if (addNullChecksOption != null)
@@ -79,9 +77,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
                 result.Members, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             if (state == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-            }
+                return [];
 
             // There was an existing constructor that matched what the user wants to create.
             // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate

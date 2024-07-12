@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -557,7 +558,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         return nextOperation.Invoke(in previousToken, in currentToken);
     }
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         nextOperation.Invoke();
 
@@ -570,7 +571,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         && forStatement.Condition == null
         && forStatement.Incrementors.Count == 0;
 
-    private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node)
+    private void SuppressVariableDeclaration(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node.Kind()
                 is SyntaxKind.FieldDeclaration

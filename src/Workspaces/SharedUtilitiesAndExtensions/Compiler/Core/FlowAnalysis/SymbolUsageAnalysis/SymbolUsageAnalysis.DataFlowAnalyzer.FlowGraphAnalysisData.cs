@@ -196,7 +196,7 @@ internal static partial class SymbolUsageAnalysis
                     }
                 }
 
-                return builder.ToImmutableHashSet();
+                return [.. builder];
             }
 
             public BasicBlockAnalysisData GetBlockAnalysisData(BasicBlock basicBlock)
@@ -600,7 +600,7 @@ internal static partial class SymbolUsageAnalysis
                 // Attempts to return potential lamba/local function delegate invocation targets for the given write.
                 if (_reachingDelegateCreationTargets.TryGetValue(write, out var targetsBuilder))
                 {
-                    targets = targetsBuilder.ToImmutableHashSet();
+                    targets = [.. targetsBuilder];
                     return true;
                 }
 

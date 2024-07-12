@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -21,7 +21,7 @@ internal static class ResolveDataConversions
     public static (object? data, Uri? uri) FromResolveData(object? requestData)
     {
         Contract.ThrowIfNull(requestData);
-        var resolveData = ((JToken)requestData).ToObject<DataResolveData>();
+        var resolveData = JsonSerializer.Deserialize<DataResolveData>((JsonElement)requestData);
         return (resolveData?.Data, resolveData?.Document.Uri);
     }
 
@@ -35,9 +35,9 @@ internal static class ResolveDataConversions
     internal static (object? data, Uri? uri) FromCachedResolveData(object? lspData, ResolveDataCache resolveDataCache)
     {
         DataIdResolveData? resolveData;
-        if (lspData is JToken token)
+        if (lspData is JsonElement token)
         {
-            resolveData = token.ToObject<DataIdResolveData>();
+            resolveData = JsonSerializer.Deserialize<DataIdResolveData>(token);
             Assumes.Present(resolveData);
         }
         else

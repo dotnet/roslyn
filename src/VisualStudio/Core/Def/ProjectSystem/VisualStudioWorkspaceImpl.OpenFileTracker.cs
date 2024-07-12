@@ -10,14 +10,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -35,8 +33,6 @@ internal partial class VisualStudioWorkspaceImpl
     /// </summary>
     public sealed class OpenFileTracker : IOpenTextBufferEventListener
     {
-        private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
-
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
@@ -62,9 +58,9 @@ internal partial class VisualStudioWorkspaceImpl
 
         private OpenFileTracker(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IComponentModel componentModel)
         {
+            workspace._threadingContext.ThrowIfNotOnUIThread();
             _workspace = workspace;
             _projectSystemProjectFactory = projectSystemProjectFactory;
-            _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
             _editorOptionsFactoryService = componentModel.GetService<IEditorOptionsFactoryService>();
             _asynchronousOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
             _openTextBufferProvider = componentModel.GetService<OpenTextBufferProvider>();
@@ -98,7 +94,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         private void TryOpeningDocumentsForMonikerAndSetContextOnUIThread(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
             {
@@ -111,7 +107,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         private void EnsureSuggestedActionsSourceProviderEnabled()
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             if (!_anyDocumentOpened)
             {
@@ -133,7 +129,7 @@ internal partial class VisualStudioWorkspaceImpl
         {
             // If this method is given a hierarchy, we will need to be on the UI thread to use it; in any other case, we can be free-threaded.
             if (hierarchy != null)
-                _foregroundAffinitization.AssertIsForeground();
+                _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             var documentIds = _projectSystemProjectFactory.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
             if (documentIds.IsDefaultOrEmpty)
@@ -189,7 +185,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         private ProjectId GetActiveContextProjectIdAndWatchHierarchies_NoLock(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
             // We could be fancy and diff, but the cost is probably negligible.
@@ -260,7 +256,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         private void UnsubscribeFromWatchedHierarchies(string moniker)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             foreach (var watchedHierarchy in _watchedHierarchiesForDocumentMoniker[moniker])
             {
@@ -272,7 +268,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         private void RefreshContextForMoniker(string moniker, IVsHierarchy hierarchy)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
             {
@@ -294,7 +290,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         private void RefreshContextsForHierarchyPropertyChange(IVsHierarchy hierarchy)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             // We're going to go through each file that has subscriptions, and update them appropriately.
             // We have to clone this since we will be modifying it under the covers.
@@ -312,7 +308,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         private void TryClosingDocumentsForMoniker(string moniker)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             UnsubscribeFromWatchedHierarchies(moniker);
 
@@ -350,7 +346,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
         {
-            ForegroundThreadAffinitizedObject.ThisCanBeCalledOnAnyThread();
+            // ThisCanBeCalledOnAnyThread();
 
             return _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w =>
             {
@@ -397,7 +393,7 @@ internal partial class VisualStudioWorkspaceImpl
         {
             // It's possible that Roslyn is loading asynchronously after documents were already opened by the user; this is a one-time check for
             // any of those -- after this point, we are subscribed to events so we'll know of anything else.
-            _foregroundAffinitization.AssertIsForeground();
+            _workspace._threadingContext.ThrowIfNotOnUIThread();
 
             foreach (var (filePath, textBuffer, hierarchy) in _openTextBufferProvider.EnumerateDocumentSet())
             {

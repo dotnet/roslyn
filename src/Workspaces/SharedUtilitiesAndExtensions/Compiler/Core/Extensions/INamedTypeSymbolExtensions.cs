@@ -388,12 +388,12 @@ internal static partial class INamedTypeSymbolExtensions
         // implement.  By definition they must contain all the necessary methods.
         var baseType = classOrStructType.BaseType;
         var alreadyImplementedInterfaces = baseType == null || allowReimplementation
-            ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
+            ? []
             : baseType.AllInterfaces;
 
         cancellationToken.ThrowIfCancellationRequested();
         interfacesToImplement.RemoveRange(alreadyImplementedInterfaces);
-        return interfacesToImplement.ToImmutableArray();
+        return [.. interfacesToImplement];
     }
 
     private static ImmutableArray<ISymbol> GetUnimplementedMembers(
@@ -560,7 +560,7 @@ internal static partial class INamedTypeSymbolExtensions
             RemoveNonOverriddableMembers(result, containingType, cancellationToken);
         }
 
-        return result.Keys.OrderBy(s => result[s]).ToImmutableArray();
+        return [.. result.Keys.OrderBy(s => result[s])];
 
         static void RemoveOverriddenMembers(
             Dictionary<ISymbol, int> result, INamedTypeSymbol containingType, CancellationToken cancellationToken)

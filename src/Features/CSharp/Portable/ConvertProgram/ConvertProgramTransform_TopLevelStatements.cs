@@ -227,11 +227,11 @@ internal static partial class ConvertProgramTransform
             }
         }
 
-        using var _1 = ArrayBuilder<GlobalStatementSyntax>.GetInstance(out var globalStatements);
+        var globalStatements = new FixedSizeArrayBuilder<GlobalStatementSyntax>(statements.Count);
         foreach (var statement in statements)
             globalStatements.Add(GlobalStatement(statement).WithAdditionalAnnotations(Formatter.Annotation));
 
-        return globalStatements.ToImmutable();
+        return globalStatements.MoveToImmutable();
     }
 
     private static VariableDeclarationSyntax ConvertDeclaration(

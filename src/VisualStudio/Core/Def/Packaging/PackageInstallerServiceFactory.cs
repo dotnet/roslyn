@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -421,7 +422,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
 
     private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         var solutionChanged = false;
         ProjectId? changedProject = null;
@@ -454,7 +455,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
     private ValueTask ProcessWorkQueueAsync(
         ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         Contract.ThrowIfNull(_workQueue, "How could we be processing a workqueue change without a workqueue?");
 
@@ -469,7 +470,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
     private async ValueTask ProcessWorkQueueWorkerAsync(
         ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         await PerformNuGetProjectServiceWorkAsync<object>(async (nugetService, cancellationToken) =>
         {
@@ -518,7 +519,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
     private void AddProjectsToProcess(
         ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         // If we detected a solution change, then we need to process all projects.
         // This includes all the projects that we already know about, as well as
@@ -540,7 +541,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
         ProjectId projectId,
         CancellationToken cancellationToken)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         var project = solution.GetProject(projectId);
 
@@ -602,14 +603,14 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
 
     public bool IsInstalled(ProjectId projectId, string packageName)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
         return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&
             installedPackages.IsInstalled(packageName);
     }
 
     public ImmutableArray<string> GetInstalledVersions(string packageName)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         using var _ = PooledHashSet<string>.GetInstance(out var installedVersions);
         foreach (var state in _projectToInstalledPackageAndVersion.Values)
@@ -634,7 +635,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
 
     private static int CompareSplit(string[] split1, string[] split2)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         for (int i = 0, n = Math.Min(split1.Length, split2.Length); i < n; i++)
         {
@@ -654,7 +655,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
 
     public ImmutableArray<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         using var _ = ArrayBuilder<Project>.GetInstance(out var result);
 
@@ -669,7 +670,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public bool CanShowManagePackagesDialog()
@@ -677,7 +678,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
 
     private bool TryGetOrLoadNuGetPackageManager([NotNullWhen(true)] out IVsPackage? nugetPackageManager)
     {
-        this.AssertIsForeground();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         if (_nugetPackageManager != null)
         {

@@ -16,7 +16,7 @@ internal partial class FindReferencesSearchEngine
     /// </summary>
     private sealed class NonCascadingSymbolSet(FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet searchSymbols) : SymbolSet(engine)
     {
-        private readonly ImmutableArray<ISymbol> _symbols = searchSymbols.ToImmutableArray();
+        private readonly ImmutableArray<ISymbol> _symbols = [.. searchSymbols];
 
         public override ImmutableArray<ISymbol> GetAllSymbols()
             => _symbols;

@@ -5,22 +5,21 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
-{
-    public partial class ImplementAbstractClassTests
-    {
-        #region "Fix all occurrences tests"
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass;
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInDocument()
-        {
-            var input = @"
+public partial class ImplementAbstractClassTests
+{
+    #region "Fix all occurrences tests"
+
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInDocument()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -62,7 +61,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -113,15 +112,15 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
-        }
+        await TestInRegularAndScriptAsync(input, expected);
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInProject()
-        {
-            var input = @"
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInProject()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -163,7 +162,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -223,15 +222,15 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
-        }
+        await TestInRegularAndScriptAsync(input, expected);
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution()
-        {
-            var input = @"
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInSolution()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -274,7 +273,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -344,15 +343,15 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
-        }
+        await TestInRegularAndScriptAsync(input, expected);
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
-        {
-            var input = @"
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -399,7 +398,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -464,9 +463,8 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
-        }
-
-        #endregion
+        await TestInRegularAndScriptAsync(input, expected);
     }
+
+    #endregion
 }

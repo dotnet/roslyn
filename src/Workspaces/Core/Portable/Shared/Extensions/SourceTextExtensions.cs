@@ -17,15 +17,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
-    // char pooled memory : 8K * 256 = 2MB
+    private const int ObjectPoolCount = 1024;
+
+    // char array length: 4k characters. 4K * 1024 (object pool count) * 2 (bytes per char) = 8MB
     private const int CharArrayLength = 4 * 1024;
+
+    // 32k characters. Equivalent to 64KB in memory bytes.  Will not be put into the LOH.
+    public const int SourceTextLengthThreshold = 32 * 1024;
 
     /// <summary>
     /// Note: there is a strong invariant that you only get arrays back from this that are exactly <see
     /// cref="CharArrayLength"/> long.  Putting arrays back into this of the wrong length will result in broken
     /// behavior.  Do not expose this pool outside of this class.
     /// </summary>
-    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], 256);
+    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], ObjectPoolCount);
 
     public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
     {
@@ -168,9 +173,6 @@ internal static partial class SourceTextExtensions
         return -1;
     }
 
-    // 32KB. comes from SourceText char buffer size and less than large object size
-    internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
-
     public static void WriteTo(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
     {
         // Source length
@@ -229,20 +231,25 @@ internal static partial class SourceTextExtensions
 
     public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
     {
-        using var textReader = ObjectReaderTextReader.Create(reader);
+        using var textReader = CharArrayChunkTextReader.CreateFromObjectReader(reader);
 
         return textService.CreateText(textReader, encoding, checksumAlgorithm, cancellationToken);
     }
 
-    private sealed class ObjectReaderTextReader : TextReaderWithLength
+    private sealed class CharArrayChunkTextReader(ImmutableArray<char[]> chunks, int length) : TextReaderWithLength(length)
     {
-        private readonly ImmutableArray<char[]> _chunks;
-        private readonly int _chunkSize;
-        private bool _disposed;
+        private readonly ImmutableArray<char[]> _chunks = chunks;
+        private bool _disposed = false;
 
-        private int _position;
+        /// <summary>
+        /// Public so that the caller can assert that the new SourceText read all the way to the end of this successfully.
+        /// </summary>
+        public int Position { get; private set; }
 
-        public static TextReader Create(ObjectReader reader)
+        private static int GetIndexFromPosition(int position) => position / CharArrayLength;
+        private static int GetColumnFromPosition(int position) => position % CharArrayLength;
+
+        public static TextReader CreateFromObjectReader(ObjectReader reader)
         {
             var length = reader.ReadInt32();
             if (length < SourceTextLengthThreshold)
@@ -256,7 +263,7 @@ internal static partial class SourceTextExtensions
             var numberOfChunks = reader.ReadInt32();
 
             // read as chunks
-            using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var chunks);
+            var chunks = new FixedSizeArrayBuilder<char[]>(numberOfChunks);
 
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
@@ -279,17 +286,11 @@ internal static partial class SourceTextExtensions
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new ObjectReaderTextReader(chunks.ToImmutableAndClear(), chunkSize, length);
-        }
 
-        private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
-            : base(length)
-        {
-            _chunks = chunks;
-            _chunkSize = chunkSize;
-            _disposed = false;
-            Contract.ThrowIfTrue(chunkSize != CharArrayLength);
-            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, chunkSize));
+            var chunksArray = chunks.MoveToImmutable();
+            Contract.ThrowIfTrue(chunksArray.Any(static (c, s) => c.Length != s, CharArrayLength));
+
+            return new CharArrayChunkTextReader(chunksArray, length);
         }
 
         protected override void Dispose(bool disposing)
@@ -308,53 +309,49 @@ internal static partial class SourceTextExtensions
 
         public override int Peek()
         {
-            if (_position >= Length)
-            {
+            if (Position >= Length)
                 return -1;
-            }
 
-            return Read(_position);
+            return Read(Position);
         }
 
         public override int Read()
         {
-            if (_position >= Length)
-            {
+            if (Position >= Length)
                 return -1;
-            }
 
-            return Read(_position++);
+            return Read(Position++);
+        }
+
+        private int Read(int position)
+        {
+            var chunkIndex = GetIndexFromPosition(position);
+            var chunkColumn = GetColumnFromPosition(position);
+
+            return _chunks[chunkIndex][chunkColumn];
         }
 
         public override int Read(char[] buffer, int index, int count)
         {
             if (buffer == null)
-            {
                 throw new ArgumentNullException(nameof(buffer));
-            }
 
             if (index < 0 || index >= buffer.Length)
-            {
                 throw new ArgumentOutOfRangeException(nameof(index));
-            }
 
             if (count < 0 || (index + count) > buffer.Length)
-            {
                 throw new ArgumentOutOfRangeException(nameof(count));
-            }
 
             // check quick bail out
             if (count == 0)
-            {
                 return 0;
-            }
 
             // adjust to actual char to read
-            var totalCharsToRead = Math.Min(count, Length - _position);
+            var totalCharsToRead = Math.Min(count, Length - Position);
             count = totalCharsToRead;
 
-            var chunkIndex = GetIndexFromPosition(_position);
-            var chunkStartOffset = GetColumnFromPosition(_position);
+            var chunkIndex = GetIndexFromPosition(Position);
+            var chunkStartOffset = GetColumnFromPosition(Position);
 
             while (true)
             {
@@ -374,19 +371,9 @@ internal static partial class SourceTextExtensions
                 chunkIndex++;
             }
 
-            _position += totalCharsToRead;
+            Position += totalCharsToRead;
+            Contract.ThrowIfTrue(Position > Length);
             return totalCharsToRead;
         }
-
-        private int Read(int position)
-        {
-            var chunkIndex = GetIndexFromPosition(position);
-            var chunkColumn = GetColumnFromPosition(position);
-
-            return _chunks[chunkIndex][chunkColumn];
-        }
-
-        private int GetIndexFromPosition(int position) => position / _chunkSize;
-        private int GetColumnFromPosition(int position) => position % _chunkSize;
     }
 }

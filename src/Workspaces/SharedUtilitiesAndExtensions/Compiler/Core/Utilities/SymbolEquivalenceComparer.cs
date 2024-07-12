@@ -70,8 +70,8 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
 
         // There are only so many EquivalenceVisitors and GetHashCodeVisitors we can have.
         // Create them all up front.
-        using var _1 = ArrayBuilder<EquivalenceVisitor>.GetInstance(capacity: 4, out var equivalenceVisitors);
-        using var _2 = ArrayBuilder<GetHashCodeVisitor>.GetInstance(capacity: 4, out var getHashCodeVisitors);
+        using var equivalenceVisitors = TemporaryArray<EquivalenceVisitor>.Empty;
+        using var getHashCodeVisitors = TemporaryArray<GetHashCodeVisitor>.Empty;
 
         AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true);
         AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false);
@@ -215,6 +215,12 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         => symbol.PartialImplementationPart != null;
 
     private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
+        => symbol.PartialDefinitionPart != null;
+
+    private static bool IsPartialMethodDefinitionPart(IPropertySymbol symbol)
+        => symbol.PartialImplementationPart != null;
+
+    private static bool IsPartialMethodImplementationPart(IPropertySymbol symbol)
         => symbol.PartialDefinitionPart != null;
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)

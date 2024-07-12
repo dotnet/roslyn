@@ -84,10 +84,8 @@ namespace IdeCoreBenchmarks
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
-            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
-            {
-                Console.WriteLine("Sucessfully got persistent storage instance");
-            }
+            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None);
+            Console.WriteLine("Successfully got persistent storage instance");
 
             // There might be multiple projects with this name.  That's ok.  FAR goes and finds all the linked-projects
             // anyways  to perform the search on all the equivalent symbols from them.  So the end perf cost is the

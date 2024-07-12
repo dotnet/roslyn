@@ -10,14 +10,14 @@ using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
-{
-    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-    public class BasicSignatureHelp : AbstractEditorTest
-    {
-        protected override string LanguageName => LanguageNames.VisualBasic;
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
-        private const string Baseline = @"
+[Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+public class BasicSignatureHelp : AbstractEditorTest
+{
+    protected override string LanguageName => LanguageNames.VisualBasic;
+
+    private const string Baseline = @"
 Class C
     Sub M()
         $$
@@ -66,68 +66,68 @@ Class C
 End Class
 ";
 
-        public BasicSignatureHelp()
-            : base(nameof(BasicSignatureHelp))
-        {
-        }
+    public BasicSignatureHelp()
+        : base(nameof(BasicSignatureHelp))
+    {
+    }
 
-        [IdeFact]
-        public async Task MethodSignatureHelp()
-        {
-            await SetUpEditorAsync(Baseline, HangMitigatingCancellationToken);
+    [IdeFact]
+    public async Task MethodSignatureHelp()
+    {
+        await SetUpEditorAsync(Baseline, HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("Dim m=Method(1,", HangMitigatingCancellationToken);
-            await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
-            var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!", signature.Content);
-            Assert.Equal("i2", signature.CurrentParameter.Name);
-            Assert.Equal("an integer, anything you like.", signature.CurrentParameter.Documentation);
-            Assert.Collection(
-                signature.Parameters,
-                [
-                    parameter =>
-                    {
-                        Assert.Equal("i", parameter.Name);
-                        Assert.Equal("an integer, preferably 42.", parameter.Documentation);
-                    }
-            ,
-                    parameter =>
-                    {
-                        Assert.Equal("i2", parameter.Name);
-                        Assert.Equal("an integer, anything you like.", parameter.Documentation);
-                    }
-            ,
-                ]);
-        }
+        await TestServices.Input.SendAsync("Dim m=Method(1,", HangMitigatingCancellationToken);
+        await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
+        var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!", signature.Content);
+        Assert.Equal("i2", signature.CurrentParameter.Name);
+        Assert.Equal("an integer, anything you like.", signature.CurrentParameter.Documentation);
+        Assert.Collection(
+            signature.Parameters,
+            [
+                parameter =>
+                {
+                    Assert.Equal("i", parameter.Name);
+                    Assert.Equal("an integer, preferably 42.", parameter.Documentation);
+                }
+        ,
+                parameter =>
+                {
+                    Assert.Equal("i2", parameter.Name);
+                    Assert.Equal("an integer, anything you like.", parameter.Documentation);
+                }
+        ,
+            ]);
+    }
 
-        [IdeFact]
-        public async Task GenericMethodSignatureHelp1()
-        {
-            await SetUpEditorAsync(Baseline, HangMitigatingCancellationToken);
+    [IdeFact]
+    public async Task GenericMethodSignatureHelp1()
+    {
+        await SetUpEditorAsync(Baseline, HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("Dim gm = GenericMethod", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("(", HangMitigatingCancellationToken);
-            var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!", signature.Content);
-            Assert.Equal("i", signature.CurrentParameter.Name);
-            Assert.Equal("Param 1 of type T1", signature.CurrentParameter.Documentation);
-            Assert.Collection(
-                signature.Parameters,
-                [
-                    parameter =>
-                    {
-                        Assert.Equal("i", parameter.Name);
-                        Assert.Equal("Param 1 of type T1", parameter.Documentation);
-                    }
-            ,
-                ]);
-        }
+        await TestServices.Input.SendAsync("Dim gm = GenericMethod", HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync("(", HangMitigatingCancellationToken);
+        var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!", signature.Content);
+        Assert.Equal("i", signature.CurrentParameter.Name);
+        Assert.Equal("Param 1 of type T1", signature.CurrentParameter.Documentation);
+        Assert.Collection(
+            signature.Parameters,
+            [
+                parameter =>
+                {
+                    Assert.Equal("i", parameter.Name);
+                    Assert.Equal("Param 1 of type T1", parameter.Documentation);
+                }
+        ,
+            ]);
+    }
 
-        [IdeFact]
-        public async Task GenericMethodSignatureHelp2()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact]
+    public async Task GenericMethodSignatureHelp2()
+    {
+        await SetUpEditorAsync(@"
 Imports System
 Class C(Of T, R)
     Sub M()
@@ -156,29 +156,29 @@ Class C(Of T, R)
     End Function
 End Class", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("GenericMethod", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("(Of ", HangMitigatingCancellationToken);
-            var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param", signature.Content);
-            Assert.Equal("T1", signature.CurrentParameter.Name);
-            Assert.Equal("Type Parameter", signature.CurrentParameter.Documentation);
-            Assert.Collection(
-                signature.Parameters,
-                [
-                    parameter =>
-                    {
-                        Assert.Equal("T1", parameter.Name);
-                        Assert.Equal("Type Parameter", parameter.Documentation);
-                    }
-            ,
-                ]);
-        }
+        await TestServices.Input.SendAsync("GenericMethod", HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync("(Of ", HangMitigatingCancellationToken);
+        var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param", signature.Content);
+        Assert.Equal("T1", signature.CurrentParameter.Name);
+        Assert.Equal("Type Parameter", signature.CurrentParameter.Documentation);
+        Assert.Collection(
+            signature.Parameters,
+            [
+                parameter =>
+                {
+                    Assert.Equal("T1", parameter.Name);
+                    Assert.Equal("Type Parameter", parameter.Documentation);
+                }
+        ,
+            ]);
+    }
 
-        [IdeFact]
-        public async Task GenericMethodSignatureHelp_InvokeSighelp()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact]
+    public async Task GenericMethodSignatureHelp_InvokeSighelp()
+    {
+        await SetUpEditorAsync(@"
 Imports System
 Class C
     Sub M()
@@ -194,55 +194,55 @@ Class C
     End Function
 End Class", HangMitigatingCancellationToken);
 
-            await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
-            var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C", signature.Content);
-            Assert.Equal("T2", signature.CurrentParameter.Name);
-            Assert.Equal("", signature.CurrentParameter.Documentation);
-            Assert.Collection(
-                signature.Parameters,
-                [
-                    parameter =>
-                    {
-                        Assert.Equal("T1", parameter.Name);
-                        Assert.Equal("", parameter.Documentation);
-                    }
-            ,
-                    parameter =>
-                    {
-                        Assert.Equal("T2", parameter.Name);
-                        Assert.Equal("", parameter.Documentation);
-                    }
-            ,
-                ]);
-        }
+        await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
+        var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C", signature.Content);
+        Assert.Equal("T2", signature.CurrentParameter.Name);
+        Assert.Equal("", signature.CurrentParameter.Documentation);
+        Assert.Collection(
+            signature.Parameters,
+            [
+                parameter =>
+                {
+                    Assert.Equal("T1", parameter.Name);
+                    Assert.Equal("", parameter.Documentation);
+                }
+        ,
+                parameter =>
+                {
+                    Assert.Equal("T2", parameter.Name);
+                    Assert.Equal("", parameter.Documentation);
+                }
+        ,
+            ]);
+    }
 
-        [IdeFact]
-        public async Task VerifyActiveParameterChanges()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact]
+    public async Task VerifyActiveParameterChanges()
+    {
+        await SetUpEditorAsync(@"
 Module M
     Sub Method(a As Integer, b As Integer)
         $$
     End Sub
 End Module", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("Method(", HangMitigatingCancellationToken);
-            var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("M.Method(a As Integer, b As Integer)", signature.Content);
-            Assert.Equal("a", signature.CurrentParameter.Name);
-            Assert.Equal("", signature.CurrentParameter.Documentation);
-            await TestServices.Input.SendAsync("1, ", HangMitigatingCancellationToken);
-            signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("b", signature.CurrentParameter.Name);
-            Assert.Equal("", signature.CurrentParameter.Documentation);
-        }
+        await TestServices.Input.SendAsync("Method(", HangMitigatingCancellationToken);
+        var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("M.Method(a As Integer, b As Integer)", signature.Content);
+        Assert.Equal("a", signature.CurrentParameter.Name);
+        Assert.Equal("", signature.CurrentParameter.Documentation);
+        await TestServices.Input.SendAsync("1, ", HangMitigatingCancellationToken);
+        signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("b", signature.CurrentParameter.Name);
+        Assert.Equal("", signature.CurrentParameter.Documentation);
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
-        [IdeFact]
-        public async Task HandleBufferTextChangesDuringComputation()
-        {
-            await SetUpEditorAsync(@"
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
+    [IdeFact]
+    public async Task HandleBufferTextChangesDuringComputation()
+    {
+        await SetUpEditorAsync(@"
 Class C
     Sub Goo()
     End Sub
@@ -251,49 +251,48 @@ Class C
     End Sub
 End Class", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("Goo(", HangMitigatingCancellationToken);
-            var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("C.Goo()", signature.Content);
+        await TestServices.Input.SendAsync("Goo(", HangMitigatingCancellationToken);
+        var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("C.Goo()", signature.Content);
 
-            await TestServices.Editor.SetTextAsync(@"
+        await TestServices.Editor.SetTextAsync(@"
 Class C
     'Marker", HangMitigatingCancellationToken);
 
-            Assert.False(await TestServices.Editor.IsSignatureHelpActiveAsync(HangMitigatingCancellationToken));
-        }
+        Assert.False(await TestServices.Editor.IsSignatureHelpActiveAsync(HangMitigatingCancellationToken));
+    }
 
-        [IdeFact]
-        public async Task JaggedMultidimensionalArray()
-        {
-            await SetUpEditorAsync(Baseline, HangMitigatingCancellationToken);
+    [IdeFact]
+    public async Task JaggedMultidimensionalArray()
+    {
+        await SetUpEditorAsync(Baseline, HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("Dim op = OutAndParam(", HangMitigatingCancellationToken);
-            var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
-            Assert.Equal("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params", signature.Content);
-            Assert.Equal("strings", signature.CurrentParameter.Name);
-            Assert.Equal("Jagged MultiDimensional Array", signature.CurrentParameter.Documentation);
-            Assert.Collection(
-                signature.Parameters,
-                [
-                    parameter =>
-                    {
-                        Assert.Equal("strings", parameter.Name);
-                        Assert.Equal("Jagged MultiDimensional Array", parameter.Documentation);
-                    }
-            ,
-                    parameter =>
-                    {
-                        Assert.Equal("outArr", parameter.Name);
-                        Assert.Equal("Out Array", parameter.Documentation);
-                    }
-            ,
-                    parameter =>
-                    {
-                        Assert.Equal("d", parameter.Name);
-                        Assert.Equal("Dynamic and Params param", parameter.Documentation);
-                    }
-            ,
-                ]);
-        }
+        await TestServices.Input.SendAsync("Dim op = OutAndParam(", HangMitigatingCancellationToken);
+        var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
+        Assert.Equal("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params", signature.Content);
+        Assert.Equal("strings", signature.CurrentParameter.Name);
+        Assert.Equal("Jagged MultiDimensional Array", signature.CurrentParameter.Documentation);
+        Assert.Collection(
+            signature.Parameters,
+            [
+                parameter =>
+                {
+                    Assert.Equal("strings", parameter.Name);
+                    Assert.Equal("Jagged MultiDimensional Array", parameter.Documentation);
+                }
+        ,
+                parameter =>
+                {
+                    Assert.Equal("outArr", parameter.Name);
+                    Assert.Equal("Out Array", parameter.Documentation);
+                }
+        ,
+                parameter =>
+                {
+                    Assert.Equal("d", parameter.Name);
+                    Assert.Equal("Dynamic and Params param", parameter.Documentation);
+                }
+        ,
+            ]);
     }
 }

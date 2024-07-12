@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -87,7 +86,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                     isInlinable: true)];
             }
 
-            return actions.ToImmutable();
+            return actions.ToImmutableAndClear();
         }
     }
 

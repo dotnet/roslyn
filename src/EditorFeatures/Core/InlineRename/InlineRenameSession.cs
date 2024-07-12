@@ -247,7 +247,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
 
         this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
-        _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(SpecializedCollections.SingletonEnumerable(startingSpan.ToTextSpan()));
+        _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans([startingSpan.ToTextSpan()]);
 
         UpdateReferenceLocationsTask();
 
@@ -319,7 +319,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             // https://github.com/dotnet/roslyn/issues/40890
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-            RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
+            RaiseSessionSpansUpdated([.. inlineRenameLocations.Locations]);
 
             return inlineRenameLocations;
         });
@@ -422,7 +422,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             if (!documents.Any(static (d, locationsByDocument) => locationsByDocument.Contains(d.Id), locationsByDocument))
             {
-                _openTextBuffers[textBuffer].SetReferenceSpans(SpecializedCollections.EmptyEnumerable<TextSpan>());
+                _openTextBuffers[textBuffer].SetReferenceSpans([]);
             }
             else
             {
@@ -632,7 +632,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 outcome,
                 conflictResolutionFinishedComputing,
                 previewChanges,
-                SpecializedCollections.EmptyList<InlineRenameReplacementKind>()));
+                replacementKinds: []));
         }
     }
 

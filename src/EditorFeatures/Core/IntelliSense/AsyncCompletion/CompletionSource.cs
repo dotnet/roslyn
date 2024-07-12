@@ -82,7 +82,7 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
         _asyncListener = asyncListener;
         _editorOptionsService = editorOptionsService;
         _isDebuggerTextView = textView is IDebuggerTextView;
-        _roles = textView.Roles.ToImmutableHashSet();
+        _roles = [.. textView.Roles];
     }
 
     public AsyncCompletionData.CompletionStartData InitializeCompletion(

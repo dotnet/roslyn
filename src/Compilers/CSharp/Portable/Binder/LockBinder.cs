@@ -64,13 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = diagnostics.ReportUseSite(lockTypeInfo.EnterScopeMethod, exprSyntax) ||
                     diagnostics.ReportUseSite(lockTypeInfo.ScopeType, exprSyntax) ||
                     diagnostics.ReportUseSite(lockTypeInfo.ScopeDisposeMethod, exprSyntax);
-
-                CheckRestrictedTypeInAsyncMethod(
-                    originalBinder.ContainingMemberOrLambda,
-                    lockTypeInfo.ScopeType,
-                    diagnostics,
-                    exprSyntax,
-                    errorCode: ErrorCode.ERR_BadSpecialByRefLock);
             }
 
             BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);

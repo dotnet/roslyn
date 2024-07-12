@@ -8,10 +8,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+using static CSharpSyntaxTokens;
 
 internal static partial class ExpressionSyntaxExtensions
 {
@@ -164,9 +165,6 @@ internal static partial class ExpressionSyntaxExtensions
         parts.Add(simpleName.Identifier.ValueText);
         return true;
     }
-
-    public static bool IsAnyLiteralExpression(this ExpressionSyntax expression)
-        => expression is LiteralExpressionSyntax;
 
     public static bool IsInConstantContext([NotNullWhen(true)] this ExpressionSyntax? expression)
     {
@@ -871,7 +869,7 @@ internal static partial class ExpressionSyntaxExtensions
             return false;
         }
 
-        var semicolonToken = semicolonTokenOpt ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+        var semicolonToken = semicolonTokenOpt ?? SemicolonToken;
 
         statement = ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
         return true;

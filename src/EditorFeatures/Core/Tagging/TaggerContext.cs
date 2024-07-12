@@ -4,14 +4,10 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -19,22 +15,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-internal class TaggerContext<TTag> where TTag : ITag
+internal sealed class TaggerContext<TTag> where TTag : ITag
 {
     private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
-    internal ImmutableArray<SnapshotSpan> _spansTagged;
-    public readonly SegmentedList<ITagSpan<TTag>> TagSpans = [];
-
-    public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
-    public SnapshotPoint? CaretPosition { get; }
+    /// <summary>
+    /// The spans we actually tagged.  Initially set to the spans the tagger originally asked to tag.  However, if the
+    /// tagger tags a smaller span than the one it was asked to tag, this will be updated to reflect the actual spans
+    /// tagged.  For example, classification may initially say it wants to tag everything in the view, but then may
+    /// decide to only tag the containing method if it sees that all edits were contained within that method.
+    /// </summary>
+    internal OneOrMany<SnapshotSpan> _spansTagged;
+    public readonly SegmentedList<TagSpan<TTag>> TagSpans = [];
 
     /// <summary>
-    /// The text that has changed between the last successful tagging and this new request to
-    /// produce tags.  In order to be passed this value, <see cref="TaggerTextChangeBehavior.TrackTextChanges"/> 
-    /// must be specified in <see cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>.
+    /// If the client should compute tags using frozen partial semantics.  This generally should have no effect if tags
+    /// are computed within this process as the provided <see cref="SpansToTag"/> will be given the right frozen or
+    /// unfrozen documents.  However, this is relevant when making calls to our external OOP server to ensure that it
+    /// also does the same when processing the request on its side.
     /// </summary>
-    public TextChangeRange? TextChangeRange { get; }
+    public bool FrozenPartialSemantics { get; }
+
+    public OneOrMany<DocumentSnapshotSpan> SpansToTag { get; }
+    public SnapshotPoint? CaretPosition { get; }
 
     /// <summary>
     /// The state of the tagger.  Taggers can use this to keep track of information across calls
@@ -48,31 +51,38 @@ internal class TaggerContext<TTag> where TTag : ITag
 
     // For testing only.
     internal TaggerContext(
-        Document document, ITextSnapshot snapshot,
-        SnapshotPoint? caretPosition = null,
-        TextChangeRange? textChangeRange = null)
-        : this(state: null, [new DocumentSnapshotSpan(document, snapshot.GetFullSpan())],
-               caretPosition, textChangeRange, existingTags: null)
+        Document document,
+        ITextSnapshot snapshot,
+        bool frozenPartialSemantics,
+        SnapshotPoint? caretPosition = null)
+        : this(
+              state: null,
+              frozenPartialSemantics,
+              OneOrMany.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
+              OneOrMany.Create(snapshot.GetFullSpan()),
+              caretPosition,
+              existingTags: null)
     {
     }
 
     internal TaggerContext(
         object state,
-        ImmutableArray<DocumentSnapshotSpan> spansToTag,
+        bool frozenPartialSemantics,
+        OneOrMany<DocumentSnapshotSpan> spansToTag,
+        OneOrMany<SnapshotSpan> spansTagged,
         SnapshotPoint? caretPosition,
-        TextChangeRange? textChangeRange,
         ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags)
     {
         this.State = state;
+        this.FrozenPartialSemantics = frozenPartialSemantics;
         this.SpansToTag = spansToTag;
         this.CaretPosition = caretPosition;
-        this.TextChangeRange = textChangeRange;
 
-        _spansTagged = spansToTag.SelectAsArray(ds => ds.SnapshotSpan);
+        _spansTagged = spansTagged;
         _existingTags = existingTags;
     }
 
-    public void AddTag(ITagSpan<TTag> tag)
+    public void AddTag(TagSpan<TTag> tag)
         => TagSpans.Add(tag);
 
     public void ClearTags()
@@ -85,7 +95,7 @@ internal class TaggerContext<TTag> where TTag : ITag
     /// newly produced tags.
     /// </summary>
     public void SetSpansTagged(ImmutableArray<SnapshotSpan> spansTagged)
-        => _spansTagged = spansTagged;
+        => _spansTagged = OneOrMany.Create(spansTagged);
 
     public bool HasExistingContainingTags(SnapshotPoint point)
         => _existingTags != null &&

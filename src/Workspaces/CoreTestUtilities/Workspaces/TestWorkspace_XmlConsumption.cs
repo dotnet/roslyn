@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var key = split[0];
                 var value = split.Length == 2 ? split[1] : "true";
 
-                return new KeyValuePair<string, string>(key, value);
+                return KeyValuePairUtil.Create(key, value);
             });
 
             return parseOptions.WithFeatures(features);
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = NetCoreApp.References.ToList();
+                references = [.. NetCoreApp.References];
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)netstandard20).HasValue &&
                 ((bool?)netstandard20).Value)
             {
-                references = TargetFrameworkUtil.NetStandard20References.ToList();
+                references = [.. TargetFrameworkUtil.NetStandard20References];
             }
 
             var net6 = element.Attribute(CommonReferencesNet6Name);
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net6).HasValue &&
                 ((bool?)net6).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net60)];
             }
 
             var net7 = element.Attribute(CommonReferencesNet7Name);
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net7).HasValue &&
                 ((bool?)net7).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net70).ToList();
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net70)];
             }
 
             var net8 = element.Attribute(CommonReferencesNet8Name);
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net8).HasValue &&
                 ((bool?)net8).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net80).ToList();
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net80)];
             }
 
             var mincorlib = element.Attribute(CommonReferencesMinCorlibName);

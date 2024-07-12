@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -17,27 +17,34 @@ internal partial class SolutionCompilationState
 {
     private abstract partial class TranslationAction
     {
-        internal sealed class TouchDocumentAction(
+        internal sealed class TouchDocumentsAction(
             ProjectState oldProjectState,
             ProjectState newProjectState,
-            DocumentState oldState,
-            DocumentState newState)
-            : TranslationAction(oldProjectState, newProjectState)
+            ImmutableArray<DocumentState> newStates) : TranslationAction(oldProjectState, newProjectState)
         {
-            private readonly DocumentState _oldState = oldState;
-            private readonly DocumentState _newState = newState;
+            private readonly ImmutableArray<DocumentState> _oldStates = newStates.SelectAsArray(s => oldProjectState.DocumentStates.GetRequiredState(s.Id));
+            private readonly ImmutableArray<DocumentState> _newStates = newStates;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                return oldCompilation.ReplaceSyntaxTree(
-                    await _oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                    await _newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                var finalCompilation = oldCompilation;
+                for (int i = 0, n = _newStates.Length; i < n; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var newState = _newStates[i];
+                    var oldState = _oldStates[i];
+                    finalCompilation = finalCompilation.ReplaceSyntaxTree(
+                        await oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                        await newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                }
+
+                return finalCompilation;
             }
 
-            public DocumentId DocumentId => _newState.Attributes.Id;
-
-            // Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
-            // compilations that have generated trees.
+            /// <summary>
+            /// Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
+            /// compilations that have generated trees.
+            /// </summary>
             public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
 
             public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
@@ -45,12 +52,12 @@ internal partial class SolutionCompilationState
 
             public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             {
-                if (priorAction is TouchDocumentAction priorTouchAction &&
-                    priorTouchAction._newState == _oldState)
+                if (priorAction is TouchDocumentsAction priorTouchAction &&
+                    priorTouchAction._newStates.SequenceEqual(_oldStates))
                 {
                     // As we're merging ourselves with the prior touch action, we want to keep the old project state
                     // that we are translating from.
-                    return new TouchDocumentAction(priorAction.OldProjectState, this.NewProjectState, priorTouchAction._oldState, _newState);
+                    return new TouchDocumentsAction(priorAction.OldProjectState, this.NewProjectState, _newStates);
                 }
 
                 return null;
@@ -138,37 +145,23 @@ internal partial class SolutionCompilationState
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-#if NETSTANDARD
-                using var _1 = ArrayBuilder<Task>.GetInstance(this.Documents.Length, out var tasks);
-
-                // We want to parse in parallel.  But we don't want to have too many parses going on at the same time.
-                // So we use a semaphore here to only allow that many in at a time.  Once we hit that amount, it will
-                // block further parallel work.  However, as the semaphore is released, new work will be let in.
-                var semaphore = new SemaphoreSlim(initialCount: AddDocumentsBatchSize);
+                // TODO(cyrusn): Do we need to ensure that the syntax trees we add to the compilation are in the same
+                // order as the documents array we have added to the project?  If not, we can remove this map and the
+                // sorting below.
+                using var _ = PooledDictionary<DocumentState, int>.GetInstance(out var documentToIndex);
                 foreach (var document in this.Documents)
-                {
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        using (await semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken));
-                }
+                    documentToIndex.Add(document, documentToIndex.Count);
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-#else
-                await Parallel.ForEachAsync(
-                    this.Documents,
-                    cancellationToken,
-                    static async (document, cancellationToken) =>
-                        await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-#endif
+                var documentsAndTrees = await ProducerConsumer<(DocumentState document, SyntaxTree tree)>.RunParallelAsync(
+                    source: this.Documents,
+                    produceItems: static async (document, callback, _, cancellationToken) =>
+                        callback((document, await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))),
+                    args: default(VoidResult),
+                    cancellationToken).ConfigureAwait(false);
 
-                using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
-
-                foreach (var document in this.Documents)
-                    trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-
-                return oldCompilation.AddSyntaxTrees(trees);
+                return oldCompilation.AddSyntaxTrees(documentsAndTrees
+                    .Sort((dt1, dt2) => documentToIndex[dt1.document] - documentToIndex[dt2.document])
+                    .Select(static dt => dt.tree));
             }
 
             // This action adds the specified trees, but leaves the generated trees untouched.
@@ -355,7 +348,7 @@ internal partial class SolutionCompilationState
                     .ReplaceAdditionalTexts(this.NewProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
                     .WithUpdatedParseOptions(this.NewProjectState.ParseOptions!)
                     .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
-                    .ReplaceGenerators(this.NewProjectState.SourceGenerators.ToImmutableArray());
+                    .ReplaceGenerators(GetSourceGenerators(this.NewProjectState));
 
                 return generatorDriver;
             }

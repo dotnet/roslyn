@@ -38,15 +38,13 @@ public abstract class CodeActionWithOptions : CodeAction
         Solution originalSolution, object? options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         if (options == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-        }
+            return [];
 
         var operations = await this.ComputeOperationsAsync(options, progress, cancellationToken).ConfigureAwait(false);
 
         if (operations != null)
         {
-            operations = await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            operations = await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return operations;

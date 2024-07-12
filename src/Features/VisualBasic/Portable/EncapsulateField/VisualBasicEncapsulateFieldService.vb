@@ -130,11 +130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.ToSet(), StringComparer.OrdinalIgnoreCase)
         End Function
 
-        Friend Overrides Function GetConstructorNodes(containingType As INamedTypeSymbol) As IEnumerable(Of SyntaxNode)
+        Protected Overrides Function GetConstructorNodes(containingType As INamedTypeSymbol) As IEnumerable(Of SyntaxNode)
             Return containingType.Constructors.SelectMany(Function(c As IMethodSymbol)
                                                               Return c.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax().Parent)
                                                           End Function)
         End Function
-
     End Class
 End Namespace

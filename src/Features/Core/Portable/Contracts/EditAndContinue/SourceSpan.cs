@@ -5,7 +5,6 @@
 using System.Runtime.Serialization;
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 

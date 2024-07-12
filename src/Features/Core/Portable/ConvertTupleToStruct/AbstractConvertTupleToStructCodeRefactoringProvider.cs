@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -186,9 +185,20 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         Document document, TextSpan span, CancellationToken cancellationToken)
     {
         // Enable refactoring either for TupleExpression or TupleType
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        // Acceptable to directly instantiate a parsed document here.  The parsed documents only uses services that are
+        // available in OOP.
+        var hostServices = document.Project.Solution.Services
+            .GetLanguageServices(document.Project.Language).HostLanguageServices;
+#pragma warning restore CS0618 // Type or member is obsolete
+        var parsedDocument = new ParsedDocument(document.Id, text, root, hostServices);
+
         var expressionOrType =
-            await document.TryGetRelevantNodeAsync<TTupleTypeSyntax>(span, cancellationToken).ConfigureAwait(false) as SyntaxNode ??
-            await document.TryGetRelevantNodeAsync<TTupleExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+            parsedDocument.TryGetRelevantNode<TTupleTypeSyntax>(span, cancellationToken) as SyntaxNode ??
+            parsedDocument.TryGetRelevantNode<TTupleExpressionSyntax>(span, cancellationToken);
         if (expressionOrType == null)
         {
             return default;
@@ -463,7 +473,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
                 project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
@@ -475,7 +485,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         await AddDocumentsToUpdateForProjectAsync(
             project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
@@ -528,7 +538,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             result.Add(new DocumentToUpdate(document, nodes));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static ImmutableArray<DocumentToUpdate> GetDocumentsToUpdateForContainingMember(

@@ -10,104 +10,103 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public class YieldStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    internal override Type GetHighlighterType()
+        => typeof(YieldStatementHighlighter);
+
+    [Fact]
+    public async Task TestExample1_1()
     {
-        internal override Type GetHighlighterType()
-            => typeof(YieldStatementHighlighter);
-
-        [Fact]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-                """
-                class C
+        await TestAsync(
+            """
+            class C
+            {
+                IEnumerable<int> Range(int min, int max)
                 {
-                    IEnumerable<int> Range(int min, int max)
+                    while (true)
                     {
-                        while (true)
+                        if (min >= max)
                         {
-                            if (min >= max)
-                            {
-                                {|Cursor:[|yield break|];|}
-                            }
-
-                            [|yield return|] min++;
+                            {|Cursor:[|yield break|];|}
                         }
+
+                        [|yield return|] min++;
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample1_2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample1_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                IEnumerable<int> Range(int min, int max)
                 {
-                    IEnumerable<int> Range(int min, int max)
+                    while (true)
                     {
-                        while (true)
+                        if (min >= max)
                         {
-                            if (min >= max)
-                            {
-                                [|yield break|];
-                            }
-
-                            {|Cursor:[|yield return|]|} min++;
+                            [|yield break|];
                         }
+
+                        {|Cursor:[|yield return|]|} min++;
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample1_3()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample1_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                IEnumerable<int> Range(int min, int max)
                 {
-                    IEnumerable<int> Range(int min, int max)
+                    while (true)
                     {
-                        while (true)
+                        if (min >= max)
                         {
-                            if (min >= max)
-                            {
-                                yield break;
-                            }
-
-                            yield return {|Cursor:min++|};
+                            yield break;
                         }
+
+                        yield return {|Cursor:min++|};
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample1_4()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample1_4()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                IEnumerable<int> Range(int min, int max)
                 {
-                    IEnumerable<int> Range(int min, int max)
+                    while (true)
                     {
-                        while (true)
+                        if (min >= max)
                         {
-                            if (min >= max)
-                            {
-                                [|yield break|];
-                            }
-
-                            [|yield return|] min++;{|Cursor:|}
+                            [|yield break|];
                         }
+
+                        [|yield return|] min++;{|Cursor:|}
                     }
                 }
-                """);
-        }
+            }
+            """);
     }
 }

@@ -4,11 +4,11 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
@@ -50,13 +50,12 @@ internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeSty
 
         // Use an actual stack object so that we don't blow the actual stack through recursion.
         var root = context.GetAnalysisRoot(findInTrivia: true);
-        var stack = new Stack<SyntaxNode>();
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
         stack.Push(root);
 
-        while (stack.Count != 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
 
             foreach (var child in current.ChildNodesAndTokens())
             {

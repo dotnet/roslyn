@@ -33,7 +33,7 @@ internal partial class UnnamedSymbolCompletionProvider
 
     private readonly string OperatorName = nameof(OperatorName);
     private readonly ImmutableArray<KeyValuePair<string, string>> OperatorProperties =
-        [new KeyValuePair<string, string>(KindName, OperatorKindName)];
+        [KeyValuePairUtil.Create(KindName, OperatorKindName)];
 
     /// <summary>
     /// Ordered in the order we want to display operators in the completion list.
@@ -113,7 +113,7 @@ internal partial class UnnamedSymbolCompletionProvider
             symbols: operators.ToImmutableArray(),
             rules: s_operatorRules,
             contextPosition: context.Position,
-            properties: [.. OperatorProperties, new KeyValuePair<string, string>(OperatorName, opName)],
+            properties: [.. OperatorProperties, KeyValuePairUtil.Create(OperatorName, opName)],
             isComplexTextEdit: true));
     }
 

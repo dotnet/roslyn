@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
-            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()), dynamificationOfAssignmentResultIsHandled: true);
+            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
             ReportSuppressionIfNeeded(left, diagnostics);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                 }
             }
-
-            left = AdjustAssignmentTargetForDynamic(left, out bool forceDynamicResult);
 
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         finalPlaceholder: placeholder,
                         finalConversion: conversion,
                         LookupResultKind.Viable,
-                        AdjustAssignmentTypeToDynamicIfNecessary(left.Type, forceDynamicResult),
+                        left.Type,
                         hasErrors: false);
                 }
                 else
@@ -246,56 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
-                leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, AdjustAssignmentTypeToDynamicIfNecessary(left.Type, forceDynamicResult), hasError);
-        }
-
-        /// <summary>
-        /// When an indexer is accessed with dynamic argument is resolved statically,
-        /// in some scenarios its result type is set to 'dynamic' type.
-        /// Assignments to such indexers should be bound statically as well, reverting back
-        /// to the indexer's type for the target and setting result type of the assignment to 'dynamic' type.
-        /// 
-        /// This helper takes care of the "reverting back to the indexer's type for the target" part.
-        /// See <see cref="AdjustAssignmentTypeToDynamicIfNecessary"/> for the helper for the second part.
-        /// </summary>
-        private static BoundExpression AdjustAssignmentTargetForDynamic(BoundExpression target, out bool forceDynamicResult)
-        {
-            if (target is BoundIndexerAccess { Type.TypeKind: TypeKind.Dynamic, Indexer.Type.TypeKind: not TypeKind.Dynamic } indexerAccess)
-            {
-                Debug.Assert(!indexerAccess.Indexer.ReturnsByRef);
-                forceDynamicResult = true;
-                target = indexerAccess.Update(
-                        indexerAccess.ReceiverOpt,
-                        indexerAccess.InitialBindingReceiverIsSubjectToCloning,
-                        indexerAccess.Indexer,
-                        indexerAccess.Arguments,
-                        indexerAccess.ArgumentNamesOpt,
-                        indexerAccess.ArgumentRefKindsOpt,
-                        indexerAccess.Expanded,
-                        indexerAccess.ArgsToParamsOpt,
-                        indexerAccess.DefaultArguments,
-                        indexerAccess.Indexer.Type);
-            }
-            else
-            {
-                forceDynamicResult = false;
-            }
-
-            return target;
-        }
-
-        /// <summary>
-        /// When an indexer is accessed with dynamic argument is resolved statically,
-        /// in some scenarios its result type is set to 'dynamic' type.
-        /// Assignments to such indexers should be bound statically as well, reverting back
-        /// to the indexer's type for the target and setting result type of the assignment to 'dynamic' type.
-        /// 
-        /// This helper takes care of the "setting result type of the assignment to 'dynamic' type" part.
-        /// See <see cref="AdjustAssignmentTargetForDynamic"/> helper for the first part.
-        /// </summary>
-        TypeSymbol AdjustAssignmentTypeToDynamicIfNecessary(TypeSymbol leftType, bool forceDynamicResult)
-        {
-            return forceDynamicResult ? Compilation.DynamicType : leftType;
+                leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
         }
 
         /// <summary>
@@ -2312,9 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
 
-            BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement, dynamificationOfAssignmentResultIsHandled: true),
-                                                        diagnostics);
-
+            BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement), diagnostics);
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
             // If the operand is bad, avoid generating cascading errors.
@@ -2335,8 +2282,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CreateErrorType(),
                     hasErrors: true);
             }
-
-            operand = AdjustAssignmentTargetForDynamic(operand, out bool forceDynamicResult);
 
             // The operand has to be a variable, property or indexer, so it must have a type.
             var operandType = operand.Type;
@@ -2424,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultConversion,
                 resultKind,
                 originalUserDefinedOperators,
-                AdjustAssignmentTypeToDynamicIfNecessary(operandType, forceDynamicResult),
+                operandType,
                 hasErrors);
         }
 
@@ -3566,10 +3511,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * If either type is a restricted type, the type check isn't supported because
+                    // * If either type is a restricted type, the type check isn't supported for some scenarios because
                     //   a restricted type cannot be boxed or unboxed into.
                     if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
                     {
+                        if (targetType is TypeParameterSymbol { AllowsRefLikeType: true })
+                        {
+                            if (!operandType.IsRefLikeType && operandType is not TypeParameterSymbol)
+                            {
+                                return null;
+                            }
+                        }
+                        else if (operandType is not TypeParameterSymbol { AllowsRefLikeType: true })
+                        {
+                            if (targetType.IsRefLikeType)
+                            {
+                                if (operandType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(operandType is TypeParameterSymbol { AllowsRefLikeType: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                            else if (operandType.IsRefLikeType)
+                            {
+                                if (targetType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(targetType is TypeParameterSymbol { AllowsRefLikeType: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                        }
+
                         return ConstantValue.Bad;
                     }
 
@@ -3981,6 +3953,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isOperatorConstantResult.BooleanValue)
                 {
+                    if (operandType?.IsRefLikeType == true)
+                    {
+                        return ConstantValue.Bad;
+                    }
+
                     return ConstantValue.Null;
                 }
             }
@@ -4189,11 +4166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment, dynamificationOfAssignmentResultIsHandled: true);
+            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
-
-            leftOperand = AdjustAssignmentTargetForDynamic(leftOperand, out bool forceDynamicResult);
-
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
             // If either operand is bad, bail out preventing more cascading errors
@@ -4228,9 +4202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(node, useSiteInfo);
                     var convertedRightOperand = CreateConversion(rightOperand, underlyingRightConversion, underlyingLeftType, diagnostics);
-                    var result = new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, AdjustAssignmentTypeToDynamicIfNecessary(underlyingLeftType, forceDynamicResult));
-                    Debug.Assert(result.IsNullableValueTypeAssignment);
-                    return result;
+                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, underlyingLeftType);
                 }
             }
 
@@ -4244,9 +4216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rightConversion.Exists)
             {
                 var convertedRightOperand = CreateConversion(rightOperand, rightConversion, leftType, diagnostics);
-                var result = new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, AdjustAssignmentTypeToDynamicIfNecessary(leftType, forceDynamicResult));
-                Debug.Assert(!result.IsNullableValueTypeAssignment);
-                return result;
+                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, leftType);
             }
 
             // a and b are incompatible and a compile-time error occurs
@@ -4339,13 +4309,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, hasErrors: constantValue?.IsBad == true);
             }
 
-            TypeSymbol type;
             bool hasErrors;
             if (bestType.IsErrorType())
             {
                 trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
                 falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
-                type = bestType;
                 hasErrors = true;
             }
             else
@@ -4353,9 +4321,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
                 falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
                 hasErrors = trueExpr.HasAnyErrors || falseExpr.HasAnyErrors;
-                // If one of the conversions went wrong (e.g. return type of method group being converted
-                // didn't match), then we don't want to use bestType because it's not accurate.
-                type = hasErrors ? CreateErrorType() : bestType;
             }
 
             if (!hasErrors)
@@ -4364,7 +4329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = constantValue != null && constantValue.IsBad;
             }
 
-            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: type, wasTargetTyped: false, type, hasErrors);
+            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: bestType, wasTargetTyped: false, bestType, hasErrors);
         }
 #nullable disable
 

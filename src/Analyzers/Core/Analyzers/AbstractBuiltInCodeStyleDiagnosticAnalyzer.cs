@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -81,12 +80,12 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
     /// <summary>
     /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style editorconfig option that can be used to configure each descriptor.
     /// </summary>
-    protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IOption2> supportedDiagnosticsWithOptions)
-        : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
+    protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<(DiagnosticDescriptor Descriptor, IOption2 Option)> supportedDiagnosticsWithOptions)
+        : this(supportedDiagnosticsWithOptions.SelectAsArray(static item => item.Descriptor))
     {
         foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
         {
-            Debug.Assert(option != null == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable));
+            Debug.Assert(option is { Definition.DefaultValue: ICodeStyleOption2 } == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable));
             AddDiagnosticIdToOptionMapping(descriptor.Id, option);
         }
     }
@@ -94,8 +93,8 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
     /// <summary>
     /// Constructor for a code style analyzer with multiple diagnostic descriptors with zero or more code style editorconfig options that can be used to configure each descriptor.
     /// </summary>
-    protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>> supportedDiagnosticsWithOptions)
-        : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
+    protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<(DiagnosticDescriptor Descriptor, ImmutableHashSet<IOption2> Options)> supportedDiagnosticsWithOptions)
+        : this(supportedDiagnosticsWithOptions.SelectAsArray(static item => item.Descriptor))
     {
         foreach (var (descriptor, options) in supportedDiagnosticsWithOptions)
         {

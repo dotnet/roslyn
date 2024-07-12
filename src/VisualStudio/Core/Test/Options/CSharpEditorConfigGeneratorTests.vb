@@ -4,9 +4,7 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Roslyn.Test.Utilities
@@ -124,6 +122,7 @@ csharp_style_prefer_switch_expression = true
 csharp_style_conditional_delegate_call = true
 
 # Modifier preferences
+csharp_prefer_static_anonymous_function = true
 csharp_prefer_static_local_function = true
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 csharp_style_prefer_readonly_struct = true
@@ -253,8 +252,7 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 ' Use the default options
                 Dim options = New OptionStore(workspace.GlobalOptions)
-                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
-                Dim groupedOptions = editorService.GetDefaultOptions(LanguageNames.CSharp)
+                Dim groupedOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.CSharp)
                 Dim actualText = EditorConfigFileGenerator.Generate(groupedOptions, Options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
@@ -371,6 +369,7 @@ csharp_style_prefer_switch_expression = true
 csharp_style_conditional_delegate_call = true
 
 # Modifier preferences
+csharp_prefer_static_anonymous_function = true
 csharp_prefer_static_local_function = true
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 csharp_style_prefer_readonly_struct = true
@@ -498,8 +497,7 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
-                Dim groupedOptions = editorService.GetDefaultOptions(LanguageNames.CSharp)
+                Dim groupedOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.CSharp)
                 Dim actualText = EditorConfigFileGenerator.Generate(groupedOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using

@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;

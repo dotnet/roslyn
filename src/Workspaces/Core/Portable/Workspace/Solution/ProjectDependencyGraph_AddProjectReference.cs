@@ -66,7 +66,7 @@ public partial class ProjectDependencyGraph
         }
         else
         {
-            return existingReferencesMap.SetItem(projectId, referencedProjectIds.ToImmutableHashSet());
+            return existingReferencesMap.SetItem(projectId, [.. referencedProjectIds]);
         }
     }
 

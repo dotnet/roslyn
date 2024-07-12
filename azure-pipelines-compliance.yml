@@ -108,7 +108,7 @@ steps:
     softwareBuildNum: '$(Build.BuildId)'
     symbolsFolder: 'SRV*http://symweb'
   env:
-    AzureServicesAuthConnectionString: runAs=App;AppId=$(RoslynApiScanClientId);TenantId=$(RoslynApiScanTenant);AppKey=$(RoslynApiScanSecret)
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(MicroBuildApiScanClientId)
   continueOnError: true
 
 - task: TSAUpload@2

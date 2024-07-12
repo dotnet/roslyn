@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.CodeAnalysis.NavigateTo;
+using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
@@ -14,11 +15,13 @@ internal sealed partial class SearchGraphQuery
 {
     private class ProgressionNavigateToSearchCallback : INavigateToSearchCallback
     {
+        private readonly Solution _solution;
         private readonly IGraphContext _context;
         private readonly GraphBuilder _graphBuilder;
 
-        public ProgressionNavigateToSearchCallback(IGraphContext context, GraphBuilder graphBuilder)
+        public ProgressionNavigateToSearchCallback(Solution solution, IGraphContext context, GraphBuilder graphBuilder)
         {
+            _solution = solution;
             _context = context;
             _graphBuilder = graphBuilder;
         }
@@ -36,14 +39,17 @@ internal sealed partial class SearchGraphQuery
         {
         }
 
-        public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
-            var node = await _graphBuilder.CreateNodeAsync(project.Solution, result, cancellationToken).ConfigureAwait(false);
-            if (node != null)
+            foreach (var result in results)
             {
-                // _context.OutputNodes is not threadsafe.  So ensure only one navto callback can mutate it at a time.
-                lock (this)
-                    _context.OutputNodes.Add(node);
+                var node = await _graphBuilder.CreateNodeAsync(_solution, result, cancellationToken).ConfigureAwait(false);
+                if (node != null)
+                {
+                    // _context.OutputNodes is not threadsafe.  So ensure only one navto callback can mutate it at a time.
+                    lock (this)
+                        _context.OutputNodes.Add(node);
+                }
             }
         }
     }

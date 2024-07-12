@@ -850,10 +850,10 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
 #if CODE_STYLE
         var provider = GetSyntaxFormatting();
-        rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
+        rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: default, cancellationToken);
 #else
         var provider = document.Project.Solution.Services;
-        rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
+        rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: default, cancellationToken);
 #endif
 
         document = document.WithSyntaxRoot(rootWithTrackedNodes);

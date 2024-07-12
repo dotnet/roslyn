@@ -6,6 +6,8 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -4157,6 +4159,139 @@ interface I : IEnumerable<int>
             var typeInfo = semanticModel.GetTypeInfo(node);
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             Assert.Equal("I", typeInfo.ConvertedType.ToDisplayString());
+        }
+
+        [Fact]
+        public void DynamicInvocationOnRefStructs()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                dynamic d = null;
+                S s = new S() { d };
+
+                ref struct S : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add<T>(T t) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,11): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // S s = new S() { d };
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "S").WithArguments("S").WithLocation(5, 11)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Indexer()
+        {
+            var source = """
+                public class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C() { [1] = 2 };
+                        System.Console.WriteLine(c[1]);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int this[int x]
+                    {
+                        get => ref _test1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
+
+            var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Property()
+        {
+            var source = """
+                public class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C() { P = 2 };
+                        System.Console.WriteLine(c.P);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int P
+                    {
+                        get => ref _test1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var propertyAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First().Left;
+            var symbolInfo = model.GetSymbolInfo(propertyAccess);
+            AssertEx.Equal("ref System.Int32 C.P { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(propertyAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(propertyAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
+
+            var assignment = (AssignmentExpressionSyntax)propertyAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
         }
     }
 }

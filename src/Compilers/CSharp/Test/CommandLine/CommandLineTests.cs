@@ -210,6 +210,63 @@ dotnet_diagnostic.cs0169.severity = none");
             Assert.Null(cmd.AnalyzerOptions);
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/72657")]
+        public void AnalyzerConfig_DoubleSlash(bool doubleSlashAnalyzerConfig, bool doubleSlashSource)
+        {
+            var dir = Temp.CreateDirectory();
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
+            var src = dir.CreateFile("Class1.cs").WriteAllText("""
+                public ﻿class C
+                {
+                    public void M() { }
+                }
+                """);
+
+            // The analyzer should produce a warning.
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: [analyzer], expectedWarningCount: 1);
+            AssertEx.Equal("Class1.cs(1,1): warning ID1000:", output.Trim());
+
+            // But not when this editorconfig is applied.
+            var editorconfig = dir.CreateFile(".editorconfig").WriteAllText("""
+                root = true
+
+                [*.cs]
+                dotnet_analyzer_diagnostic.severity = none
+
+                generated_code = true
+                """);
+            var cmd = CreateCSharpCompiler(
+                [
+                    "/nologo",
+                    "/preferreduilang:en",
+                    "/t:library",
+                    "/analyzerconfig:" + modifyPath(editorconfig.Path, doubleSlashAnalyzerConfig),
+                    modifyPath(src.Path, doubleSlashSource),
+                ],
+                [analyzer]);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            AssertEx.Equal("", outWriter.ToString());
+
+            static string modifyPath(string path, bool doubleSlash)
+            {
+                if (!doubleSlash)
+                {
+                    return path;
+                }
+
+                // Find the second-to-last slash.
+                char[] separators = ['/', '\\'];
+                var lastSlashIndex = path.LastIndexOfAny(separators);
+                lastSlashIndex = path.LastIndexOfAny(separators, lastSlashIndex - 1);
+
+                // Duplicate that slash.
+                var lastSlash = path[lastSlashIndex];
+                return path[0..lastSlashIndex] + lastSlash + path[lastSlashIndex..];
+            }
+        }
+
         [Fact]
         public void AnalyzerConfigWithOptions()
         {
@@ -11986,7 +12043,7 @@ namespace Microsoft.CodeAnalysis
             var minSystemCollectionsImmutableImage = CSharpCompilation.Create(
                 "System.Collections.Immutable",
                 new[] { SyntaxFactory.ParseSyntaxTree(minSystemCollectionsImmutableSource) },
-                new MetadataReference[] { NetStandard13.SystemRuntime },
+                new MetadataReference[] { NetStandard13.References.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a)).EmitToArray();
 
             var minSystemCollectionsImmutableRef = MetadataReference.CreateFromImage(minSystemCollectionsImmutableImage);
@@ -11996,7 +12053,7 @@ namespace Microsoft.CodeAnalysis
                 new[] { SyntaxFactory.ParseSyntaxTree(minCodeAnalysisSource) },
                 new MetadataReference[]
                 {
-                    NetStandard13.SystemRuntime,
+                    NetStandard13.References.SystemRuntime,
                     minSystemCollectionsImmutableRef
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_31bf3856ad364e35)).EmitToArray();
@@ -12087,7 +12144,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     minCodeAnalysisRef,
                     minSystemCollectionsImmutableRef
                 };
-            references = references.Concat(NetStandard13.All).ToArray();
+            references = references.Concat(NetStandard13.References.All).ToArray();
 
             var analyzerImage = CSharpCompilation.Create(
                 analyzerAssemblyName,

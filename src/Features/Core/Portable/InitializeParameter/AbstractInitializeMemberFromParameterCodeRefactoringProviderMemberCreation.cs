@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -155,7 +154,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             }
         }
 
-        return allActions.ToImmutable();
+        return allActions.ToImmutableAndClear();
     }
 
     private (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
@@ -239,7 +238,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             result.Add(parameter);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(

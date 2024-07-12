@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => InsertNewLines(Delete(src, marker), marker);
 
         public static string InspectActiveStatement(ActiveStatement statement)
-            => $"{statement.Ordinal}: {statement.FileSpan} flags=[{statement.Flags}]";
+            => $"{statement.Id.Ordinal}: {statement.FileSpan} flags=[{statement.Flags}]";
 
         public static string InspectActiveStatementAndInstruction(ActiveStatement statement)
             => InspectActiveStatement(statement) + " " + statement.InstructionId.GetDebuggerDisplay();

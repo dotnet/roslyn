@@ -9,8 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 
-// https://github.com/dotnet/roslyn/issues/73626 tracks removal
-#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete - blocked on Razor switching to new APIs for STJ - https://github.com/dotnet/roslyn/issues/73317
 internal abstract class AbstractLanguageClientMiddleLayer : ILanguageClientMiddleLayer
 #pragma warning restore CS0618 // Type or member is obsolete
 {

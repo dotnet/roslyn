@@ -34,10 +34,11 @@ internal partial class SQLitePersistentStorage
         // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
         // data set by CallContext.LogicalSetData at each yielding await in the task tree.
         //
-        // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
-        // same thread where SuppressFlow was originally run.
+        // ⚠ DO NOT AWAIT INSIDE THE USING BLOCK LEXICALLY (it's fine to await within the call to PerformTaskAsync). The
+        // Dispose method that restores ExecutionContext flow must run on the same thread where SuppressFlow was
+        // originally run.
         using var _ = FlowControlHelper.TrySuppressFlow();
-        return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ConcurrentScheduler, cancellationToken);
+        return PerformTaskAsync(func, arg, this.Scheduler.ConcurrentScheduler, cancellationToken);
     }
 
     // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
@@ -48,10 +49,11 @@ internal partial class SQLitePersistentStorage
         // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
         // data set by CallContext.LogicalSetData at each yielding await in the task tree.
         //
-        // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
-        // same thread where SuppressFlow was originally run.
+        // ⚠ DO NOT AWAIT INSIDE THE USING BLOCK LEXICALLY (it's fine to await within the call to PerformTaskAsync). The
+        // Dispose method that restores ExecutionContext flow must run on the same thread where SuppressFlow was
+        // originally run.
         using var _ = FlowControlHelper.TrySuppressFlow();
-        return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ExclusiveScheduler, cancellationToken);
+        return PerformTaskAsync(func, arg, this.Scheduler.ExclusiveScheduler, cancellationToken);
     }
 
     public Task PerformWriteAsync(Action action, CancellationToken cancellationToken)

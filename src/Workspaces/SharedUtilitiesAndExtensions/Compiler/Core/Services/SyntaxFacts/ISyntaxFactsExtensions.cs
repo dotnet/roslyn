@@ -36,12 +36,10 @@ internal static class ISyntaxFactsExtensions
         // and all the trivia on each token.  If full-span is false we'll examine all tokens
         // but we'll ignore the leading trivia on the very first trivia and the trailing trivia
         // on the very last token.
-        var stack = s_stackPool.Allocate();
+        using var _ = s_stackPool.GetPooledObject(out var stack);
         stack.Push((node, leading: fullSpan, trailing: fullSpan));
 
         var result = IsOnSingleLine(syntaxFacts, stack);
-
-        s_stackPool.ClearAndFree(stack);
 
         return result;
     }
@@ -49,9 +47,9 @@ internal static class ISyntaxFactsExtensions
     private static bool IsOnSingleLine(
         ISyntaxFacts syntaxFacts, Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)> stack)
     {
-        while (stack.Count > 0)
+        while (stack.TryPop(out var tuple))
         {
-            var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
+            var (currentNodeOrToken, currentLeading, currentTrailing) = tuple;
             if (currentNodeOrToken.IsToken)
             {
                 // If this token isn't on a single line, then the original node definitely
@@ -383,7 +381,7 @@ internal static class ISyntaxFactsExtensions
         => syntaxFacts.IsWord(token) || syntaxFacts.IsNumericLiteral(token);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, SyntaxNode node)
-        => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
+        => service.SpansPreprocessorDirective([node]);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, params SyntaxNode[] nodes)
         => service.SpansPreprocessorDirective((IEnumerable<SyntaxNode>)nodes);
@@ -595,7 +593,7 @@ internal static class ISyntaxFactsExtensions
 
     public static SyntaxNode GetTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
     {
-        syntaxFacts.GetPartsOfObjectCreationExpression(node, out var type, out _, out _);
+        syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var type, out _, out _);
         return type;
     }
 
@@ -648,7 +646,7 @@ internal static class ISyntaxFactsExtensions
         if (!syntaxFacts.IsObjectCreationExpression(parent))
             return false;
 
-        syntaxFacts.GetPartsOfObjectCreationExpression(parent, out var type, out _, out _);
+        syntaxFacts.GetPartsOfObjectCreationExpression(parent, out _, out var type, out _, out _);
         return type == node;
     }
 
