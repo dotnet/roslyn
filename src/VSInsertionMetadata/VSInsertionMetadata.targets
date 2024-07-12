@@ -1,0 +1,70 @@
+<Project>
+  <UsingTask TaskName="ReplaceFileText" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <InputFilename ParameterType="System.String" Required="true" />
+      <OutputFilename ParameterType="System.String" Required="true" />
+      <MatchExpression ParameterType="System.String" Required="true" />
+      <ReplacementText ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            File.WriteAllText(
+                OutputFilename,
+                Regex.Replace(File.ReadAllText(InputFilename), MatchExpression, ReplacementText)
+                );
+          ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>
+      $(TargetsForTfmSpecificContentInPackage);
+      SubstituteProfilingInputsMacro;
+    </TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="SubstituteProfilingInputsMacro">
+    <ItemGroup>
+      <ProfilingInputsSource Include="ProfilingInputs.props" />
+      <ProfilingInputsTarget Include="$(IntermediateOutputPath)ProfilingInputs.props" />
+    </ItemGroup>
+    <ReplaceFileText
+      Condition="'$(ProfilingInputsDropName)' != ''"
+      InputFilename="@(ProfilingInputsSource)"
+      OutputFilename="@(ProfilingInputsTarget)"
+      MatchExpression="%TESTSTORE%"
+      ReplacementText="vstsdrop:$(ProfilingInputsDropName)" />
+
+    <Warning
+      Text="The ProfilingInputsDropName msbuild property has not been set, and the OptProf will not contain accurate content."
+      Condition="'$(ProfilingInputsDropName)' == ''" />
+    <Copy SourceFiles="@(ProfilingInputsSource)" DestinationFiles="@(ProfilingInputsTarget)"
+      Condition="'$(ProfilingInputsDropName)' == ''" />
+
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(ProfilingInputsTarget)" PackagePath="InsertionVS/" />
+    </ItemGroup>
+  </Target>
+  <Target Name="EnsureUniquePackageVersion"
+    Condition="'$(Build_BuildId)' != ''"
+    AfterTargets="GetBuildVersion">
+    <!--
+       We must ensure unique versions for the insertion metadata package so
+       it can contain information that is unique to this build.
+       In particular it includes the ProfilingInputsDropName, which contains the BuildId.
+       A non-unique package version here may collide with a prior run of this same commit,
+       ultimately resulting in a failure of the optprof run.
+    -->
+    <PropertyGroup>
+      <PackageVersion>$(PackageVersion).$(Build_BuildId)</PackageVersion>
+    </PropertyGroup>
+  </Target>
+  <Target Name="BreakForRename" BeforeTargets="Pack;GenerateNuspec" Condition="'$(MSBuildProjectName)'=='Library.VSInsertionMetadata'">
+    <Error Text="This project should be renamed so the library name is used instead of 'Library'. Then delete this target." />
+  </Target>
+</Project>

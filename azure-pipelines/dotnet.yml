@@ -17,9 +17,8 @@ steps:
     condition: and(succeeded(), ${{ parameters.RunTests }})
 
 - ${{ if parameters.IsOptProf }}:
-  # We have to artifically run this script so that the extra .nupkg is produced for variables/InsertPropsValues.ps1 to notice.
-  - powershell: azure-pipelines\artifacts\VSInsertion.ps1
-    displayName: 🔧 Prepare VSInsertion artifact
+  - script: dotnet pack src\VSInsertionMetadata -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/VSInsertion-Pack.binlog"
+    displayName: 🔧 dotnet pack VSInsertionMetadata
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
