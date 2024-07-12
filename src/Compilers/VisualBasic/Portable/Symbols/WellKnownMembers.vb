@@ -734,8 +734,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim names = namesBuilder.SelectAsArray(map:=Function(name, constantType)
-                                                           Return New TypedConstant(constantType, TypedConstantKind.Primitive, name)
-                                                       End Function,
+                                                                Return New TypedConstant(constantType, TypedConstantKind.Primitive, name)
+                                                            End Function,
                                                        arg:=stringType)
 
                 namesBuilder.Free()

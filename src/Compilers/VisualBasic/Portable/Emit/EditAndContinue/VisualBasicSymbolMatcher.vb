@@ -249,15 +249,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim otherTypeParameters As ImmutableArray(Of TypeParameterSymbol) = otherDef.GetAllTypeParameters()
                     Dim translationFailed As Boolean = False
                     Dim otherTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(map:=Function(t, v)
-                                                                                                       Dim newType = DirectCast(v.Visit(t.Type), TypeSymbol)
-                                                                                                       If newType Is Nothing Then
-                                                                                                           ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
-                                                                                                           translationFailed = True
-                                                                                                           newType = t.Type
-                                                                                                       End If
+                                                                                                            Dim newType = DirectCast(v.Visit(t.Type), TypeSymbol)
+                                                                                                            If newType Is Nothing Then
+                                                                                                                ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
+                                                                                                                translationFailed = True
+                                                                                                                newType = t.Type
+                                                                                                            End If
 
-                                                                                                       Return New TypeWithModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers))
-                                                                                                   End Function, arg:=Me)
+                                                                                                            Return New TypeWithModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers))
+                                                                                                        End Function, arg:=Me)
                     If translationFailed Then
                         ' There is no match in the previous generation.
                         Return Nothing
