@@ -29,6 +29,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.AddFileBanner
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -562,10 +563,10 @@ End Class
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
 
-                ' must set global options since incremental analyzer infra reads from global options
-                Dim globalOptions = workspace.GlobalOptions
-                globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)
-                globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst)
+                workspace.SetAnalyzerFallbackOptions(New OptionsCollection(LanguageNames.VisualBasic) From {
+                    {GenerationOptions.SeparateImportDirectiveGroups, separateImportsGroups},
+                    {GenerationOptions.PlaceSystemNamespaceFirst, systemImportsFirst}
+                })
 
                 Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
                 {
@@ -587,7 +588,7 @@ End Class
                     document,
                     enabledDiagnostics,
                     CodeAnalysisProgress.None,
-                    globalOptions.CreateProvider(),
+                    workspace.GlobalOptions.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

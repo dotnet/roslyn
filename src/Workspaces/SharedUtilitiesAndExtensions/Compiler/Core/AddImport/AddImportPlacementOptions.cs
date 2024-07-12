@@ -39,13 +39,6 @@ internal sealed record class AddImportPlacementOptions
     public static readonly AddImportPlacementOptions Default = new();
 }
 
-internal interface AddImportPlacementOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<AddImportPlacementOptions>
-#endif
-{
-}
-
 internal static partial class AddImportPlacementOptionsProviders
 {
 #if !CODE_STYLE

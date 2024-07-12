@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 progressTracker.Report(CodeAnalysisProgress.Description(this.OrganizeImportsDescription));
                 document = await RemoveSortUsingsAsync(
-                    document, enabledDiagnostics.OrganizeUsings, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    document, enabledDiagnostics.OrganizeUsings, cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
             }
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private static async Task<Document> RemoveSortUsingsAsync(
-            Document document, OrganizeUsingsSet organizeUsingsSet, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
         {
             if (organizeUsingsSet.IsRemoveUnusedImportEnabled &&
                 document.GetLanguageService<IRemoveUnnecessaryImportsService>() is { } removeUsingsService)
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
                 {
-                    var organizeOptions = await document.GetOrganizeImportsOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var organizeOptions = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                     document = await organizeImportsService.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(false);
                 }
             }

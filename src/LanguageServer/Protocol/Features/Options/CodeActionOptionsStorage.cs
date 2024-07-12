@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
             => new()
             {
-                CleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices),
-                CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
                 SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language),
                 ImplementTypeOptions = globalOptions.GetImplementTypeOptions(languageServices.Language),
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),

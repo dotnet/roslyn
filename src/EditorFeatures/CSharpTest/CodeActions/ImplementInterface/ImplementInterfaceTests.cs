@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
@@ -8006,7 +8007,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 public int Prop => throw new System.NotImplementedException();
             }
             """,
-            CodeActionOptions = (CSharpCodeActionOptions.Default with
+            CodeActionOptions = (CodeActionOptions.Default with
             {
                 ImplementTypeOptions = new() { InsertionBehavior = ImplementTypeInsertionBehavior.AtTheEnd }
             }).CreateProvider()
@@ -8188,7 +8189,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
             }
             """,
-            CodeActionOptions = (CSharpCodeActionOptions.Default with
+            CodeActionOptions = (CodeActionOptions.Default with
             {
                 ImplementTypeOptions = new() { PropertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferAutoProperties }
             }).CreateProvider()
