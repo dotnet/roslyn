@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         //
         public string Layer { get; } = (string?)data.GetValueOrDefault(nameof(ExportLanguageServiceAttribute.Layer)) ?? ServiceLayer.Default;
 
-        public IReadOnlyList<string> WorkspaceKinds { get; } = (IReadOnlyList<string>)data[
+        public WorkspaceKinds WorkspaceKinds { get; } = (WorkspaceKinds)data[
 #if CODE_STYLE
             "WorkspaceKinds"
 #else

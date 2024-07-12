@@ -51,10 +51,14 @@ internal static class LayeredServiceUtilities
         // If a service is exported for specific workspace kinds and the current workspace kind is among them, use it.
         if (workspaceKind != null)
         {
-            service = servicesOfMatchingType.SingleOrDefault(static (lz, workspaceKind) => lz.Metadata.WorkspaceKinds.Contains(workspaceKind), workspaceKind);
-            if (service != null)
+            var kind = WorkspaceKindsFactory.FromKind(workspaceKind);
+            if (kind != WorkspaceKinds.Unknown)
             {
-                return service;
+                service = servicesOfMatchingType.SingleOrDefault(static (lz, workspaceKind) => lz.Metadata.WorkspaceKinds.HasFlag(workspaceKind), kind);
+                if (service != null)
+                {
+                    return service;
+                }
             }
 
             // For backward compat check workspace kind specific service.
@@ -79,6 +83,6 @@ internal static class LayeredServiceUtilities
         return null;
 
         Lazy<TServiceInterface, TMetadata>? TryGetServiceByLayer(string layer)
-            => servicesOfMatchingType.SingleOrDefault(static (lz, layer) => lz.Metadata.WorkspaceKinds is [] && lz.Metadata.Layer == layer, layer);
+            => servicesOfMatchingType.SingleOrDefault(static (lz, layer) => lz.Metadata.WorkspaceKinds == WorkspaceKinds.Unknown && lz.Metadata.Layer == layer, layer);
     }
 }
