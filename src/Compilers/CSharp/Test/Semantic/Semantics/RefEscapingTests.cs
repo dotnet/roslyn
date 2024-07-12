@@ -2649,7 +2649,6 @@ class Program
             readonly ref struct S1
             {
                 public void M1(Span<int> span) { }
-                public void M2(Span<int> span) { }
             }
 
             class G
@@ -2659,7 +2658,6 @@ class Program
                     S1 local = default;
                     Span<int> span = stackalloc int[] { 42 };
                     local.M1(span);
-                    local.M2(span);
                 }
             }
 
@@ -2940,11 +2938,27 @@ class Program
 
                         // `span` can't escape into `s` here because the get is readonly
                         _ = s[span];
+
+                        s[span] = 42; // 1
+                        s[span]++; // 2
                     }
                 }
                 """, TestOptions.Regular.WithLanguageVersion(languageVersion));
             var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (14,9): error CS8350: This combination of arguments to 'S.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         s[span] = 42; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s[span]").WithArguments("S.this[System.Span<byte>]", "span").WithLocation(14, 9),
+                // (14,11): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         s[span] = 42; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(14, 11),
+                // (15,9): error CS8350: This combination of arguments to 'S.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         s[span]++; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s[span]").WithArguments("S.this[System.Span<byte>]", "span").WithLocation(15, 9),
+                // (15,11): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         s[span]++; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(15, 11)
+                );
         }
 
         [Fact]
@@ -3086,6 +3100,73 @@ class Program
                 // (45,26): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[stackSpan, stackSpan] = 42; // 10
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(45, 26));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingIndexer5()
+        {
+            var code = """
+                using System;
+                Console.WriteLine();
+
+                ref struct S1<T> where T : new(), allows ref struct  
+                {  
+                    int this[T t] { get => 0; set {} }  
+
+                    static void Test()  
+                    {  
+                        scoped T x = default;  
+                        T y = default;  
+                        S1<T> local = default;  
+                        _ = local[x]; // 1  
+                        _ = local[y];  
+                        local[x] = 42; // 2  
+                        local[y] = 42;  
+                        local[x]++; // 3  
+                        local[y]++;  
+                    }  
+                }  
+
+                ref struct S2<T> where T : new(), allows ref struct  
+                {  
+                    T this[int index] { get => default; set {} }  
+
+                    static void Test()  
+                    {  
+                        scoped T x = default;  
+                        T y = default;  
+                        S2<T> local = default;  
+                        local[0] = x; // 4  
+                        local[1] = y;  
+                    }  
+                }  
+                """;
+
+            var comp = CreateCompilation([code], targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (13,13): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         _ = local[x]; // 1  
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(13, 13),
+                // (13,19): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[x]; // 1  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(13, 19),
+                // (15,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x] = 42; // 2  
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(15, 9),
+                // (15,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x] = 42; // 2  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(15, 15),
+                // (17,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 3  
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(17, 9),
+                // (17,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 3  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 15),
+                // (31,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[0] = x; // 4  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 20)
+                );
         }
 
         [Theory]
@@ -3669,8 +3750,10 @@ class Program
         [Fact]
         public void ObjectInitializer_Indexer_RefLikeType()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("""
+            var code = """
                 using System;
+
+                Console.WriteLine();
 
                 public ref struct S1
                 {
@@ -3701,13 +3784,31 @@ class Program
                         local = new S2() { [0] =  heapSpan };
                     }
                 }
-                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
 
-            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+                public ref struct S3<T> where T : new(), allows ref struct  
+                {
+                    T this[int index] { get => default; set {} }  
+
+                    static void Test()  
+                    {  
+                        scoped T stackT = default;  
+                        T heapT = default;  
+                        S3<T> local;
+                        local = new S3<T> { [0] = stackT }; // 2  
+                        local = new S3<T> { [0] = heapT };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([code], targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (13,26): error CS8352: Cannot use variable '[0] =  stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                // (15,26): error CS8352: Cannot use variable '[0] =  stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local = new S1() { [0] =  stackSpan }; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] =  stackSpan }").WithArguments("[0] =  stackSpan").WithLocation(13, 26));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] =  stackSpan }").WithArguments("[0] =  stackSpan").WithLocation(15, 26),
+                // (44,27): error CS8352: Cannot use variable '[0] = stackT' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S3<T> { [0] = stackT }; // 2  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] = stackT }").WithArguments("[0] = stackT").WithLocation(44, 27)
+                );
         }
 
         [Fact]
@@ -3785,6 +3886,24 @@ class Program
                         local = new S4(stackSpan) { [0] = heapSpan };
                         local = new S4(heapSpan) { [0] = stackSpan };
                         local = new S4(heapSpan) { [0] = heapSpan };
+                    }
+                }
+
+                public struct S5
+                {
+                    public S5(Span<int> span) { }
+                    Span<int> this[int index] { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S5 local;
+                        local = new S5(stackSpan) { [0] = stackSpan };
+                        local = new S5(stackSpan) { [0] = heapSpan };
+                        local = new S5(heapSpan) { [0] = stackSpan };
+                        local = new S5(heapSpan) { [0] = heapSpan };
                     }
                 }
                 """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));

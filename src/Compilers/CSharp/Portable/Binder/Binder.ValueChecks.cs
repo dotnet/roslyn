@@ -4595,7 +4595,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(expr.AccessorKind != AccessorKind.Unknown);
                 var methodInfo = MethodInfo.Create(indexer, expr.AccessorKind);
-                Debug.Assert(methodInfo.Method is not null);
+                if (methodInfo.Method is null)
+                {
+                    return CallingMethodScope;
+                }
 
                 // If the indexer is readonly then none of the arguments can contribute to 
                 // the receiver escape
