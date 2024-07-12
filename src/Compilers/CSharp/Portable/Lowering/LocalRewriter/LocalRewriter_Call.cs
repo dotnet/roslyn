@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         || (methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind
                             // In the specific situation where a readonly original method is intercepted with a static method,
                             // it's permitted for the interceptor this parameter to have either `in` or `ref readonly` ref kind.
-                            && !(needToReduce && method.IsEffectivelyReadOnly && interceptorThisParameterForCompare.RefKind is RefKind.In or RefKind.RefReadOnly)):
+                            && !(needToReduce && method.IsEffectivelyReadOnly && interceptorThisParameterForCompare.RefKind is RefKind.In or RefKind.RefReadOnlyParameter)):
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
                     return;
                 case (null, not null):

@@ -3786,7 +3786,7 @@ public class InterceptorsTests : CSharpTestBase
 
     [Theory]
     [InlineData("ref readonly")]
-    // [InlineData("in")]
+    [InlineData("in")]
     public void SignatureMismatch_11(string refKind)
     {
         var source = ("""
