@@ -270,8 +270,7 @@ namespace RunTests
                 }
                 else
                 {
-                    command.AppendLine(@"powershell -NoProfile -Command { Set-MpPreference -DisableRealtimeMonitoring $true }");
-                    command.AppendLine(@"powershell -NoProfile -Command { Set-MpPreference -ExclusionPath (Resolve-Path 'artifacts') }");
+                    command.AppendLine(@"%HELIX_CORRELATION_PAYLOAD%\get-machine-guid.cmd");
                     // Windows cmd doesn't have an easy way to set the output of a command to a variable.
                     // So send the output of the command to a file, then set the variable based on the file.
                     command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");

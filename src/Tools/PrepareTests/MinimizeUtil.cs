@@ -22,6 +22,9 @@ internal static class MinimizeUtil
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
+        File.Copy(Path.Combine(sourceDirectory, @"eng\get-machine-guid.ps1"), duplicateDirectory);
+        File.Copy(Path.Combine(sourceDirectory, @"eng\get-machine-guid.cmd"), duplicateDirectory);
+
         // https://github.com/dotnet/roslyn/issues/49486
         // we should avoid copying the files under Resources.
         Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
@@ -34,6 +37,8 @@ internal static class MinimizeUtil
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
             "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
+            "eng/get-machine-guid.ps1",
+            "eng/get-machine-guid.cmd",
         };
 
         foreach (var individualFile in individualFiles)
