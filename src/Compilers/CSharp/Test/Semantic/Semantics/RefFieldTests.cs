@@ -16929,6 +16929,64 @@ class B2 : A<string>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F6").WithArguments("s").WithLocation(17, 32));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73384")]
+        public void Indexer_Override_EscapeInGetter()
+        {
+            var source = """
+                public ref struct RS { }
+
+                public class Base
+                {
+                    public virtual RS this[scoped RS rs] { get => default; }
+                    public virtual RS this[scoped RS rs, int _] { get => default; set { }}
+                }
+
+                public class C : Base
+                {
+                    public override RS this[RS rs] { get => default; } // 1
+                    public override RS this[RS rs, int _] { get => default; set { } } // 2
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,38): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
+                //     public override RS this[RS rs] { get => default; } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(11, 38),
+                // (12,45): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
+                //     public override RS this[RS rs, int _] { get => default; set { } } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(12, 45));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73384")]
+        public void Indexer_InterfaceImplementation_EscapeInGetter()
+        {
+            var source = """
+                public ref struct RS { }
+
+                public interface I
+                {
+                    public RS this[scoped RS rs] { get; }
+                    public RS this[scoped RS rs, int _] { get; set; }
+                }
+
+                public class C : I
+                {
+                    public RS this[RS rs] { get => default; } // 1
+                    public RS this[RS rs, int _] { get => default; set { } } // 2
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,29): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
+                //     public RS this[RS rs] { get => default; } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(11, 29),
+                // (12,36): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
+                //     public RS this[RS rs, int _] { get => default; set { } } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(12, 36));
+        }
+
         [CombinatorialData]
         [Theory]
         public void InterfaceImplementations_01(bool useCompilationReference)
