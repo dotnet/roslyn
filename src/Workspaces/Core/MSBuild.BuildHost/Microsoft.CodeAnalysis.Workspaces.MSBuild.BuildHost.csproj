@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonFixedVersion)" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
