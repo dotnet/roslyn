@@ -127,7 +127,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             // caller.
             if (_state.IsException &&
                 _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                    static (c, parameterTypes) => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default), parameterTypes))
+                    predicate: static (c, parameterTypes) => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default), arg: parameterTypes))
             {
                 return;
             }

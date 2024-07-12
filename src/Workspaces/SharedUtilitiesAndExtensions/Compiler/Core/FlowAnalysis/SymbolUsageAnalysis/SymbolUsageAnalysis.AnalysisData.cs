@@ -187,11 +187,11 @@ internal static partial class SymbolUsageAnalysis
             {
                 CurrentBlockAnalysisData.ForEachCurrentWrite(
                     symbol,
-                    static (write, arg) =>
+                    action: static (write, arg) =>
                     {
                         arg.self.SymbolsWriteBuilder[(arg.symbol, write)] = true;
                     },
-                    (symbol, self: this));
+                    arg: (symbol, self: this));
             }
 
             // Mark the current symbol as read.

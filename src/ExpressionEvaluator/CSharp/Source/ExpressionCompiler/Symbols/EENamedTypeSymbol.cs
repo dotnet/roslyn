@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             TypeMap typeMap = null;
             var getTypeMap = new Func<TypeMap>(() => typeMap);
             _typeParameters = this.SourceTypeParameters.SelectAsArray(
-                (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
-                (object)null);
+                map: (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
+                arg: (object)null);
 
             typeMap = new TypeMap(this.SourceTypeParameters, _typeParameters);
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // Should not be requesting generated members
             // by name other than constructors.
             Debug.Assert((name == WellKnownMemberNames.InstanceConstructorName) || (name == WellKnownMemberNames.StaticConstructorName));
-            return this.GetMembers().WhereAsArray((m, name) => m.Name == name, name);
+            return this.GetMembers().WhereAsArray(predicate: (m, name) => m.Name == name, arg: name);
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()

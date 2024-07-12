@@ -187,13 +187,13 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
 
         var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
         list.RemoveOrTransformAll(
-            (operation, span) =>
+            transform: (operation, span) =>
             {
                 if (operation.TextSpan.Start >= span.Start && operation.TextSpan.End <= span.End && operation.Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
                     return null;
 
                 return operation;
             },
-            span);
+            arg: span);
     }
 }

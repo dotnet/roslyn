@@ -348,14 +348,14 @@ End Namespace
         {
             var actualSpans = reader.GetSpans(reader.Methods[method - 1].Blob);
 
-            return actualSpans.SelectAsArray((span, lines) =>
+            return actualSpans.SelectAsArray(map: (span, lines) =>
             {
                 if (span.StartLine >= lines.Length)
                 {
                     return null;
                 }
                 return lines[span.StartLine].Substring(span.StartColumn).TrimEnd(new[] { '\r', '\n', ' ' });
-            }, sourceLines);
+            }, arg: sourceLines);
         }
 
         public class MethodChecker

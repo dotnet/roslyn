@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public int FindIndex<TArg>(Func<T, TArg, bool> match, TArg arg)
-            => FindIndex(0, Count, match, arg);
+            => FindIndex(0, Count, match: match, arg: arg);
 
         public int FindIndex<TArg>(int startIndex, Func<T, TArg, bool> match, TArg arg)
-            => FindIndex(startIndex, Count - startIndex, match, arg);
+            => FindIndex(startIndex, Count - startIndex, match: match, arg: arg);
 
         public int FindIndex<TArg>(int startIndex, int count, Func<T, TArg, bool> match, TArg arg)
         {

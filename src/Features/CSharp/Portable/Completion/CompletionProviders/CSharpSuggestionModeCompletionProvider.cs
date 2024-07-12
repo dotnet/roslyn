@@ -184,7 +184,7 @@ internal class CSharpSuggestionModeCompletionProvider : AbstractSuggestionModeCo
         // If we're an argument to a function with multiple overloads, 
         // open the builder if any overload takes a delegate at our argument position
         var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
-        return inferredTypeInfo.Any(static (type, semanticModel) => GetDelegateType(type, semanticModel.Compilation).IsDelegateType(), semanticModel);
+        return inferredTypeInfo.Any(predicate: static (type, semanticModel) => GetDelegateType(type, semanticModel.Compilation).IsDelegateType(), arg: semanticModel);
     }
 
     private static ITypeSymbol? GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)

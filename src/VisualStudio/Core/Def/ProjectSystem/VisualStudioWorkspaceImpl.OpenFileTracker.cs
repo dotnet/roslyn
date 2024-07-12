@@ -200,7 +200,7 @@ internal partial class VisualStudioWorkspaceImpl
 
             void WatchHierarchy(IVsHierarchy hierarchyToWatch)
             {
-                _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
+                _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, valueCreator: static (h, self) => new HierarchyEventSink(h, self), arg: this));
             }
 
             // Take a snapshot of the immutable data structure here to avoid mutation underneath us

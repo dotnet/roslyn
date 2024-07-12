@@ -105,7 +105,7 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
     }
 
     internal Checksum Checksum
-        => _lazyChecksum.Initialize(static @this => Checksum.Create(@this,
+        => _lazyChecksum.Initialize(valueFactory: static @this => Checksum.Create(@this,
             static (@this, writer) =>
             {
                 // Combine "ProjectId" string and guid.  That way in the off chance that something in the stack uses
@@ -113,7 +113,7 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
                 // different.
                 writer.WriteString(nameof(ProjectId));
                 writer.WriteGuid(@this.Id);
-            }), this);
+            }), arg: this);
 
     int IComparable<ProjectId>.CompareTo(ProjectId? other)
     {

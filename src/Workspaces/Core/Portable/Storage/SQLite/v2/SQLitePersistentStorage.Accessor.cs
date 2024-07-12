@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<bool> ChecksumMatchesAsync(TKey key, string name, Checksum checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
-                    static t => t.self.ChecksumMatches(t.key, t.name, t.checksum, t.cancellationToken),
-                    (self: this, name, key, checksum, cancellationToken), cancellationToken);
+                    func: static t => t.self.ChecksumMatches(t.key, t.name, t.checksum, t.cancellationToken),
+                    arg: (self: this, name, key, checksum, cancellationToken), cancellationToken: cancellationToken);
 
             private bool ChecksumMatches(TKey key, string name, Checksum checksum, CancellationToken cancellationToken)
             {
@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Stream?> ReadStreamAsync(TKey key, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
-                    static t => t.self.ReadStream(t.key, t.name, t.checksum, t.cancellationToken),
-                    (self: this, key, name, checksum, cancellationToken), cancellationToken);
+                    func: static t => t.self.ReadStream(t.key, t.name, t.checksum, t.cancellationToken),
+                    arg: (self: this, key, name, checksum, cancellationToken), cancellationToken: cancellationToken);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             private Stream? ReadStream(TKey key, string name, Checksum? checksum, CancellationToken cancellationToken)
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             public Task<bool> WriteStreamAsync(TKey key, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformWriteAsync(
-                    static t => t.self.WriteStream(t.key, t.name, t.stream, t.checksum, t.cancellationToken),
-                    (self: this, key, name, stream, checksum, cancellationToken), cancellationToken);
+                    func: static t => t.self.WriteStream(t.key, t.name, t.stream, t.checksum, t.cancellationToken),
+                    arg: (self: this, key, name, stream, checksum, cancellationToken), cancellationToken: cancellationToken);
 
             private bool WriteStream(TKey key, string dataName, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {

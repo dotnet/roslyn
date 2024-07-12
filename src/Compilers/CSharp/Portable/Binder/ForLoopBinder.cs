@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Declaration and Initializers are mutually exclusive.
             if (_syntax.Declaration != null)
             {
-                _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                _syntax.Declaration.Type.VisitRankSpecifiers(action: (rankSpecifier, args) =>
                 {
                     foreach (var size in rankSpecifier.Sizes)
                     {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
                         }
                     }
-                }, (binder: this, locals: locals));
+                }, argument: (binder: this, locals: locals));
 
                 foreach (var vdecl in _syntax.Declaration.Variables)
                 {

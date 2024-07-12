@@ -192,10 +192,10 @@ internal sealed class ValueTrackedTreeItemViewModel : TreeItemViewModel
         var valueTrackedItems = await _valueTrackingService.TrackValueSourceAsync(
             _solution, _trackedItem, cancellationToken).ConfigureAwait(false);
 
-        return await valueTrackedItems.SelectAsArrayAsync(static (item, self, cancellationToken) =>
+        return await valueTrackedItems.SelectAsArrayAsync(selector: static (item, self, cancellationToken) =>
             CreateAsync(
                 self._solution, item, children: ImmutableArray<TreeItemViewModel>.Empty,
                 self.TreeViewModel, self._glyphService, self._valueTrackingService, self._globalOptions,
-                self.ThreadingContext, self._listener, self._threadOperationExecutor, cancellationToken), this, cancellationToken).ConfigureAwait(false);
+                self.ThreadingContext, self._listener, self._threadOperationExecutor, cancellationToken), arg: this, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

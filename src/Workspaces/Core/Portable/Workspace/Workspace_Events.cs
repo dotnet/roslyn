@@ -67,7 +67,7 @@ public abstract partial class Workspace
                 using (Logger.LogBlock(FunctionId.Workspace_Events, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
                 {
                     var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                    ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
+                    ev.RaiseEvent(invoker: static (handler, arg) => handler(arg.self, arg.args), arg: (self: this, args));
                 }
             }, WorkspaceChangeEventName);
         }
@@ -100,7 +100,7 @@ public abstract partial class Workspace
         if (ev.HasHandlers)
         {
             var args = new WorkspaceDiagnosticEventArgs(diagnostic);
-            ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
+            ev.RaiseEvent(invoker: static (handler, arg) => handler(arg.self, arg.args), arg: (self: this, args));
         }
     }
 
@@ -154,7 +154,7 @@ public abstract partial class Workspace
         {
             return this.ScheduleTask(() =>
             {
-                ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
+                ev.RaiseEvent(invoker: static (handler, arg) => handler(arg.self, arg.args), arg: (self: this, args));
             }, eventName);
         }
         else
@@ -233,7 +233,7 @@ public abstract partial class Workspace
             return this.ScheduleTask(() =>
             {
                 var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
-                ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
+                ev.RaiseEvent(invoker: static (handler, arg) => handler(arg.self, arg.args), arg: (self: this, args));
             }, "Workspace.WorkspaceChanged");
         }
         else

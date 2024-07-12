@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => InterlockedOperations.Initialize(
                 ref _supportedDiagnostics,
-                static @this =>
+                createArray: static @this =>
                 {
                     var messageProvider = @this.MessageProvider;
                     var errorCodes = @this.GetSupportedErrorCodes();
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
                     return builder.ToImmutableAndFree();
-                }, this);
+                }, arg: this);
 
         public sealed override void Initialize(AnalysisContext context)
         {

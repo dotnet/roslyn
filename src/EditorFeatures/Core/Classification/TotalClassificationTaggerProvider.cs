@@ -93,7 +93,7 @@ internal sealed class TotalClassificationAggregateTagger(
                 arg.embeddedTagger.AddTags(spans, tags);
                 return Task.CompletedTask;
             },
-            (syntacticTagger, semanticTagger, embeddedTagger)).VerifyCompleted();
+            arg: (syntacticTagger, semanticTagger, embeddedTagger)).VerifyCompleted();
     }
 
     public static async Task AddTagsAsync<TArg>(

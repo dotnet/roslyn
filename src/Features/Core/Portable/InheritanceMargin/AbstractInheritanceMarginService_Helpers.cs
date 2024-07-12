@@ -406,20 +406,20 @@ internal abstract partial class AbstractInheritanceMarginService
         var baseSymbolItems = await baseSymbols
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                 solution,
                 symbol,
                 InheritanceRelationship.InheritedInterface,
-                cancellationToken), solution, cancellationToken)
+                cancellationToken), arg: solution, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         var derivedTypeItems = await derivedTypesSymbols
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
                 symbol,
                 InheritanceRelationship.ImplementingType,
-                cancellationToken), solution, cancellationToken)
+                cancellationToken), arg: solution, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
@@ -443,11 +443,11 @@ internal abstract partial class AbstractInheritanceMarginService
         var implementedMemberItems = await implementingMembers
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                 solution,
                 symbol,
                 InheritanceRelationship.ImplementingMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
         return InheritanceMarginItem.CreateOrdered(
@@ -471,19 +471,19 @@ internal abstract partial class AbstractInheritanceMarginService
         var baseSymbolItems = await baseSymbols
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                 solution,
                 symbol,
                 symbol.IsInterfaceType() ? InheritanceRelationship.ImplementedInterface : InheritanceRelationship.BaseType,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var derivedTypeItems = await derivedTypesSymbols
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
                 symbol,
                 InheritanceRelationship.DerivedType,
-                cancellationToken), solution, cancellationToken)
+                cancellationToken), arg: solution, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
@@ -509,29 +509,29 @@ internal abstract partial class AbstractInheritanceMarginService
         var implementedMemberItems = await implementedMembers
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                 solution,
                 symbol,
                 InheritanceRelationship.ImplementedMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var overriddenMemberItems = await overriddenMembers
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                 solution,
                 symbol,
                 InheritanceRelationship.OverriddenMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var overridingMemberItems = await overridingMembers
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+            .SelectAsArrayAsync(selector: static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
                 solution,
                 symbol,
                 InheritanceRelationship.OverridingMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
         var nonNullOverriddenMemberItems = GetNonNullTargetItems(overriddenMemberItems);

@@ -167,7 +167,7 @@ internal class EventMap
                 {
                     foreach (var registry in _registries)
                     {
-                        registry.Invoke(invoker, arg);
+                        registry.Invoke(invoker: invoker, arg: arg);
                     }
                 }
             }

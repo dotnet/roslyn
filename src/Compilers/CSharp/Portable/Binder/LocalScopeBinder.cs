@@ -188,14 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Binder localDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
                         var decl = (LocalDeclarationStatementSyntax)innerStatement;
 
-                        decl.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                        decl.Declaration.Type.VisitRankSpecifiers(action: (rankSpecifier, args) =>
                         {
                             foreach (var expression in rankSpecifier.Sizes)
                             {
                                 findExpressionVariablesInRankSpecifier(expression, args);
                             }
 
-                        }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localDeclarationBinder));
+                        }, argument: (localScopeBinder: this, locals: locals, localDeclarationBinder: localDeclarationBinder));
 
                         LocalDeclarationKind kind;
                         if (decl.IsConst)
@@ -229,13 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var parameter in decl.ParameterList.Parameters)
                         {
-                            parameter.Type?.VisitRankSpecifiers((rankSpecifier, args) =>
+                            parameter.Type?.VisitRankSpecifiers(action: (rankSpecifier, args) =>
                             {
                                 foreach (var expression in rankSpecifier.Sizes)
                                 {
                                     findExpressionVariablesInRankSpecifier(expression, args);
                                 }
-                            }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
+                            }, argument: (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
                         }
 
                         foreach (var constraintClause in decl.ConstraintClauses)
@@ -244,13 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (constraint is TypeConstraintSyntax typeConstraint)
                                 {
-                                    typeConstraint.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                                    typeConstraint.Type.VisitRankSpecifiers(action: (rankSpecifier, args) =>
                                     {
                                         foreach (var expression in rankSpecifier.Sizes)
                                         {
                                             findExpressionVariablesInRankSpecifier(expression, args);
                                         }
-                                    }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
+                                    }, argument: (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
                                 }
                             }
                         }

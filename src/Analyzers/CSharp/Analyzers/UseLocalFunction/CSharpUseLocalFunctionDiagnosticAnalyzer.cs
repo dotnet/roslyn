@@ -409,7 +409,7 @@ internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeSty
             var typeParams = localEnclosingSymbol.GetTypeParameters();
             if (typeParams.Any())
             {
-                if (typeParams.Any(static (p, delegateTypeParamNames) => delegateTypeParamNames.Contains(p.Name), delegateTypeParamNames))
+                if (typeParams.Any(predicate: static (p, delegateTypeParamNames) => delegateTypeParamNames.Contains(p.Name), arg: delegateTypeParamNames))
                 {
                     return false;
                 }

@@ -184,8 +184,8 @@ internal sealed class InteractiveSession : IDisposable
 
             var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
             references = initResult.MetadataReferencePaths.ToImmutableArrayOrEmpty().SelectAsArray(
-                (path, metadataService) => (MetadataReference)metadataService.GetReference(path, MetadataReferenceProperties.Assembly),
-                metadataService);
+                map: (path, metadataService) => (MetadataReference)metadataService.GetReference(path, MetadataReferenceProperties.Assembly),
+                arg: metadataService);
 
             // if a script was specified in .rps file insert a project with a document that represents it:
             initializationScriptPath = initResult!.ScriptPath;

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,15 +15,15 @@ internal static class AsyncLazy
 
     public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
         => Create(
-            asynchronousComputeFunction,
+            asynchronousComputeFunction: asynchronousComputeFunction,
             synchronousComputeFunction: null,
-            arg);
+            arg: arg);
 
     public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
         => Create(
             asynchronousComputeFunction: static (outerArg, cancellationToken) => Task.FromResult(outerArg.synchronousComputeFunction(outerArg.arg, cancellationToken)),
             synchronousComputeFunction: static (outerArg, cancellationToken) => outerArg.synchronousComputeFunction(outerArg.arg, cancellationToken),
-            (synchronousComputeFunction, arg));
+            arg: (synchronousComputeFunction, arg));
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
         => Create(

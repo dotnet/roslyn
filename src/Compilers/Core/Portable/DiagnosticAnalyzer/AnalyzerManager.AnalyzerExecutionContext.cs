@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from analyzer.SupportedDiagnostics
                 analyzerExecutor.ExecuteAndCatchIfThrows(
                     analyzer,
-                    _ =>
+                    analyze: _ =>
                     {
                         var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
                         if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     },
                     argument: (object?)null,
                     contextInfo: null,
-                    cancellationToken);
+                    cancellationToken: cancellationToken);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
                 var onAnalyzerException = analyzerExecutor.OnAnalyzerException;
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from suppressor.SupportedSuppressions
                     analyzerExecutor.ExecuteAndCatchIfThrows(
                         analyzer,
-                        _ =>
+                        analyze: _ =>
                         {
                             var descriptorsLocal = suppressor.SupportedSuppressions;
                             if (!descriptorsLocal.IsDefaultOrEmpty)
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         },
                         argument: (object?)null,
                         contextInfo: null,
-                        cancellationToken);
+                        cancellationToken: cancellationToken);
                 }
 
                 return descriptors;

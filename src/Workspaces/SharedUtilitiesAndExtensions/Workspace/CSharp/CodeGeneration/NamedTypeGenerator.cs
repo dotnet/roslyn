@@ -119,7 +119,7 @@ internal static class NamedTypeGenerator
             members = members.Remove(primaryConstructor);
 
             // remove any fields/properties that were created by the primary constructor
-            members = members.WhereAsArray(m => m is not IPropertySymbol and not IFieldSymbol || !primaryConstructor.Parameters.Any(static (p, m) => p.Name == m.Name, m));
+            members = members.WhereAsArray(m => m is not IPropertySymbol and not IFieldSymbol || !primaryConstructor.Parameters.Any(predicate: static (p, m) => p.Name == m.Name, arg: m));
         }
 
         // remove any implicit overrides to generate.

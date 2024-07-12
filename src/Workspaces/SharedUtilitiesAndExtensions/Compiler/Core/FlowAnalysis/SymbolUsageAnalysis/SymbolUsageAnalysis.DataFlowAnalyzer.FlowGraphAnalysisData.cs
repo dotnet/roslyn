@@ -442,14 +442,14 @@ internal static partial class SymbolUsageAnalysis
                     {
                         CurrentBlockAnalysisData.ForEachCurrentWrite(
                             parameter,
-                            static (write, arg) =>
+                            action: static (write, arg) =>
                             {
                                 if (write != null)
                                 {
                                     arg.self.SymbolsWriteBuilder[(arg.parameter, write)] = true;
                                 }
                             },
-                            (parameter, self: this));
+                            arg: (parameter, self: this));
                     }
                 }
             }
@@ -523,7 +523,7 @@ internal static partial class SymbolUsageAnalysis
                 var targetsBuilder = PooledHashSet<IOperation>.GetInstance();
                 var completedVisit = CurrentBlockAnalysisData.ForEachCurrentWrite(
                     symbol,
-                    static (symbolWrite, arg) =>
+                    action: static (symbolWrite, arg) =>
                     {
                         if (symbolWrite == null)
                         {
@@ -551,7 +551,7 @@ internal static partial class SymbolUsageAnalysis
                         // Continue with the iteration
                         return true;
                     },
-                    (targetsBuilder, self: this));
+                    arg: (targetsBuilder, self: this));
 
                 if (!completedVisit)
                     return;

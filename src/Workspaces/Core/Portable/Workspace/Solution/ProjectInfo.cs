@@ -504,11 +504,11 @@ public sealed class ProjectInfo
         /// langword="null"/> if the name does not contain a flavor.
         /// </summary>
         public (string? name, string? flavor) NameAndFlavor
-            => _lazyNameAndFlavor.Initialize(static @this =>
+            => _lazyNameAndFlavor.Initialize(valueFactory: static @this =>
             {
                 var match = s_projectNameAndFlavor.Match(@this.Name);
                 return match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default;
-            }, this);
+            }, arg: this);
 
         public ProjectAttributes With(
             VersionStamp? version = null,
@@ -637,6 +637,6 @@ public sealed class ProjectInfo
         }
 
         public Checksum Checksum
-            => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
+            => _lazyChecksum.Initialize(valueFactory: static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), arg: this);
     }
 }

@@ -116,7 +116,7 @@ namespace Roslyn.Utilities
                 return EqualityComparer<T>.Default.Equals(item, _one) ? Empty : this;
             }
 
-            return OneOrMany.Create(_many.WhereAsArray(static (value, item) => !EqualityComparer<T>.Default.Equals(value, item), item));
+            return OneOrMany.Create(_many.WhereAsArray(predicate: static (value, item) => !EqualityComparer<T>.Default.Equals(value, item), arg: item));
         }
 
         public OneOrMany<TResult> Select<TResult>(Func<T, TResult> selector)
@@ -130,7 +130,7 @@ namespace Roslyn.Utilities
         {
             return HasOneItem ?
                 OneOrMany.Create(selector(_one, arg)) :
-                OneOrMany.Create(_many.SelectAsArray(selector, arg));
+                OneOrMany.Create(_many.SelectAsArray(map: selector, arg: arg));
         }
 
         public T First() => this[0];
@@ -155,7 +155,7 @@ namespace Roslyn.Utilities
                 return predicate(_one, arg) ? _one : default;
             }
 
-            return _many.FirstOrDefault(predicate, arg);
+            return _many.FirstOrDefault(predicate: predicate, arg: arg);
         }
 
         public static OneOrMany<T> CastUp<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
@@ -169,7 +169,7 @@ namespace Roslyn.Utilities
             => HasOneItem ? predicate(_one) : _many.All(predicate);
 
         public bool All<TArg>(Func<T, TArg, bool> predicate, TArg arg)
-            => HasOneItem ? predicate(_one, arg) : _many.All(predicate, arg);
+            => HasOneItem ? predicate(_one, arg) : _many.All(predicate: predicate, arg: arg);
 
         public bool Any()
             => !IsEmpty;
@@ -178,7 +178,7 @@ namespace Roslyn.Utilities
             => HasOneItem ? predicate(_one) : _many.Any(predicate);
 
         public bool Any<TArg>(Func<T, TArg, bool> predicate, TArg arg)
-            => HasOneItem ? predicate(_one, arg) : _many.Any(predicate, arg);
+            => HasOneItem ? predicate(_one, arg) : _many.Any(predicate: predicate, arg: arg);
 
         public ImmutableArray<T> ToImmutable()
             => HasOneItem ? ImmutableArray.Create(_one) : _many;

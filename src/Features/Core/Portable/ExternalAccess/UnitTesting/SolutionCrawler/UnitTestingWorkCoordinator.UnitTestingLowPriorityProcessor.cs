@@ -129,7 +129,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
                     try
                     {
-                        using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessProjectAsync, w => w.ToString(), workItem, cancellationToken))
+                        using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessProjectAsync, messageGetter: w => w.ToString(), arg: workItem, token: cancellationToken))
                         {
                             var project = processingSolution.GetProject(projectId);
                             if (project != null)

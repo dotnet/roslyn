@@ -193,7 +193,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         DebuggingSession? debuggingSession;
         lock (_debuggingSessions)
         {
-            _debuggingSessions.TryRemoveFirst((s, sessionId) => s.Id == sessionId, sessionId, out debuggingSession);
+            _debuggingSessions.TryRemoveFirst(selector: (s, sessionId) => s.Id == sessionId, arg: sessionId, removedItem: out debuggingSession);
         }
 
         Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
@@ -213,9 +213,9 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
     {
         return GetDiagnosticReportingDebuggingSessions().SelectManyAsArrayAsync(
-            (s, arg, cancellationToken) => s.GetDocumentDiagnosticsAsync(arg.document, arg.activeStatementSpanProvider, cancellationToken),
-            (document, activeStatementSpanProvider),
-            cancellationToken);
+            selector: (s, arg, cancellationToken) => s.GetDocumentDiagnosticsAsync(arg.document, arg.activeStatementSpanProvider, cancellationToken),
+            arg: (document, activeStatementSpanProvider),
+            cancellationToken: cancellationToken);
     }
 
     public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(

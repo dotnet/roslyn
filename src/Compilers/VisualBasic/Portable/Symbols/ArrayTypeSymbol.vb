@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Me.IsSZArray Then
                         Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol) = Me.InterfacesNoUseSiteDiagnostics
                         If newInterfaces.Length > 0 Then
-                            newInterfaces = newInterfaces.SelectAsArray(Function([interface], map) DirectCast([interface].InternalSubstituteTypeParameters(map).AsTypeSymbolOnly(), NamedTypeSymbol), substitution)
+                            newInterfaces = newInterfaces.SelectAsArray(map:=Function([interface], map) DirectCast([interface].InternalSubstituteTypeParameters(map).AsTypeSymbolOnly(), NamedTypeSymbol), arg:=substitution)
                         End If
 
                         newArray = New SZArray(newElementType.Type, newElementType.CustomModifiers, _systemArray, newInterfaces)

@@ -242,8 +242,8 @@ exitWhile:
                     TextWindow.LexemeRelativeStart,
                     i - TextWindow.LexemeRelativeStart,
                     hashCode,
-                    CreateQuickToken,
-                    this);
+                    createTokenFunction: CreateQuickToken,
+                    data: this);
                 return token;
             }
             else

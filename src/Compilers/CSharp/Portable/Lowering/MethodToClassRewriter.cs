@@ -371,8 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 replacement = proxy.Replacement(
                     syntax,
-                    static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
-                    (syntax, self: this));
+                    makeFrame: static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
+                    arg: (syntax, self: this));
 
                 return true;
             }

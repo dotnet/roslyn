@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Dim otherTypeParameters As ImmutableArray(Of TypeParameterSymbol) = otherDef.GetAllTypeParameters()
                     Dim translationFailed As Boolean = False
-                    Dim otherTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(Function(t, v)
+                    Dim otherTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(map:=Function(t, v)
                                                                                                        Dim newType = DirectCast(v.Visit(t.Type), TypeSymbol)
                                                                                                        If newType Is Nothing Then
                                                                                                            ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                                                                                        End If
 
                                                                                                        Return New TypeWithModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers))
-                                                                                                   End Function, Me)
+                                                                                                   End Function, arg:=Me)
                     If translationFailed Then
                         ' There is no match in the previous generation.
                         Return Nothing
@@ -593,8 +593,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 Dim originalDef As NamedTypeSymbol = type.OriginalDefinition
                 If originalDef IsNot type Then
-                    Dim translatedTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(Function(t, v) New TypeWithModifiers(DirectCast(v.Visit(t.Type), TypeSymbol),
-                                                                                                                                             v.VisitCustomModifiers(t.CustomModifiers)), Me)
+                    Dim translatedTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(map:=Function(t, v) New TypeWithModifiers(DirectCast(v.Visit(t.Type), TypeSymbol),
+                                                                                                                                             v.VisitCustomModifiers(t.CustomModifiers)), arg:=Me)
 
                     Dim translatedOriginalDef = DirectCast(Me.Visit(originalDef), NamedTypeSymbol)
                     Dim typeMap = TypeSubstitution.Create(translatedOriginalDef, translatedOriginalDef.GetAllTypeParameters(), translatedTypeArguments, False)

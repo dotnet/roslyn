@@ -95,11 +95,11 @@ internal partial class FormattingContext
             return InterlockedOperations.Initialize(
                 ref _lazyIndentationDelta,
                 UninitializedIndentationDelta,
-                static self => self._indentationDeltaGetter(
+                valueFactory: static self => self._indentationDeltaGetter(
                     self._formattingContext,
                     self.Operation,
                     self._effectiveBaseTokenGetter(self._formattingContext, self.Operation)),
-                this);
+                arg: this);
         }
 
         public override int Indentation => GetOrComputeIndentationDelta() + _baseIndentationGetter(_formattingContext, _effectiveBaseTokenGetter(_formattingContext, Operation));

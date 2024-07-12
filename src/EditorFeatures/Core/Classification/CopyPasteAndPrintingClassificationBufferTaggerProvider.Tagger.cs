@@ -151,11 +151,11 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     new NormalizedSnapshotSpanCollection(spanToTag),
                     mergedTags,
                     // We should only be asking for a single span when getting the syntactic classifications
-                    GetTaggingFunction(requireSingleSpan: true, (span, buffer) => classificationService.AddSyntacticClassificationsAsync(document, span, buffer, cancellationToken)),
+                    addSyntacticSpansAsync: GetTaggingFunction(requireSingleSpan: true, (span, buffer) => classificationService.AddSyntacticClassificationsAsync(document, span, buffer, cancellationToken)),
                     // We should only be asking for a single span when getting the semantic classifications
-                    GetTaggingFunction(requireSingleSpan: true, (span, buffer) => classificationService.AddSemanticClassificationsAsync(document, span, options, buffer, cancellationToken)),
+                    addSemanticSpansAsync: GetTaggingFunction(requireSingleSpan: true, (span, buffer) => classificationService.AddSemanticClassificationsAsync(document, span, options, buffer, cancellationToken)),
                     //  Note: many string literal spans may be passed in when getting embedded classifications
-                    GetTaggingFunction(requireSingleSpan: false, (span, buffer) => classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, buffer, cancellationToken)),
+                    addEmbeddedSpansAsync: GetTaggingFunction(requireSingleSpan: false, (span, buffer) => classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, buffer, cancellationToken)),
                     arg: default).ConfigureAwait(false);
             });
 

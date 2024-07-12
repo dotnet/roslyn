@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _lazyParameterType.Initialize(static (SourceEventAccessorSymbol accessor) =>
+                return _lazyParameterType.Initialize(valueFactory: static (SourceEventAccessorSymbol accessor) =>
                                                      {
                                                          SourceEventSymbol @event = accessor.AssociatedEvent;
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                              return @event.TypeWithAnnotations;
                                                          }
                                                      },
-                                                     (SourceEventAccessorSymbol)this.ContainingSymbol);
+                                                     arg: (SourceEventAccessorSymbol)this.ContainingSymbol);
             }
         }
     }

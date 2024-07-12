@@ -217,7 +217,7 @@ internal static partial class ITypeSymbolExtensions
         this ITypeSymbol type, ITypeSymbol interfaceType)
     {
         var originalInterfaceType = interfaceType.OriginalDefinition;
-        return type.AllInterfaces.Any(static (t, originalInterfaceType) => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType), originalInterfaceType);
+        return type.AllInterfaces.Any(predicate: static (t, originalInterfaceType) => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType), arg: originalInterfaceType);
     }
 
     public static bool Implements(

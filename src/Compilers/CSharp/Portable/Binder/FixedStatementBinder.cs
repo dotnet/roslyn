@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
 
-                _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                _syntax.Declaration.Type.VisitRankSpecifiers(action: (rankSpecifier, args) =>
                 {
                     foreach (var size in rankSpecifier.Sizes)
                     {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
                         }
                     }
-                }, (binder: this, locals: locals));
+                }, argument: (binder: this, locals: locals));
 
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {

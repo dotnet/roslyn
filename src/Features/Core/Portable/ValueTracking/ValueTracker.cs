@@ -39,7 +39,7 @@ internal static partial class ValueTracker
 
             // If the selection is within a declaration of the symbol, we want to include
             // all declarations and assignments of the symbol
-            if (declaringSyntaxReferences.Any(static (r, selection) => r.Span.IntersectsWith(selection), selection))
+            if (declaringSyntaxReferences.Any(predicate: static (r, selection) => r.Span.IntersectsWith(selection), arg: selection))
             {
                 // Add all initializations of the symbol. Those are not caught in 
                 // the reference finder but should still show up in the tree

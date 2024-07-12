@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(!analyzers.IsDefaultOrEmpty);
 
                 var groups = analyzers.SelectAsArray(
-                    (analyzer, analyzerActions) => (analyzer, new GroupedAnalyzerActionsForAnalyzer(analyzer, analyzerActions, analyzerActionsNeedFiltering: true)),
-                    analyzerActions);
+                    map: (analyzer, analyzerActions) => (analyzer, new GroupedAnalyzerActionsForAnalyzer(analyzer, analyzerActions, analyzerActionsNeedFiltering: true)),
+                    arg: analyzerActions);
                 return new GroupedAnalyzerActions(groups, in analyzerActions);
             }
 

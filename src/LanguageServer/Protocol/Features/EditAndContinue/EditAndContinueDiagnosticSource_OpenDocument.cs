@@ -33,7 +33,7 @@ internal static partial class EditAndContinueDiagnosticSource
                 return [];
             }
 
-            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, designTimeDocument.Id);
+            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(predicate: static (data, id) => data.DocumentId == id, arg: designTimeDocument.Id);
 
             var compileTimeSolution = services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
 

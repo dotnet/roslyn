@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers() => _members;
 
-        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(static (m, name) => m.Name == name, name);
+        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(predicate: static (m, name) => m.Name == name, arg: name);
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 

@@ -1352,7 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return (BoundInterpolatedStringArgumentPlaceholder.InstanceParameter, null);
                 }
 
-                var parameter = containingSymbolParameters.FirstOrDefault(static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), name);
+                var parameter = containingSymbolParameters.FirstOrDefault(predicate: static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), arg: name);
                 if (parameter is null)
                 {
                     // '{0}' is not a valid parameter name from '{1}'.

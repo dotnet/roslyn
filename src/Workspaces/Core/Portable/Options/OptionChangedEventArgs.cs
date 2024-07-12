@@ -12,5 +12,5 @@ internal sealed class OptionChangedEventArgs(ImmutableArray<(OptionKey2 key, obj
     public ImmutableArray<(OptionKey2 key, object? newValue)> ChangedOptions => changedOptions;
 
     public bool HasOption(Func<IOption2, bool> predicate)
-        => changedOptions.Any(static (option, predicate) => predicate(option.key.Option), predicate);
+        => changedOptions.Any(predicate: static (option, predicate) => predicate(option.key.Option), arg: predicate);
 }

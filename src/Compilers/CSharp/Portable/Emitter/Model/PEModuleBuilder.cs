@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
                     var byteArrayType = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeWithAnnotations.Create(byteType));
-                    var value = flagsBuilder.SelectAsArray((flag, byteType) => new TypedConstant(byteType, TypedConstantKind.Primitive, flag), byteType);
+                    var value = flagsBuilder.SelectAsArray(map: (flag, byteType) => new TypedConstant(byteType, TypedConstantKind.Primitive, flag), arg: byteType);
                     attribute = SynthesizeNullableAttribute(
                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
                         ImmutableArray.Create(new TypedConstant(byteArrayType, value)));
@@ -1661,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 NamedTypeSymbol booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
-                var transformFlags = builder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
+                var transformFlags = builder.SelectAsArray(map: (flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), arg: booleanType);
                 var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeWithAnnotations.Create(booleanType));
                 var arguments = ImmutableArray.Create(new TypedConstant(boolArray, transformFlags));
                 attribute = SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags, arguments);
@@ -1820,14 +1820,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal MethodSymbol EnsureThrowSwitchExpressionExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName,
-                                                      static (privateImplClass, factory) =>
+                                                      createMethodSymbol: static (privateImplClass, factory) =>
                                                       {
                                                           TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
                                                           TypeSymbol unmatchedValueType = factory.SpecialType(SpecialType.System_Object);
                                                           return new SynthesizedThrowSwitchExpressionExceptionMethod(privateImplClass, returnType, unmatchedValueType);
                                                       },
-                                                      factory,
-                                                      diagnostics);
+                                                      arg: factory,
+                                                      diagnostics: diagnostics);
         }
 
         private MethodSymbol EnsurePrivateImplClassMethodExists<TArg>(SyntaxNode syntaxNode, string methodName, Func<SynthesizedPrivateImplementationDetailsType, TArg, MethodSymbol> createMethodSymbol, TArg arg, DiagnosticBag diagnostics)
@@ -1867,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal MethodSymbol EnsureThrowSwitchExpressionExceptionParameterlessExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
-                                                      static (privateImplClass, factory) =>
+                                                      createMethodSymbol: static (privateImplClass, factory) =>
                                                       {
                                                           TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
 
@@ -1877,8 +1877,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                               PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
                                                               factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor));
                                                       },
-                                                      factory,
-                                                      diagnostics);
+                                                      arg: factory,
+                                                      diagnostics: diagnostics);
         }
 
         /// <summary>
@@ -1887,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal MethodSymbol EnsureThrowInvalidOperationExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName,
-                                                      static (privateImplClass, factory) =>
+                                                      createMethodSymbol: static (privateImplClass, factory) =>
                                                       {
                                                           TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
 
@@ -1897,8 +1897,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                               PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName,
                                                               factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));
                                                       },
-                                                      factory,
-                                                      diagnostics);
+                                                      arg: factory,
+                                                      diagnostics: diagnostics);
         }
 
         internal MethodSymbol EnsureInlineArrayAsSpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
@@ -1906,7 +1906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
 
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
-                                                      static (privateImplClass, arg) =>
+                                                      createMethodSymbol: static (privateImplClass, arg) =>
                                                       {
                                                           return new SynthesizedInlineArrayAsSpanMethod(
                                                               privateImplClass,
@@ -1914,8 +1914,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                               arg.spanType,
                                                               arg.intType);
                                                       },
-                                                      (spanType, intType),
-                                                      diagnostics);
+                                                      arg: (spanType, intType),
+                                                      diagnostics: diagnostics);
         }
 
         internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, DiagnosticBag diagnostics)
@@ -1975,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
 
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
-                                                      static (privateImplClass, arg) =>
+                                                      createMethodSymbol: static (privateImplClass, arg) =>
                                                       {
                                                           return new SynthesizedInlineArrayAsReadOnlySpanMethod(
                                                               privateImplClass,
@@ -1983,8 +1983,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                               arg.spanType,
                                                               arg.intType);
                                                       },
-                                                      (spanType, intType),
-                                                      diagnostics);
+                                                      arg: (spanType, intType),
+                                                      diagnostics: diagnostics);
         }
 
         internal MethodSymbol EnsureInlineArrayElementRefExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
@@ -1992,15 +1992,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
 
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
-                                                      static (privateImplClass, intType) =>
+                                                      createMethodSymbol: static (privateImplClass, intType) =>
                                                       {
                                                           return new SynthesizedInlineArrayElementRefMethod(
                                                               privateImplClass,
                                                               PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
                                                               intType);
                                                       },
-                                                      intType,
-                                                      diagnostics);
+                                                      arg: intType,
+                                                      diagnostics: diagnostics);
         }
 
         internal MethodSymbol EnsureInlineArrayElementRefReadOnlyExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
@@ -2008,41 +2008,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
 
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
-                                                      static (privateImplClass, intType) =>
+                                                      createMethodSymbol: static (privateImplClass, intType) =>
                                                       {
                                                           return new SynthesizedInlineArrayElementRefReadOnlyMethod(
                                                               privateImplClass,
                                                               PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
                                                               intType);
                                                       },
-                                                      intType,
-                                                      diagnostics);
+                                                      arg: intType,
+                                                      diagnostics: diagnostics);
         }
 
         internal MethodSymbol EnsureInlineArrayFirstElementRefExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName,
-                                                      static (privateImplClass, _) =>
+                                                      createMethodSymbol: static (privateImplClass, _) =>
                                                       {
                                                           return new SynthesizedInlineArrayFirstElementRefMethod(
                                                               privateImplClass,
                                                               PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName);
                                                       },
-                                                      (object?)null,
-                                                      diagnostics);
+                                                      arg: (object?)null,
+                                                      diagnostics: diagnostics);
         }
 
         internal MethodSymbol EnsureInlineArrayFirstElementRefReadOnlyExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName,
-                                                      static (privateImplClass, _) =>
+                                                      createMethodSymbol: static (privateImplClass, _) =>
                                                       {
                                                           return new SynthesizedInlineArrayFirstElementRefReadOnlyMethod(
                                                               privateImplClass,
                                                               PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName);
                                                       },
-                                                      (object?)null,
-                                                      diagnostics);
+                                                      arg: (object?)null,
+                                                      diagnostics: diagnostics);
         }
 
 #nullable disable

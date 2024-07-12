@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             return OneOrMany.Create(s_razorSourceGeneratorFileNamePrefixes.SelectAsArray(
-                static (prefix, relativeDocumentPath) => GetGeneratedDocumentPath(prefix, relativeDocumentPath), relativeDocumentPath));
+                map: static (prefix, relativeDocumentPath) => GetGeneratedDocumentPath(prefix, relativeDocumentPath), arg: relativeDocumentPath));
 
             static string GetGeneratedDocumentPath(string prefix, string relativeDocumentPath)
             {

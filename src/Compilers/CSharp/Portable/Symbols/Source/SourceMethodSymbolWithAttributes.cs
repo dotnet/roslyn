@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var interceptorsNamespaces = ((CSharpParseOptions)attributeNameSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
             var thisNamespaceNames = getNamespaceNames(this);
-            var foundAnyMatch = interceptorsNamespaces.Any(static (ns, thisNamespaceNames) => isDeclaredInNamespace(thisNamespaceNames, ns), thisNamespaceNames);
+            var foundAnyMatch = interceptorsNamespaces.Any(predicate: static (ns, thisNamespaceNames) => isDeclaredInNamespace(thisNamespaceNames, ns), arg: thisNamespaceNames);
             if (!foundAnyMatch)
             {
                 reportFeatureNotEnabled(diagnostics, attributeLocation, thisNamespaceNames);
@@ -1234,11 +1234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // if we expect '/src/Program.cs':
                 // we might get: 'Program.cs' <-- suffix match
                 var syntaxTrees = DeclaringCompilation.SyntaxTrees;
-                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, attributeFilePathWithForwardSlashes)
+                var suffixMatch = syntaxTrees.FirstOrDefault(predicate: static (tree, attributeFilePathWithForwardSlashes)
                     => tree.FilePath
                         .Replace('\\', '/')
                         .EndsWith(attributeFilePathWithForwardSlashes),
-                    attributeFilePath.Replace('\\', '/'));
+                    arg: attributeFilePath.Replace('\\', '/'));
                 if (suffixMatch != null)
                 {
                     var recommendedPath = PathUtilities.IsAbsolute(SyntaxTree.FilePath)
@@ -1438,8 +1438,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // member results in an Ambiguous Member error, and we never get to this piece of code at all.
                         // See UnmanagedCallersOnly_PropertyAndFieldNamedCallConvs for an example
                         bool isField = attribute.AttributeClass.GetMembers(key).Any(
-                            static (m, systemType) => m is FieldSymbol { Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol elementType } } && elementType.Equals(systemType, TypeCompareKind.ConsiderEverything),
-                            systemType);
+                            predicate: static (m, systemType) => m is FieldSymbol { Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol elementType } } && elementType.Equals(systemType, TypeCompareKind.ConsiderEverything),
+                            arg: systemType);
 
                         var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsField(key, value, isField, location, diagnostics);
 
@@ -1581,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
                     var enumeratorCancellationCount = Parameters.Count(p => p.IsSourceParameterWithEnumeratorCancellationAttribute());
                     if (enumeratorCancellationCount == 0 &&
-                        ParameterTypesWithAnnotations.Any(static (p, cancellationTokenType) => p.Type.Equals(cancellationTokenType), cancellationTokenType))
+                        ParameterTypesWithAnnotations.Any(predicate: static (p, cancellationTokenType) => p.Type.Equals(cancellationTokenType), arg: cancellationTokenType))
                     {
                         // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
                         // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead

@@ -2301,8 +2301,8 @@ top:
                         TextWindow.LexemeRelativeStart,
                         width,
                         hashCode,
-                        CreateWhitespaceTrivia,
-                        TextWindow);
+                        createTriviaFunction: CreateWhitespaceTrivia,
+                        data: TextWindow);
                 }
                 else
                 {

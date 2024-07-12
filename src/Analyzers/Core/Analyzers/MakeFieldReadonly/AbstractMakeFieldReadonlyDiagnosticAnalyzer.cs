@@ -170,8 +170,8 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
                     } &&
                     symbol.Type.IsMutableValueType() == false &&
                     !symbol.GetAttributes().Any(
-                       static (a, threadStaticAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute),
-                       threadStaticAttribute) &&
+                       predicate: static (a, threadStaticAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute),
+                       arg: threadStaticAttribute) &&
                     !IsDataContractSerializable(symbol, dataContractAttribute, dataMemberAttribute);
 
             static bool IsDataContractSerializable(IFieldSymbol symbol, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute)
@@ -179,8 +179,8 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
                 if (dataContractAttribute is null || dataMemberAttribute is null)
                     return false;
 
-                return symbol.GetAttributes().Any(static (x, dataMemberAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataMemberAttribute), dataMemberAttribute)
-                    && symbol.ContainingType.GetAttributes().Any(static (x, dataContractAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataContractAttribute), dataContractAttribute);
+                return symbol.GetAttributes().Any(predicate: static (x, dataMemberAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataMemberAttribute), arg: dataMemberAttribute)
+                    && symbol.ContainingType.GetAttributes().Any(predicate: static (x, dataContractAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataContractAttribute), arg: dataContractAttribute);
             }
 
             // Method to update the field state for a candidate field written outside constructor and field initializer.

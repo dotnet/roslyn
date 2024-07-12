@@ -189,21 +189,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 _symbolKind = symbolKind;
                 Name = name;
-                IsChecked = specification.ApplicableSymbolKindList.Any(static (k, symbolKind) => k.SymbolKind == symbolKind, symbolKind);
+                IsChecked = specification.ApplicableSymbolKindList.Any(predicate: static (k, symbolKind) => k.SymbolKind == symbolKind, arg: symbolKind);
             }
 
             public SymbolKindViewModel(TypeKind typeKind, string name, SymbolSpecification specification)
             {
                 _typeKind = typeKind;
                 Name = name;
-                IsChecked = specification.ApplicableSymbolKindList.Any(static (k, typeKind) => k.TypeKind == typeKind, typeKind);
+                IsChecked = specification.ApplicableSymbolKindList.Any(predicate: static (k, typeKind) => k.TypeKind == typeKind, arg: typeKind);
             }
 
             public SymbolKindViewModel(MethodKind methodKind, string name, SymbolSpecification specification)
             {
                 _methodKind = methodKind;
                 Name = name;
-                IsChecked = specification.ApplicableSymbolKindList.Any(static (k, methodKind) => k.MethodKind == methodKind, methodKind);
+                IsChecked = specification.ApplicableSymbolKindList.Any(predicate: static (k, methodKind) => k.MethodKind == methodKind, arg: methodKind);
             }
 
             internal SymbolKindOrTypeKind CreateSymbolOrTypeOrMethodKind()
@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 _accessibility = accessibility;
                 Name = name;
 
-                IsChecked = specification.ApplicableAccessibilityList.Any(static (a, accessibility) => a == accessibility, accessibility);
+                IsChecked = specification.ApplicableAccessibilityList.Any(predicate: static (a, accessibility) => a == accessibility, arg: accessibility);
             }
         }
 
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 _modifier = modifier;
                 Name = name;
 
-                IsChecked = specification.RequiredModifierList.Any(static (m, modifier) => m.Modifier == modifier, modifier);
+                IsChecked = specification.RequiredModifierList.Any(predicate: static (m, modifier) => m.Modifier == modifier, arg: modifier);
             }
         }
     }

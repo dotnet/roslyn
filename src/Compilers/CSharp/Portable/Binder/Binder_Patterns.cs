@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var interfaces = inputType is TypeParameterSymbol typeParam ? typeParam.EffectiveInterfacesNoUseSiteDiagnostics : inputType.AllInterfacesNoUseSiteDiagnostics;
-            return interfaces.Any(static (i, _) => i.IsWellKnownINumberBaseType(), 0) || inputType.IsWellKnownINumberBaseType();
+            return interfaces.Any(predicate: static (i, _) => i.IsWellKnownINumberBaseType(), arg: 0) || inputType.IsWellKnownINumberBaseType();
         }
 
         private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e, BindingDiagnosticBag diagnostics, ref bool hasErrors)

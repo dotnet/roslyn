@@ -90,7 +90,7 @@ internal sealed partial class SolutionState
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
         // when solution state is changed, we recalculate its checksum
-        _lazyChecksums = AsyncLazy.Create(static (self, c) =>
+        _lazyChecksums = AsyncLazy.Create(asynchronousComputeFunction: static (self, c) =>
             self.ComputeChecksumsAsync(projectConeId: null, c),
             arg: this);
 
@@ -469,7 +469,7 @@ internal sealed partial class SolutionState
     {
         Contract.ThrowIfFalse(amount is -1 or +1);
 
-        var index = languageCountDeltas.IndexOf(static (c, language) => c.language == language, language);
+        var index = languageCountDeltas.IndexOf(predicate: static (c, language) => c.language == language, arg: language);
         if (index < 0)
         {
             languageCountDeltas.Add((language, amount));
@@ -1360,7 +1360,7 @@ internal sealed partial class SolutionState
 
         var documentIds = GetDocumentIdsWithFilePath(filePath);
         return documentIds.WhereAsArray(
-            static (documentId, args) =>
+            predicate: static (documentId, args) =>
             {
                 var projectState = args.solution.GetProjectState(documentId.ProjectId);
                 if (projectState == null)
@@ -1378,7 +1378,7 @@ internal sealed partial class SolutionState
                 // GetDocumentIdsWithFilePath may return DocumentIds for other types of documents (like additional files), so filter to normal documents
                 return projectState.DocumentStates.Contains(documentId);
             },
-            (solution: this, projectState.Language));
+            arg: (solution: this, projectState.Language));
     }
 
     /// <summary>

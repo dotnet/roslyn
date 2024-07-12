@@ -156,7 +156,7 @@ public abstract partial class CompletionService
             if (_nameToProvider.Value.TryGetValue(item.ProviderName, out var provider))
                 return provider;
 
-            using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
+            using var _ = PooledDelegates.GetPooledFunction(unboundFunction: static (p, n) => p.Name == n, argument: item.ProviderName, boundFunction: out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
 
             // Publicly available options will not impact this call, since the completion item must have already
             // existed if it produced the input completion item.

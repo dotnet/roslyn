@@ -53,7 +53,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     public override async Task GetAssetsAsync<T, TArg>(
         AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken) where TArg : default
     {
-        await this.SynchronizeAssetsAsync(assetPath, checksums, callback, arg, cancellationToken).ConfigureAwait(false);
+        await this.SynchronizeAssetsAsync(assetPath, checksums, callback: callback, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         // GetAssetAsync call will most likely cache hit. it is most likely since we might change cache heuristic in
         // future which make data to live a lot shorter in the cache, and the data might get expired before one actually
         // consume the data. 
-        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
+        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, messageGetter: Checksum.GetChecksumLogInfo, arg: solutionChecksum, token: cancellationToken))
         {
             await SynchronizeSolutionAssetsWorkerAsync().ConfigureAwait(false);
         }
@@ -210,14 +210,14 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         Task SynchronizeProjectAssetAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, Checksum> getChecksum)
             => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, Checksum>>(
                 assetPath,
-                static (projectStateChecksums, checksums, getChecksum) => checksums.Add(getChecksum(projectStateChecksums)),
-                getChecksum);
+                addAllChecksums: static (projectStateChecksums, checksums, getChecksum) => checksums.Add(getChecksum(projectStateChecksums)),
+                arg: getChecksum);
 
         Task SynchronizeProjectAssetCollectionAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, ChecksumCollection> getChecksums)
             => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, ChecksumCollection>>(
                 assetPath,
-                static (projectStateChecksums, checksums, getChecksums) => getChecksums(projectStateChecksums).AddAllTo(checksums),
-                getChecksums);
+                addAllChecksums: static (projectStateChecksums, checksums, getChecksums) => getChecksums(projectStateChecksums).AddAllTo(checksums),
+                arg: getChecksums);
 
         async Task SynchronizeProjectAssetOrCollectionAsync<TAsset, TArg>(
             AssetPath assetPath, Action<ProjectStateChecksums, HashSet<Checksum>, TArg> addAllChecksums, TArg arg)
@@ -239,7 +239,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         if (checksums.Count == 0)
             return;
 
-        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, messageGetter: Checksum.GetChecksumsLogInfo, arg: checksums, token: cancellationToken))
         {
             var missingChecksumsCount = 0;
 
@@ -297,7 +297,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
                     await _assetSource.GetAssetsAsync(
                         _solutionChecksum, assetPath, missingChecksumsMemory, _serializerService,
-                        static (
+                        callback: static (
                             Checksum missingChecksum,
                             T missingAsset,
                             (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
@@ -308,8 +308,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                             // Let our caller know about the asset if they're asking for it.
                             tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
                         },
-                        (this, missingChecksums, callback, arg),
-                        cancellationToken).ConfigureAwait(false);
+                        arg: (this, missingChecksums, callback, arg),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
             }
             finally

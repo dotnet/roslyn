@@ -28,7 +28,7 @@ internal partial class NavigableItemFactory
         /// <summary>
         /// Lazily-initialized backing field for <see cref="Document"/>.
         /// </summary>
-        /// <seealso cref="InterlockedOperations.Initialize{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
+        /// <seealso cref="InterlockedOperations.Initialize{T, U}(ref StrongBox{T}, U, Func{U, T})"/>
         private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
 
         public bool DisplayFileLocation => true;
@@ -45,13 +45,13 @@ internal partial class NavigableItemFactory
             {
                 return InterlockedOperations.Initialize(
                     ref _lazyDocument,
-                    static self =>
+                    valueFactory: static self =>
                     {
                         return (self._location.IsInSource && self._solution.GetDocument(self._location.SourceTree) is { } document)
                             ? INavigableItem.NavigableDocument.FromDocument(document)
                             : null;
                     },
-                    this);
+                    arg: this);
             }
         }
 

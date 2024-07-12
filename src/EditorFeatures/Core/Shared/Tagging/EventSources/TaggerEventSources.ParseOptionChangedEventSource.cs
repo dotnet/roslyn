@@ -35,7 +35,7 @@ internal partial class TaggerEventSources
                     {
                         var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
 
-                        if (relatedDocumentIds.Any(static (d, e) => d.ProjectId == e.ProjectId, e))
+                        if (relatedDocumentIds.Any(predicate: static (d, e) => d.ProjectId == e.ProjectId, arg: e))
                         {
                             RaiseChanged();
                         }

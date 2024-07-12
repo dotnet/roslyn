@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Function
 
         Protected Overrides Function GetTypeParameters() As ImmutableArray(Of EmbeddedTypeParameter)
-            Return UnderlyingMethod.AdaptedMethodSymbol.TypeParameters.SelectAsArray(Function(typeParameter, container) New EmbeddedTypeParameter(container, typeParameter.GetCciAdapter()), Me)
+            Return UnderlyingMethod.AdaptedMethodSymbol.TypeParameters.SelectAsArray(map:=Function(typeParameter, container) New EmbeddedTypeParameter(container, typeParameter.GetCciAdapter()), arg:=Me)
         End Function
 
         Protected Overrides ReadOnly Property IsAbstract As Boolean

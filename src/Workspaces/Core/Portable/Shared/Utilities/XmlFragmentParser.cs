@@ -41,7 +41,7 @@ internal sealed class XmlFragmentParser
         var instance = s_pool.Allocate();
         try
         {
-            instance.ParseInternal(xmlFragment, callback, arg);
+            instance.ParseInternal(xmlFragment, callback: callback, arg: arg);
         }
         finally
         {

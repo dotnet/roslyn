@@ -235,9 +235,9 @@ internal class CodeActionEditHandlerService(
             return null;
         }
 
-        if (changedDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredDocument(id)), (oldSolution, newSolution)) ||
-            changedAdditionalDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredAdditionalDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAdditionalDocument(id)), (oldSolution, newSolution)) ||
-            changedAnalyzerConfigDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredAnalyzerConfigDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAnalyzerConfigDocument(id)), (oldSolution, newSolution)))
+        if (changedDocuments.Any(predicate: static (id, arg) => arg.newSolution.GetRequiredDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredDocument(id)), arg: (oldSolution, newSolution)) ||
+            changedAdditionalDocuments.Any(predicate: static (id, arg) => arg.newSolution.GetRequiredAdditionalDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAdditionalDocument(id)), arg: (oldSolution, newSolution)) ||
+            changedAnalyzerConfigDocuments.Any(predicate: static (id, arg) => arg.newSolution.GetRequiredAnalyzerConfigDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAnalyzerConfigDocument(id)), arg: (oldSolution, newSolution)))
         {
             return null;
         }

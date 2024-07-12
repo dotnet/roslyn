@@ -24,10 +24,10 @@ internal partial class ProjectState
     public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
         return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (lazyChecksums, cancellationToken) => new ValueTask<ProjectStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
-            static (projectStateChecksums, _) => projectStateChecksums.Checksum,
-            _lazyChecksums,
-            cancellationToken).AsTask();
+            func: static (lazyChecksums, cancellationToken) => new ValueTask<ProjectStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+            transform: static (projectStateChecksums, _) => projectStateChecksums.Checksum,
+            arg: _lazyChecksums,
+            cancellationToken: cancellationToken).AsTask();
     }
 
     public Checksum GetParseOptionsChecksum()
@@ -35,7 +35,7 @@ internal partial class ProjectState
 
     private Checksum GetParseOptionsChecksum(ISerializerService serializer)
         => this.SupportsCompilation
-            ? ChecksumCache.GetOrCreate(this.ParseOptions!, static (options, serializer) => serializer.CreateParseOptionsChecksum(options), serializer)
+            ? ChecksumCache.GetOrCreate(this.ParseOptions!, checksumCreator: static (options, serializer) => serializer.CreateParseOptionsChecksum(options), arg: serializer)
             : Checksum.Null;
 
     private async Task<ProjectStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
@@ -54,7 +54,7 @@ internal partial class ProjectState
 
                 // these compiler objects doesn't have good place to cache checksum. but rarely ever get changed.
                 var compilationOptionsChecksum = SupportsCompilation
-                    ? ChecksumCache.GetOrCreate(CompilationOptions!, static (options, tuple) => tuple.serializer.CreateChecksum(options, tuple.cancellationToken), (serializer, cancellationToken))
+                    ? ChecksumCache.GetOrCreate(CompilationOptions!, checksumCreator: static (options, tuple) => tuple.serializer.CreateChecksum(options, tuple.cancellationToken), arg: (serializer, cancellationToken))
                     : Checksum.Null;
                 cancellationToken.ThrowIfCancellationRequested();
                 var parseOptionsChecksum = GetParseOptionsChecksum(serializer);

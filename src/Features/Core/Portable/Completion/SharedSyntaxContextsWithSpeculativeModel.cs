@@ -43,8 +43,8 @@ internal sealed class SharedSyntaxContextsWithSpeculativeModel
         // Extract a local function to avoid creating a closure for code path of cache hit.
         static AsyncLazy<SyntaxContext> GetLazySyntaxContextWithSpeculativeModel(Document document, SharedSyntaxContextsWithSpeculativeModel self)
         {
-            return self._cache.GetOrAdd(document, d => AsyncLazy.Create(static (arg, cancellationToken)
-                => Utilities.CreateSyntaxContextWithExistingSpeculativeModelAsync(arg.d, arg._position, cancellationToken), (d, self._position)));
+            return self._cache.GetOrAdd(document, d => AsyncLazy.Create(asynchronousComputeFunction: static (arg, cancellationToken)
+                => Utilities.CreateSyntaxContextWithExistingSpeculativeModelAsync(arg.d, arg._position, cancellationToken), arg: (d, self._position)));
         }
     }
 }

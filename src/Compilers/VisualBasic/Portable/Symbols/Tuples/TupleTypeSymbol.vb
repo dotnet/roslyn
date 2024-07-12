@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            Return Me.GetMembers().WhereAsArray(Function(member, name_) IdentifierComparison.Equals(member.Name, name_), name)
+            Return Me.GetMembers().WhereAsArray(predicate:=Function(member, name_) IdentifierComparison.Equals(member.Name, name_), arg:=name)
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)

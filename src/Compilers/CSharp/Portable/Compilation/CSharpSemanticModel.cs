@@ -4237,7 +4237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return methods.WhereAsArray((m, hiddenSymbols) => !hiddenSymbols.Contains(m), hiddenSymbols);
+            return methods.WhereAsArray(predicate: (m, hiddenSymbols) => !hiddenSymbols.Contains(m), arg: hiddenSymbols);
         }
 
         // Get the symbols and possible method group associated with a method group bound node, as
@@ -4342,7 +4342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the bad expression has symbol(s) from this method group, it better indicates any problems.
                         ImmutableArray<Symbol> myMethodGroup = methodGroup;
 
-                        symbols = OneOrMany.Create(((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myMethodGroup) => myMethodGroup.Contains(sym), myMethodGroup));
+                        symbols = OneOrMany.Create(((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray(predicate: (sym, myMethodGroup) => myMethodGroup.Contains(sym), arg: myMethodGroup));
                         if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;
@@ -4443,7 +4443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the bad expression has symbol(s) from this property group, it better indicates any problems.
                         ImmutableArray<Symbol> myPropertyGroup = propertyGroup;
 
-                        symbols = OneOrMany.Create(((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myPropertyGroup) => myPropertyGroup.Contains(sym), myPropertyGroup));
+                        symbols = OneOrMany.Create(((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray(predicate: (sym, myPropertyGroup) => myPropertyGroup.Contains(sym), arg: myPropertyGroup));
                         if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;

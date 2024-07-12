@@ -544,7 +544,7 @@ public class Document : TextDocument
 
     private void InitializeCachedOptions(OptionSet solutionOptions)
     {
-        var newAsyncLazy = AsyncLazy.Create(static async (arg, cancellationToken) =>
+        var newAsyncLazy = AsyncLazy.Create(asynchronousComputeFunction: static async (arg, cancellationToken) =>
         {
             var options = await arg.self.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new DocumentOptionSet(options, arg.solutionOptions, arg.self.Project.Language);

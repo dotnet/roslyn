@@ -121,8 +121,8 @@ internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptio
             static (workspaces, workspace) =>
             {
                 return workspaces.WhereAsArray(
-                    static (weakWorkspace, workspaceToRemove) => weakWorkspace.TryGetTarget(out var workspace) && workspace != workspaceToRemove,
-                    workspace);
+                    predicate: static (weakWorkspace, workspaceToRemove) => weakWorkspace.TryGetTarget(out var workspace) && workspace != workspaceToRemove,
+                    arg: workspace);
             },
             workspace);
     }

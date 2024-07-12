@@ -184,12 +184,12 @@ internal static partial class IMethodSymbolExtensions
         // Many static predicates use the same state argument in this method
         var arg = (removeAttributeTypes, accessibleWithin);
 
-        var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute, arg);
+        var methodHasAttribute = method.GetAttributes().Any(predicate: shouldRemoveAttribute, arg: arg);
 
         var someParameterHasAttribute = method.Parameters
-            .Any(static (m, arg) => m.GetAttributes().Any(shouldRemoveAttribute, arg), arg);
+            .Any(predicate: static (m, arg) => m.GetAttributes().Any(predicate: shouldRemoveAttribute, arg: arg), arg: arg);
 
-        var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute, arg);
+        var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(predicate: shouldRemoveAttribute, arg: arg);
 
         if (!methodHasAttribute && !someParameterHasAttribute && !returnTypeHasAttribute)
         {
@@ -201,11 +201,11 @@ internal static partial class IMethodSymbolExtensions
             containingType: method.ContainingType,
             explicitInterfaceImplementations: method.ExplicitInterfaceImplementations,
             attributes: method.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
-            parameters: method.Parameters.SelectAsArray(static (p, arg) =>
+            parameters: method.Parameters.SelectAsArray(map: static (p, arg) =>
                 CodeGenerationSymbolFactory.CreateParameterSymbol(
                     p.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
                     p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
-                    p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
+                    p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg: arg),
             returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg));
 
         static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] removeAttributeTypes, ISymbol accessibleWithin) arg)

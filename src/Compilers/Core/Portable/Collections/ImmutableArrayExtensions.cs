@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="array">The array to process</param>
         /// <param name="predicate">The delegate that defines the conditions of the element to search for.</param>
         public static ImmutableArray<T> WhereAsArray<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
-            => WhereAsArrayImpl(array, predicateWithoutArg: null, predicate, arg);
+            => WhereAsArrayImpl(array, predicateWithoutArg: null, predicateWithArg: predicate, arg: arg);
 
         private static ImmutableArray<T> WhereAsArrayImpl<T, TArg>(ImmutableArray<T> array, Func<T, bool>? predicateWithoutArg, Func<T, TArg, bool>? predicateWithArg, TArg arg)
         {

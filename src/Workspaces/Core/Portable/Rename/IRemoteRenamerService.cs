@@ -123,13 +123,13 @@ internal partial class SymbolicRenameLocations
         Contract.ThrowIfNull(serializableLocations);
 
         var locations = await serializableLocations.Locations.SelectAsArrayAsync(
-            static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+            selector: static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var implicitLocations = await serializableLocations.ImplicitLocations.SelectAsArrayAsync(
-        static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+        selector: static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var referencedSymbols = await serializableLocations.ReferencedSymbols.SelectAsArrayAsync(
-            static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+            selector: static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (referencedSymbols.Any(s => s is null))
             return null;
 

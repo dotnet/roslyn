@@ -175,7 +175,7 @@ internal class ToggleLineCommentCommandHandler(
     }
 
     private static bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
-        => linesInSelection.Any(static (l, commentInfo) => !IsLineCommentedOrEmpty(l, commentInfo), commentInfo);
+        => linesInSelection.Any(predicate: static (l, commentInfo) => !IsLineCommentedOrEmpty(l, commentInfo), arg: commentInfo);
 
     private static bool IsLineCommentedOrEmpty(ITextSnapshotLine line, CommentSelectionInfo info)
     {

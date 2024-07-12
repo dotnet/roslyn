@@ -530,7 +530,7 @@ checksForAllEmbedabbleTypes:
         End Function
 
         Friend Shared Function EmbedParameters(containingPropertyOrMethod As CommonEmbeddedMember, underlyingParameters As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of EmbeddedParameter)
-            Return underlyingParameters.SelectAsArray(Function(parameter, container) New EmbeddedParameter(container, parameter.GetCciAdapter()), containingPropertyOrMethod)
+            Return underlyingParameters.SelectAsArray(map:=Function(parameter, container) New EmbeddedParameter(container, parameter.GetCciAdapter()), arg:=containingPropertyOrMethod)
         End Function
 
         Protected Overrides Function CreateCompilerGeneratedAttribute() As VisualBasicAttributeData

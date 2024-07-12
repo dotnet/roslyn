@@ -1772,7 +1772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var implementedEvent = (EventSymbol)interfaceMember;
                     SourceMemberContainerTypeSymbol.CheckValidNullableEventOverride(compilation, implementedEvent, implementingEvent,
                                                                                     diagnostics,
-                                                                                    (diagnostics, implementedEvent, implementingEvent, arg) =>
+                                                                                    reportMismatch: (diagnostics, implementedEvent, implementingEvent, arg) =>
                                                                                     {
                                                                                         if (arg.isExplicit)
                                                                                         {
@@ -1787,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                                             new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                                                                         }
                                                                                     },
-                                                                                    (implementingType, isExplicit));
+                                                                                    extraArgument: (implementingType, isExplicit));
                 }
                 else
                 {
@@ -1851,9 +1851,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             implementedMethod,
                             implementingMethod,
                             diagnostics,
-                            reportMismatchInReturnType,
-                            reportMismatchInParameterType,
-                            (implementingType, isExplicit));
+                            reportMismatchInReturnType: reportMismatchInReturnType,
+                            reportMismatchInParameterType: reportMismatchInParameterType,
+                            extraArgument: (implementingType, isExplicit));
 
                         if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
                         {
@@ -1861,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 implementedMethod,
                                 implementingMethod,
                                 diagnostics,
-                                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
+                                reportMismatchInParameterType: static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
                                     {
                                         diagnostics.Add(
                                             SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
@@ -1870,7 +1870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                             new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                                     },
-                                (implementingType, isExplicit),
+                                extraArgument: (implementingType, isExplicit),
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
                         }

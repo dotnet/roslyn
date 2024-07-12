@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _containingType = containingType;
 
-            Parameters = parameterDescriptions.SelectAsArrayWithIndex(static (p, i, a) =>
+            Parameters = parameterDescriptions.SelectAsArrayWithIndex(map: static (p, i, a) =>
                 SynthesizedParameterSymbol.Create(a.Method, p.Type, i, p.RefKind, GeneratedNames.AnonymousDelegateParameterName(i, a.ParameterCount), p.Scope, p.DefaultValue, isParams: p.IsParams, hasUnscopedRefAttribute: p.HasUnscopedRefAttribute),
-                (Method: this, ParameterCount: parameterDescriptions.Count));
+                arg: (Method: this, ParameterCount: parameterDescriptions.Count));
             ReturnTypeWithAnnotations = returnType;
             RefKind = refKind;
         }

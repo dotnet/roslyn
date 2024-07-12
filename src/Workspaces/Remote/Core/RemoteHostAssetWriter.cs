@@ -79,8 +79,8 @@ internal readonly struct RemoteHostAssetWriter(
     private Task FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)
         => _scope.FindAssetsAsync(
             _assetPath, _checksums,
-            static (checksum, asset, onItemFound) => onItemFound((checksum, asset)),
-            onItemFound, cancellationToken);
+            onAssetFound: static (checksum, asset, onItemFound) => onItemFound((checksum, asset)),
+            arg: onItemFound, cancellationToken: cancellationToken);
 
     private async Task WriteBatchToPipeAsync(
         IAsyncEnumerable<ChecksumAndAsset> checksumsAndAssets, CancellationToken cancellationToken)

@@ -30,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ' Find placeholder Windows.winmd assembly (created
                 ' in MetadataUtilities.MakeAssemblyReferences).
                 Dim assemblies = Me.Module.GetReferencedAssemblySymbols()
-                index = assemblies.IndexOf(Function(assembly, unused) assembly.Identity.IsWindowsRuntime(), DirectCast(Nothing, Object))
+                index = assemblies.IndexOf(predicate:=Function(assembly, unused) assembly.Identity.IsWindowsRuntime(), arg:=DirectCast(Nothing, Object))
                 If index >= 0 Then
                     ' Find module in Windows.winmd matching identity.
                     Dim modules = assemblies(index).Modules
-                    Dim moduleIndex = modules.IndexOf(Function(m, id) id.Equals(GetComponentAssemblyIdentity(m)), identity)
+                    Dim moduleIndex = modules.IndexOf(predicate:=Function(m, id) id.Equals(GetComponentAssemblyIdentity(m)), arg:=identity)
                     If moduleIndex >= 0 Then
                         Return index
                     End If

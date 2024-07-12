@@ -250,7 +250,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                 return TriggerIdentifierKind.NotRenamable;
             }
 
-            return sourceSymbol.Locations.Any(static (loc, token) => loc == token.GetLocation(), token)
+            return sourceSymbol.Locations.Any(predicate: static (loc, token) => loc == token.GetLocation(), arg: token)
                     ? TriggerIdentifierKind.RenamableDeclaration
                     : TriggerIdentifierKind.RenamableReference;
         }

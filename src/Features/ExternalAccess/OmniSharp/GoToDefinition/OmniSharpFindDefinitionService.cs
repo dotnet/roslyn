@@ -21,8 +21,8 @@ internal static class OmniSharpFindDefinitionService
 
         var result = await service.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
         return await result.NullToEmpty().SelectAsArrayAsync(
-            async (original, solution, cancellationToken) => new OmniSharpNavigableItem(original.DisplayTaggedParts, await original.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false), original.SourceSpan),
-            document.Project.Solution,
-            cancellationToken).ConfigureAwait(false);
+            selector: async (original, solution, cancellationToken) => new OmniSharpNavigableItem(original.DisplayTaggedParts, await original.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false), original.SourceSpan),
+            arg: document.Project.Solution,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

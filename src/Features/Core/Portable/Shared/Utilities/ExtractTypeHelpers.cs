@@ -204,12 +204,12 @@ internal static class ExtractTypeHelpers
                 return DoesTypeReferenceTypeParameter(@event.Type, typeParameter, checkedTypes);
             case SymbolKind.Method:
                 var method = member as IMethodSymbol;
-                return method.Parameters.Any(static (t, arg) => DoesTypeReferenceTypeParameter(t.Type, arg.typeParameter, arg.checkedTypes), (typeParameter, checkedTypes)) ||
-                    method.TypeParameters.Any(static (t, arg) => t.ConstraintTypes.Any(static (c, arg) => DoesTypeReferenceTypeParameter(c, arg.typeParameter, arg.checkedTypes), (arg.typeParameter, arg.checkedTypes)), (typeParameter, checkedTypes)) ||
+                return method.Parameters.Any(predicate: static (t, arg) => DoesTypeReferenceTypeParameter(t.Type, arg.typeParameter, arg.checkedTypes), arg: (typeParameter, checkedTypes)) ||
+                    method.TypeParameters.Any(predicate: static (t, arg) => t.ConstraintTypes.Any(predicate: static (c, arg) => DoesTypeReferenceTypeParameter(c, arg.typeParameter, arg.checkedTypes), arg: (arg.typeParameter, arg.checkedTypes)), arg: (typeParameter, checkedTypes)) ||
                     DoesTypeReferenceTypeParameter(method.ReturnType, typeParameter, checkedTypes);
             case SymbolKind.Property:
                 var property = member as IPropertySymbol;
-                return property.Parameters.Any(static (t, arg) => DoesTypeReferenceTypeParameter(t.Type, arg.typeParameter, arg.checkedTypes), (typeParameter, checkedTypes)) ||
+                return property.Parameters.Any(predicate: static (t, arg) => DoesTypeReferenceTypeParameter(t.Type, arg.typeParameter, arg.checkedTypes), arg: (typeParameter, checkedTypes)) ||
                     DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
             case SymbolKind.Field:
                 var field = member as IFieldSymbol;
@@ -229,7 +229,7 @@ internal static class ExtractTypeHelpers
 
         // We want to ignore nullability when comparing as T and T? both are references to the type parameter
         if (type.Equals(typeParameter, SymbolEqualityComparer.Default) ||
-            type.GetTypeArguments().Any(static (t, arg) => DoesTypeReferenceTypeParameter(t, arg.typeParameter, arg.checkedTypes), (typeParameter, checkedTypes)))
+            type.GetTypeArguments().Any(predicate: static (t, arg) => DoesTypeReferenceTypeParameter(t, arg.typeParameter, arg.checkedTypes), arg: (typeParameter, checkedTypes)))
         {
             return true;
         }

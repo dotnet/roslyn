@@ -100,12 +100,12 @@ internal sealed class EditSession
         telemetry.SetBreakState(inBreakState);
 
         BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState
-            ? AsyncLazy.Create(static (self, cancellationToken) =>
+            ? AsyncLazy.Create(asynchronousComputeFunction: static (self, cancellationToken) =>
                 self.GetBaseActiveStatementsAsync(cancellationToken),
                 arg: this)
             : AsyncLazy.Create(ActiveStatementsMap.Empty));
 
-        Capabilities = AsyncLazy.Create(static (self, cancellationToken) =>
+        Capabilities = AsyncLazy.Create(asynchronousComputeFunction: static (self, cancellationToken) =>
             self.GetCapabilitiesAsync(cancellationToken),
             arg: this);
         Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
@@ -748,8 +748,8 @@ internal sealed class EditSession
             {
                 var newMaps = partialTypeEdits.Where(static edit => edit.SyntaxMaps.HasMap).SelectAsArray(static edit => edit.SyntaxMaps);
 
-                mergedMatchingNodes = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].MatchingNodes!(node);
-                mergedRuntimeRudeEdits = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].RuntimeRudeEdits?.Invoke(node);
+                mergedMatchingNodes = node => newMaps[newMaps.IndexOf(predicate: static (m, node) => m.NewTree == node.SyntaxTree, arg: node)].MatchingNodes!(node);
+                mergedRuntimeRudeEdits = node => newMaps[newMaps.IndexOf(predicate: static (m, node) => m.NewTree == node.SyntaxTree, arg: node)].RuntimeRudeEdits?.Invoke(node);
             }
             else
             {

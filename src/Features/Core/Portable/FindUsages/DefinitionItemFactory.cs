@@ -245,11 +245,11 @@ internal static class DefinitionItemFactory
     }
 
     private static ValueTask<ImmutableArray<ClassifiedSpansAndHighlightSpan?>> ClassifyDocumentSpansAsync(OptionsProvider<ClassificationOptions> optionsProvider, ImmutableArray<DocumentSpan> unclassifiedSpans, CancellationToken cancellationToken)
-        => unclassifiedSpans.SelectAsArrayAsync(static async (documentSpan, optionsProvider, cancellationToken) =>
+        => unclassifiedSpans.SelectAsArrayAsync(selector: static async (documentSpan, optionsProvider, cancellationToken) =>
         {
             var options = await optionsProvider.GetOptionsAsync(documentSpan.Document.Project.Services, cancellationToken).ConfigureAwait(false);
             return (ClassifiedSpansAndHighlightSpan?)await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
-        }, optionsProvider, cancellationToken);
+        }, arg: optionsProvider, cancellationToken: cancellationToken);
 
     private static ImmutableDictionary<string, string> GetProperties(ISymbol definition, bool isPrimary)
     {

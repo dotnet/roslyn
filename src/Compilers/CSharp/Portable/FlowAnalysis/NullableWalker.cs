@@ -3136,14 +3136,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // (e.g., whether we have seen a class field or not already).
                 state.Normalize(this, _variables);
                 state.ForEach(
-                    (slot, variables) =>
+                    action: (slot, variables) =>
                     {
                         if (Symbol.IsCaptured(variables[slot].Symbol, localFunc))
                         {
                             SetState(ref state, slot, NullableFlowState.NotNull);
                         }
                     },
-                    _variables);
+                    arg: _variables);
 
                 // In subsequent passes, we will use the starting state,
                 // so make sure it's set correctly for unreachable functions from now on.
@@ -3155,7 +3155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from visited call sites of the local function.
                 var startingState = localFunctionState.StartingState;
                 startingState.ForEach(
-                    (slot, variables) =>
+                    action: (slot, variables) =>
                     {
                         var symbol = variables[variables.RootSlot(slot)].Symbol;
                         if (Symbol.IsCaptured(symbol, localFunc))
@@ -3163,7 +3163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             SetState(ref state, slot, GetState(ref startingState, slot));
                         }
                     },
-                    _variables);
+                    arg: _variables);
             }
 
             localFunctionState.Visited = true;
@@ -4377,8 +4377,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var anonymousType = (NamedTypeSymbol)node.Type;
             var arguments = node.Arguments;
-            var argumentTypes = arguments.SelectAsArray((arg, self) =>
-                self.VisitRvalueWithState(arg), this);
+            var argumentTypes = arguments.SelectAsArray(map: (arg, self) =>
+                self.VisitRvalueWithState(arg), arg: this);
             var argumentsWithAnnotations = argumentTypes.SelectAsArray(arg =>
                 arg.ToTypeWithAnnotations(compilation));
 
@@ -7080,18 +7080,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeWithAnnotations paramsIterationType = default;
                     parameterAnnotationsOpt = arguments.SelectAsArray(
-                        (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, expanded: true, ref paramsIterationType).Annotations,
-                        (self: this, parametersOpt, argsToParamsOpt));
+                        map: (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, expanded: true, ref paramsIterationType).Annotations,
+                        arg: (self: this, parametersOpt, argsToParamsOpt));
                 }
                 else
                 {
                     parameterAnnotationsOpt = arguments.SelectAsArray(
-                        static (argument, i, arg) =>
+                        map: static (argument, i, arg) =>
                         {
                             TypeWithAnnotations paramsIterationType = default;
                             return arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, expanded: false, ref paramsIterationType).Annotations;
                         },
-                        (self: this, parametersOpt, argsToParamsOpt));
+                        arg: (self: this, parametersOpt, argsToParamsOpt));
                 }
             }
 
@@ -8238,7 +8238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
-            ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithState(a), this);
+            ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray(map: (a, w) => w.VisitRvalueWithState(a), arg: this);
             ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray(a => a.ToTypeWithAnnotations(compilation));
             var tupleOpt = (NamedTypeSymbol?)node.Type;
             if (tupleOpt is null)
@@ -8257,7 +8257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tupleOpt = tupleOpt.WithElementTypes(elementTypesWithAnnotations);
                 if (!_disableDiagnostics)
                 {
-                    var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.TryGetFirstLocation() ?? location, node.Syntax.Location);
+                    var locations = tupleOpt.TupleElements.SelectAsArray(map: (element, location) => element.TryGetFirstLocation() ?? location, arg: node.Syntax.Location);
                     var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                     Debug.Assert(diagnostics.DiagnosticBag is { });
 
@@ -8461,8 +8461,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetInvokeMethod,
                 sourceInvokeMethod,
                 diagnostics,
-                reportBadDelegateReturn,
-                reportBadDelegateParameter,
+                reportMismatchInReturnType: reportBadDelegateReturn,
+                reportMismatchInParameterType: reportBadDelegateParameter,
                 extraArgument: (targetType, location),
                 invokedAsExtensionMethod: invokedAsExtensionMethod);
 
@@ -8517,8 +8517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetInvokeMethod,
                 sourceMethod,
                 diagnostics,
-                reportBadDelegateReturn,
-                reportBadDelegateParameter,
+                reportMismatchInReturnType: reportBadDelegateReturn,
+                reportMismatchInParameterType: reportBadDelegateParameter,
                 extraArgument: location,
                 invokedAsExtensionMethod: false))
             {
@@ -8532,8 +8532,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sourceMethod,
                 targetInvokeMethod,
                 diagnostics,
-                reportBadDelegateReturn,
-                reportBadDelegateParameter,
+                reportMismatchInReturnType: reportBadDelegateReturn,
+                reportMismatchInParameterType: reportBadDelegateParameter,
                 extraArgument: location,
                 invokedAsExtensionMethod: false);
 
@@ -10222,7 +10222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
                 // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
                 var fields = tupleType.TupleElements;
-                return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
+                return fields.SelectAsArray(map: (f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), arg: expr);
             }
 
             throw ExceptionUtilities.Unreachable();
@@ -12274,7 +12274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void ForEach<TArg>(Action<int, TArg> action, TArg arg)
             {
-                _container?.Value.ForEach(action, arg);
+                _container?.Value.ForEach(action: action, arg: arg);
                 for (int index = 1; index < Capacity; index++)
                 {
                     action(Variables.ConstructSlot(Id, index), arg);

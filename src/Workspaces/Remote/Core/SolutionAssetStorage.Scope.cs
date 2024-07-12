@@ -52,7 +52,7 @@ internal partial class SolutionAssetStorage
             var numberOfChecksumsToSearch = checksumsToFind.Count;
             Contract.ThrowIfTrue(checksumsToFind.Contains(Checksum.Null));
 
-            await FindAssetsAsync(assetPath, checksumsToFind, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(assetPath, checksumsToFind, onAssetFound: onAssetFound, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsToFind.Count > 0);
 
@@ -75,13 +75,13 @@ internal partial class SolutionAssetStorage
                 // If we're not in a project cone, start the search at the top most state-checksum corresponding to the
                 // entire solution.
                 Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, onAssetFound: onAssetFound, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Otherwise, grab the top-most state checksum for this cone and search within that.
                 Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(this.ProjectCone.RootProjectId, out var stateChecksums));
-                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, onAssetFound: onAssetFound, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -101,13 +101,13 @@ internal partial class SolutionAssetStorage
                 var checksums = new ReadOnlyMemory<Checksum>([checksum]);
 
                 object? asset = null;
-                await scope.FindAssetsAsync(AssetPath.FullLookupForTesting, checksums, (foundChecksum, foundAsset, _) =>
+                await scope.FindAssetsAsync(AssetPath.FullLookupForTesting, checksums, onAssetFound: (foundChecksum, foundAsset, _) =>
                 {
                     Contract.ThrowIfNull(foundAsset);
                     Contract.ThrowIfTrue(asset != null); // We should only find one asset
                     Contract.ThrowIfTrue(checksum != foundChecksum);
                     asset = foundAsset;
-                }, default(VoidResult), cancellationToken).ConfigureAwait(false);
+                }, arg: default(VoidResult), cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfNull(asset);
 

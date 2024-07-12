@@ -703,8 +703,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingType.IsDefinition);
             return type is TypeParameterSymbol p &&
                 (object)p.ContainingSymbol == containingType &&
-                p.ConstraintTypesNoUseSiteDiagnostics.Any((typeArgument, containingType) => typeArgument.Type.Equals(containingType, ComparisonForUserDefinedOperators),
-                                                          containingType);
+                p.ConstraintTypesNoUseSiteDiagnostics.Any(predicate: (typeArgument, containingType) => typeArgument.Type.Equals(containingType, ComparisonForUserDefinedOperators),
+                                                          arg: containingType);
         }
 
         private bool IsSelfConstrainedTypeParameter(TypeSymbol type)

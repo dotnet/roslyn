@@ -1687,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var specialType = compilation.GetSpecialType(specialInterface);
-                return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
+                return allInterfaces.Any(predicate: static (a, b) => ReferenceEquals(a.OriginalDefinition, b), arg: specialType);
             }
         }
 

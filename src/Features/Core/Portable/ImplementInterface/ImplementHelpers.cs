@@ -235,7 +235,7 @@ internal static class ImplementHelpers
         var unimplementedMembers = explicitly
             ? state.MembersWithoutExplicitImplementation
             : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-        if (!unimplementedMembers.Any(static (m, idisposableType) => m.type.Equals(idisposableType), idisposableType))
+        if (!unimplementedMembers.Any(predicate: static (m, idisposableType) => m.type.Equals(idisposableType), arg: idisposableType))
             return false;
 
         // The dispose pattern is only applicable if the implementing type does

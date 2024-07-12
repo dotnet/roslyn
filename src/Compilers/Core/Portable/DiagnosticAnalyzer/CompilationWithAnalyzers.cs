@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAnalyzersArgumentForStaticApis(analyzers);
 
-            if (analyzers.Any(static (a, self) => !self._analyzers.Contains(a), this))
+            if (analyzers.Any(predicate: static (a, self) => !self._analyzers.Contains(a), arg: this))
             {
                 throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(_analyzers));
             }

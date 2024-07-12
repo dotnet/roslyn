@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
-            return GetTypeMembers(name).WhereAsArray((s, arity) => s.Arity == arity, arity);
+            return GetTypeMembers(name).WhereAsArray(predicate: (s, arity) => s.Arity == arity, arg: arity);
         }
 
         internal override ModuleSymbol ContainingModule
@@ -386,11 +386,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var leftTree = possibleFileLocalType.MergedDeclaration.Declarations[0].Location.SourceTree;
                 if (otherSymbol is SourceNamedTypeSymbol { MergedDeclaration.NameLocations: var typeNameLocations })
                 {
-                    return !typeNameLocations.Any(static (loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree);
+                    return !typeNameLocations.Any(predicate: static (loc, leftTree) => (object)loc.SourceTree == leftTree, arg: leftTree);
                 }
                 else if (otherSymbol is SourceNamespaceSymbol { MergedDeclaration.NameLocations: var namespaceNameLocations })
                 {
-                    return !namespaceNameLocations.Any(static (loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree);
+                    return !namespaceNameLocations.Any(predicate: static (loc, leftTree) => (object)loc.SourceTree == leftTree, arg: leftTree);
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(otherSymbol);

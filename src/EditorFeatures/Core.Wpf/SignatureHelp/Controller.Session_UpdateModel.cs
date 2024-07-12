@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     if (name != null)
                     {
                         var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-                        return item.Parameters.Any(static (p, arg) => arg.comparer.Equals(p.Name, arg.name), (comparer, name));
+                        return item.Parameters.Any(predicate: static (p, arg) => arg.comparer.Equals(p.Name, arg.name), arg: (comparer, name));
                     }
 
                     // An item is applicable if it has at least as many parameters as the selected

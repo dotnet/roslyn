@@ -157,7 +157,7 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
             => whereMethod.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default);
 
         bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
-            => linqMethods.Any(static (m, invocation) => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default), invocation);
+            => linqMethods.Any(predicate: static (m, invocation) => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default), arg: invocation);
 
         INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation)
         {

@@ -157,7 +157,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(IsThisParameter);
             var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(static s => IsThisParameter(s));
 
-            var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(static (l, self) => self.SelectionResult.FinalSpan.Contains(l.SourceSpan), this));
+            var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(predicate: static (l, self) => self.SelectionResult.FinalSpan.Contains(l.SourceSpan), arg: this));
 
             // Checks to see if selection includes a local function call + if the given local function declaration is not included in the selection.
             var containsAnyLocalFunctionCallNotWithinSpan = localFunctionCallsNotWithinSpan.Any();

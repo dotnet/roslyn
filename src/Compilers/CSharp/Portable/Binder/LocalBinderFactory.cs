@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitRankSpecifiers(TypeSyntax type, Binder enclosing)
         {
-            type.VisitRankSpecifiers((rankSpecifier, args) =>
+            type.VisitRankSpecifiers(action: (rankSpecifier, args) =>
             {
                 foreach (var size in rankSpecifier.Sizes)
                 {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         args.localBinderFactory.Visit(size, args.binder);
                     }
                 }
-            }, (localBinderFactory: this, binder: enclosing));
+            }, argument: (localBinderFactory: this, binder: enclosing));
         }
 
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.

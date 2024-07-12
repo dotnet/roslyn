@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
+            Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, messageGetter: p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", arg: project);
 
             // get rid of any result except syntax from compiler analyzer result
             var newCompilerAnalysisResult = analysisResult.DropExceptSyntax();

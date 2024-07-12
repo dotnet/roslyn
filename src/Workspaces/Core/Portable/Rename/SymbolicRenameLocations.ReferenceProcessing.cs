@@ -105,7 +105,7 @@ internal sealed partial class SymbolicRenameLocations
             if (referencedSymbol.ContainingSymbol != null &&
                 referencedSymbol.ContainingSymbol.Kind == SymbolKind.NamedType &&
                 ((INamedTypeSymbol)referencedSymbol.ContainingSymbol).TypeKind == TypeKind.Interface &&
-                !originalSymbol.ExplicitInterfaceImplementations().Any(static (s, referencedSymbol) => s.Equals(referencedSymbol), referencedSymbol))
+                !originalSymbol.ExplicitInterfaceImplementations().Any(predicate: static (s, referencedSymbol) => s.Equals(referencedSymbol), arg: referencedSymbol))
             {
                 return true;
             }

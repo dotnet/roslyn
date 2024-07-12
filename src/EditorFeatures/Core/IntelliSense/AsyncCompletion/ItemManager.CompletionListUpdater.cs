@@ -611,7 +611,7 @@ internal partial class ItemManager
                 {
                     // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
                     // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
-                    return patternMatch.Value.MatchedSpans.SelectAsArray(GetOffsetSpan, matchResult.CompletionItem);
+                    return patternMatch.Value.MatchedSpans.SelectAsArray(map: GetOffsetSpan, arg: matchResult.CompletionItem);
                 }
 
                 // If there's no match for Roslyn item's filter text which is identical to its display text,
@@ -979,7 +979,7 @@ internal partial class ItemManager
                 => ShouldBeFilteredOutOfCompletionList(item) || ShouldBeFilteredOutOfExpandedCompletionList(item);
 
             private bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item)
-                => _needToFilter && !item.Filters.Any(static (filter, self) => self._selectedNonExpanderFilters.Contains(filter), this);
+                => _needToFilter && !item.Filters.Any(predicate: static (filter, self) => self._selectedNonExpanderFilters.Contains(filter), arg: this);
 
             private bool ShouldBeFilteredOutOfExpandedCompletionList(VSCompletionItem item)
             {

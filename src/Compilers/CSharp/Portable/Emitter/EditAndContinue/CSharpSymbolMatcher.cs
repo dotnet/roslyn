@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var otherTypeParameters = otherDef.GetAllTypeParameters();
                     bool translationFailed = false;
 
-                    var otherTypeArguments = typeArguments.SelectAsArray((t, v) =>
+                    var otherTypeArguments = typeArguments.SelectAsArray(map: (t, v) =>
                     {
                         var newType = (TypeSymbol?)v.Visit(t.Type);
 
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
 
                         return t.WithTypeAndModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
-                    }, this);
+                    }, arg: this);
 
                     if (translationFailed)
                     {
@@ -880,9 +880,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if ((object)originalDef != type)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref discardedUseSiteInfo).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.Type),
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref discardedUseSiteInfo).SelectAsArray(map: (t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.Type),
                                                                                                                                                   v.VisitCustomModifiers(t.CustomModifiers)),
-                                                                                                                 this);
+                                                                                                                 arg: this);
 
                     var translatedOriginalDef = (NamedTypeSymbol)this.Visit(originalDef);
                     var typeMap = new TypeMap(translatedOriginalDef.GetAllTypeParameters(), translatedTypeArguments, allowAlpha: true);

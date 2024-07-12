@@ -63,7 +63,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
             var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
 
             return recommendedSymbols.NamedSymbols.SelectAsArray(
-                static (symbol, args) =>
+                map: static (symbol, args) =>
                 {
                     // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
                     // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
@@ -71,7 +71,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
                     var preselect = args.inferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !args.self.IsInstrinsic(symbol);
                     return new SymbolAndSelectionInfo(symbol, preselect);
                 },
-                (inferredTypes, self: this));
+                arg: (inferredTypes, self: this));
         }
     }
 
@@ -98,7 +98,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
         }
 
         return namedType.IsAwaitableNonDynamic(context.SemanticModel, context.Position) ||
-               namedType.GetTypeMembers().Any(static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), context);
+               namedType.GetTypeMembers().Any(predicate: static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), arg: context);
     }
 
     private static bool IsValidForGenericConstraintContext(ISymbol symbol)

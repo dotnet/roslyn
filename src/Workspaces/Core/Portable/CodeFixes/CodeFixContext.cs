@@ -282,7 +282,7 @@ public readonly struct CodeFixContext
             throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
         }
 
-        if (diagnostics.Any((d, span) => d.Location.SourceSpan != span, span))
+        if (diagnostics.Any(predicate: (d, span) => d.Location.SourceSpan != span, arg: span))
         {
             throw new ArgumentException(string.Format(WorkspacesResources.Diagnostic_must_have_span_0, span.ToString()), nameof(diagnostics));
         }

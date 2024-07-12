@@ -94,8 +94,8 @@ internal sealed class SymbolSpecification(
     }
 
     public bool AppliesTo(ISymbol symbol)
-        => ApplicableSymbolKindList.Any(static (kind, symbol) => kind.MatchesSymbol(symbol), symbol) &&
-           RequiredModifierList.All(static (modifier, symbol) => modifier.MatchesSymbol(symbol), symbol) &&
+        => ApplicableSymbolKindList.Any(predicate: static (kind, symbol) => kind.MatchesSymbol(symbol), arg: symbol) &&
+           RequiredModifierList.All(predicate: static (modifier, symbol) => modifier.MatchesSymbol(symbol), arg: symbol) &&
            ApplicableAccessibilityList.Contains(GetAccessibility(symbol));
 
     public bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
@@ -103,7 +103,7 @@ internal sealed class SymbolSpecification(
 
     public bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility)
     {
-        if (!ApplicableSymbolKindList.Any(static (k, kind) => k.Equals(kind), kind))
+        if (!ApplicableSymbolKindList.Any(predicate: static (k, kind) => k.Equals(kind), arg: kind))
         {
             return false;
         }
@@ -114,7 +114,7 @@ internal sealed class SymbolSpecification(
             return false;
         }
 
-        if (accessibility.HasValue && !ApplicableAccessibilityList.Any(static (k, accessibility) => k == accessibility, accessibility))
+        if (accessibility.HasValue && !ApplicableAccessibilityList.Any(predicate: static (k, accessibility) => k == accessibility, arg: accessibility))
         {
             return false;
         }

@@ -83,5 +83,5 @@ internal static class SuppressionHelpers
         => HasCustomTag(diagnostic.Descriptor.ImmutableCustomTags(), SynthesizedExternalSourceDiagnosticTag);
 
     public static bool HasCustomTag(ImmutableArray<string> customTags, string tagToFind)
-        => customTags.Any(static (c, tagToFind) => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0, tagToFind);
+        => customTags.Any(predicate: static (c, tagToFind) => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0, arg: tagToFind);
 }

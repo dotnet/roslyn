@@ -44,7 +44,7 @@ internal static partial class IPropertySymbolExtensions
         var arg = (attributesToRemove, accessibleWithin);
 
         var someParameterHasAttribute = property.Parameters
-            .Any(static (p, arg) => p.GetAttributes().Any(ShouldRemoveAttribute, arg), arg);
+            .Any(predicate: static (p, arg) => p.GetAttributes().Any(predicate: ShouldRemoveAttribute, arg: arg), arg: arg);
         if (!someParameterHasAttribute)
             return property;
 
@@ -57,11 +57,11 @@ internal static partial class IPropertySymbolExtensions
             property.RefKind,
             property.ExplicitInterfaceImplementations,
             property.Name,
-            property.Parameters.SelectAsArray(static (p, arg) =>
+            property.Parameters.SelectAsArray(map: static (p, arg) =>
                 CodeGenerationSymbolFactory.CreateParameterSymbol(
                     p.GetAttributes().WhereAsArray(static (a, arg) => !ShouldRemoveAttribute(a, arg), arg),
                     p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
-                    p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
+                    p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg: arg),
             property.GetMethod,
             property.SetMethod,
             property.IsIndexer);

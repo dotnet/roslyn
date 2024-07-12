@@ -420,7 +420,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         {
             var documents = textBuffer.AsTextContainer().GetRelatedDocuments();
 
-            if (!documents.Any(static (d, locationsByDocument) => locationsByDocument.Contains(d.Id), locationsByDocument))
+            if (!documents.Any(predicate: static (d, locationsByDocument) => locationsByDocument.Contains(d.Id), arg: locationsByDocument))
             {
                 _openTextBuffers[textBuffer].SetReferenceSpans([]);
             }

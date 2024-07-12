@@ -255,7 +255,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         }
 
         private static ImmutableArray<ActiveStatementTrackingSpan> CreateTrackingSpans(ITextSnapshot snapshot, ImmutableArray<ActiveStatementSpan> activeStatementSpans)
-            => activeStatementSpans.SelectAsArray((span, snapshot) => ActiveStatementTrackingSpan.Create(snapshot, span), snapshot);
+            => activeStatementSpans.SelectAsArray(map: (span, snapshot) => ActiveStatementTrackingSpan.Create(snapshot, span), arg: snapshot);
 
         private static ImmutableArray<ActiveStatementTrackingSpan> UpdateTrackingSpans(
             ITextSnapshot snapshot,

@@ -148,7 +148,7 @@ internal abstract partial class AbstractImplementInterfaceService
         {
             return
                 IdentifiersMatch(State.ClassOrStructType.Name, name) ||
-                State.ClassOrStructType.TypeParameters.Any(static (t, arg) => arg.self.IdentifiersMatch(t.Name, arg.name), (self: this, name));
+                State.ClassOrStructType.TypeParameters.Any(predicate: static (t, arg) => arg.self.IdentifiersMatch(t.Name, arg.name), arg: (self: this, name));
         }
 
         private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
@@ -262,7 +262,7 @@ internal abstract partial class AbstractImplementInterfaceService
             bool allowDelegateAndEnumConstraints)
         {
             var condition1 = typeParameter.ConstraintTypes.Count(t => t.TypeKind == TypeKind.Class) >= 2;
-            var condition2 = typeParameter.ConstraintTypes.Any(static (ts, allowDelegateAndEnumConstraints) => ts.IsUnexpressibleTypeParameterConstraint(allowDelegateAndEnumConstraints), allowDelegateAndEnumConstraints);
+            var condition2 = typeParameter.ConstraintTypes.Any(predicate: static (ts, allowDelegateAndEnumConstraints) => ts.IsUnexpressibleTypeParameterConstraint(allowDelegateAndEnumConstraints), arg: allowDelegateAndEnumConstraints);
             var condition3 = typeParameter.HasReferenceTypeConstraint && typeParameter.ConstraintTypes.Any(static ts => ts.IsReferenceType && ts.SpecialType != SpecialType.System_Object);
 
             return condition1 || condition2 || condition3;

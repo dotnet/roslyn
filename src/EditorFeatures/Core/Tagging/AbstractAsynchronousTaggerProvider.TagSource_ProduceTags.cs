@@ -420,7 +420,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 {
                     var snapshot = spanToTag.Snapshot;
                     var (foundSnapshot, document) = snapshotToDocument.FirstOrDefault(
-                        static (t, snapshot) => t.snapshot == snapshot, snapshot);
+                        predicate: static (t, snapshot) => t.snapshot == snapshot, arg: snapshot);
 
                     // If this is the first time looking at this snapshot, then go fetch the document (which we may or
                     // may not have), and freeze it if necessary..
@@ -592,8 +592,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 foreach (var (latestBuffer, latestSpans) in newTagTrees)
                 {
                     var snapshot = spansToTag.FirstOrDefault(
-                        static (span, latestBuffer) => span.SnapshotSpan.Snapshot.TextBuffer == latestBuffer,
-                        latestBuffer).SnapshotSpan.Snapshot;
+                        predicate: static (span, latestBuffer) => span.SnapshotSpan.Snapshot.TextBuffer == latestBuffer,
+                        arg: latestBuffer).SnapshotSpan.Snapshot;
                     Contract.ThrowIfNull(snapshot);
 
                     if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))

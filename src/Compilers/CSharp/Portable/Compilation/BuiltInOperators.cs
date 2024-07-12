@@ -693,8 +693,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(((NamedTypeSymbol)readonlySpanOfByte).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type.SpecialType is SpecialType.System_Byte);
 
             var utfConcatenation = _builtInUtf8Concatenation.Initialize(
-                static readonlySpanOfByte => new BinaryOperatorSignature(BinaryOperatorKind.Utf8Addition, readonlySpanOfByte, readonlySpanOfByte, readonlySpanOfByte),
-                readonlySpanOfByte);
+                valueFactory: static readonlySpanOfByte => new BinaryOperatorSignature(BinaryOperatorKind.Utf8Addition, readonlySpanOfByte, readonlySpanOfByte, readonlySpanOfByte),
+                arg: readonlySpanOfByte);
 
             operators.Add(utfConcatenation);
         }

@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeParameterSymbol> SubstituteTypeParameters(ImmutableArray<TypeParameterSymbol> original)
         {
-            return original.SelectAsArray((tp, m) => (TypeParameterSymbol)m.SubstituteTypeParameter(tp).AsTypeSymbolOnly(), this);
+            return original.SelectAsArray(map: (tp, m) => (TypeParameterSymbol)m.SubstituteTypeParameter(tp).AsTypeSymbolOnly(), arg: this);
         }
 
         /// <summary>

@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                childNodes.SelectAsArray((e, self) => self.BindToTypeForErrorRecovery(e), this),
+                childNodes.SelectAsArray(map: (e, self) => self.BindToTypeForErrorRecovery(e), arg: this),
                 CreateErrorType())
             { WasCompilerGenerated = wasCompilerGenerated };
         }
@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.ContainingSymbol is NamedTypeSymbol { OriginalDefinition: var symbolContainerDefinition } &&
                     ContainingType is SourceMemberContainerTypeSymbol { IsRecord: false, IsRecordStruct: false, PrimaryConstructor: SynthesizedPrimaryConstructor { ParameterCount: not 0 } primaryConstructor, OriginalDefinition: var containingTypeDefinition } &&
                     this.ContainingMember() is { Kind: not SymbolKind.NamedType, IsStatic: false } && // We are in an instance member
-                    primaryConstructor.Parameters.Any(static (p, name) => p.Name == name, name) &&
+                    primaryConstructor.Parameters.Any(predicate: static (p, name) => p.Name == name, arg: name) &&
                     // And not shadowed by a member in the same type
                     symbolContainerDefinition != (object)containingTypeDefinition &&
                     !members.Any(static (m, containingTypeDefinition) => m.ContainingSymbol.OriginalDefinition == (object)containingTypeDefinition, containingTypeDefinition))
@@ -3710,8 +3710,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
                 }
 
-                Debug.Assert(handlerParameterIndexes.All((index, paramLength) => index >= BoundInterpolatedStringArgumentPlaceholder.InstanceParameter && index < paramLength,
-                                                         parameters.Length));
+                Debug.Assert(handlerParameterIndexes.All(predicate: (index, paramLength) => index >= BoundInterpolatedStringArgumentPlaceholder.InstanceParameter && index < paramLength,
+                                                         arg: parameters.Length));
 
                 // We need to find the appropriate argument expression for every expected parameter, and error on any that occur after the current parameter
 
@@ -4586,7 +4586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1);
             }
 
-            boundInitExprOpt = boundInitExprOpt.SelectAsArray((expr, t) => GenerateConversionForAssignment(t.elementType, expr, t.diagnostics), (elementType, diagnostics));
+            boundInitExprOpt = boundInitExprOpt.SelectAsArray(map: (expr, t) => GenerateConversionForAssignment(t.elementType, expr, t.diagnostics), arg: (elementType, diagnostics));
 
             if (sizeOpt != null)
             {
@@ -5099,7 +5099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result = bindObjectCreationExpression(node, diagnostics);
 
             // Assert that the shape of the BoundBadExpression is sound and is not going to confuse NullableWalker for target-typed 'new'.
-            Debug.Assert(result is not BoundBadExpression { ChildBoundNodes: var children } || !children.Any((child, node) => child.Syntax == node, node));
+            Debug.Assert(result is not BoundBadExpression { ChildBoundNodes: var children } || !children.Any(predicate: (child, node) => child.Syntax == node, arg: node));
 
             return result;
 
@@ -7986,7 +7986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ImplementsWinRTAsyncInterface(TypeSymbol type)
         {
-            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(static (i, self) => self.IsWinRTAsyncInterface(i), this);
+            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(predicate: static (i, self) => self.IsWinRTAsyncInterface(i), arg: this);
         }
 
         private bool IsWinRTAsyncInterface(TypeSymbol type)

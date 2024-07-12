@@ -350,8 +350,8 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             //
             return recommendationSymbol.IsNamespace() &&
                    recommendationSymbol.Locations.Any(
-                       static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
-                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);
+                       predicate: static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
+                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), arg: declarationSyntax);
         }
 
         protected ImmutableArray<ISymbol> GetMemberSymbols(

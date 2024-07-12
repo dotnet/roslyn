@@ -298,8 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static ImmutableArray<ParameterSymbol> DeriveParameters(MethodSymbol sourceMethod, MethodSymbol destinationMethod)
         {
             return sourceMethod.Parameters.SelectAsArray(
-                static (oldParam, destinationMethod) => DeriveParameter(destinationMethod, oldParam),
-                destinationMethod);
+                map: static (oldParam, destinationMethod) => DeriveParameter(destinationMethod, oldParam),
+                arg: destinationMethod);
         }
 
         internal static ParameterSymbol DeriveParameter(Symbol destination, ParameterSymbol oldParam)

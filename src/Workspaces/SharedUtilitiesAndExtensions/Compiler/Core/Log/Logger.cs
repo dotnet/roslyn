@@ -87,7 +87,7 @@ internal static partial class Logger
     {
         if (TryGetActiveLogger(functionId, out var logger))
         {
-            var logMessage = LogMessage.Create(messageGetter, arg, logLevel);
+            var logMessage = LogMessage.Create(messageGetter: messageGetter, arg: arg, logLevel: logLevel);
             logger.Log(functionId, logMessage);
             logMessage.Free();
         }
@@ -182,7 +182,7 @@ internal static partial class Logger
     /// </summary>
     public static IDisposable LogBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetActiveLogger(functionId, out _)
-            ? CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg, logLevel), GetNextUniqueBlockId(), token)
+            ? CreateLogBlock(functionId, LogMessage.Create(messageGetter: messageGetter, arg: arg, logLevel: logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;
 
     /// <summary>

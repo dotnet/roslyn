@@ -77,7 +77,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
             {
                 var typeParameter = GetUniqueTypeParameter(
                     genericName.TypeArgumentList.Arguments.First(),
-                    s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
+                    s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(predicate: static (t, s) => t.Name == s, arg: s),
                     cancellationToken);
 
                 return [typeParameter];
@@ -92,7 +92,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
                 {
                     var typeParameter = GetUniqueTypeParameter(
                         type,
-                        s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
+                        s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(predicate: static (t, s) => t.Name == s, arg: s),
                         cancellationToken);
 
                     usedIdentifiers.Add(typeParameter.Name);

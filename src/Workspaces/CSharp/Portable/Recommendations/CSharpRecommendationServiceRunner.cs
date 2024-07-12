@@ -358,8 +358,8 @@ internal partial class CSharpRecommendationService
             var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
 
             return symbols.WhereAsArray(
-                static (symbol, args) => !IsUndesirable(args._context, args.contextEnclosingNamedType, args.contextOuterTypes, args.filterOutOfScopeLocals, symbol, args._cancellationToken),
-                (_context, contextOuterTypes, contextEnclosingNamedType, filterOutOfScopeLocals, _cancellationToken));
+                predicate: static (symbol, args) => !IsUndesirable(args._context, args.contextEnclosingNamedType, args.contextOuterTypes, args.filterOutOfScopeLocals, symbol, args._cancellationToken),
+                arg: (_context, contextOuterTypes, contextEnclosingNamedType, filterOutOfScopeLocals, _cancellationToken));
 
             static bool IsUndesirable(
                 CSharpSyntaxContext context,
@@ -757,8 +757,8 @@ internal partial class CSharpRecommendationService
                 var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
 
                 var namedSymbols = symbols.WhereAsArray(
-                    static (s, a) => !IsUndesirable(s, a.containerType, a.excludeStatic, a.excludeInstance, a.excludeBaseMethodsForRefStructs),
-                    (containerType, excludeStatic, excludeInstance, excludeBaseMethodsForRefStructs, 3));
+                    predicate: static (s, a) => !IsUndesirable(s, a.containerType, a.excludeStatic, a.excludeInstance, a.excludeBaseMethodsForRefStructs),
+                    arg: (containerType, excludeStatic, excludeInstance, excludeBaseMethodsForRefStructs, 3));
 
                 // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
                 // applicable to it as well.

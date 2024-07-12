@@ -172,7 +172,7 @@ public class FileTextLoader : TextLoader
         // we do not lock this file.
 
         var textAndVersion = await FileUtilities.RethrowExceptionsAsIOExceptionAsync(
-            async static t =>
+            operation: async static t =>
             {
                 using var stream = t.self.OpenFile(bufferSize: 1, useAsync: true);
                 var version = VersionStamp.Create(t.prevLastWriteTime);
@@ -182,7 +182,7 @@ public class FileTextLoader : TextLoader
                 using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: t.cancellationToken).ConfigureAwait(false);
                 var text = t.self.CreateText(readStream, t.options, t.cancellationToken);
                 return TextAndVersion.Create(text, version, t.self.Path);
-            }, (self: this, prevLastWriteTime, options, cancellationToken)).ConfigureAwait(false);
+            }, arg: (self: this, prevLastWriteTime, options, cancellationToken)).ConfigureAwait(false);
 
         return CheckForConcurrentFileWrites(prevLastWriteTime, textAndVersion);
     }
@@ -199,14 +199,14 @@ public class FileTextLoader : TextLoader
         ValidateFileLength(Path, fileLength);
 
         var textAndVersion = FileUtilities.RethrowExceptionsAsIOException(
-            static t =>
+            operation: static t =>
             {
                 // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
                 using var stream = t.self.OpenFile(bufferSize: 4096, useAsync: false);
                 var version = VersionStamp.Create(t.prevLastWriteTime);
                 var text = t.self.CreateText(stream, t.options, t.cancellationToken);
                 return TextAndVersion.Create(text, version, t.self.Path);
-            }, (self: this, prevLastWriteTime, options, cancellationToken));
+            }, arg: (self: this, prevLastWriteTime, options, cancellationToken));
 
         return CheckForConcurrentFileWrites(prevLastWriteTime, textAndVersion);
     }

@@ -150,7 +150,7 @@ internal class UseSimpleUsingStatementDiagnosticAnalyzer : AbstractBuiltInCodeSt
     }
 
     private static bool DeclaredLocalCausesCollision(ILookup<string, ISymbol> symbolNameToExistingSymbol, ImmutableArray<ILocalSymbol> locals)
-        => locals.Any(static (local, symbolNameToExistingSymbol) => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)), symbolNameToExistingSymbol);
+        => locals.Any(predicate: static (local, symbolNameToExistingSymbol) => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)), arg: symbolNameToExistingSymbol);
 
     private static bool PreservesSemantics(
         SemanticModel semanticModel,

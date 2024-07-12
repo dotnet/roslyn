@@ -733,10 +733,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing
                 End If
 
-                Dim names = namesBuilder.SelectAsArray(Function(name, constantType)
+                Dim names = namesBuilder.SelectAsArray(map:=Function(name, constantType)
                                                            Return New TypedConstant(constantType, TypedConstantKind.Primitive, name)
                                                        End Function,
-                                                       stringType)
+                                                       arg:=stringType)
 
                 namesBuilder.Free()
                 Return names

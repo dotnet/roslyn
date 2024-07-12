@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeWithAnnotations> typeArguments, TypeSymbol systemType)
         {
-            return typeArguments.SelectAsArray(Typeof, systemType);
+            return typeArguments.SelectAsArray(map: Typeof, arg: systemType);
         }
 
         public BoundExpression TypeofDynamicOperationContextType()
@@ -1786,8 +1786,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (discardsPresent)
             {
                 arguments = arguments.SelectAsArray(
-                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ? t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
-                    (factory: this, builder: builder));
+                    map: (arg, t) => arg.Kind == BoundKind.DiscardExpression ? t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
+                    arg: (factory: this, builder: builder));
             }
 
             return arguments;

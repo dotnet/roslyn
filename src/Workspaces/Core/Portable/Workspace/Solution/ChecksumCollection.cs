@@ -68,7 +68,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
             if (state != null)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound: onAssetFound, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
         else
@@ -81,7 +81,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound: onAssetFound, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
     }

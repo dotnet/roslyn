@@ -460,12 +460,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var origAwaitCatchFrame = _currentAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
-            var rewrittenCatches = node.CatchBlocks.SelectAsArray(static (catchBlock, arg) =>
+            var rewrittenCatches = node.CatchBlocks.SelectAsArray(map: static (catchBlock, arg) =>
             {
                 var (@this, origAwaitCatchFrame) = arg;
                 return (BoundCatchBlock)@this.VisitCatchBlock(catchBlock, parentAwaitCatchFrame: origAwaitCatchFrame);
             },
-            (this, origAwaitCatchFrame));
+            arg: (this, origAwaitCatchFrame));
 
             BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches);
 

@@ -77,12 +77,12 @@ internal static partial class SymbolUsageAnalysis
         {
             ForEachCurrentWrite(
                 symbol,
-                static (write, arg) =>
+                action: static (write, arg) =>
                 {
                     arg.action(write, arg.arg);
                     return true;
                 },
-                (action, arg));
+                arg: (action, arg));
         }
 
         public bool ForEachCurrentWrite<TArg>(ISymbol symbol, Func<IOperation, TArg, bool> action, TArg arg)

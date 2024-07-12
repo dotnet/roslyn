@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             lazy = AsyncLazy.Create(
-                static (computeFunctionRunning, c) =>
+                asynchronousComputeFunction: static (computeFunctionRunning, c) =>
                 {
                     computeFunctionRunning.Set();
                     while (true)
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var lazy = AsyncLazy.Create(static (cancellationTokenSource, c) => Task.Run((Func<object>)(() =>
+            var lazy = AsyncLazy.Create(asynchronousComputeFunction: static (cancellationTokenSource, c) => Task.Run((Func<object>)(() =>
             {
                 cancellationTokenSource.Cancel();
                 while (true)
@@ -241,8 +241,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             };
 
             var lazy = AsyncLazy.Create(
-                static (synchronousComputation, c) => Task.FromResult(synchronousComputation(c)),
-                includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation(c) : null!,
+                asynchronousComputeFunction: static (synchronousComputation, c) => Task.FromResult(synchronousComputation(c)),
+                synchronousComputeFunction: includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation(c) : null!,
                 arg: synchronousComputation);
 
             var thrownException = Assert.Throws<OperationCanceledException>(() =>

@@ -455,7 +455,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     internal bool ContainsLambda(MemberBody body)
     {
         var isLambda = IsLambda;
-        return body.RootNodes.Any(static (root, isLambda) => root.DescendantNodesAndSelf().Any(isLambda), isLambda);
+        return body.RootNodes.Any(predicate: static (root, isLambda) => root.DescendantNodesAndSelf().Any(isLambda), arg: isLambda);
     }
 
     /// <summary>
@@ -1303,7 +1303,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         trackedStatementPart = -1;
 
         // Active statement span not tracked or tracking span has been lost.
-        var trackedLineSpan = activeStatementSpans.FirstOrDefault(static (s, id) => s.Id == id, id).LineSpan;
+        var trackedLineSpan = activeStatementSpans.FirstOrDefault(predicate: static (s, id) => s.Id == id, arg: id).LineSpan;
         if (trackedLineSpan == default)
         {
             return false;
@@ -2436,7 +2436,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         PooledDictionary<ISymbol, SymbolKey> symbolKeyCache)
     {
         public SymbolKey GetKey(ISymbol symbol, CancellationToken cancellationToken)
-            => symbolKeyCache.GetOrAdd(symbol, static (symbol, cancellationToken) => SymbolKey.Create(symbol, cancellationToken), cancellationToken);
+            => symbolKeyCache.GetOrAdd(symbol, function: static (symbol, cancellationToken) => SymbolKey.Create(symbol, cancellationToken), arg: cancellationToken);
     }
 
     private async Task<ImmutableArray<SemanticEditInfo>> AnalyzeSemanticsAsync(
@@ -4731,7 +4731,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         // The primary constructor is deferred since it needs to be aggregated with initializer updates.
 
         var result = record.GetMembers(WellKnownMemberNames.PrintMembersMethodName)
-            .FirstOrDefault(static (m, compilation) => m is IMethodSymbol { IsImplicitlyDeclared: true } method && HasPrintMembersSignature(method, compilation), compilation);
+            .FirstOrDefault(predicate: static (m, compilation) => m is IMethodSymbol { IsImplicitlyDeclared: true } method && HasPrintMembersSignature(method, compilation), arg: compilation);
         if (result is not null)
         {
             yield return result;
@@ -5401,7 +5401,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         static bool IsPartialTypeEdit(ISymbol? symbol, SyntaxTree tree)
             => symbol is INamedTypeSymbol &&
-               symbol.DeclaringSyntaxReferences.Length > 1 && symbol.DeclaringSyntaxReferences.Any(IsNotInDocument, tree);
+               symbol.DeclaringSyntaxReferences.Length > 1 && symbol.DeclaringSyntaxReferences.Any(predicate: IsNotInDocument, arg: tree);
 
         return IsPartialTypeEdit(oldSymbol, oldSyntaxTree) ||
                IsPartialTypeEdit(newSymbol, newSyntaxTree);
@@ -5861,7 +5861,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             primaryParametersCapturedViaThis = memberBody.GetCapturedVariables(model).SelectAsArray(
                 predicate: (capture, liftingPrimaryConstructor) => capture.ContainingSymbol == liftingPrimaryConstructor,
                 selector: (capture, _) => (IParameterSymbol)capture,
-                liftingPrimaryConstructor);
+                arg: liftingPrimaryConstructor);
         }
         else
         {
@@ -6601,7 +6601,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     }
 
     public IMethodSymbol? GetPrimaryConstructor(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
-        => typeSymbol.InstanceConstructors.FirstOrDefault(IsPrimaryConstructor, cancellationToken);
+        => typeSymbol.InstanceConstructors.FirstOrDefault(predicate: IsPrimaryConstructor, arg: cancellationToken);
 
     // TODO: should be compiler API: https://github.com/dotnet/roslyn/issues/53092
     public bool IsPrimaryConstructor(ISymbol symbol, CancellationToken cancellationToken)
@@ -6614,7 +6614,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     public bool IsPrimaryConstructorParameterMatchingSymbol(ISymbol symbol, CancellationToken cancellationToken)
         => symbol is { IsStatic: false } and (IPropertySymbol or IFieldSymbol) &&
             GetPrimaryConstructor(symbol.ContainingType, cancellationToken) is { } primaryCtor &&
-            primaryCtor.Parameters.Any(static (parameter, name) => parameter.Name == name, symbol.Name);
+            primaryCtor.Parameters.Any(predicate: static (parameter, name) => parameter.Name == name, arg: symbol.Name);
 
     /// <summary>
     /// Primary constructor that the <paramref name="symbol"/> participates in (if any),
@@ -6623,7 +6623,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     /// </summary>
     public IMethodSymbol? GetEncompassingPrimaryConstructor(SyntaxNode declaration, ISymbol symbol, CancellationToken cancellationToken)
         => IsPrimaryConstructorDeclaration(declaration) ? (IMethodSymbol)symbol :
-           IsDeclarationWithInitializer(declaration) ? symbol.ContainingType.InstanceConstructors.FirstOrDefault(IsPrimaryConstructor, cancellationToken) :
+           IsDeclarationWithInitializer(declaration) ? symbol.ContainingType.InstanceConstructors.FirstOrDefault(predicate: IsPrimaryConstructor, arg: cancellationToken) :
            null;
 
     private static IPropertySymbol? GetPropertySynthesizedForRecordPrimaryConstructorParameter(IParameterSymbol parameter)
@@ -6670,7 +6670,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         // Primary property is synthesized based on presence of primary constructor parameter:
         if (newSymbol is IPropertySymbol { IsStatic: false, ContainingType.IsRecord: true } &&
             GetPrimaryConstructor(newSymbol.ContainingType, cancellationToken)?.Parameters.FirstOrDefault(
-                static (parameter, name) => parameter.Name == name, newSymbol.Name) is { } newPrimaryParameter)
+                predicate: static (parameter, name) => parameter.Name == name, arg: newSymbol.Name) is { } newPrimaryParameter)
         {
             var oldParameter = SymbolKey.Create(newPrimaryParameter, cancellationToken).Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
             var oldProperty = (IPropertySymbol)oldSymbol;

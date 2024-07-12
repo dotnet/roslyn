@@ -86,7 +86,7 @@ internal sealed partial class SolutionCompilationState
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
 
         // when solution state is changed, we recalculate its checksum
-        _lazyChecksums = AsyncLazy.Create(static async (self, cancellationToken) =>
+        _lazyChecksums = AsyncLazy.Create(asynchronousComputeFunction: static async (self, cancellationToken) =>
         {
             var (checksums, projectCone) = await self.ComputeChecksumsAsync(projectId: null, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfTrue(projectCone != null);
@@ -164,7 +164,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             stateChange,
             translate: static (stateChange, translate) => translate?.Invoke(stateChange),
-            forkTracker,
+            forkTracker: forkTracker,
             arg: translate);
     }
 
@@ -199,7 +199,7 @@ internal sealed partial class SolutionCompilationState
         var newTrackerMap = CreateCompilationTrackerMap(
             projectId,
             newDependencyGraph,
-            static (trackerMap, arg) =>
+            modifyNewTrackerInfo: static (trackerMap, arg) =>
             {
                 // If we have a tracker for this project, then fork it as well (along with the
                 // translation action and store it in the tracker map.
@@ -211,7 +211,7 @@ internal sealed partial class SolutionCompilationState
                         trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translate);
                 }
             },
-            (translate, forkTracker, projectId, newProjectState),
+            arg: (translate, forkTracker, projectId, newProjectState),
             skipEmptyCallback: true);
 
         return this.Branch(
@@ -410,7 +410,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.WithProjectAssemblyName(projectId, assemblyName),
-            static (stateChange, assemblyName) => new TranslationAction.ProjectAssemblyNameAction(
+            translate: static (stateChange, assemblyName) => new TranslationAction.ProjectAssemblyNameAction(
                 stateChange.OldProjectState, stateChange.NewProjectState),
             forkTracker: true,
             arg: assemblyName);
@@ -616,7 +616,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static (stateChange, analyzerReferences) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
+            translate: static (stateChange, analyzerReferences) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 stateChange.OldProjectState, stateChange.NewProjectState, referencesToAdd: analyzerReferences),
             forkTracker: true,
             arg: analyzerReferences);
@@ -651,7 +651,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference),
-            static (stateChange, analyzerReference) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
+            translate: static (stateChange, analyzerReference) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 stateChange.OldProjectState, stateChange.NewProjectState, referencesToRemove: [analyzerReference]),
             forkTracker: true,
             arg: analyzerReference);
@@ -892,7 +892,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static (stateChange, documentId) =>
+            translate: static (stateChange, documentId) =>
             {
                 // This function shouldn't have been called if the document has not changed
                 Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
@@ -910,7 +910,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static (stateChange, documentId) =>
+            translate: static (stateChange, documentId) =>
             {
                 // This function shouldn't have been called if the document has not changed
                 Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
@@ -963,7 +963,7 @@ internal sealed partial class SolutionCompilationState
     {
         if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
         {
-            tracker = RoslynImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this.SolutionState);
+            tracker = RoslynImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, valueFactory: s_createCompilationTrackerFunction, factoryArgument: this.SolutionState);
         }
 
         return tracker;
@@ -1148,7 +1148,7 @@ internal sealed partial class SolutionCompilationState
         var newTrackerMap = CreateCompilationTrackerMap(
             projectIdsToUnfreeze,
             this.SolutionState.GetProjectDependencyGraph(),
-            static (trackerMap, projectIdsToUnfreeze) =>
+            modifyNewTrackerInfo: static (trackerMap, projectIdsToUnfreeze) =>
             {
                 foreach (var projectId in projectIdsToUnfreeze)
                 {
@@ -1161,7 +1161,7 @@ internal sealed partial class SolutionCompilationState
                     trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
                 }
             },
-            projectIdsToUnfreeze,
+            arg: projectIdsToUnfreeze,
             skipEmptyCallback: projectIdsToUnfreeze.Length == 0);
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
@@ -1230,7 +1230,7 @@ internal sealed partial class SolutionCompilationState
         var newTrackerMap = CreateCompilationTrackerMap(
             [.. documentStatesByProjectId.Keys],
             this.SolutionState.GetProjectDependencyGraph(),
-            static (trackerMap, arg) =>
+            modifyNewTrackerInfo: static (trackerMap, arg) =>
             {
                 foreach (var (projectId, documentStatesForProject) in arg.documentStatesByProjectId)
                 {
@@ -1245,7 +1245,7 @@ internal sealed partial class SolutionCompilationState
                     trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
                 }
             },
-            (documentStatesByProjectId, this.SolutionState),
+            arg: (documentStatesByProjectId, this.SolutionState),
             skipEmptyCallback: false);
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
@@ -1417,7 +1417,7 @@ internal sealed partial class SolutionCompilationState
         // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
         // there is no additional cost processing the initiating document in this loop.
         var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-        var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(static (docId, currentDocumentState) => (docId, currentDocumentState), currentDocumentState);
+        var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(map: static (docId, currentDocumentState) => (docId, currentDocumentState), arg: currentDocumentState);
         currentCompilationState = currentCompilationState.WithDocumentContentsFrom(allDocumentIdsWithCurrentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
         return WithFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
@@ -1583,7 +1583,7 @@ internal sealed partial class SolutionCompilationState
 
             newCompilationState = newCompilationState.ForkProject(
                 stateChange,
-                static (_, compilationTranslationAction) => compilationTranslationAction,
+                translate: static (_, compilationTranslationAction) => compilationTranslationAction,
                 forkTracker: true,
                 arg: compilationTranslationAction);
         }
@@ -1635,7 +1635,7 @@ internal sealed partial class SolutionCompilationState
 
             newCompilationState = newCompilationState.ForkProject(
                 stateChange,
-                static (_, compilationTranslationAction) => compilationTranslationAction,
+                translate: static (_, compilationTranslationAction) => compilationTranslationAction,
                 forkTracker: true,
                 arg: compilationTranslationAction);
         }

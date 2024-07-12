@@ -50,13 +50,13 @@ internal sealed partial class LightweightRenameLocations
     public async Task<SymbolicRenameLocations?> ToSymbolicLocationsAsync(ISymbol symbol, CancellationToken cancellationToken)
     {
         var referencedSymbols = await _referencedSymbols.SelectAsArrayAsync(
-            static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), Solution, cancellationToken).ConfigureAwait(false);
+            selector: static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), arg: Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (referencedSymbols.Any(s => s is null))
             return null;
 
         var implicitLocations = await _implicitLocations.SelectAsArrayAsync(
-            static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), Solution, cancellationToken).ConfigureAwait(false);
+            selector: static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), arg: Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return new SymbolicRenameLocations(
             symbol,

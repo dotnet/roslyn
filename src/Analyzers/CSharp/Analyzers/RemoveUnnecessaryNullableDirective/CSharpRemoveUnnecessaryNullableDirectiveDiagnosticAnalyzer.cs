@@ -325,8 +325,8 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
         {
             return _codeBlockIntervals.GetOrAdd(
                 tree,
-                static (tree, arg) => SyntaxTreeState.Create(arg.defaultCompleted, arg.options, tree, arg.cancellationToken),
-                (defaultCompleted, options: ((CSharpCompilationOptions)semanticModel.Compilation.Options).NullableContextOptions, cancellationToken));
+                valueFactory: static (tree, arg) => SyntaxTreeState.Create(arg.defaultCompleted, arg.options, tree, arg.cancellationToken),
+                factoryArgument: (defaultCompleted, options: ((CSharpCompilationOptions)semanticModel.Compilation.Options).NullableContextOptions, cancellationToken));
         }
     }
 }

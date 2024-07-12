@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 return null;
 
             // Find the syntax node that declared the symbol in the tree we're processing
-            var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(static (r, arg) => r.SyntaxTree == arg.syntaxTree && r.Span.Contains(arg.SpanStart), arg: (syntaxTree, syntaxToken.SpanStart));
+            var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(predicate: static (r, arg) => r.SyntaxTree == arg.syntaxTree && r.Span.Contains(arg.SpanStart), arg: (syntaxTree, syntaxToken.SpanStart));
             var syntaxNode = syntaxReference?.GetSyntax(cancellationToken);
 
             if (syntaxNode is null)
@@ -430,10 +430,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             // The containing range is supposed to be "the full range of the declaration not including leading/trailing whitespace, but everything else,
             // e.g. comments and code", so produce our start/end points looking through trivia
-            var firstNonWhitespaceTrivia = syntaxNode.GetLeadingTrivia().FirstOrNull(static (t, syntaxFacts) => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t), syntaxFacts);
+            var firstNonWhitespaceTrivia = syntaxNode.GetLeadingTrivia().FirstOrNull(predicate: static (t, syntaxFacts) => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t), arg: syntaxFacts);
             var fullRangeStart = firstNonWhitespaceTrivia?.SpanStart ?? syntaxNode.SpanStart;
 
-            var lastNonWhitespaceTrivia = syntaxNode.GetTrailingTrivia().Reverse().FirstOrNull(static (t, syntaxFacts) => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t), syntaxFacts);
+            var lastNonWhitespaceTrivia = syntaxNode.GetTrailingTrivia().Reverse().FirstOrNull(predicate: static (t, syntaxFacts) => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t), arg: syntaxFacts);
             var fullRangeEnd = lastNonWhitespaceTrivia?.Span.End ?? syntaxNode.Span.End;
 
             var fullRangeSpan = TextSpan.FromBounds(fullRangeStart, fullRangeEnd);

@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             {
                 var spanMappingService = InterlockedOperations.Initialize(
                     ref _lazySpanMappingService,
-                    static documentServiceProvider =>
+                    valueFactory: static documentServiceProvider =>
                     {
                         var razorMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
                         return razorMappingService != null ? new RazorSpanMappingServiceWrapper(razorMappingService) : null;
                     },
-                    _innerDocumentServiceProvider);
+                    arg: _innerDocumentServiceProvider);
 
                 return (TService?)spanMappingService;
             }
@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             {
                 var excerptService = InterlockedOperations.Initialize(
                     ref _lazyExcerptService,
-                    static documentServiceProvider =>
+                    valueFactory: static documentServiceProvider =>
                     {
                         var impl = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
                         return (impl != null) ? new RazorDocumentExcerptServiceWrapper(impl) : null;
                     },
-                    _innerDocumentServiceProvider);
+                    arg: _innerDocumentServiceProvider);
 
                 return (TService?)excerptService;
             }
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             {
                 var documentPropertiesService = InterlockedOperations.Initialize(
                     ref _lazyDocumentPropertiesService,
-                    static documentServiceProvider =>
+                    valueFactory: static documentServiceProvider =>
                     {
                         var razorDocumentPropertiesService = documentServiceProvider.GetService<IRazorDocumentPropertiesService>();
                         return razorDocumentPropertiesService is not null ? new RazorDocumentPropertiesServiceWrapper(razorDocumentPropertiesService) : null;
                     },
-                    _innerDocumentServiceProvider);
+                    arg: _innerDocumentServiceProvider);
 
                 return (TService?)(object?)documentPropertiesService;
             }

@@ -132,10 +132,10 @@ internal sealed class SerializableSourceText
             // source text out of.
 
             return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-                static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
-                static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
-                state,
-                cancellationToken);
+                func: static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
+                transform: static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
+                arg: state,
+                cancellationToken: cancellationToken);
         }
     }
 

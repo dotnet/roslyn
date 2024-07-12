@@ -213,11 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 symbolForCompare,
                 _diagnostics,
-                static (diagnostics, method, interceptor, topLevel, attributeLocation) =>
+                reportMismatchInReturnType: static (diagnostics, method, interceptor, topLevel, attributeLocation) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, attributeLocation, method);
                 },
-                static (diagnostics, method, interceptor, implementingParameter, blameAttributes, attributeLocation) =>
+                reportMismatchInParameterType: static (diagnostics, method, interceptor, implementingParameter, blameAttributes, attributeLocation) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, attributeLocation, new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat), method);
                 },
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 symbolForCompare,
                 this._diagnostics,
-                static (diagnostics, method, symbolForCompare, implementingParameter, blameAttributes, attributeLocation) =>
+                reportMismatchInParameterType: static (diagnostics, method, symbolForCompare, implementingParameter, blameAttributes, attributeLocation) =>
                 {
                     diagnostics.Add(ErrorCode.ERR_InterceptorScopedMismatch, attributeLocation, method, symbolForCompare);
                 },
@@ -1327,9 +1327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (LocalRewriter rewriter, bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps) arg = (rewriter: this, forceLambdaSpilling, storesToTemps);
                         arguments[p] = RewriteParamsArray(
                                            argument,
-                                           static (BoundExpression element, ref (LocalRewriter rewriter, bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps) arg) =>
+                                           elementRewriter: static (BoundExpression element, ref (LocalRewriter rewriter, bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps) arg) =>
                                                arg.rewriter.StoreArgumentToTempIfNecessary(arg.forceLambdaSpilling, arg.storesToTemps, element, RefKind.None, RefKind.None),
-                                           ref arg);
+                                           arg: ref arg);
 
                         Debug.Assert(arguments[p].IsParamsArrayOrCollection);
                     }
@@ -1497,9 +1497,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg = (tempStores, tempsRemainedInUse, firstUnclaimedStore);
                     arguments[a] = RewriteParamsArray(
                                        argument,
-                                       static (BoundExpression element, ref (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg) =>
+                                       elementRewriter: static (BoundExpression element, ref (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg) =>
                                            mergeArgumentAndSideEffect(element, arg.tempStores, ref arg.tempsRemainedInUse, ref arg.firstUnclaimedStore),
-                                       ref arg);
+                                       arg: ref arg);
                     tempsRemainedInUse = arg.tempsRemainedInUse;
                     firstUnclaimedStore = arg.firstUnclaimedStore;
                 }

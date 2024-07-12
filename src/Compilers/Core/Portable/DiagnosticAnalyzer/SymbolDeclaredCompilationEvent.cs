@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return InterlockedOperations.Initialize(
                     ref _lazyCachedDeclaringReferences,
-                    static self => self.Symbol.DeclaringSyntaxReferences,
-                    this);
+                    createArray: static self => self.Symbol.DeclaringSyntaxReferences,
+                    arg: this);
             }
         }
 

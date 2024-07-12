@@ -33,7 +33,7 @@ internal static partial class Extensions
     }
 
     public static ValueTask<ImmutableArray<Location>> ConvertLocationsAsync(this IReadOnlyCollection<DiagnosticDataLocation> locations, Project project, CancellationToken cancellationToken)
-        => locations.SelectAsArrayAsync((location, project, cancellationToken) => location.ConvertLocationAsync(project, cancellationToken), project, cancellationToken);
+        => locations.SelectAsArrayAsync(selector: (location, project, cancellationToken) => location.ConvertLocationAsync(project, cancellationToken), arg: project, cancellationToken: cancellationToken);
 
     public static async ValueTask<Location> ConvertLocationAsync(
         this DiagnosticDataLocation dataLocation, Project project, CancellationToken cancellationToken)

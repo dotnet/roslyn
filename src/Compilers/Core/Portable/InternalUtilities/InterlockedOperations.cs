@@ -168,7 +168,7 @@ namespace Roslyn.Utilities
         /// <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
         /// already initialized, that value value will be returned.</returns>
         public static ImmutableArray<T> Initialize<T>(ref ImmutableArray<T> target, Func<ImmutableArray<T>> createArray)
-            => Initialize(ref target, static createArray => createArray(), createArray);
+            => Initialize(ref target, createArray: static createArray => createArray(), arg: createArray);
 
         /// <summary>
         /// Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
@@ -187,7 +187,7 @@ namespace Roslyn.Utilities
                 return target;
             }
 
-            return Initialize_Slow(ref target, createArray, arg);
+            return Initialize_Slow(ref target, createArray: createArray, arg: arg);
         }
 
         private static ImmutableArray<T> Initialize_Slow<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)

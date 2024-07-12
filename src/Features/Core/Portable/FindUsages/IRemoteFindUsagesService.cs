@@ -232,7 +232,7 @@ internal readonly struct SerializableDefinitionItem(
 
     public async ValueTask<DefinitionItem.DefaultDefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
     {
-        var sourceSpans = await SourceSpans.SelectAsArrayAsync(static (ss, solution, cancellationToken) => ss.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+        var sourceSpans = await SourceSpans.SelectAsArrayAsync(selector: static (ss, solution, cancellationToken) => ss.RehydrateAsync(solution, cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return new DefinitionItem.DefaultDefinitionItem(
             Tags,

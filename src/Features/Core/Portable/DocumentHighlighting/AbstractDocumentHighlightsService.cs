@@ -85,7 +85,7 @@ internal abstract partial class AbstractDocumentHighlightsService :
         // position the caller was asking for.  For example, if the user had `$$new X();` then 
         // SymbolFinder will consider that the symbol `X`. However, the doc highlights won't include
         // the `new` part, so it's not appropriate for us to highlight `X` in that case.
-        if (!tags.Any(static (t, position) => t.HighlightSpans.Any(static (hs, position) => hs.TextSpan.IntersectsWith(position), position), position))
+        if (!tags.Any(predicate: static (t, position) => t.HighlightSpans.Any(predicate: static (hs, position) => hs.TextSpan.IntersectsWith(position), arg: position), arg: position))
             return [];
 
         return tags;

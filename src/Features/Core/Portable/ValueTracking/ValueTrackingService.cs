@@ -46,7 +46,7 @@ internal partial class ValueTrackingService : IValueTrackingService
             }
 
             return await result.Value.SelectAsArrayAsync(
-                static (item, solution, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                selector: static (item, solution, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         var progressTracker = new ValueTrackingProgressCollector();
@@ -76,7 +76,7 @@ internal partial class ValueTrackingService : IValueTrackingService
             }
 
             return await result.Value.SelectAsArrayAsync(
-                static (item, solution, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                selector: static (item, solution, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), arg: solution, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         var progressTracker = new ValueTrackingProgressCollector();

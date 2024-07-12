@@ -351,8 +351,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         // If we found a linked document which is part of a project with different project file,
         // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
-        if (linkedDocumentIds.Any(static (id, arg) =>
-                !PathUtilities.PathsEqual(arg.solution.GetRequiredDocument(id).Project.FilePath!, arg.document.Project.FilePath!), (solution, document)))
+        if (linkedDocumentIds.Any(predicate: static (id, arg) =>
+                !PathUtilities.PathsEqual(arg.solution.GetRequiredDocument(id).Project.FilePath!, arg.document.Project.FilePath!), arg: (solution, document)))
         {
             allDocumentIds = default;
             return false;

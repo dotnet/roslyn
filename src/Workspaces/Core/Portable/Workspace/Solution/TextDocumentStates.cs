@@ -129,8 +129,8 @@ internal sealed class TextDocumentStates<TState>
 
     public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
         => SelectAsArray(
-            static (state, selector) => selector(state),
-            selector);
+            selector: static (state, selector) => selector(state),
+            arg: selector);
 
     public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
     {
@@ -159,7 +159,7 @@ internal sealed class TextDocumentStates<TState>
             foreach (var documentId in _ids)
                 set.Add(documentId);
 
-            if (ids.All(static (id, set) => set.Contains(id), set))
+            if (ids.All(predicate: static (id, set) => set.Contains(id), arg: set))
                 return Empty;
         }
 

@@ -45,7 +45,7 @@ internal class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, I
 
     public void OnNamespaceUpdated()
     {
-        var isNewNamespace = !AvailableNamespaces.Any(static (i, self) => i.Namespace == self.NamespaceName, this);
+        var isNewNamespace = !AvailableNamespaces.Any(predicate: static (i, self) => i.Namespace == self.NamespaceName, arg: this);
         var isValidName = !isNewNamespace || IsValidNamespace(NamespaceName);
 
         if (isNewNamespace && isValidName)

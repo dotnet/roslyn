@@ -234,8 +234,8 @@ internal partial class SolutionCompilationState
             }
 
             public RootedSymbolSet RootedSymbolSet => _rootedSymbolSet.Initialize(
-                static finalCompilationWithGeneratedDocuments => RootedSymbolSet.Create(finalCompilationWithGeneratedDocuments),
-                this.FinalCompilationWithGeneratedDocuments);
+                valueFactory: static finalCompilationWithGeneratedDocuments => RootedSymbolSet.Create(finalCompilationWithGeneratedDocuments),
+                arg: this.FinalCompilationWithGeneratedDocuments);
 
             public FinalCompilationTrackerState WithCreationPolicy(CreationPolicy creationPolicy)
                 => creationPolicy == this.CreationPolicy

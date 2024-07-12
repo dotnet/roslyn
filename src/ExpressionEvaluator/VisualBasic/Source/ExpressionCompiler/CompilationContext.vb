@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Return ImmutableArray.Create(Of MethodSymbol)(constructor)
                     End Function,
                     allTypeParameters,
-                    Function(t1, t2) allTypeParameters.SelectAsArray(Function(tp, i, t) DirectCast(New SimpleTypeParameterSymbol(t, i, tp.GetUnmangledName()), TypeParameterSymbol), t2))
+                    Function(t1, t2) allTypeParameters.SelectAsArray(map:=Function(tp, i, t) DirectCast(New SimpleTypeParameterSymbol(t, i, tp.GetUnmangledName()), TypeParameterSymbol), arg:=t2))
                 additionalTypes.Add(typeVariablesType)
             End If
 

@@ -433,7 +433,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 return;
             }
 
-            if (symbolEndContext.Symbol.GetAttributes().Any(static (a, self) => a.AttributeClass == self._structLayoutAttributeType, this))
+            if (symbolEndContext.Symbol.GetAttributes().Any(predicate: static (a, self) => a.AttributeClass == self._structLayoutAttributeType, arg: this))
             {
                 // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
                 // and removal of unused members might break semantics.
@@ -827,7 +827,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         }
 
         private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
-            => methodSymbol.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this);
+            => methodSymbol.GetAttributes().Any(predicate: static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), arg: this);
 
         private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
         {

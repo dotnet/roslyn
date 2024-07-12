@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     using (Logger.LogBlock(FunctionId.Workspace_Project_CompilationTracker_BuildCompilationAsync,
-                                           s_logBuildCompilationAsync, ProjectState, cancellationToken))
+                                           messageGetter: s_logBuildCompilationAsync, arg: ProjectState, token: cancellationToken))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
                     Interlocked.CompareExchange(
                         ref _lazyDependentVersion,
-                        AsyncLazy.Create(static (arg, c) =>
+                        AsyncLazy.Create(asynchronousComputeFunction: static (arg, c) =>
                             arg.self.ComputeDependentVersionAsync(arg.compilationState, c),
                             arg: (self: this, compilationState)),
                         null);
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
                     Interlocked.CompareExchange(
                         ref _lazyDependentSemanticVersion,
-                        AsyncLazy.Create(static (arg, c) =>
+                        AsyncLazy.Create(asynchronousComputeFunction: static (arg, c) =>
                             arg.self.ComputeDependentSemanticVersionAsync(arg.compilationState, c),
                             arg: (self: this, compilationState))
                         , null);
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
                     Interlocked.CompareExchange(
                         ref _lazyDependentChecksum,
-                        AsyncLazy.Create(static (arg, c) =>
+                        AsyncLazy.Create(asynchronousComputeFunction: static (arg, c) =>
                             arg.self.ComputeDependentChecksumAsync(arg.SolutionState, c),
                             arg: (self: this, compilationState.SolutionState)),
                         null);

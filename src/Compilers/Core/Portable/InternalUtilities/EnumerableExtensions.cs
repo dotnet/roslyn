@@ -226,7 +226,7 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(predicate));
             }
 
-            return source.Cast<T?>().FirstOrDefault(static (v, predicate) => predicate(v!.Value), predicate);
+            return source.Cast<T?>().FirstOrDefault(predicate: static (v, predicate) => predicate(v!.Value), arg: predicate);
         }
 
         public static T? FirstOrNull<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
@@ -242,7 +242,7 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(predicate));
             }
 
-            return source.Cast<T?>().FirstOrDefault(static (v, arg) => arg.predicate(v!.Value, arg.arg), (predicate, arg));
+            return source.Cast<T?>().FirstOrDefault(predicate: static (v, arg) => arg.predicate(v!.Value, arg.arg), arg: (predicate, arg));
         }
 
         public static T? LastOrNull<T>(this IEnumerable<T> source)

@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (appendShouldProceedLocal is not null && resultExpressions.Count > 0)
             {
                 // appendCalls as expressionStatements
-                var appendCallsStatements = resultExpressions.SelectAsArray(static (appendCall, @this) => (BoundStatement)@this._factory.ExpressionStatement(appendCall), this);
+                var appendCallsStatements = resultExpressions.SelectAsArray(map: static (appendCall, @this) => (BoundStatement)@this._factory.ExpressionStatement(appendCall), arg: this);
                 resultExpressions.Free();
 
                 // if (appendShouldProceedLocal) { appendCallsStatements }

@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             CommonEmbeddedMember containingPropertyOrMethod,
             ImmutableArray<ParameterSymbol> underlyingParameters)
         {
-            return underlyingParameters.SelectAsArray((p, c) => new EmbeddedParameter(c, p.GetCciAdapter()), containingPropertyOrMethod);
+            return underlyingParameters.SelectAsArray(map: (p, c) => new EmbeddedParameter(c, p.GetCciAdapter()), arg: containingPropertyOrMethod);
         }
 
         protected override CSharpAttributeData CreateCompilerGeneratedAttribute()

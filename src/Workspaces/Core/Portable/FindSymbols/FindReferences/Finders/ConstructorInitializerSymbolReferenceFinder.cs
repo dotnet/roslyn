@@ -64,8 +64,8 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
             tokens = tokens.Concat(FindMatchingIdentifierTokens(state, "New", cancellationToken)).Distinct();
 
         var totalTokens = tokens.WhereAsArray(
-            static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
-            (state, methodSymbol, cancellationToken));
+            predicate: static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
+            arg: (state, methodSymbol, cancellationToken));
 
         FindReferencesInTokens(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken);
         return;

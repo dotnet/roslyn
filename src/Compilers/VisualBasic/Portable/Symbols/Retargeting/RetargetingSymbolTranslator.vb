@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                 ' Retarget by type code - primitive types are encoded in short form in an attribute signature:
                 Return marshallingInfo.WithTranslatedTypes(Of TypeSymbol, RetargetingSymbolTranslator)(
-                    Function(type, translator) translator.Retarget(DirectCast(type, TypeSymbol), RetargetOptions.RetargetPrimitiveTypesByTypeCode), Me)
+                    translator:=Function(type, translator) translator.Retarget(DirectCast(type, TypeSymbol), RetargetOptions.RetargetPrimitiveTypesByTypeCode), arg:=Me)
             End Function
 
             Public Function Retarget(symbol As TypeSymbol, options As RetargetOptions) As TypeSymbol
@@ -656,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Private Function RetargetAttributes(oldAttributes As ImmutableArray(Of VisualBasicAttributeData)) As ImmutableArray(Of VisualBasicAttributeData)
-                Return oldAttributes.SelectAsArray(Function(a, t) t.RetargetAttributeData(a), Me)
+                Return oldAttributes.SelectAsArray(map:=Function(a, t) t.RetargetAttributeData(a), arg:=Me)
             End Function
 
             Friend Iterator Function RetargetAttributes(attributes As IEnumerable(Of VisualBasicAttributeData)) As IEnumerable(Of VisualBasicAttributeData)

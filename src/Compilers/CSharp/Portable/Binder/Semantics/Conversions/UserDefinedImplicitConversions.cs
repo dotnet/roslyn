@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If any of the operators in U convert from S then SX is S.
             if ((object)source != null)
             {
-                if (u.Any(static (conv, source) => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2), source))
+                if (u.Any(predicate: static (conv, source) => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2), arg: source))
                 {
                     return source;
                 }
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have previously written the appropriate "ToType" into the conversion analysis
             // to perpetuate this fiction.
 
-            if (u.Any(static (conv, target) => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2), target))
+            if (u.Any(predicate: static (conv, target) => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2), arg: target))
             {
                 return target;
             }

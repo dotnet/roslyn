@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overridable Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
             ' default implementation does a post-filter. We can override this if its a performance burden, but 
             ' experience is that it won't be.
-            Return GetTypeMembers(name).WhereAsArray(Function(type, arity_) type.Arity = arity_, arity)
+            Return GetTypeMembers(name).WhereAsArray(predicate:=Function(type, arity_) type.Arity = arity_, arg:=arity)
         End Function
 
         ' Only the compiler can create new instances.
