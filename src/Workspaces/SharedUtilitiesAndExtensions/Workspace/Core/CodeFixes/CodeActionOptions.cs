@@ -4,12 +4,9 @@
 
 using System;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -25,7 +22,6 @@ internal sealed record class CodeActionOptions
 
 #if !CODE_STYLE
     [DataMember] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
-    [DataMember] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
 #endif
     public CodeActionOptionsProvider CreateProvider()
         => new DelegatingCodeActionOptionsProvider(_ => this);

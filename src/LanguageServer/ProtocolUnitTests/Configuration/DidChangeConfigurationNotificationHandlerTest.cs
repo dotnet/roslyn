@@ -112,7 +112,7 @@ public class A { }";
             var expectedNames = new[]
             {
                 "symbol_search.dotnet_search_reference_assemblies",
-                "implement_type.dotnet_insertion_behavior",
+                "implement_type.dotnet_member_insertion_location",
                 "implement_type.dotnet_property_generation_behavior",
                 "completion.dotnet_show_name_completion_suggestions",
                 "completion.dotnet_provide_regex_completions",

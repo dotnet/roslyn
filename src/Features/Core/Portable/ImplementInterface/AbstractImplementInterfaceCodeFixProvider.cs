@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -37,12 +38,13 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         if (!token.Span.IntersectsWith(span))
             return;
 
+        var options = await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
+
         foreach (var type in token.Parent.GetAncestorsOrThis<TTypeSyntax>())
         {
             if (this.IsTypeInInterfaceBaseList(type))
             {
                 var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
-                var options = context.Options.GetOptions(document.Project.Services).ImplementTypeOptions;
 
                 var info = await service.AnalyzeAsync(
                     document, type, cancellationToken).ConfigureAwait(false);

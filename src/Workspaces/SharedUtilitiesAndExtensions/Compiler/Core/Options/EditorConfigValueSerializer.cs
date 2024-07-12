@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
@@ -93,10 +94,27 @@ internal static class EditorConfigValueSerializer
         => new(parseValue: str => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, defaultValue, out var result) ? result : new Optional<CodeStyleOption2<string>>(),
                serializeValue: value => value.Value.ToLowerInvariant() + CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue));
 
+    /// <summary>
+    /// Creates a serializer for an enum value that uses the enum field names.
+    /// </summary>
     public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>() where T : struct, Enum
         => new(
             parseValue: str => TryParseEnum<T>(str, out var result) ? new Optional<T>(result) : new Optional<T>(),
             serializeValue: value => value.ToString());
+
+    /// <summary>
+    /// Creates a serializer for an enum value given a <paramref name="map"/> between value names and the corresponding enum values.
+    /// </summary>
+    public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>(BidirectionalMap<string, T> map) where T : struct, Enum
+        => CreateSerializerForEnum(map, ImmutableDictionary<string, T>.Empty);
+
+    /// <summary>
+    /// Creates a serializer for an enum value given a <paramref name="map"/> between value names and the corresponding enum values.
+    /// <paramref name="alternative"/> specifies alternative value representations for backward compatibility.
+    /// </summary>
+    public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>(BidirectionalMap<string, T> map, ImmutableDictionary<string, T> alternative) where T : struct, Enum
+        => new(parseValue: str => map.TryGetValue(str, out var result) || alternative.TryGetValue(str, out result) ? new Optional<T>(result) : new Optional<T>(),
+               serializeValue: value => map.TryGetKey(value, out var key) ? key : throw ExceptionUtilities.UnexpectedValue(value));
 
     public static EditorConfigValueSerializer<T?> CreateSerializerForNullableEnum<T>() where T : struct, Enum
     {

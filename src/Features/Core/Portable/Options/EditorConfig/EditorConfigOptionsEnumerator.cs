@@ -8,13 +8,12 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -43,7 +42,11 @@ internal sealed class EditorConfigOptionsEnumerator(
             yield return ("unsupported", RegexOptionsStorage.UnsupportedOptions);
         }
 
-        yield return (FeaturesResources.NET_Code_Actions, MemberDisplayOptionsStorage.EditorConfigOptions);
+        yield return (FeaturesResources.NET_Code_Actions,
+        [
+            .. ImplementTypeOptionsStorage.EditorConfigOptions,
+            .. MemberDisplayOptionsStorage.EditorConfigOptions
+        ]);
 
         yield return (WorkspacesResources.dot_NET_Coding_Conventions,
         [

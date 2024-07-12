@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
             => new()
             {
-                SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language),
-                ImplementTypeOptions = globalOptions.GetImplementTypeOptions(languageServices.Language),
+                SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language)
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)

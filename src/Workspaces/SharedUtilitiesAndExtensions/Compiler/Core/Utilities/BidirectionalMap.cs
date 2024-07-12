@@ -21,9 +21,15 @@ internal class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
     private readonly ImmutableDictionary<TValue, TKey> _backwardMap;
 
     public BidirectionalMap(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
+        : this(forwardMap: ImmutableDictionary.CreateRange(pairs),
+               backwardMap: ImmutableDictionary.CreateRange(pairs.Select(static p => KeyValuePairUtil.Create(p.Value, p.Key))))
     {
-        _forwardMap = ImmutableDictionary.CreateRange<TKey, TValue>(pairs);
-        _backwardMap = ImmutableDictionary.CreateRange<TValue, TKey>(pairs.Select(p => KeyValuePairUtil.Create(p.Value, p.Key)));
+    }
+
+    public BidirectionalMap(IEnumerable<(TKey key, TValue value)> pairs)
+        : this(forwardMap: ImmutableDictionary.CreateRange(pairs.Select(static p => KeyValuePairUtil.Create(p.key, p.value))),
+               backwardMap: ImmutableDictionary.CreateRange(pairs.Select(static p => KeyValuePairUtil.Create(p.value, p.key))))
+    {
     }
 
     private BidirectionalMap(ImmutableDictionary<TKey, TValue> forwardMap, ImmutableDictionary<TValue, TKey> backwardMap)

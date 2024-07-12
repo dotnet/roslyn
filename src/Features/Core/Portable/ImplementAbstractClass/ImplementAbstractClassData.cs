@@ -38,7 +38,7 @@ internal sealed class ImplementAbstractClassData(
     public readonly INamedTypeSymbol AbstractClassType = abstractClassType;
 
     public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
-        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeOptions options, CancellationToken cancellationToken)
+        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel.GetDeclaredSymbol(classNode, cancellationToken) is not INamedTypeSymbol classType)
@@ -62,15 +62,17 @@ internal sealed class ImplementAbstractClassData(
         if (unimplementedMembers.IsEmpty)
             return null;
 
+        var options = await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
+
         return new ImplementAbstractClassData(
             document, options, classNode, classIdentifier,
             classType, abstractClassType, unimplementedMembers);
     }
 
     public static async Task<Document?> TryImplementAbstractClassAsync(
-        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeOptions options, CancellationToken cancellationToken)
+        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
     {
-        var data = await TryGetDataAsync(document, classNode, classIdentifier, options, cancellationToken).ConfigureAwait(false);
+        var data = await TryGetDataAsync(document, classNode, classIdentifier, cancellationToken).ConfigureAwait(false);
         if (data == null)
             return null;
 

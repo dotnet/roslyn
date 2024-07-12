@@ -38,6 +38,8 @@ insert_final_newline = false
 
 # Type members
 dotnet_hide_advanced_members = false
+dotnet_member_insertion_location = with_other_members_of_the_same_kind
+dotnet_property_generation_behavior = prefer_throwing_properties
 
 #### .NET Coding Conventions ####
 
@@ -292,6 +294,8 @@ insert_final_newline = false
 
 # Type members
 dotnet_hide_advanced_members = false
+dotnet_member_insertion_location = with_other_members_of_the_same_kind
+dotnet_property_generation_behavior = prefer_throwing_properties
 
 #### .NET Coding Conventions ####
 
