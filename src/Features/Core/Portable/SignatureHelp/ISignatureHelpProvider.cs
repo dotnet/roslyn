@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp;
 
