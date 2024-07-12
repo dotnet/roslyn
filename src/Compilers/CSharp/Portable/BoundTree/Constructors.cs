@@ -280,9 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedArguments,
                 refKinds,
                 expanded: false,
+                accessorKind: AccessorKind.Unknown,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
-                originalIndexers,
+                originalIndexersOpt: originalIndexers,
                 type: indexer.Type,
                 hasErrors: true);
         }
@@ -295,11 +296,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
+            AccessorKind accessorKind,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
+            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,
@@ -309,10 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          ImmutableArray<string?> argumentNamesOpt,
                                          ImmutableArray<RefKind> argumentRefKindsOpt,
                                          bool expanded,
+                                         AccessorKind accessorKind,
                                          ImmutableArray<int> argsToParamsOpt,
                                          BitVector defaultArguments,
                                          TypeSymbol type)
-            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
+            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
     }
 
     internal sealed partial class BoundConversion
