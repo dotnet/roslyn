@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref BoundExpression? receiverOpt,
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
+            ref ArrayBuilder<LocalSymbol>? temps,
             bool invokedAsExtensionMethod,
             Syntax.SimpleNameSyntax? nameSyntax)
         {
@@ -284,11 +285,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     || (!receiverOpt.Type.IsReferenceType && interceptor.Parameters[0].Type.IsReferenceType));
                 receiverOpt = MakeConversionNode(receiverOpt, interceptor.Parameters[0].Type, @checked: false, markAsChecked: true);
 
+                var thisRefKind = methodThisParameter.RefKind;
+                // Instance call receivers can be implicitly captured to temps in the emit layer, but not static call arguments
+                // Therefore we may need to explicitly store the receiver to temp here.
+                if (thisRefKind != RefKind.None
+                    && !Binder.HasHome(
+                        receiverOpt,
+                        thisRefKind == RefKind.Ref ? Binder.AddressKind.Writeable : Binder.AddressKind.ReadOnlyStrict,
+                        _factory.CurrentFunction,
+                        peVerifyCompatEnabled: false,
+                        stackLocalsOpt: null))
+                {
+                    var receiverTemp = _factory.StoreToTemp(receiverOpt, out var assignmentToTemp);
+                    temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
+                    temps.Add(receiverTemp.LocalSymbol);
+                    receiverOpt = _factory.Sequence(locals: [], sideEffects: [assignmentToTemp], receiverTemp);
+                }
+
                 arguments = arguments.Insert(0, receiverOpt);
                 receiverOpt = null;
 
                 // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
-                var thisRefKind = methodThisParameter.RefKind;
                 if (argumentRefKindsOpt.IsDefault && thisRefKind != RefKind.None)
                 {
                     argumentRefKindsOpt = method.Parameters.SelectAsArray(static param => param.RefKind);
@@ -404,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps,
                     invokedAsExtensionMethod);
 
-                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref temps, invokedAsExtensionMethod, node.InterceptableNameSyntax);
 
                 if (Instrument)
                 {
