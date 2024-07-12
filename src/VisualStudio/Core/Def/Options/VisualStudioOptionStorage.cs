@@ -405,8 +405,8 @@ internal abstract class VisualStudioOptionStorage
         {"visual_studio_disable_document_outline_feature_flag", new FeatureFlagStorage(@"DocumentOutline.DisableFeature")},
         {"visual_studio_document_outline_sort_order", new RoamingProfileStorage(@"DocumentOutline.SortOrder")},
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
-        {"dotnet_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
-        {"dotnet_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
+        {"dotnet_unsupported_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
+        {"dotnet_unsupported_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
 #pragma warning restore

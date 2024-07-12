@@ -20,9 +20,6 @@ internal sealed record class CodeActionOptions
     public static readonly CodeActionOptions Default = new();
     public static readonly CodeActionOptionsProvider DefaultProvider = Default.CreateProvider();
 
-#if !CODE_STYLE
-    [DataMember] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
-#endif
     public CodeActionOptionsProvider CreateProvider()
         => new DelegatingCodeActionOptionsProvider(_ => this);
 }

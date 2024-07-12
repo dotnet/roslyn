@@ -15,10 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     internal static class CodeActionOptionsStorage
     {
         public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-            => new()
-            {
-                SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language)
-            };
+            => new();
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
         {
