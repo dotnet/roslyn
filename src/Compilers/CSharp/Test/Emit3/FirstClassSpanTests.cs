@@ -533,34 +533,58 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
-        verifier.VerifyIL("<top-level-statements-entry-point>", """
-            {
-              // Code size       63 (0x3f)
-              .maxstack  4
-              IL_0000:  ldc.i4.1
-              IL_0001:  newarr     "int"
-              IL_0006:  dup
-              IL_0007:  ldc.i4.0
-              IL_0008:  ldc.i4.1
-              IL_0009:  stelem.i4
-              IL_000a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
-              IL_000f:  call       "void C.M1(System.Span<int>)"
-              IL_0014:  ldsfld     "int[] <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE_A6"
-              IL_0019:  dup
-              IL_001a:  brtrue.s   IL_0034
-              IL_001c:  pop
-              IL_001d:  ldc.i4.1
-              IL_001e:  newarr     "int"
-              IL_0023:  dup
-              IL_0024:  ldtoken    "int <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE"
-              IL_0029:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-              IL_002e:  dup
-              IL_002f:  stsfld     "int[] <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE_A6"
-              IL_0034:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
-              IL_0039:  call       "void C.M2(System.ReadOnlySpan<int>)"
-              IL_003e:  ret
-            }
-            """);
+        if (ExecutionConditionUtil.IsCoreClr)
+        {
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  stelem.i4
+                  IL_000a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_000f:  call       "void C.M1(System.Span<int>)"
+                  IL_0014:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE4"
+                  IL_0019:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_001e:  call       "void C.M2(System.ReadOnlySpan<int>)"
+                  IL_0023:  ret
+                }
+                """);
+        }
+        else
+        {
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       63 (0x3f)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  stelem.i4
+                  IL_000a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_000f:  call       "void C.M1(System.Span<int>)"
+                  IL_0014:  ldsfld     "int[] <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE_A6"
+                  IL_0019:  dup
+                  IL_001a:  brtrue.s   IL_0034
+                  IL_001c:  pop
+                  IL_001d:  ldc.i4.1
+                  IL_001e:  newarr     "int"
+                  IL_0023:  dup
+                  IL_0024:  ldtoken    "int <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE"
+                  IL_0029:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_002e:  dup
+                  IL_002f:  stsfld     "int[] <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE_A6"
+                  IL_0034:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                  IL_0039:  call       "void C.M2(System.ReadOnlySpan<int>)"
+                  IL_003e:  ret
+                }
+                """);
+        }
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -3985,7 +4009,7 @@ public class FirstClassSpanTests : CSharpTestBase
             C.M(default(Span<object>));
             C.M(default(ReadOnlySpan<object>));
 
-            C.M(new string[0]);
+            try { C.M(new string[0]); } catch (ArrayTypeMismatchException) { Console.Write(3); }
 
             static class C
             {
@@ -3994,7 +4018,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular12);
-        CompileAndVerify(comp, expectedOutput: "1121").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1123" : "1121").VerifyDiagnostics();
 
         var expectedOutput = "1122";
 
