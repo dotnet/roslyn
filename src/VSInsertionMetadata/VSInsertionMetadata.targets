@@ -25,14 +25,10 @@
     <TargetsForTfmSpecificContentInPackage>
       $(TargetsForTfmSpecificContentInPackage);
       SubstituteProfilingInputsMacro;
-      SubstituteProfilingInputsMacroWarning;
     </TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <Target Name="SubstituteProfilingInputsMacroWarning" Condition="'$(ProfilingInputsDropName)'==''">
-    <Warning Text="The ProfilingInputsDropName msbuild property has not been set, and the OptProf will not contain accurate content."/>
-  </Target>
-  <Target Name="SubstituteProfilingInputsMacro" Condition="'$(ProfilingInputsDropName)'!=''">
+  <Target Name="SubstituteProfilingInputsMacro">
     <ItemGroup>
       <ProfilingInputsSource Include="ProfilingInputs.props" />
       <ProfilingInputsTarget Include="$(IntermediateOutputPath)ProfilingInputs.props" />
@@ -43,13 +39,20 @@
       OutputFilename="@(ProfilingInputsTarget)"
       MatchExpression="%TESTSTORE%"
       ReplacementText="vstsdrop:$(ProfilingInputsDropName)" />
+
+    <Warning
+      Text="The ProfilingInputsDropName msbuild property has not been set, and the OptProf will not contain accurate content."
+      Condition="'$(ProfilingInputsDropName)' == ''" />
+    <Copy SourceFiles="@(ProfilingInputsSource)" DestinationFiles="@(ProfilingInputsTarget)"
+      Condition="'$(ProfilingInputsDropName)' == ''" />
+
     <ItemGroup>
       <TfmSpecificPackageFile Include="@(ProfilingInputsTarget)" PackagePath="InsertionVS/" />
     </ItemGroup>
   </Target>
   <Target Name="EnsureUniquePackageVersion"
-          Condition="'$(Build_BuildId)' != ''"
-          AfterTargets="GetBuildVersion">
+    Condition="'$(Build_BuildId)' != ''"
+    AfterTargets="GetBuildVersion">
     <!--
        We must ensure unique versions for the insertion metadata package so
        it can contain information that is unique to this build.
@@ -60,5 +63,8 @@
     <PropertyGroup>
       <PackageVersion>$(PackageVersion).$(Build_BuildId)</PackageVersion>
     </PropertyGroup>
+  </Target>
+  <Target Name="BreakForRename" BeforeTargets="Pack;GenerateNuspec" Condition="'$(MSBuildProjectName)'=='Library.VSInsertionMetadata'">
+    <Error Text="This project should be renamed so the library name is used instead of 'Library'. Then delete this target." />
   </Target>
 </Project>
