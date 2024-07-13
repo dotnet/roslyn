@@ -182,8 +182,7 @@ We may also want to consider adjusting behavior of `[EditorBrowsable]` to work i
 
 ### Struct receiver capture
 
-An interceptor whose `this` parameter takes a struct by-reference can generally be used to intercept a struct instance method call, assuming the methods are compatible per [Signature matching](#signature-matching). This includes a specific situation where the interceptor wouldn't be directly usable as an extension method, due to the receiver being an rvalue. See also [12.8.9.3 Extension method invocations
-](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12893-extension-method-invocations) in the standard.
+An interceptor whose `this` parameter takes a struct by-reference can generally be used to intercept a struct instance method call, assuming the methods are compatible per [Signature matching](#signature-matching). This includes situations where the receiver must be implicitly captured to temp before the invocation, even if such capture is not permitted when the interceptor is called directly. See also [12.8.9.3 Extension method invocations](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12893-extension-method-invocations) in the standard.
 
 
 ```cs
