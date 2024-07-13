@@ -14,7 +14,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeFixOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\ForkingSyntaxEditorBasedCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeActionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AbstractCodeGenerationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AbstractCodeGenerationService_FindDeclaration.cs" />
