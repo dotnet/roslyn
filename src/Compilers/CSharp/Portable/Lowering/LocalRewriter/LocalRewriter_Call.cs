@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref BoundExpression? receiverOpt,
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
-            ref ArrayBuilder<LocalSymbol>? temps,
+            ref ArrayBuilder<LocalSymbol> temps,
             bool invokedAsExtensionMethod,
             Syntax.SimpleNameSyntax? nameSyntax)
         {
@@ -297,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stackLocalsOpt: null))
                 {
                     var receiverTemp = _factory.StoreToTemp(receiverOpt, out var assignmentToTemp);
-                    temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
                     temps.Add(receiverTemp.LocalSymbol);
                     receiverOpt = _factory.Sequence(locals: [], sideEffects: [assignmentToTemp], receiverTemp);
                 }
