@@ -4135,7 +4135,7 @@ name: Item
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/74396")]
         public void TestCallerFilePath1()
         {
             string source1 = @"
