@@ -600,10 +600,10 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M2(span::System.ReadOnlySpan<int> s) => System.Console.Write(s[0]);
             }
             """;
-        var spanDll = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll)
+        var spanDll = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics()
             .EmitToImageReference(aliases: ["span"]);
-        var verifier = CompileAndVerify([source, SpanSource],
+        var verifier = CompileAndVerify([source, TestSources.Span],
             references: [spanDll],
             expectedOutput: "12",
             verify: Verification.Fails,
