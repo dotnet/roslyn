@@ -65,13 +65,6 @@ internal record class SimplifierOptions
 #endif
 }
 
-internal interface SimplifierOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<SimplifierOptions>
-#endif
-{
-}
-
 internal static partial class SimplifierOptionsProviders
 {
 #if !CODE_STYLE

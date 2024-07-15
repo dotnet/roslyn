@@ -33,9 +33,6 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-        => false;
-
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSemanticModelAction(Analyze);
 

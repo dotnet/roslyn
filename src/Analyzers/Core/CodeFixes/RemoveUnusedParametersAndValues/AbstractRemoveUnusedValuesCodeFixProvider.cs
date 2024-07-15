@@ -73,7 +73,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
     /// </summary>
     /// <param name="node">Flagged node containing the identifier token to be replaced.</param>
     /// <param name="newName">New identifier token</param>
-    protected abstract SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
+    protected abstract SyntaxNode? TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
 
     /// <summary>
     /// Gets the identifier token for the iteration variable of the given foreach statement node.
@@ -742,7 +742,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         }
     }
 
-    protected abstract TLocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(TVariableDeclaratorSyntax declarator);
+    protected abstract TLocalDeclarationStatementSyntax? GetCandidateLocalDeclarationForRemoval(TVariableDeclaratorSyntax declarator);
 
     private async Task<SyntaxNode> PostProcessDocumentAsync(
         Document document,
