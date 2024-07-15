@@ -3264,4 +3264,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Unable_to_load_type_0_1" xml:space="preserve">
     <value>Unable to load type '{0}': '{1}'</value>
   </data>
+  <data name="Type_members" xml:space="preserve">
+    <value>Type members</value>
+  </data>
+  <data name="NET_Code_Actions" xml:space="preserve">
+    <value>.NET Code Actions</value>
+  </data>
 </root>

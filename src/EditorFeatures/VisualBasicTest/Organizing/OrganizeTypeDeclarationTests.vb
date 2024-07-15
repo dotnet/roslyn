@@ -944,7 +944,6 @@ End Namespace</element>
 
                 Dim handler = New OrganizeDocumentCommandHandler(
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GlobalOptions,
                     workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
 
                 Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))

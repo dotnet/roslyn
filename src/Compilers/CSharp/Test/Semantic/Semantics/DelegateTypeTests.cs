@@ -9391,13 +9391,13 @@ var d3 = delegate () { };
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (5,9): error CS1674: 'Action': type used in a using statement must implement 'System.IDisposable'.
                 //         using var d1 = Main;
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d1 = Main;").WithArguments("System.Action").WithLocation(5, 9),
-                // (6,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,9): error CS1674: 'Action': type used in a using statement must implement 'System.IDisposable'.
                 //         using var d2 = () => { };
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d2 = () => { };").WithArguments("System.Action").WithLocation(6, 9),
-                // (7,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (7,9): error CS1674: 'Action': type used in a using statement must implement 'System.IDisposable'.
                 //         using var d3 = delegate () { };
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d3 = delegate () { };").WithArguments("System.Action").WithLocation(7, 9));
         }

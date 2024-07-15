@@ -42,7 +42,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
             if (this.IsTypeInInterfaceBaseList(type))
             {
                 var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
-                var options = context.Options.GetImplementTypeOptions(document.Project.Services);
+                var options = context.Options.GetOptions(document.Project.Services).ImplementTypeOptions;
 
                 var info = await service.AnalyzeAsync(
                     document, type, cancellationToken).ConfigureAwait(false);

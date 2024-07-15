@@ -19,13 +19,6 @@ internal sealed record class DocumentFormattingOptions
     [DataMember] public bool InsertFinalNewLine { get; init; } = false;
 }
 
-internal interface DocumentFormattingOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<DocumentFormattingOptions>
-#endif
-{
-}
-
 internal static class DocumentFormattingOptionsProviders
 {
     public static DocumentFormattingOptions GetDocumentFormattingOptions(this IOptionsReader options)

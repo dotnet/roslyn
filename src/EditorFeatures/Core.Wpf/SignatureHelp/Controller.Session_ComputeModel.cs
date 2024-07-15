@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text;
@@ -82,15 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             }
                         }
 
-                        var options = Controller.GlobalOptions.GetSignatureHelpOptions(document.Project.Language);
-
                         // first try to query the providers that can trigger on the specified character
                         var (provider, items) = await SignatureHelpService.GetSignatureHelpAsync(
                             providers,
                             document,
                             caretPosition,
                             triggerInfo,
-                            options,
                             cancellationToken).ConfigureAwait(false);
 
                         if (provider == null)
