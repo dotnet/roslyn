@@ -2263,6 +2263,73 @@ record struct Buffer()
         }
 
         [Fact]
+        public void InlineArrayType_55_RefStruct()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+public ref struct Buffer
+{
+    private S _element0;
+}
+
+public ref struct S
+{
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll);
+            CompileAndVerify(comp1, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics(
+                // (3,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // public ref struct Buffer
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer").WithLocation(3, 19)
+                );
+
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        var a = new Buffer();
+        var x = a[0];
+
+        foreach (var z in a)
+        {}
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, references: new[] { comp1.ToMetadataReference() }, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,17): error CS0306: The type 'S' may not be used as a type argument
+                //         var x = a[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "a[0]").WithArguments("S").WithLocation(7, 17),
+                // (9,27): error CS0306: The type 'S' may not be used as a type argument
+                //         foreach (var z in a)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "a").WithArguments("S").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_56_RefStruct()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer
+{
+    private S _element0;
+}
+
+public ref struct S
+{
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll);
+            comp1.VerifyDiagnostics(
+                // (5,13): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     private S _element0;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(5, 13)
+                );
+        }
+
+        [Fact]
         public void Access_ArgumentType_01()
         {
             var src = @"
@@ -9059,9 +9126,9 @@ public ref struct Buffer10
                 // (29,18): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var yy = M3(xx)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18),
-                // (37,30): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     private System.Span<int> _element0;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(37, 30)
+                // (35,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // public ref struct Buffer10
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer10").WithLocation(35, 19)
                 );
         }
 
@@ -19238,9 +19305,9 @@ public ref struct Buffer10
                 // (17,28): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var yy in GetBuffer(xx))
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("System.Span<int>").WithLocation(17, 28),
-                // (34,30): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     private System.Span<int> _element0;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(34, 30)
+                // (32,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // public ref struct Buffer10
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer10").WithLocation(32, 19)
                 );
         }
 
