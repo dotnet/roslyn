@@ -4,10 +4,10 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
@@ -69,8 +69,6 @@ public class OptionSerializerTests
             InlineDiagnosticsOptionsStorage.Location,
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
-            ImplementTypeOptionsStorage.InsertionBehavior,
-            ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             CompletionOptionsStorage.EnterKeyBehavior,
             CompletionOptionsStorage.SnippetsBehavior,
         };
@@ -80,7 +78,7 @@ public class OptionSerializerTests
             var defaultValue = option.DefaultValue;
             // The default value for Enum option should not be null.
             Contract.ThrowIfNull(defaultValue, $"Option: {option.Name}");
-            VerifyEnumValues(option, defaultValue.GetType());
+            VerifyEnumValues(option, defaultValue.GetType(), allowsPacalCase: true, allowsSnakeCase: false);
 
             // Test invalid cases
             VerifyEnumInvalidParse(option, defaultValue.GetType());
@@ -103,7 +101,7 @@ public class OptionSerializerTests
             Contract.ThrowIfNull(enumType, $"Option: {option.Name}");
 
             // Test enum values
-            VerifyEnumValues(option, enumType);
+            VerifyEnumValues(option, enumType, allowsPacalCase: true, allowsSnakeCase: false);
 
             // Test null
             var serializer = option.Definition.Serializer;
@@ -118,17 +116,75 @@ public class OptionSerializerTests
         }
     }
 
-    private static void VerifyEnumValues(IOption2 option, Type enumType)
+    [Fact]
+    public void SerializationAndDeserializationForEnum_SnakeCase()
+    {
+        var options = new IOption2[]
+        {
+            ImplementTypeOptionsStorage.InsertionBehavior,
+            ImplementTypeOptionsStorage.PropertyGenerationBehavior,
+        };
+
+        foreach (var option in options)
+        {
+            var defaultValue = option.DefaultValue;
+            // The default value for Enum option should not be null.
+            Contract.ThrowIfNull(defaultValue, $"Option: {option.Name}");
+            VerifyEnumValues(option, defaultValue.GetType(), allowsPacalCase: true, allowsSnakeCase: true);
+
+            // Test invalid cases
+            VerifyEnumInvalidParse(option, defaultValue.GetType());
+        }
+    }
+
+    private static string PascalToSnakeCase(string str)
+    {
+        var builder = new StringBuilder();
+        var prevIsLower = false;
+        foreach (var c in str)
+        {
+            var lower = char.ToLowerInvariant(c);
+            var isLower = lower == c;
+
+            if (prevIsLower && !isLower && builder.Length > 0)
+            {
+                builder.Append('_');
+            }
+
+            builder.Append(lower);
+            prevIsLower = isLower;
+        }
+
+        return builder.ToString();
+    }
+
+    private static void VerifyEnumValues(IOption2 option, Type enumType, bool allowsSnakeCase, bool allowsPacalCase)
     {
         var serializer = option.Definition.Serializer;
         var possibleEnumValues = enumType.GetEnumValues();
         foreach (var enumValue in possibleEnumValues)
         {
             var serializedValue = serializer.Serialize(enumValue);
-            Assert.Equal(enumValue.ToString(), serializedValue);
-            var success = serializer.TryParse(serializedValue, out var deserializedResult);
-            Assert.True(success, $"Can't parse option: {option.Name}, value: {serializedValue}");
-            Assert.Equal(enumValue, deserializedResult);
+            var expectedPascalCase = enumValue.ToString()!;
+            var expectedSnakeCase = PascalToSnakeCase(expectedPascalCase);
+
+            // if option allows snake case it should use it for serialization:
+            Assert.Equal(allowsSnakeCase ? expectedSnakeCase : expectedPascalCase, serializedValue);
+
+            if (allowsPacalCase)
+                VerifyParsing(expectedPascalCase);
+
+            if (allowsSnakeCase)
+                VerifyParsing(expectedSnakeCase);
+
+            void VerifyParsing(string value)
+            {
+                Assert.True(
+                    serializer.TryParse(value, out var deserializedResult),
+                    $"Can't parse option: {option.Name}, value: {value}");
+
+                Assert.Equal(enumValue, deserializedResult);
+            }
         }
     }
 
