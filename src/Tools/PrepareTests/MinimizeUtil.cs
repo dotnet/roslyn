@@ -22,8 +22,8 @@ internal static class MinimizeUtil
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        copyFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.ps1"), duplicateDirectory);
-        copyFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.cmd"), duplicateDirectory);
+        copyFileToDirectory(Path.Combine(sourceDirectory, @"eng/get-machine-guid.ps1"), duplicateDirectory);
+        copyFileToDirectory(Path.Combine(sourceDirectory, @"eng/get-machine-guid.cmd"), duplicateDirectory);
 
         // https://github.com/dotnet/roslyn/issues/49486
         // we should avoid copying the files under Resources.
