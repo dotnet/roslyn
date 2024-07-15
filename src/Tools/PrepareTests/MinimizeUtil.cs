@@ -22,8 +22,8 @@ internal static class MinimizeUtil
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        hardLinkFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.ps1"), duplicateDirectory);
-        hardLinkFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.cmd"), duplicateDirectory);
+        copyFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.ps1"), duplicateDirectory);
+        copyFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.cmd"), duplicateDirectory);
 
         // https://github.com/dotnet/roslyn/issues/49486
         // we should avoid copying the files under Resources.
@@ -37,8 +37,6 @@ internal static class MinimizeUtil
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
             "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
-            "eng/get-machine-guid.ps1",
-            "eng/get-machine-guid.cmd",
         };
 
         foreach (var individualFile in individualFiles)
@@ -289,11 +287,11 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
             }
         }
 
-        static void hardLinkFileToDirectory(string sourceFilePath, string destinationDirectory)
+        static void copyFileToDirectory(string sourceFilePath, string destinationDirectory)
         {
             var fileName = Path.GetFileName(sourceFilePath);
             var destinationFilePath = Path.Combine(destinationDirectory, fileName);
-            CreateHardLink(destinationFilePath, sourceFilePath);
+            File.Copy(sourceFilePath, destinationFilePath, overwrite: true);
         }
     }
 
