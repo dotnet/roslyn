@@ -18,7 +18,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal abstract class ProjectFile : IProjectFile
+    internal abstract class ProjectFile
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project? _loadedProject;
@@ -39,16 +39,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Log = log;
         }
 
+        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => Log.ToImmutableArray();
+
         protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
         protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
+        /// <summary>
+        /// Gets project file information asynchronously. Note that this can produce multiple
+        /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
+        /// each target framework.
+        /// </summary>
         public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
         {
             if (_loadedProject is null)
             {
-                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath));
+                return [ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath)];
             }
 
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
@@ -93,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
                 projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
-                return ImmutableArray.Create(projectFileInfo);
+                return [projectFileInfo];
             }
         }
 
@@ -107,11 +114,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
-                ? CreateProjectFileInfo(project, _loadedProject)
+                ? CreateProjectFileInfo(project)
                 : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath);
         }
 
-        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project, MSB.Evaluation.Project loadedProject)
+        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
         {
             var commandLineArgs = GetCommandLineArgs(project);
 
@@ -132,6 +139,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 intermediateOutputFilePath = GetAbsolutePathRelativeToProject(intermediateOutputFilePath);
             }
+
+            var projectAssetsFilePath = project.ReadPropertyString(PropertyNames.ProjectAssetsFile);
 
             // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
             // by assigning the value of the project's root namespace to it. So various feature can choose to 
@@ -161,9 +170,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .Select(MakeNonSourceFileDocumentFileInfo)
                 .ToImmutableArray();
 
+            var packageReferences = project.GetPackageReferences();
+
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
-            var isSdkStyle = IsSdkStyleProject(loadedProject);
 
             return ProjectFileInfo.Create(
                 Language,
@@ -174,14 +184,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
+                projectAssetsFilePath,
                 commandLineArgs,
                 docs,
                 additionalDocs,
                 analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
+                packageReferences,
                 projectCapabilities,
-                contentFileInfo,
-                isSdkStyle);
+                contentFileInfo);
         }
 
         private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
@@ -190,18 +201,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .GetItems(ItemNames.Content)
                 .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
             return contentFiles;
-        }
-
-        private static bool IsSdkStyleProject(MSB.Evaluation.Project loadedProject)
-        {
-            // To see if a project is an SDK style project we check for either of two things
-            //   1.  If it has a TargetFramework / TargetFrameworks property.  This isn't fully complete
-            //       as this property could come from a different props file
-            //   2.  If it imports an SDK.  This can be defined multiple ways in the project file, but
-            //       we can look at the resolved imports after evaluation to see if any are SDK based.
-            var hasTargetFrameworkProperty = loadedProject.Properties.Any(property => property.Name is "TargetFramework" or "TargetFrameworks");
-            var importsSdk = loadedProject.Imports.Any(import => import.SdkResult != null);
-            return hasTargetFrameworkProperty || importsSdk;
         }
 
         private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var filePath = documentItem.ItemSpec;
                 var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                var folders = relativePath == null ? [] : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
                 return folders;
             }
         }
@@ -383,132 +382,75 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public void AddMetadataReference(MetadataReference reference, AssemblyIdentity identity)
+        public void AddMetadataReference(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath)
         {
             if (_loadedProject is null)
             {
                 return;
             }
 
-            if (reference is PortableExecutableReference peRef && peRef.FilePath != null)
-            {
-                var metadata = new Dictionary<string, string>();
-                if (!peRef.Properties.Aliases.IsEmpty)
-                {
-                    metadata.Add(MetadataNames.Aliases, string.Join(",", peRef.Properties.Aliases));
-                }
+            var metadata = new Dictionary<string, string>();
+            if (!properties.Aliases.IsEmpty)
+                metadata.Add(MetadataNames.Aliases, string.Join(",", properties.Aliases));
 
-                if (IsInGAC(peRef.FilePath) && identity != null)
-                {
-                    // Since the location of the reference is in GAC, need to use full identity name to find it again.
-                    // This typically happens when you base the reference off of a reflection assembly location.
-                    _loadedProject.AddItem(ItemNames.Reference, identity.GetDisplayName(), metadata);
-                }
-                else if (IsFrameworkReferenceAssembly(peRef.FilePath))
-                {
-                    // just use short name since this will be resolved by msbuild relative to the known framework reference assemblies.
-                    var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
-                    _loadedProject.AddItem(ItemNames.Reference, fileName, metadata);
-                }
-                else // other location -- need hint to find correct assembly
-                {
-                    var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, peRef.FilePath);
-                    var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
-                    metadata.Add(MetadataNames.HintPath, relativePath);
-                    _loadedProject.AddItem(ItemNames.Reference, fileName, metadata);
-                }
-            }
+            if (hintPath is not null)
+                metadata.Add(MetadataNames.HintPath, hintPath);
+
+            _loadedProject.AddItem(ItemNames.Reference, metadataReferenceIdentity, metadata);
         }
 
-        private static bool IsInGAC(string filePath)
-        {
-            return GlobalAssemblyCacheLocation.RootLocations.Any(static (gloc, filePath) => PathUtilities.IsChildPath(gloc, filePath), filePath);
-        }
-
-        private static string? s_frameworkRoot;
-        private static string FrameworkRoot
-        {
-            get
-            {
-                if (RoslynString.IsNullOrEmpty(s_frameworkRoot))
-                {
-                    var runtimeDir = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
-                    s_frameworkRoot = Path.GetDirectoryName(runtimeDir); // back out one directory level to be root path of all framework versions
-                }
-
-                return s_frameworkRoot ?? throw new InvalidOperationException($"Unable to get {nameof(FrameworkRoot)}");
-            }
-        }
-
-        private static bool IsFrameworkReferenceAssembly(string filePath)
-        {
-            return PathUtilities.IsChildPath(FrameworkRoot, filePath);
-        }
-
-        public void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity)
+        public void RemoveMetadataReference(string shortAssemblyName, string fullAssemblyName, string filePath)
         {
             if (_loadedProject is null)
             {
                 return;
             }
 
-            if (reference is PortableExecutableReference peRef && peRef.FilePath != null)
+            var item = FindReferenceItem(shortAssemblyName, fullAssemblyName, filePath);
+            if (item != null)
             {
-                var item = FindReferenceItem(identity, peRef.FilePath);
-                if (item != null)
-                {
-                    _loadedProject.RemoveItem(item);
-                }
+                _loadedProject.RemoveItem(item);
             }
         }
 
-        private MSB.Evaluation.ProjectItem FindReferenceItem(AssemblyIdentity identity, string filePath)
+        private MSB.Evaluation.ProjectItem FindReferenceItem(string shortAssemblyName, string fullAssemblyName, string filePath)
         {
-            if (_loadedProject is null)
-            {
-                throw new InvalidOperationException($"Unable to find reference item '{identity?.Name}'");
-            }
+            Contract.ThrowIfNull(_loadedProject, "The project was not loaded.");
 
             var references = _loadedProject.GetItems(ItemNames.Reference);
             MSB.Evaluation.ProjectItem? item = null;
 
             var fileName = Path.GetFileNameWithoutExtension(filePath);
 
-            if (identity != null)
-            {
-                var shortAssemblyName = identity.Name;
-                var fullAssemblyName = identity.GetDisplayName();
+            // check for short name match
+            item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+            if (item is not null)
+                return item;
 
-                // check for short name match
-                item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
-
-                // check for full name match
-                item ??= references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
-            }
+            // check for full name match
+            item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+            if (item is not null)
+                return item;
 
             // check for file path match
-            if (item == null)
-            {
-                var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
+            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
 
-                item = references.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
+            item = references.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
                                                     || PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
                                                     || PathUtilities.PathsEqual(GetHintPath(it), filePath)
                                                     || PathUtilities.PathsEqual(GetHintPath(it), relativePath));
-            }
 
-            // check for partial name match
-            if (item == null && identity != null)
+            if (item is not null)
+                return item;
+
+            var partialName = shortAssemblyName + ",";
+            var items = references.Where(it => it.EvaluatedInclude.StartsWith(partialName, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (items.Count == 1)
             {
-                var partialName = identity.Name + ",";
-                var items = references.Where(it => it.EvaluatedInclude.StartsWith(partialName, StringComparison.OrdinalIgnoreCase)).ToList();
-                if (items.Count == 1)
-                {
-                    item = items[0];
-                }
+                return items[0];
             }
 
-            return item ?? throw new InvalidOperationException($"Unable to find reference item '{identity?.Name}'");
+            throw new InvalidOperationException($"Unable to find reference item '{shortAssemblyName}'");
         }
 
         private static string GetHintPath(MSB.Evaluation.ProjectItem item)
@@ -571,38 +513,32 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return item;
         }
 
-        public void AddAnalyzerReference(AnalyzerReference reference)
+        public void AddAnalyzerReference(string fullPath)
         {
             if (_loadedProject is null)
             {
                 return;
             }
 
-            if (reference is AnalyzerFileReference fileRef)
-            {
-                var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
-                _loadedProject.AddItem(ItemNames.Analyzer, relativePath);
-            }
+            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fullPath);
+            _loadedProject.AddItem(ItemNames.Analyzer, relativePath);
         }
 
-        public void RemoveAnalyzerReference(AnalyzerReference reference)
+        public void RemoveAnalyzerReference(string fullPath)
         {
             if (_loadedProject is null)
             {
                 return;
             }
 
-            if (reference is AnalyzerFileReference fileRef)
-            {
-                var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
+            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fullPath);
 
-                var analyzers = _loadedProject.GetItems(ItemNames.Analyzer);
-                var item = analyzers.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
-                                                       || PathUtilities.PathsEqual(it.EvaluatedInclude, fileRef.FullPath));
-                if (item != null)
-                {
-                    _loadedProject.RemoveItem(item);
-                }
+            var analyzers = _loadedProject.GetItems(ItemNames.Analyzer);
+            var item = analyzers.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                                    || PathUtilities.PathsEqual(it.EvaluatedInclude, fullPath));
+            if (item != null)
+            {
+                _loadedProject.RemoveItem(item);
             }
         }
 

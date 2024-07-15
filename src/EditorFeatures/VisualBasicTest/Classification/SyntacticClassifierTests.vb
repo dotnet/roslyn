@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Async Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
+        Protected Overrides Async Function GetClassificationSpansAsync(code As String, spans As ImmutableArray(Of TextSpan), parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = CreateWorkspace(code, testHost)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-                Return Await GetSyntacticClassificationsAsync(document, span)
+                Return Await GetSyntacticClassificationsAsync(document, spans)
             End Using
         End Function
 

@@ -32,11 +32,6 @@
         <target state="translated">允許在同一行使用內嵌陳述式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">套用所有 C# 格式化規則 (縮排、換行、間距)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">在遇到分號時自動完成陳述式</target>
@@ -59,7 +54,7 @@
       </trans-unit>
       <trans-unit id="CSharp_Interactive">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# 互動</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -85,11 +80,6 @@
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">檔案已設定範圍</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">格式化文件設定 (實驗)</target>
         <note />
       </trans-unit>
       <trans-unit id="General">
@@ -130,11 +120,6 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">模式比對喜好設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">在格式化期間執行額外程式碼清除</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -205,11 +190,6 @@
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">在快速諮詢中顯示備註</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">排序 Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -522,11 +502,6 @@
         <target state="translated">未使用的區域函式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">產生區域變數時，請使用 'var'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">顯示程序行分隔符號(_S)</target>
@@ -650,11 +625,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">為 NuGet 封裝中的類型建議 Using(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">型別推斷喜好設定:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -820,16 +790,6 @@
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
         <target state="translated">建議使用 'null' 檢查對 'as' 進行模式比對</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">偏好區塊主體</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">偏好運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_return">

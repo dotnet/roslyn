@@ -5,17 +5,17 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 
-namespace Microsoft.CodeAnalysis.FindUsages
-{
-    [DataContract]
-    internal readonly record struct FindUsagesOptions(
-        [property: DataMember(Order = 0)] ClassificationOptions ClassificationOptions)
-    {
-        public FindUsagesOptions()
-            : this(ClassificationOptions.Default)
-        {
-        }
+namespace Microsoft.CodeAnalysis.FindUsages;
 
-        public static readonly FindUsagesOptions Default = new();
+[DataContract]
+internal readonly record struct FindUsagesOptions
+{
+    [DataMember] public ClassificationOptions ClassificationOptions { get; init; } = ClassificationOptions.Default;
+
+    public FindUsagesOptions()
+    {
     }
+
+    public static readonly FindUsagesOptions Default = new();
 }
+

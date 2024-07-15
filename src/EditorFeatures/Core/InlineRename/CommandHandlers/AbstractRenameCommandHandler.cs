@@ -13,106 +13,105 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractRenameCommandHandler
 {
-    internal abstract partial class AbstractRenameCommandHandler
+    private readonly IThreadingContext _threadingContext;
+    private readonly InlineRenameService _renameService;
+    private readonly IAsynchronousOperationListener _listener;
+
+    protected AbstractRenameCommandHandler(
+        IThreadingContext threadingContext,
+        InlineRenameService renameService,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly InlineRenameService _renameService;
-        private readonly IAsynchronousOperationListener _listener;
+        _threadingContext = threadingContext;
+        _renameService = renameService;
+        _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename);
+    }
 
-        protected AbstractRenameCommandHandler(
-            IThreadingContext threadingContext,
-            InlineRenameService renameService,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+    public string DisplayName => EditorFeaturesResources.Rename;
+
+    protected abstract bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView);
+
+    protected abstract void SetFocusToTextView(ITextView textView);
+
+    protected abstract void SetFocusToAdornment(ITextView textView);
+
+    protected abstract void SetAdornmentFocusToPreviousElement(ITextView textView);
+
+    protected abstract void SetAdornmentFocusToNextElement(ITextView textView);
+
+    private CommandState GetCommandState(Func<CommandState> nextHandler)
+    {
+        if (_renameService.ActiveSession != null)
         {
-            _threadingContext = threadingContext;
-            _renameService = renameService;
-            _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename);
+            return CommandState.Available;
         }
 
-        public string DisplayName => EditorFeaturesResources.Rename;
+        return nextHandler();
+    }
 
-        protected abstract bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView);
+    private CommandState GetCommandState()
+        => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
 
-        protected abstract void SetFocusToTextView(ITextView textView);
-
-        protected abstract void SetFocusToAdornment(ITextView textView);
-
-        protected abstract void SetAdornmentFocusToPreviousElement(ITextView textView);
-
-        protected abstract void SetAdornmentFocusToNextElement(ITextView textView);
-
-        private CommandState GetCommandState(Func<CommandState> nextHandler)
+    private void HandlePossibleTypingCommand<TArgs>(TArgs args, Action nextHandler, Action<InlineRenameSession, SnapshotSpan> actionIfInsideActiveSpan)
+        where TArgs : EditorCommandArgs
+    {
+        if (_renameService.ActiveSession == null)
         {
-            if (_renameService.ActiveSession != null)
-            {
-                return CommandState.Available;
-            }
-
-            return nextHandler();
-        }
-
-        private CommandState GetCommandState()
-            => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
-
-        private void HandlePossibleTypingCommand<TArgs>(TArgs args, Action nextHandler, Action<InlineRenameSession, SnapshotSpan> actionIfInsideActiveSpan)
-            where TArgs : EditorCommandArgs
-        {
-            if (_renameService.ActiveSession == null)
-            {
-                nextHandler();
-                return;
-            }
-
-            var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
-
-            if (selectedSpans.Count > 1)
-            {
-                // If we have multiple spans active, then that means we have something like box
-                // selection going on. In this case, we'll just forward along.
-                nextHandler();
-                return;
-            }
-
-            var singleSpan = selectedSpans.Single();
-            if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
-                containingSpan.Contains(singleSpan))
-            {
-                actionIfInsideActiveSpan(_renameService.ActiveSession, containingSpan);
-            }
-            else if (_renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
-            {
-                // It's in a read-only area that is open, so let's commit the rename 
-                // and then let the character go through
-
-                CommitIfActiveAndCallNextHandler(args, nextHandler);
-            }
-            else
-            {
-                nextHandler();
-                return;
-            }
-        }
-
-        private void CommitIfActive(EditorCommandArgs args)
-        {
-            if (_renameService.ActiveSession != null)
-            {
-                var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
-                _renameService.ActiveSession.Commit();
-
-                var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-                args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-                args.TextView.Caret.MoveTo(translatedSelection.End);
-            }
-        }
-
-        private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler)
-        {
-            CommitIfActive(args);
             nextHandler();
+            return;
         }
+
+        var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
+
+        if (selectedSpans.Count > 1)
+        {
+            // If we have multiple spans active, then that means we have something like box
+            // selection going on. In this case, we'll just forward along.
+            nextHandler();
+            return;
+        }
+
+        var singleSpan = selectedSpans.Single();
+        if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
+            containingSpan.Contains(singleSpan))
+        {
+            actionIfInsideActiveSpan(_renameService.ActiveSession, containingSpan);
+        }
+        else if (_renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
+        {
+            // It's in a read-only area that is open, so let's commit the rename 
+            // and then let the character go through
+
+            CommitIfActiveAndCallNextHandler(args, nextHandler);
+        }
+        else
+        {
+            nextHandler();
+            return;
+        }
+    }
+
+    private void CommitIfActive(EditorCommandArgs args)
+    {
+        if (_renameService.ActiveSession != null)
+        {
+            var selection = args.TextView.Selection.VirtualSelectedSpans.First();
+
+            _renameService.ActiveSession.Commit();
+
+            var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
+            args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
+            args.TextView.Caret.MoveTo(translatedSelection.End);
+        }
+    }
+
+    private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler)
+    {
+        CommitIfActive(args);
+        nextHandler();
     }
 }

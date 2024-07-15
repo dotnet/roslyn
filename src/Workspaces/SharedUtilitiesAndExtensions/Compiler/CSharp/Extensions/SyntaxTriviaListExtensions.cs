@@ -11,76 +11,75 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class SyntaxTriviaListExtensions
 {
-    internal static class SyntaxTriviaListExtensions
+    public static SyntaxTrivia? GetFirstNewLine(this SyntaxTriviaList triviaList)
     {
-        public static SyntaxTrivia? GetFirstNewLine(this SyntaxTriviaList triviaList)
+        return triviaList
+            .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
+            .FirstOrNull();
+    }
+
+    public static SyntaxTrivia? GetLastComment(this SyntaxTriviaList triviaList)
+    {
+        return triviaList
+            .Where(t => t.IsRegularComment())
+            .LastOrNull();
+    }
+
+    public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
+    {
+        if (triviaList.Count == 0)
+            return null;
+
+        return triviaList
+            .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
+            .LastOrNull();
+    }
+
+    public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
+        => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
+
+    private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
+    {
+        using var result = TemporaryArray<ImmutableArray<SyntaxTrivia>>.Empty;
+        using var currentLine = TemporaryArray<SyntaxTrivia>.Empty;
+        foreach (var trivia in triviaList)
         {
-            return triviaList
-                .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
-                .FirstOrNull();
-        }
-
-        public static SyntaxTrivia? GetLastComment(this SyntaxTriviaList triviaList)
-        {
-            return triviaList
-                .Where(t => t.IsRegularComment())
-                .LastOrNull();
-        }
-
-        public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
-        {
-            if (triviaList.Count == 0)
-                return null;
-
-            return triviaList
-                .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
-                .LastOrNull();
-        }
-
-        public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
-            => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
-
-        private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
-        {
-            using var result = TemporaryArray<ImmutableArray<SyntaxTrivia>>.Empty;
-            using var currentLine = TemporaryArray<SyntaxTrivia>.Empty;
-            foreach (var trivia in triviaList)
+            currentLine.Add(trivia);
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
             {
-                currentLine.Add(trivia);
-                if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                var currentLineIsBlank = currentLine.All(static t =>
+                    t.Kind() is SyntaxKind.EndOfLineTrivia or
+                    SyntaxKind.WhitespaceTrivia);
+                if (!currentLineIsBlank)
                 {
-                    var currentLineIsBlank = currentLine.All(static t =>
-                        t.Kind() is SyntaxKind.EndOfLineTrivia or
-                        SyntaxKind.WhitespaceTrivia);
-                    if (!currentLineIsBlank)
-                    {
-                        break;
-                    }
-
-                    result.Add(currentLine.ToImmutableAndClear());
+                    break;
                 }
-            }
 
-            return result.ToImmutableAndClear();
+                result.Add(currentLine.ToImmutableAndClear());
+            }
         }
 
-        public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)
-        {
-            var triviaInLeadingBlankLines = GetLeadingBlankLines(triviaList).SelectMany(l => l);
-            return new SyntaxTriviaList(triviaList.Skip(triviaInLeadingBlankLines.Count()));
-        }
+        return result.ToImmutableAndClear();
+    }
 
-        /// <summary>
-        /// Takes an INCLUSIVE range of trivia from the trivia list. 
-        /// </summary>
-        public static IEnumerable<SyntaxTrivia> TakeRange(this SyntaxTriviaList triviaList, int start, int end)
+    public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)
+    {
+        var triviaInLeadingBlankLines = GetLeadingBlankLines(triviaList).SelectMany(l => l);
+        return new SyntaxTriviaList(triviaList.Skip(triviaInLeadingBlankLines.Count()));
+    }
+
+    /// <summary>
+    /// Takes an INCLUSIVE range of trivia from the trivia list. 
+    /// </summary>
+    public static IEnumerable<SyntaxTrivia> TakeRange(this SyntaxTriviaList triviaList, int start, int end)
+    {
+        while (start <= end)
         {
-            while (start <= end)
-            {
-                yield return triviaList[start++];
-            }
+            yield return triviaList[start++];
         }
     }
 }

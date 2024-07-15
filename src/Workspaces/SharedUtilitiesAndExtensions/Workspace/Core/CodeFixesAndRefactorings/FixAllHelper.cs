@@ -5,26 +5,25 @@
 using Roslyn.Utilities;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
-namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+
+internal static class FixAllHelper
 {
-    internal static class FixAllHelper
+    public static string GetDefaultFixAllTitle(
+        FixAllScope fixAllScope,
+        string title,
+        Document triggerDocument,
+        Project triggerProject)
     {
-        public static string GetDefaultFixAllTitle(
-            FixAllScope fixAllScope,
-            string title,
-            Document triggerDocument,
-            Project triggerProject)
+        return fixAllScope switch
         {
-            return fixAllScope switch
-            {
-                FixAllScope.Custom => string.Format(WorkspaceExtensionsResources.Fix_all_0, title),
-                FixAllScope.Document => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, title, triggerDocument.Name),
-                FixAllScope.Project => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, title, triggerProject.Name),
-                FixAllScope.Solution => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Solution, title),
-                FixAllScope.ContainingMember => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Containing_member, title),
-                FixAllScope.ContainingType => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Containing_type, title),
-                _ => throw ExceptionUtilities.UnexpectedValue(fixAllScope),
-            };
-        }
+            FixAllScope.Custom => string.Format(WorkspaceExtensionsResources.Fix_all_0, title),
+            FixAllScope.Document => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, title, triggerDocument.Name),
+            FixAllScope.Project => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, title, triggerProject.Name),
+            FixAllScope.Solution => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Solution, title),
+            FixAllScope.ContainingMember => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Containing_member, title),
+            FixAllScope.ContainingType => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Containing_type, title),
+            _ => throw ExceptionUtilities.UnexpectedValue(fixAllScope),
+        };
     }
 }

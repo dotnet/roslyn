@@ -5,24 +5,23 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal partial class VisualStudioWorkspaceImpl
 {
-    internal partial class VisualStudioWorkspaceImpl
+    private class RemoveAnalyzerConfigDocumentUndoUnit : AbstractRemoveDocumentUndoUnit
     {
-        private class RemoveAnalyzerConfigDocumentUndoUnit : AbstractRemoveDocumentUndoUnit
+        public RemoveAnalyzerConfigDocumentUndoUnit(
+            VisualStudioWorkspaceImpl workspace,
+            DocumentId documentId)
+            : base(workspace, documentId)
         {
-            public RemoveAnalyzerConfigDocumentUndoUnit(
-                VisualStudioWorkspaceImpl workspace,
-                DocumentId documentId)
-                : base(workspace, documentId)
-            {
-            }
-
-            protected override IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject)
-                => fromProject.State.AnalyzerConfigDocumentStates.Ids;
-
-            protected override TextDocument? GetDocument(Solution currentSolution)
-                => currentSolution.GetAnalyzerConfigDocument(this.DocumentId);
         }
+
+        protected override IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject)
+            => fromProject.State.AnalyzerConfigDocumentStates.Ids;
+
+        protected override TextDocument? GetDocument(Solution currentSolution)
+            => currentSolution.GetAnalyzerConfigDocument(this.DocumentId);
     }
 }

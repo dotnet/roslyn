@@ -7,52 +7,51 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+
+/// <summary>
+/// Active instruction identifier.
+/// It has the information necessary to track an active instruction within the debug session.
+/// </summary>
+/// <remarks>
+/// Creates an ActiveInstructionId.
+/// </remarks>
+/// <param name="method">Method which the instruction is scoped to.</param>
+/// <param name="ilOffset">IL offset for the instruction.</param>
+[DataContract]
+[DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+internal readonly struct ManagedInstructionId(
+    ManagedMethodId method,
+    int ilOffset) : IEquatable<ManagedInstructionId>
 {
+
     /// <summary>
-    /// Active instruction identifier.
-    /// It has the information necessary to track an active instruction within the debug session.
+    /// Method which the instruction is scoped to.
     /// </summary>
-    /// <remarks>
-    /// Creates an ActiveInstructionId.
-    /// </remarks>
-    /// <param name="method">Method which the instruction is scoped to.</param>
-    /// <param name="ilOffset">IL offset for the instruction.</param>
-    [DataContract]
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct ManagedInstructionId(
-        ManagedMethodId method,
-        int ilOffset) : IEquatable<ManagedInstructionId>
+    [DataMember(Name = "method")]
+    public ManagedMethodId Method { get; } = method;
+
+    /// <summary>
+    /// The IL offset for the instruction.
+    /// </summary>
+    [DataMember(Name = "ilOffset")]
+    public int ILOffset { get; } = ilOffset;
+
+    public bool Equals(ManagedInstructionId other)
     {
-
-        /// <summary>
-        /// Method which the instruction is scoped to.
-        /// </summary>
-        [DataMember(Name = "method")]
-        public ManagedMethodId Method { get; } = method;
-
-        /// <summary>
-        /// The IL offset for the instruction.
-        /// </summary>
-        [DataMember(Name = "ilOffset")]
-        public int ILOffset { get; } = ilOffset;
-
-        public bool Equals(ManagedInstructionId other)
-        {
-            return Method.Equals(other.Method) && ILOffset == other.ILOffset;
-        }
-
-        public override bool Equals(object? obj) => obj is ManagedInstructionId instr && Equals(instr);
-
-        public override int GetHashCode()
-        {
-            return Method.GetHashCode() ^ ILOffset;
-        }
-
-        public static bool operator ==(ManagedInstructionId left, ManagedInstructionId right) => left.Equals(right);
-
-        public static bool operator !=(ManagedInstructionId left, ManagedInstructionId right) => !(left == right);
-
-        internal string GetDebuggerDisplay() => $"{Method.GetDebuggerDisplay()} IL_{ILOffset:X4}";
+        return Method.Equals(other.Method) && ILOffset == other.ILOffset;
     }
+
+    public override bool Equals(object? obj) => obj is ManagedInstructionId instr && Equals(instr);
+
+    public override int GetHashCode()
+    {
+        return Method.GetHashCode() ^ ILOffset;
+    }
+
+    public static bool operator ==(ManagedInstructionId left, ManagedInstructionId right) => left.Equals(right);
+
+    public static bool operator !=(ManagedInstructionId left, ManagedInstructionId right) => !(left == right);
+
+    internal string GetDebuggerDisplay() => $"{Method.GetDebuggerDisplay()} IL_{ILOffset:X4}";
 }

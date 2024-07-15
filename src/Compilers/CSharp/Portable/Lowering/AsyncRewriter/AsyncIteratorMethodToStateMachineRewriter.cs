@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol state,
             FieldSymbol builder,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public Task<Hover> CreateHoverAsync(Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken);
 
-        public static async Task<Hover> CreateDefaultHoverAsync(Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public static async Task<Hover> CreateDefaultHoverAsync(TextDocument document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
 

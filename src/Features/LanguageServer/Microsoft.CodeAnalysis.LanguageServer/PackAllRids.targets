@@ -2,6 +2,8 @@
   <!-- We are defining our own Pack target, so opt out of the SDK version. -->
   <PropertyGroup>
     <ImportNuGetBuildTasksPackTargetsFromSdk>false</ImportNuGetBuildTasksPackTargetsFromSdk>
+    <_RoslynPublishReadyToRun>false</_RoslynPublishReadyToRun>
+    <_RoslynPublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</_RoslynPublishReadyToRun>
   </PropertyGroup>
 
   <Target Name="Pack">
@@ -12,7 +14,7 @@
         We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
         See https://github.com/NuGet/Home/issues/11968
     -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PublishReadyToRun=true;RestoreUseStaticGraphEvaluation=false" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PublishReadyToRun=$(_RoslynPublishReadyToRun);RestoreUseStaticGraphEvaluation=false" />
 
     <ItemGroup>
       <!-- Transform RuntimeIdentifiers property to item -->
@@ -21,7 +23,7 @@
 
       <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
       <ProjectToPublish Include="@(RuntimeIdentifierForPack->'$(MSBuildProjectFullPath)')">
-          <AdditionalProperties>PackRuntimeIdentifier=%(RuntimeIdentifierForPack.Identity);BuildProjectReferences=false</AdditionalProperties>
+          <AdditionalProperties>PackRuntimeIdentifier=%(RuntimeIdentifierForPack.Identity)</AdditionalProperties>
       </ProjectToPublish>
     </ItemGroup>
 

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -54,8 +53,7 @@ public class b : a
 }", "goo()");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
         public async Task InheritedParameterDefaultValue1()
         {
             await VerifyItemExistsAsync(@"public class a
@@ -69,8 +67,7 @@ public class b : a
 }", "goo(int x = 42)", "void a.goo([int x = 42])");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
         public async Task InheritedParameterDefaultValue2()
         {
             await VerifyItemExistsAsync(@"public class a
@@ -652,8 +649,7 @@ class SomeClass : Derived
             await VerifyItemExistsAsync(markup, "Goo()", "void Derived.Goo()");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543748")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543748")]
         public async Task NotOfferedBaseClassMember()
         {
             var markup = @"abstract class Base
@@ -788,8 +784,7 @@ public class SomeClass : Base<int, Exception>
             await VerifyItemIsAbsentAsync(markup, "Goo(T t, S s)");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543756")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543756")]
         public async Task ParameterTypeSimplified()
         {
             var markup = @"using System;
@@ -908,8 +903,7 @@ public class SomeClass : Base
             await VerifyItemExistsAsync(markup, "goo(int x, out string y)", "void Base.goo(int x, out string y)");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         public async Task GenericMethodTypeParametersNotRenamed()
         {
             var markup = @"abstract class CGoo    
@@ -948,8 +942,7 @@ class Derived<X> : CGoo
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         public async Task CommitGenericMethodTypeParametersNotRenamed()
         {
             var markupBeforeCommit = @"abstract class CGoo    
@@ -1027,8 +1020,7 @@ class Derived<X> : CGoo
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543798")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543798")]
         public async Task CommitOptionalParameterValuesAreGenerated()
         {
             var markupBeforeCommit = @"using System;
@@ -2243,8 +2235,7 @@ public class SomeClass : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo(int x, out string y)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe1()
         {
             var markupBeforeCommit =
@@ -2279,8 +2270,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe2()
         {
             var markupBeforeCommit =
@@ -2315,8 +2305,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe3()
         {
             var markupBeforeCommit =
@@ -2351,8 +2340,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe4()
         {
             var markupBeforeCommit =
@@ -2387,8 +2375,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F(int* i)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545534")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545534")]
         public async Task TestPrivateVirtualProperty()
         {
             var markupBeforeCommit =
@@ -2428,8 +2415,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")]
         public async Task CrossLanguageParameterizedPropertyOverride()
         {
             var vbFile = @"Public Class Goo
@@ -2474,7 +2460,7 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2490,8 +2476,8 @@ End Class
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
-                customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
+                var textView = testDocument.GetTextView();
+                customCommitCompletionProvider.Commit(completionItem, document, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
                 MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
@@ -2505,8 +2491,7 @@ End Class
 
         #region "Commit: With Trivia"
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         public async Task CommitSurroundingTriviaDirective()
         {
             var markupBeforeCommit = @"class Base
@@ -2538,8 +2523,7 @@ class Derived : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         public async Task CommitBeforeTriviaDirective()
         {
             var markupBeforeCommit = @"class Base
@@ -2603,8 +2587,7 @@ class Derived : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         public async Task CommitBeforeComment()
         {
             var markupBeforeCommit = @"class Base
@@ -2702,8 +2685,7 @@ int bar;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
         public async Task AcrossPartialTypes1()
         {
             var file1 = @"partial class c
@@ -2731,7 +2713,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2747,8 +2729,8 @@ int bar;
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
-                customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
+                var textView = testDocument.GetTextView();
+                customCommitCompletionProvider.Commit(completionItem, document, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
                 MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
@@ -2758,8 +2740,7 @@ int bar;
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
         public async Task AcrossPartialTypes2()
         {
             var file1 = @"partial class c
@@ -2787,7 +2768,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2803,8 +2784,8 @@ int bar;
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
-                customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
+                var textView = testDocument.GetTextView();
+                customCommitCompletionProvider.Commit(completionItem, document, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
                 MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
@@ -3074,7 +3055,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
+            using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
@@ -3093,8 +3074,7 @@ namespace ConsoleApplication46
             Assert.Equal(change.Span, TextSpan.FromBounds(136, 145));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
         public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Property()
         {
             var markupBeforeCommit = @"abstract class C
@@ -3131,8 +3111,7 @@ class Program : C
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo", expectedCodeAfterCommit);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
         public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Method()
         {
             var markupBeforeCommit = @"abstract class C
@@ -3202,7 +3181,7 @@ namespace ClassLibrary7
             // P1 has a metadata reference to P3 and therefore doesn't get the transitive
             // reference to P2. If we try to override Goo, the missing "Missing" type will
             // prevent round tripping the symbolkey.
-            using var workspace = TestWorkspace.Create(text, composition: GetComposition());
+            using var workspace = EditorTestWorkspace.Create(text, composition: GetComposition());
             var compilation = await workspace.CurrentSolution.Projects.First(p => p.Name == "P3").GetCompilationAsync();
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
@@ -3240,7 +3219,7 @@ public class SomeClass : Base
     </Project>
 </Workspace>");
 
-            using var workspace = TestWorkspace.Create(source, composition: GetComposition());
+            using var workspace = EditorTestWorkspace.Create(source, composition: GetComposition());
             var before = @"
 public abstract class Base
 {
@@ -3289,8 +3268,7 @@ public class SomeClass : Base
             Assert.Equal(after, actualCodeAfterCommit);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39909")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39909")]
         public async Task CommitAddsMissingImports()
         {
             var markupBeforeCommit = @"

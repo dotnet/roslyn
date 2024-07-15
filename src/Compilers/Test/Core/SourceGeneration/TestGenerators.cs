@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -76,29 +77,55 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class CallbackGenerator : ISourceGenerator
+#pragma warning disable RS0062 // Do not implicitly capture primary constructor paramters
+    internal class CallbackGenerator(
+        Action<GeneratorInitializationContext> onInit,
+        Action<GeneratorExecutionContext> onExecute,
+        Func<ImmutableArray<(string hintName, SourceText? sourceText)>> computeSourceTexts)
+        : ISourceGenerator
     {
-        private readonly Action<GeneratorInitializationContext> _onInit;
-        private readonly Action<GeneratorExecutionContext> _onExecute;
-        private readonly string? _source;
-
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "")
+            : this(onInit, onExecute, () => ("source", source))
         {
-            _onInit = onInit;
-            _onExecute = onExecute;
-            _source = source;
         }
+
+        public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, string? source)> computeSource)
+            : this(onInit, onExecute, () =>
+            {
+                var (hint, source) = computeSource();
+                return ImmutableArray.Create((hint, string.IsNullOrWhiteSpace(source)
+                    ? null
+                    : SourceText.From(source, Encoding.UTF8)));
+            })
+        {
+        }
+
+        public CallbackGenerator(Func<(string hintName, string? source)> computeSource)
+            : this(onInit: static _ => { }, onExecute: static _ => { }, () =>
+            {
+                var (hint, source) = computeSource();
+                return ImmutableArray.Create((hint, string.IsNullOrWhiteSpace(source)
+                    ? null
+                    : SourceText.From(source, Encoding.UTF8)));
+            })
+        {
+        }
+
+        public void Initialize(GeneratorInitializationContext context)
+            => onInit(context);
 
         public void Execute(GeneratorExecutionContext context)
         {
-            _onExecute(context);
-            if (!string.IsNullOrWhiteSpace(_source))
+            onExecute(context);
+
+            foreach (var (hintName, sourceText) in computeSourceTexts())
             {
-                context.AddSource("source", SourceText.From(_source, Encoding.UTF8));
+                if (sourceText != null)
+                    context.AddSource(hintName, sourceText);
             }
         }
-        public void Initialize(GeneratorInitializationContext context) => _onInit(context);
     }
+#pragma warning restore RS0062 // Do not implicitly capture primary constructor paramters
 
     internal class CallbackGenerator2 : CallbackGenerator
     {

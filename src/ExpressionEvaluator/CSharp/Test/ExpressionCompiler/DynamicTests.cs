@@ -1258,6 +1258,10 @@ class C
     {
         System.Action a = () => Goo(x);
     }
+
+    static void Goo(int y)
+    {
+    }
 }
 ";
             var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
@@ -1368,6 +1372,9 @@ class C
     static void Goo(int x)
     {
         M(x);
+    }
+    static void Goo(string x)
+    {
     }
 }
 ";
@@ -1493,10 +1500,7 @@ class C
             {
                 Assert.Equal(CustomTypeInfo.PayloadTypeId, customTypeInfoId);
                 // Include leading count byte.
-                var builder = ArrayBuilder<byte>.GetInstance();
-                builder.Add((byte)expectedBytes.Length);
-                builder.AddRange(expectedBytes);
-                expectedBytes = builder.ToArrayAndFree();
+                expectedBytes = [(byte)expectedBytes.Length, .. expectedBytes];
                 Assert.Equal(expectedBytes, customTypeInfo);
             }
         }

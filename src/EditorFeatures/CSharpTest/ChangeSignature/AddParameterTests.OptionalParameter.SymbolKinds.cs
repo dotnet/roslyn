@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
         public async Task AddOptionalParameter_ToConstructor_ImplicitObjectCreation()
         {
             var markup = """

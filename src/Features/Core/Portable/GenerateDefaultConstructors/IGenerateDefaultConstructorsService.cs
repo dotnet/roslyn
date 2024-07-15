@@ -10,11 +10,10 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
+
+internal interface IGenerateDefaultConstructorsService : ILanguageService
 {
-    internal interface IGenerateDefaultConstructorsService : ILanguageService
-    {
-        Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
-            Document document, TextSpan textSpan, CodeAndImportGenerationOptionsProvider fallbackOptions, bool forRefactoring, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
+        Document document, TextSpan textSpan, CodeAndImportGenerationOptionsProvider fallbackOptions, bool forRefactoring, CancellationToken cancellationToken);
 }

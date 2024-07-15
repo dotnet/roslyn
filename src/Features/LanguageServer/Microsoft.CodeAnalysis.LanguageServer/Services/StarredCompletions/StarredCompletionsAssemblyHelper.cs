@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -17,7 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 internal static class StarredCompletionAssemblyHelper
 {
     private const string CompletionsDllName = "Microsoft.VisualStudio.IntelliCode.CSharp.dll";
-    private const string ALCName = "IntelliCode-ALC";
     private const string CompletionHelperClassFullName = "PythiaCSDevKit.CSDevKitCompletionHelper";
     private const string CreateCompletionProviderMethodName = "CreateCompletionProviderAsync";
 
@@ -26,6 +22,7 @@ internal static class StarredCompletionAssemblyHelper
     private static string? s_completionsAssemblyLocation;
     private static ILogger? s_logger;
     private static ServiceBrokerFactory? s_serviceBrokerFactory;
+    private static ExtensionAssemblyManager? s_extensionAssemblyManager;
 
     /// <summary>
     /// A gate to guard the actual creation of <see cref="s_completionProvider"/>. This just prevents us from trying to create the provider more than once; once the field is set it
@@ -41,7 +38,7 @@ internal static class StarredCompletionAssemblyHelper
     /// <param name="completionsAssemblyLocation">Location of dll for starred completion</param>
     /// <param name="loggerFactory">Factory for creating new logger</param>
     /// <param name="serviceBrokerFactory">Service broker with access to necessary remote services</param>
-    internal static void InitializeInstance(string? completionsAssemblyLocation, ILoggerFactory loggerFactory, ServiceBrokerFactory serviceBrokerFactory)
+    internal static void InitializeInstance(string? completionsAssemblyLocation, ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory, ServiceBrokerFactory serviceBrokerFactory)
     {
         // No location provided means it wasn't passed through from C# Dev Kit, so we don't need to initialize anything further
         if (string.IsNullOrEmpty(completionsAssemblyLocation))
@@ -54,6 +51,12 @@ internal static class StarredCompletionAssemblyHelper
         s_completionsAssemblyLocation = completionsAssemblyLocation;
         s_logger = loggerFactory.CreateLogger(typeof(StarredCompletionAssemblyHelper));
         s_serviceBrokerFactory = serviceBrokerFactory;
+        s_extensionAssemblyManager = extensionAssemblyManager;
+    }
+
+    internal static string GetStarredCompletionAssemblyPath(string starredCompletionComponentPath)
+    {
+        return Path.Combine(starredCompletionComponentPath, CompletionsDllName);
     }
 
     internal static async Task<CompletionProvider?> GetCompletionProviderAsync(CancellationToken cancellationToken)
@@ -67,8 +70,13 @@ internal static class StarredCompletionAssemblyHelper
             return null;
 
         // If we were never initialized with any information from Dev Kit, we can't create one
-        if (s_completionsAssemblyLocation is null || s_logger is null || s_serviceBrokerFactory is null)
+        if (s_completionsAssemblyLocation is null
+            || s_logger is null
+            || s_serviceBrokerFactory is null
+            || s_extensionAssemblyManager is null)
+        {
             return null;
+        }
 
         // If we don't have a connection to a service broker yet, we also can't create one
         var serviceBroker = s_serviceBrokerFactory.TryGetFullAccessServiceBroker();
@@ -88,14 +96,17 @@ internal static class StarredCompletionAssemblyHelper
 
             try
             {
-                var alc = AssemblyLoadContextWrapper.TryCreate(ALCName, s_completionsAssemblyLocation, sharedDependenciesPath: null, s_logger);
-                if (alc is null)
+                var completionsDllPath = GetStarredCompletionAssemblyPath(s_completionsAssemblyLocation);
+                s_logger.LogTrace("trying to load intellicode provider");
+                var starredCompletionsAssembly = s_extensionAssemblyManager.TryLoadAssemblyInExtensionContext(completionsDllPath);
+                if (starredCompletionsAssembly is null)
                 {
+                    s_logger.LogTrace("failed to load intellicode provider");
                     s_previousCreationFailed = true;
                     return null;
                 }
 
-                var createCompletionProviderMethodInfo = alc.GetMethodInfo(CompletionsDllName, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
+                var createCompletionProviderMethodInfo = GetMethodInfo(starredCompletionsAssembly, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
 
                 s_completionProvider = await CreateCompletionProviderAsync(createCompletionProviderMethodInfo, serviceBroker, s_completionsAssemblyLocation, s_logger);
                 return s_completionProvider;
@@ -107,6 +118,21 @@ internal static class StarredCompletionAssemblyHelper
                 throw;
             }
         }
+    }
+
+    private static MethodInfo GetMethodInfo(Assembly assembly, string className, string methodName)
+    {
+        var completionHelperType = assembly.GetType(className);
+        if (completionHelperType == null)
+        {
+            throw new ArgumentException($"{assembly.FullName} assembly did not contain {className} class");
+        }
+        var createCompletionProviderMethodInto = completionHelperType?.GetMethod(methodName);
+        if (createCompletionProviderMethodInto == null)
+        {
+            throw new ArgumentException($"{className} from {assembly.FullName} assembly did not contain {methodName} method");
+        }
+        return createCompletionProviderMethodInto;
     }
 
     private static async Task<CompletionProvider> CreateCompletionProviderAsync(MethodInfo createCompletionProviderMethodInfo, IServiceBroker serviceBroker, string modelBasePath, ILogger logger)

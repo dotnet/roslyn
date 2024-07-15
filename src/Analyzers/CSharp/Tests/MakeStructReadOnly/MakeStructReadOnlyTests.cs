@@ -155,10 +155,12 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingWithMutableAndReadOnlyFieldStruct2()
     {
         await TestMissingAsync(
-@"struct S(int j)
-{
-    int i;
-}");
+            """
+            struct S(int j)
+            {
+                int i;
+            }
+            """);
     }
 
     [Fact]
@@ -201,10 +203,12 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingWithMutablePropertyStruct2()
     {
         await TestMissingAsync(
-@"struct S(int q)
-{
-    int P { get; set; }
-}");
+            """
+            struct S(int q)
+            {
+                int P { get; set; }
+            }
+            """);
     }
 
     [Fact]
@@ -244,9 +248,11 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingWithEmptyStructPrimaryConstructor()
     {
         await TestMissingAsync(
-@"struct S()
-{
-}");
+            """
+            struct S()
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -406,9 +412,11 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingStructWithPrimaryConstructor()
     {
         await TestMissingAsync(
-@"struct S(int i)
-{
-}");
+            """
+            struct S(int i)
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -427,14 +435,18 @@ LanguageVersion.CSharp7_2);
     public async Task TestOnStructWithPrimaryConstructorAndReadonlyField()
     {
         await TestAsync(
-@"struct [|S|](int i)
-{
-    readonly int i;
-}",
-@"readonly struct S(int i)
-{
-    readonly int i;
-}",
+            """
+            struct [|S|](int i)
+            {
+                readonly int i;
+            }
+            """,
+            """
+            readonly struct S(int i)
+            {
+                readonly int i;
+            }
+            """,
 LanguageVersion.CSharp12);
     }
 

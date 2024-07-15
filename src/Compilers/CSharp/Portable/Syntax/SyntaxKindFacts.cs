@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = (int)SyntaxKind.BoolKeyword; i <= (int)SyntaxKind.ImplicitKeyword; i++)
             {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
                 yield return (SyntaxKind)i;
             }
         }
@@ -142,9 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             yield return SyntaxKind.TrueKeyword;
             yield return SyntaxKind.FalseKeyword;
             yield return SyntaxKind.DefaultKeyword;
-            yield return SyntaxKind.HiddenKeyword;
+
             for (int i = (int)SyntaxKind.ElifKeyword; i <= (int)SyntaxKind.RestoreKeyword; i++)
             {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
                 yield return (SyntaxKind)i;
             }
         }
@@ -172,10 +176,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetPunctuationKinds()
         {
-            for (int i = (int)SyntaxKind.TildeToken; i <= (int)SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken; i++)
+            for (int i = (int)SyntaxKind.TildeToken; i <= (int)SyntaxKind.DotDotToken; i++)
             {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
                 yield return (SyntaxKind)i;
             }
+
+            for (int i = (int)SyntaxKind.SlashGreaterThanToken; i <= (int)SyntaxKind.XmlProcessingInstructionEndToken; i++)
+            {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                yield return (SyntaxKind)i;
+            }
+
+            for (int i = (int)SyntaxKind.BarBarToken; i <= (int)SyntaxKind.QuestionQuestionEqualsToken; i++)
+            {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                yield return (SyntaxKind)i;
+            }
+
+            yield return SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
+            yield return SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
         }
 
         public static bool IsPunctuationOrKeyword(SyntaxKind kind)
@@ -1148,7 +1168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
             {
-                yield return (SyntaxKind)i;
+                // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
+                if (i != 8441)
+                {
+                    Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                    yield return (SyntaxKind)i;
+                }
             }
         }
 

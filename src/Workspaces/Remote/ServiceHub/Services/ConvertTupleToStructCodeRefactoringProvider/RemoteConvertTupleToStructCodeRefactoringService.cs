@@ -17,26 +17,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteConvertTupleToStructCodeRefactoringService : BrokeredServiceBase, IRemoteConvertTupleToStructCodeRefactoringService
+    internal sealed class RemoteConvertTupleToStructCodeRefactoringService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteConvertTupleToStructCodeRefactoringService
     {
         internal sealed class Factory : FactoryBase<IRemoteConvertTupleToStructCodeRefactoringService, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>
         {
             protected override IRemoteConvertTupleToStructCodeRefactoringService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
                 => new RemoteConvertTupleToStructCodeRefactoringService(arguments, callback);
         }
-
-        private readonly RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> _callback;
-
-        public RemoteConvertTupleToStructCodeRefactoringService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
-
-        // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
-        private CleanCodeGenerationOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-            => new ClientCleanCodeGenerationOptionsProvider(
-                (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         public ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
             Checksum solutionChecksum,
@@ -52,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
 
                 var service = document.GetRequiredLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var fallbackOptions = GetClientOptionsProvider<CleanCodeGenerationOptions, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>(callback, callbackId).ToCleanCodeGenerationOptionsProvider();
 
                 var updatedSolution = await service.ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
 

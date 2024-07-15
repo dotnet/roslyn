@@ -60,6 +60,9 @@ namespace Roslyn.Utilities
         private bool HasOneItem
             => _many.IsDefault;
 
+        public bool IsDefault
+            => _one == null && _many.IsDefault;
+
         public T this[int index]
         {
             get
@@ -237,8 +240,10 @@ namespace Roslyn.Utilities
 
         private sealed class DebuggerProxy(OneOrMany<T> instance)
         {
+            private readonly OneOrMany<T> _instance = instance;
+
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public T[] Items => instance.ToArray();
+            public T[] Items => _instance.ToArray();
         }
 
         private string GetDebuggerDisplay()

@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
     [Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
     public class XmlTagCompletionTests : AbstractXmlTagCompletionTests
     {
-        private protected override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(TestWorkspace workspace)
+        private protected override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(EditorTestWorkspace workspace)
             => workspace.ExportProvider.GetCommandHandler<XmlTagCompletionCommandHandler>(nameof(XmlTagCompletionCommandHandler), ContentTypeNames.CSharpContentType);
 
-        private protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
-            => TestWorkspace.CreateCSharp(initialMarkup);
+        private protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
+            => EditorTestWorkspace.CreateCSharp(initialMarkup);
 
         [WpfFact]
         public void SimpleTagCompletion()

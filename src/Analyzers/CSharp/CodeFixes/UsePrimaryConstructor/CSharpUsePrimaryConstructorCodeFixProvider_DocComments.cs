@@ -37,7 +37,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
     private static SyntaxTrivia GetDocComment(SyntaxTriviaList trivia)
         => trivia.LastOrDefault(t => t.IsSingleLineDocComment());
 
-    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxNode node)
+    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(MemberDeclarationSyntax node)
         => GetDocCommentStructure(node.GetLeadingTrivia());
 
     private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTriviaList trivia)
@@ -57,7 +57,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
     private static XmlElementSyntax ConvertXmlElementName(XmlElementSyntax xmlElement, string name)
     {
         return xmlElement.ReplaceTokens(
-            new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
+            [xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName],
             (token, _) => Identifier(name).WithTriviaFrom(token));
     }
 
@@ -66,7 +66,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         ConstructorDeclarationSyntax constructorDeclaration,
         IMethodSymbol constructor,
         ImmutableDictionary<string, string?> properties,
-        ImmutableDictionary<ISymbol, SyntaxNode> removedMembers)
+        ImmutableDictionary<ISymbol, (MemberDeclarationSyntax memberNode, SyntaxNode nodeToRemove)> removedMembers)
     {
         // First, take the constructor doc comments and merge those into the type's doc comments.
         // Then, take any removed fields/properties and merge their comments into the type's doc comments.
@@ -157,14 +157,14 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
             return Trivia(DocumentationCommentTrivia(
                 SyntaxKind.SingleLineDocumentationCommentTrivia,
-                List(content),
+                [.. content],
                 typeStructure.EndOfComment));
         }
 
         static SyntaxTriviaList MergeTypeDeclarationAndRemovedMembersDocComments(
             IMethodSymbol constructor,
             ImmutableDictionary<string, string?> properties,
-            ImmutableDictionary<ISymbol, SyntaxNode> removedMembers,
+            ImmutableDictionary<ISymbol, (MemberDeclarationSyntax memberNode, SyntaxNode nodeToRemove)> removedMembers,
             SyntaxTriviaList typeDeclarationLeadingTrivia)
         {
             // now, if we're removing any members, and they had doc comments, and we don't already have doc comments for
@@ -176,12 +176,11 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             using var _1 = ArrayBuilder<(string parameterName, DocumentationCommentTriviaSyntax docComment)>.GetInstance(out var docCommentsToMove);
             foreach (var (memberName, parameterName) in orderedKVPs)
             {
-                var (removedMember, memberDeclaration) = removedMembers.FirstOrDefault(kvp => kvp.Key.Name == memberName);
+                var (removedMember, (memberDeclaration, _)) = removedMembers.FirstOrDefault(kvp => kvp.Key.Name == memberName);
                 if (removedMember is null)
                     continue;
 
-                var removedMemberDocComment = GetDocCommentStructure(
-                    memberDeclaration is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax field } ? field : memberDeclaration);
+                var removedMemberDocComment = GetDocCommentStructure(memberDeclaration);
                 if (removedMemberDocComment != null)
                     docCommentsToMove.Add((parameterName, removedMemberDocComment)!);
             }
@@ -218,7 +217,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
             return InsertOrReplaceDocComments(
                 typeDeclarationLeadingTrivia,
-                Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent))));
+                Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, [.. allContent])));
         }
     }
 }

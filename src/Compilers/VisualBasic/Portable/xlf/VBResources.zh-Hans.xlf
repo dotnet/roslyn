@@ -42,6 +42,16 @@
         <target state="translated">"System.Runtime.CompilerServices.RequiredMemberAttribute" 仅供编译器使用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">“Experimental” 属性的 diagnosticId 参数必须是有效的标识符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">SyncLock 不支持类型为“System.Threading.Lock”的值。请考虑改为在 Try/Finally 块中手动调用“Enter”和“Exit”方法。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">多个分析器配置文件不能位于同一目录({0})中。</target>
@@ -601,6 +611,16 @@
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
         <target state="translated">应用于参数的 CallerArgumentExpressionAttribute 将不起任何作用，因为它是自引用的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">转换为不同类型的类型“System.Threading.Lock”的值将在 SyncLock 语句中使用可能意外的基于监视器的锁定。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">转换为不同类型的类型“System.Threading.Lock”的值将在 SyncLock 语句中使用可能意外的基于监视器的锁定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">

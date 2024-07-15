@@ -6,63 +6,62 @@ using System;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+/// <summary>
+/// An abstract implementation of a tagger event source that takes a buffer and tracks
+/// the workspace that it's attached to.
+/// </summary>
+internal abstract class AbstractWorkspaceTrackingTaggerEventSource : AbstractTaggerEventSource
 {
-    /// <summary>
-    /// An abstract implementation of a tagger event source that takes a buffer and tracks
-    /// the workspace that it's attached to.
-    /// </summary>
-    internal abstract class AbstractWorkspaceTrackingTaggerEventSource : AbstractTaggerEventSource
+    private readonly WorkspaceRegistration _workspaceRegistration;
+
+    protected ITextBuffer SubjectBuffer { get; }
+    protected Workspace? CurrentWorkspace { get; private set; }
+
+    protected AbstractWorkspaceTrackingTaggerEventSource(ITextBuffer subjectBuffer)
     {
-        private readonly WorkspaceRegistration _workspaceRegistration;
+        this.SubjectBuffer = subjectBuffer;
+        _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
+    }
 
-        protected ITextBuffer SubjectBuffer { get; }
-        protected Workspace? CurrentWorkspace { get; private set; }
+    protected abstract void ConnectToWorkspace(Workspace workspace);
+    protected abstract void DisconnectFromWorkspace(Workspace workspace);
 
-        protected AbstractWorkspaceTrackingTaggerEventSource(ITextBuffer subjectBuffer)
+    public override void Connect()
+    {
+        this.CurrentWorkspace = _workspaceRegistration.Workspace;
+        _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
+
+        if (this.CurrentWorkspace != null)
         {
-            this.SubjectBuffer = subjectBuffer;
-            _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
+            ConnectToWorkspace(this.CurrentWorkspace);
+        }
+    }
+
+    private void OnWorkspaceRegistrationChanged(object? sender, EventArgs e)
+    {
+        if (this.CurrentWorkspace != null)
+        {
+            DisconnectFromWorkspace(this.CurrentWorkspace);
         }
 
-        protected abstract void ConnectToWorkspace(Workspace workspace);
-        protected abstract void DisconnectFromWorkspace(Workspace workspace);
+        this.CurrentWorkspace = _workspaceRegistration.Workspace;
 
-        public override void Connect()
+        if (this.CurrentWorkspace != null)
         {
-            this.CurrentWorkspace = _workspaceRegistration.Workspace;
-            _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
+            ConnectToWorkspace(this.CurrentWorkspace);
+        }
+    }
 
-            if (this.CurrentWorkspace != null)
-            {
-                ConnectToWorkspace(this.CurrentWorkspace);
-            }
+    public override void Disconnect()
+    {
+        if (this.CurrentWorkspace != null)
+        {
+            DisconnectFromWorkspace(this.CurrentWorkspace);
+            this.CurrentWorkspace = null;
         }
 
-        private void OnWorkspaceRegistrationChanged(object? sender, EventArgs e)
-        {
-            if (this.CurrentWorkspace != null)
-            {
-                DisconnectFromWorkspace(this.CurrentWorkspace);
-            }
-
-            this.CurrentWorkspace = _workspaceRegistration.Workspace;
-
-            if (this.CurrentWorkspace != null)
-            {
-                ConnectToWorkspace(this.CurrentWorkspace);
-            }
-        }
-
-        public override void Disconnect()
-        {
-            if (this.CurrentWorkspace != null)
-            {
-                DisconnectFromWorkspace(this.CurrentWorkspace);
-                this.CurrentWorkspace = null;
-            }
-
-            _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
-        }
+        _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
     }
 }

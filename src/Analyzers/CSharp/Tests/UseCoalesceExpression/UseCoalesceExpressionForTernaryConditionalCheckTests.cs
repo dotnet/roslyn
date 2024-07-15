@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-    public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UseCoalesceExpressionForTernaryConditionalCheckTests(ITestOutputHelper logger)
           : base(logger)

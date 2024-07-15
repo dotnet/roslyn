@@ -6,6 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindUsages;
 /// user immediately if the find command completes quickly, or which will be pushed into the streaming presenter 
 /// if the search is taking too long.
 /// </summary>
-internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptions) : IFindUsagesContext, IStreamingProgressTracker
+internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreamingProgressTracker
 {
     private class State
     {
@@ -28,8 +31,6 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
         public string? SearchTitle;
         public ImmutableArray<DefinitionItem>.Builder Definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
     }
-
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     /// <summary>
     /// Lock which controls access to all members below.
@@ -101,10 +102,10 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
             await presenterContext.SetSearchTitleAsync(_state.SearchTitle, cancellationToken).ConfigureAwait(false);
 
         if (_state.Message != null)
-            await presenterContext.ReportMessageAsync(_state.Message, cancellationToken).ConfigureAwait(false);
+            await presenterContext.ReportNoResultsAsync(_state.Message, cancellationToken).ConfigureAwait(false);
 
         if (_state.InformationalMessage != null)
-            await presenterContext.ReportInformationalMessageAsync(_state.InformationalMessage, cancellationToken).ConfigureAwait(false);
+            await presenterContext.ReportMessageAsync(_state.InformationalMessage, NotificationSeverity.Information, cancellationToken).ConfigureAwait(false);
 
         foreach (var definition in _state.Definitions)
             await presenterContext.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
@@ -148,15 +149,12 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
 
     #region IFindUsagesContext
 
-    ValueTask<FindUsagesOptions> IFindUsagesContext.GetOptionsAsync(string language, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
-
-    async ValueTask IFindUsagesContext.ReportMessageAsync(string message, CancellationToken cancellationToken)
+    async ValueTask IFindUsagesContext.ReportNoResultsAsync(string message, CancellationToken cancellationToken)
     {
         using var _ = await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false);
         if (IsSwapped)
         {
-            await _streamingPresenterContext.ReportMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            await _streamingPresenterContext.ReportNoResultsAsync(message, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -164,12 +162,12 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
         }
     }
 
-    async ValueTask IFindUsagesContext.ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+    async ValueTask IFindUsagesContext.ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
     {
         using var _ = await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false);
         if (IsSwapped)
         {
-            await _streamingPresenterContext.ReportInformationalMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            await _streamingPresenterContext.ReportMessageAsync(message, severity, cancellationToken).ConfigureAwait(false);
         }
         else
         {

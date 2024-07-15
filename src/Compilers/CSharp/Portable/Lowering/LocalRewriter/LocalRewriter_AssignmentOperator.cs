@@ -81,14 +81,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, node.Type, used);
+            var result = MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used);
+
+            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, left, result, used);
+
+            Debug.Assert(used || result.Type?.IsVoidType() == true ||
+                        (left switch { BoundIndexerAccess indexer => indexer.Indexer, BoundPropertyAccess property => property.PropertySymbol, _ => null }) is not PropertySymbol prop ||
+                        prop.GetOwnOrInheritedSetMethod() is null);
+
+            Debug.Assert(result.Type?.IsVoidType() == true || TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.AllIgnoreOptions));
+
+            return result;
+        }
+
+        private static bool ShouldConvertResultOfAssignmentToDynamic(TypeSymbol? assignmentResultType, BoundExpression target)
+        {
+            if (assignmentResultType?.IsDynamic() == true && target is BoundIndexerAccess { Type.TypeKind: not TypeKind.Dynamic } indexerAccess)
+            {
+                Debug.Assert(!indexerAccess.Indexer.Type.IsDynamic());
+                Debug.Assert(!indexerAccess.Indexer.ReturnsByRef);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool ShouldConvertResultOfAssignmentToDynamic(BoundExpression assignment, BoundExpression target)
+        {
+            Debug.Assert(assignment is BoundAssignmentOperator or BoundIncrementOperator or BoundCompoundAssignmentOperator or BoundNullCoalescingAssignmentOperator);
+            return ShouldConvertResultOfAssignmentToDynamic(assignment.Type, target);
+        }
+
+        private BoundExpression ConvertResultOfAssignmentToDynamicIfNecessary(BoundExpression originalAssignment, BoundExpression originalTarget, BoundExpression result, bool used)
+        {
+            Debug.Assert(originalAssignment.Type is not null);
+            if (used && ShouldConvertResultOfAssignmentToDynamic(originalAssignment, originalTarget))
+            {
+                Debug.Assert(result.Type is not null);
+                Debug.Assert(!result.Type.IsDynamic());
+                result = _factory.Convert(originalAssignment.Type, result);
+            }
+
+            return result;
         }
 
         /// <summary>
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type,
+        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight,
             bool used, bool isChecked, bool isCompoundAssignment)
         {
             switch (rewrittenLeft.Kind)
@@ -132,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
 
                 default:
-                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, type: type, used: used);
+                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used);
             }
         }
 
@@ -140,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess indexerAccess,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             BoundExpression loweredRight,
             bool isCompoundAssignment = false,
@@ -168,7 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenLeft,
             BoundExpression rewrittenRight,
             bool isRef,
-            TypeSymbol type,
             bool used)
         {
             switch (rewrittenLeft.Kind)
@@ -193,7 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             false,
                             default(ImmutableArray<int>),
                             rewrittenRight,
-                            type,
                             used);
                     }
 
@@ -214,7 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Expanded,
                             indexerAccess.ArgsToParamsOpt,
                             rewrittenRight,
-                            type,
                             used);
                     }
 
@@ -227,7 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
-                            type,
                             isRef);
                     }
 
@@ -252,9 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sequence.Value,
                                 rewrittenRight,
                                 isRef,
-                                type,
                                 used),
-                            type);
+                            sequence.Type);
                     }
                     goto default;
 
@@ -264,13 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
-                            rewrittenRight,
-                            type);
+                            rewrittenRight);
                     }
             }
         }
-
-#nullable enable
 
         private BoundExpression MakePropertyAssignment(
             SyntaxNode syntax,
@@ -281,7 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BoundExpression rewrittenRight,
-            TypeSymbol type,
             bool used)
         {
             // Rewrite property assignment into call to setter.
@@ -312,7 +345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref argTempsBuilder);
 
             arguments = MakeArguments(
-                syntax,
                 arguments,
                 property,
                 expanded,
@@ -353,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AppendToPossibleNull(argTemps, rhsTemp),
                     ImmutableArray.Create(setterCall),
                     boundRhs,
-                    type);
+                    rhsTemp.Type);
             }
             else
             {

@@ -305,20 +305,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Fact]
-        public async Task TestNotInPropertyAttribute()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71200")]
+        public async Task TestInPropertyAttribute()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 class C {
                     int Goo { [$$
                 """);
         }
 
-        [Fact]
-        public async Task TestNotInEventAttribute()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71200")]
+        public async Task TestInEventAttribute()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 class C {
                     event Action<int> Goo { [$$

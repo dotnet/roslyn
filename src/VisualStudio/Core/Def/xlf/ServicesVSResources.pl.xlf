@@ -117,6 +117,11 @@
         <target state="translated">Zestawy</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyNameAndVersionDisplay">
+        <source>{0} ({1})</source>
+        <target state="translated">{0} ({1})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">Automatycznie otwieraj Stack Trace Explorer przy fokusie</target>
@@ -155,16 +160,6 @@
       <trans-unit id="Bitness64">
         <source>64-bit</source>
         <target state="translated">64-bitowa</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Build_plus_live_analysis_NuGet_package">
-        <source>Build + live analysis (NuGet package)</source>
-        <target state="translated">Kompilacja i analiza na żywo (pakiet NuGet)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
-        <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="translated">Klient języka diagnostyki języka C#/Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating">
@@ -249,7 +244,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">Zwiń funkcje lokalne podczas zwijania do definicji</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -377,11 +372,6 @@
         <target state="translated">_Edytuj</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_0">
-        <source>Edit {0}</source>
-        <target state="translated">Edytuj: {0}</target>
-        <note>{0} is a parameter description</note>
-      </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
         <target state="translated">Schemat kolorów edytora</target>
@@ -395,11 +385,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Element jest nieprawidłowy.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
-        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Włącz diagnostykę operacji „pull” oprogramowania Razor (eksperymentalne, wymaga ponownego uruchomienia)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
@@ -420,11 +405,6 @@
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
         <target state="translated">Włącz nawigację do źródeł linków źródłowych i osadzonych</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Włącz diagnostykę operacji „pull” (eksperymentalne, wymaga ponownego uruchomienia)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -465,11 +445,6 @@
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Błąd podczas pomijania aktualizacji: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Evaluating_0_tasks_in_queue">
-        <source>Evaluating ({0} tasks in queue)</source>
-        <target state="translated">Szacowanie (zadania w kolejce: {0})</target>
         <note />
       </trans-unit>
       <trans-unit id="External_sources">
@@ -582,16 +557,6 @@
         <target state="translated">Wnioskuj z kontekstu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexed_in_organization">
-        <source>Indexed in organization</source>
-        <target state="translated">Indeksowane w organizacji</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indexed_in_repo">
-        <source>Indexed in repo</source>
-        <target state="translated">Indeksowane w repozytorium</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inheritance_Margin">
         <source>Inheritance Margin</source>
         <target state="translated">Margines dziedziczenia</target>
@@ -602,11 +567,6 @@
         <target state="translated">Dziedziczone interfejsy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="translated">Diagnostyka w tekście (eksperymentalna)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Wskazówki w tekście</target>
@@ -615,11 +575,6 @@
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="translated">Wstawianie wartości miejsca wywołania „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
-        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
-        <target state="translated">Zainstaluj analizatory Roslyn rekomendowane przez firmę Microsoft, które oferują dodatkową diagnostykę i poprawki w zakresie typowego projektu interfejsu API, zabezpieczeń, wydajności i niezawodności</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
@@ -635,11 +590,6 @@
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
         <target state="translated">Nieprawidłowa nazwa typu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Item_origin">
-        <source>Item origin</source>
-        <target state="translated">Źródło elementu</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_strings">
@@ -662,11 +612,6 @@
         <target state="translated">Rodzaj</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_analysis_VSIX_extension">
-        <source>Live analysis (VSIX extension)</source>
-        <target state="translated">Analiza na żywo (rozszerzenie VSIX)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Loaded_items">
         <source>Loaded items</source>
         <target state="translated">Załadowane elementy</target>
@@ -680,11 +625,6 @@
       <trans-unit id="Local">
         <source>Local</source>
         <target state="translated">Lokalne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_metadata">
-        <source>Local metadata</source>
-        <target state="translated">Lokalne metadane</target>
         <note />
       </trans-unit>
       <trans-unit id="Location">
@@ -1032,11 +972,6 @@
         <target state="translated">Pakiety</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_Details">
-        <source>Parameter Details</source>
-        <target state="translated">Szczegóły parametru</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
         <target state="translated">Nazwa parametru:</target>
@@ -1081,11 +1016,6 @@
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Wklej prawidłowy ślad stosu, aby wyświetlić jego wartości i nawigować po nich.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
-      </trans-unit>
-      <trans-unit id="Paused_0_tasks_in_queue">
-        <source>Paused ({0} tasks in queue)</source>
-        <target state="translated">Wstrzymano (zadania w kolejce: {0})</target>
-        <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
@@ -1212,11 +1142,6 @@
         <target state="translated">Wyrażenia regularne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_All">
-        <source>Remove All</source>
-        <target state="translated">Usuń wszystko</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
         <target state="translated">Usuń nieużywane odwołania</target>
@@ -1315,11 +1240,6 @@
       <trans-unit id="Running_code_analysis_for_Solution">
         <source>Running code analysis for Solution...</source>
         <target state="translated">Trwa analizowanie kodu dla rozwiązania...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Running_low_priority_background_processes">
-        <source>Running low priority background processes</source>
-        <target state="translated">Uruchamianie procesów w tle o niskim priorytecie</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -1442,11 +1362,6 @@
         <target state="translated">Niektóre kolory w schemacie kolorów są przesłaniane przez zmiany wprowadzone na stronie opcji Środowisko &gt; Czcionki i kolory. Wybierz pozycję „Użyj ustawień domyślnych” na stronie Czcionki i kolory, aby wycofać wszystkie dostosowania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Sortuj użycia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
         <target state="translated">Śledzenie stosu</target>
@@ -1499,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
         <source>'System.Void' is not a valid type for a parameter</source>
-        <target state="translated">'System.Void' nie jest prawidłowym typem dla parametru</target>
+        <target state="translated">Element „System.Void” nie jest prawidłowym typem parametru</target>
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -1682,6 +1597,16 @@
         <target state="translated">Ten obszar roboczy nie obsługuje aktualizowania opcji kompilacji dla języka Visual Basic.</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_types_exactly_match">
+        <source>When types exactly match</source>
+        <target state="translated">Gdy typy są dokładnie zgodne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_loosely_match">
+        <source>When types loosely match</source>
+        <target state="translated">Gdy typy są luźno zgodne</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">
         <source>Where should the rename UI be shown?</source>
         <target state="translated">Gdzie powinien być wyświetlany interfejs użytkownika zmiany nazwy?</target>
@@ -1762,11 +1687,6 @@
         <target state="translated">Dziedziczy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">Dziedziczone przez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">Implementuje</target>
@@ -1775,16 +1695,6 @@
       <trans-unit id="Implemented_By">
         <source>Implemented By</source>
         <target state="translated">Zaimplementowane przez</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Maximum_number_of_documents_are_open">
-        <source>Maximum number of documents are open.</source>
-        <target state="translated">Otwarta jest maksymalna liczba dokumentów.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_create_document_in_miscellaneous_files_project">
-        <source>Failed to create document in miscellaneous files project.</source>
-        <target state="translated">Nie powiodło się utworzenie dokumentu w projekcie o różnych plikach.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_access">
@@ -2019,16 +1929,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Zmieniono zestaw analizatora „{0}”. Diagnostyka może nie działać poprawnie do czasu ponownego uruchomienia programu Visual Studio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Diagnostics_Table_Data_Source">
-        <source>C#/VB Diagnostics Table Data Source</source>
-        <target state="translated">Źródło danych tabeli diagnostyki dla języka C#/VB</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_VB_Todo_List_Table_Data_Source">
-        <source>C#/VB Todo List Table Data Source</source>
-        <target state="translated">Źródło danych tabeli listy zadań do wykonania dla języka C#/VB</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cancel">
         <source>Cancel</source>
         <target state="translated">Anuluj</target>
@@ -2179,11 +2079,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Więcej informacji o elemencie {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigation_must_be_performed_on_the_foreground_thread">
-        <source>Navigation must be performed on the foreground thread.</source>
-        <target state="translated">Nawigacja musi zostać wykonana w wątku na pierwszym planie.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="bracket_plus_bracket">
         <source>[+] </source>
         <target state="translated">[+] </target>
@@ -2217,11 +2112,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
       <trans-unit id="AnalyzerDependencyConflict">
         <source>AnalyzerDependencyConflict</source>
         <target state="translated">AnalyzerDependencyConflict</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
-        <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
-        <target state="translated">Zestawy analizatora „{0}” i „{1}” mają tożsamość „{2}”, ale inną zawartość. Po ich załadowaniu i użyciu przez analizatory te analizatory mogą nie działać prawidłowo.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -2269,19 +2159,9 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Build_Table_Data_Source">
-        <source>C#/VB Build Table Data Source</source>
-        <target state="translated">Źródło danych tabeli kompilacji dla języka C#/VB</target>
-        <note />
-      </trans-unit>
       <trans-unit id="MissingAnalyzerReference">
         <source>MissingAnalyzerReference</source>
         <target state="translated">MissingAnalyzerReference</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
-        <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
-        <target state="translated">Zestaw analizatora „{0}” jest zależny od zestawu „{1}”, ale nie odnaleziono go. Analizatory mogą nie działać poprawnie, dopóki brakujący zestaw również nie zostanie dodany jako odwołanie analizatora.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_diagnostics">
@@ -2324,11 +2204,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Ten obszar roboczy nie obsługuje aktualizowania opcji analizy programu Visual Basic.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Synchronize_0">
-        <source>Synchronize {0}</source>
-        <target state="translated">Synchronizuj element {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Synchronizing_with_0">
         <source>Synchronizing with {0}...</source>
         <target state="translated">Trwa synchronizowanie z elementem {0}...</target>
@@ -2369,24 +2244,9 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Tak</target>
         <note />
       </trans-unit>
-      <trans-unit id="Choose_a_Symbol_Specification_and_a_Naming_Style">
-        <source>Choose a Symbol Specification and a Naming Style.</source>
-        <target state="translated">Wybierz specyfikację symbolu i styl nazewnictwa.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Naming_Rule">
-        <source>Enter a title for this Naming Rule.</source>
-        <target state="translated">Wprowadź tytuł dla tej reguły nazewnictwa.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Wprowadź tytuł dla tego stylu nazewnictwa.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Symbol_Specification">
-        <source>Enter a title for this Symbol Specification.</source>
-        <target state="translated">Wprowadź tytuł dla tej specyfikacji symbolu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Accessibilities_can_match_any">
@@ -2424,19 +2284,9 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Nazwa z wyrazami pisanymi wielkimi literami, pierwszy z wielkiej</target>
         <note />
       </trans-unit>
-      <trans-unit id="Severity_colon">
-        <source>Severity:</source>
-        <target state="translated">Ważność:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifiers_must_match_all">
         <source>Modifiers (must match all)</source>
         <target state="translated">Modyfikatory (muszą być zgodne ze wszystkimi elementami)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_colon2">
-        <source>Name:</source>
-        <target state="translated">Nazwa:</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Rule">
@@ -2449,29 +2299,9 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Styl nazewnictwa</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_Style_colon">
-        <source>Naming Style:</source>
-        <target state="translated">Styl nazewnictwa:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
-        <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
-        <target state="translated">Reguły nazewnictwa umożliwiają definiowanie sposobu nazywania określonych zestawów symboli i sposobu obsługi symboli z niepoprawnymi nazwami.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
-        <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
-        <target state="translated">Pierwsza zgodna reguła nazewnictwa najwyższego poziomu jest używany domyślnie podczas nazywania symbolu, a wszystkie szczególne przypadki są obsługiwane przez zgodną regułę podrzędną.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Naming_Style_Title_colon">
         <source>Naming Style Title:</source>
         <target state="translated">Tytuł stylu nazewnictwa:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parent_Rule_colon">
-        <source>Parent Rule:</source>
-        <target state="translated">Reguła nadrzędna:</target>
         <note />
       </trans-unit>
       <trans-unit id="Required_Prefix_colon">
@@ -2497,11 +2327,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
       <trans-unit id="Symbol_Specification">
         <source>Symbol Specification</source>
         <target state="translated">Specyfikacja symbolu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Specification_colon">
-        <source>Symbol Specification:</source>
-        <target state="translated">Specyfikacja symbolu:</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Specification_Title_colon">
@@ -2547,37 +2372,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
       <trans-unit id="Package_uninstall_failed_colon_0">
         <source>Package uninstall failed: {0}</source>
         <target state="translated">Odinstalowywanie pakietu nie powiodło się: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled">
-        <source>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</source>
-        <target state="translated">Napotkano błąd podczas ładowania projektu. Zostały wyłączone niektóre funkcje projektu, takie jak pełna analiza rozwiązania dla błędnego projektu i zależnych od niego projektów.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Project_loading_failed">
-        <source>Project loading failed.</source>
-        <target state="translated">Ładowanie projektu nie powiodło się.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows">
-        <source>To see what caused the issue, please try below.
-
-1. Close Visual Studio
-2. Open a Visual Studio Developer Command Prompt
-3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
-4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment variable (devenv)
-6. Open the solution
-7. Check '{0}' and look for the failed tasks (FAILED)</source>
-        <target state="translated">Aby ustalić przyczynę problemu, spróbuj wykonać poniższe czynności.
-
-1. Zamknij program Visual Studio
-2. Otwórz wiersz polecenia dla deweloperów w programie Visual Studio
-3. Ustaw zmienną środowiskową „TraceDesignTime” na wartość true (set TraceDesignTime=true)
-4. Usuń plik .suo w katalogu .vs
-5. Uruchom ponownie program Visual Studio z poziomu wiersza polecenia, w którym została ustawiona zmienna środowiskowa (devenv)
-6. Otwórz rozwiązanie
-7. Sprawdź element „{0}” i poszukaj zadań zakończonych niepowodzeniem (NIEPOWODZENIE)</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_information_colon">
@@ -2696,11 +2490,6 @@ Dodatkowe informacje: {1}</target>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">Pokaż przewodniki dla konstrukcji na poziomie kodu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
-        <source>Show guides for comments and preprocessor regions</source>
-        <target state="translated">Pokaż prowadnice dla regionów komentarzy i preprocesora</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_declaration_level_constructs">
@@ -2923,16 +2712,6 @@ Dodatkowe informacje: {1}</target>
         <target state="translated">Wybierz składowe</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_a_symbol_specification">
-        <source>Add a symbol specification</source>
-        <target state="translated">Dodaj specyfikację symbolu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_symbol_specification">
-        <source>Remove symbol specification</source>
-        <target state="translated">Usuń specyfikację symbolu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_item">
         <source>Add item</source>
         <target state="translated">Dodaj element</target>
@@ -3053,11 +2832,6 @@ Dodatkowe informacje: {1}</target>
         <target state="translated">preferuj właściwości automatyczne</target>
         <note />
       </trans-unit>
-      <trans-unit id="ModuleHasBeenUnloaded">
-        <source>Module has been unloaded.</source>
-        <target state="translated">Moduł został zwolniony.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
         <target state="translated">Włącz nawigację do zdekompilowanych źródeł</target>
@@ -3071,11 +2845,6 @@ Dodatkowe informacje: {1}</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Synchronizuj widok klasy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzing_0">
-        <source>Analyzing '{0}'</source>
-        <target state="translated">Analizowanie elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_naming_styles">

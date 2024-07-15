@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             // 0-based mapped span from enhanced #line directive.
             public readonly LinePositionSpan MappedSpan;
 
-            // optional 0-based character offset from enhanced #line directive.
+            // optional character offset from enhanced #line directive.
             public readonly int? UnmappedCharacterOffset;
 
             // raw value from #line or #ExternalDirective, may be null

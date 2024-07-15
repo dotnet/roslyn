@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return _underlyingMethod.GenericParameterCount; }
         }
 
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get { return _underlyingMethod.IsGeneric; }
-        }
-
         Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return _underlyingMethod.GetResolvedMethod(context);
@@ -206,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Append(result, p.GetType(new EmitContext()));
             }
 
-            result.Builder.Append(")");
+            result.Builder.Append(')');
 
             return result.ToStringAndFree();
         }

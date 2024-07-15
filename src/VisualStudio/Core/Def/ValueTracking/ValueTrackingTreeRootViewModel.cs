@@ -8,9 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
+namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
+
+internal class ValueTrackingTreeRootViewModel : TreeViewItemBase
 {
-    internal class ValueTrackingTreeRootViewModel : TreeViewItemBase
-    {
-    }
 }

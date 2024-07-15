@@ -46,7 +46,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -89,7 +89,7 @@ int y = x$$</Document>
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim document = workspace.Documents.First()
                 Dim view = document.GetTextView()
@@ -134,7 +134,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim document = workspace.Documents.First()
                 Dim view = document.GetTextView()

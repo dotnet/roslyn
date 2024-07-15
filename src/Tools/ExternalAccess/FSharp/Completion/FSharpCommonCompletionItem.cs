@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
         {
             var roslynGlyph = glyph.HasValue ? FSharpGlyphHelpers.ConvertTo(glyph.Value) : (Glyph?)null;
             return CommonCompletionItem.Create(
-                displayText, displayTextSuffix, rules, roslynGlyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription);
+                displayText, displayTextSuffix, rules, roslynGlyph, description, sortText, filterText, showsWarningIcon, properties.AsImmutableOrNull(), tags, inlineDescription);
         }
     }
 }

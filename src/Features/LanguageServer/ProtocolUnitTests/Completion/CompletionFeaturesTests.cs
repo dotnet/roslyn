@@ -18,12 +18,12 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 
@@ -294,7 +294,7 @@ class A { }";
 
         Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
         Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
-        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+        AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
         Assert.Equal((long)14, resolvedItem.Command.Arguments[3]);
@@ -341,7 +341,7 @@ public class A
         }
         else
         {
-            Assert.True(results.ItemDefaults.CommitCharacters.Length == 0);
+            Assert.Empty(results.ItemDefaults.CommitCharacters);
             Assert.True(!someTextItem.Preselect && someTextItem.CommitCharacters == null);
         }
 
@@ -855,7 +855,7 @@ public class C
                 Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
                 Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
-                Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+                AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
                 var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(0, 5), End = new(0, 5) }, NewText = "ComplexItem" };
                 AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
@@ -912,12 +912,67 @@ public class C
         Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
         Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
-        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+        AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
         var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = "public override global::System.Boolean AbstractMethod(global::System.Int32 x)\r\n    {\r\n        throw new System.NotImplementedException();\r\n    }" };
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
 
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
         Assert.Equal((long)268, resolvedItem.Command.Arguments[3]);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6495")]
+    public async Task FilteringShouldBeDoneByTextBeforeCursorLocation(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+public class Z
+{
+    public int M()
+    {
+        int ia, ib, ic, ifa, ifb, ifc; 
+        i{|caret:|}Exception
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caret = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caret.Uri);
+
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
+        var listMaxSize = 3;
+
+        globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, listMaxSize);
+
+        // Because of the limit in list size, we should not have item "if" returned here
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        AssertEx.NotNull(results);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.False(results.Items.Any(i => i.Label == "if"));
+
+        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
+
+        completionParams = CreateCompletionParams(
+            GetLocationPlusOne(caret),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "f",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        // Now that user typed "Z", we should have item "Z" in the updated list since it's a perfect match
+        results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.True(results.Items.Any(i => i.Label == "if"));
+
     }
 }

@@ -6,10 +6,9 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+internal interface IStackFrameParser
 {
-    internal interface IStackFrameParser
-    {
-        bool TryParseLine(VirtualCharSequence line, [NotNullWhen(returnValue: true)] out ParsedFrame? parsedFrame);
-    }
+    bool TryParseLine(VirtualCharSequence line, [NotNullWhen(returnValue: true)] out ParsedFrame? parsedFrame);
 }

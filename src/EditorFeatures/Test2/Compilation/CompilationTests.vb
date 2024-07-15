@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions))
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
                 Assert.Null(Await project.GetCompilationAsync())
 

@@ -7042,10 +7042,10 @@ public static class CExt
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "c").WithArguments("C", "GetEnumerator").WithLocation(6, 27),
-                // (18,54): error CS0225: The params parameter must be a single dimensional array
+                // (18,54): error CS0225: The params parameter must have a valid collection type
                 //     public static Enumerator GetEnumerator(this C c, params int i = 0) => null;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(18, 54),
-                // (18,54): error CS1751: Cannot specify a default value for a parameter array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(18, 54),
+                // (18,54): error CS1751: Cannot specify a default value for a parameter collection
                 //     public static Enumerator GetEnumerator(this C c, params int i = 0) => null;
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(18, 54)
             };

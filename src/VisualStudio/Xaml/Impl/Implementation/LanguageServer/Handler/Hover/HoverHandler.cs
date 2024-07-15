@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;

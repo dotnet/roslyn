@@ -17,7 +17,7 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
     {
         private sealed class Callback : INavigateToCallback
         {
-            private readonly List<NavigateToItem> _itemsReceived = new();
+            private readonly List<NavigateToItem> _itemsReceived = [];
 
             private readonly TaskCompletionSource<IEnumerable<NavigateToItem>> _taskCompletionSource =
                 new TaskCompletionSource<IEnumerable<NavigateToItem>>();

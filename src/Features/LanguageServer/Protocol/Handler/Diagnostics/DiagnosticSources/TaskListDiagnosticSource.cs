@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 using static PullDiagnosticConstants;
 
-internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSource<Document>
+internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions) : AbstractDocumentDiagnosticSource<Document>(document)
 {
-    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
+    private static readonly ImmutableArray<string> s_todoCommentCustomTags = [TaskItemCustomTag];
 
     private static readonly ImmutableDictionary<string, string?> s_lowPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Low);
     private static readonly ImmutableDictionary<string, string?> s_mediumPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Medium);
@@ -27,27 +27,24 @@ internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSourc
     private static Tuple<ImmutableArray<string>, ImmutableArray<TaskListItemDescriptor>> s_lastRequestedTokens =
         Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TaskListItemDescriptor>.Empty);
 
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions)
-        : base(document)
-    {
-        _globalOptions = globalOptions;
-    }
+    public override bool IsLiveSource()
+        => true;
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         var service = this.Document.GetLanguageService<ITaskListService>();
         if (service == null)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         var options = _globalOptions.GetTaskListOptions();
         var descriptors = GetAndCacheDescriptors(options.Descriptors);
 
         var items = await service.GetTaskListItemsAsync(this.Document, descriptors, cancellationToken).ConfigureAwait(false);
         if (items.Length == 0)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         return items.SelectAsArray(i => new DiagnosticData(
             id: "TODO",

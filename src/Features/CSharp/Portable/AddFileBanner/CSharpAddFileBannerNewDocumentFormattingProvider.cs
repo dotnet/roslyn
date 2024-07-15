@@ -12,19 +12,18 @@ using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner
-{
-    [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpAddFileBannerNewDocumentFormattingProvider : AbstractAddFileBannerNewDocumentFormattingProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAddFileBannerNewDocumentFormattingProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner;
 
-        protected override SyntaxGenerator SyntaxGenerator => CSharpSyntaxGenerator.Instance;
-        protected override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
-        protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
+[ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
+internal class CSharpAddFileBannerNewDocumentFormattingProvider : AbstractAddFileBannerNewDocumentFormattingProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpAddFileBannerNewDocumentFormattingProvider()
+    {
     }
+
+    protected override SyntaxGenerator SyntaxGenerator => CSharpSyntaxGenerator.Instance;
+    protected override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
+    protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
 }

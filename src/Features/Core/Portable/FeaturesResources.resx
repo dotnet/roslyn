@@ -168,9 +168,6 @@
   <data name="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface" xml:space="preserve">
     <value>Could not extract interface: The type does not contain any member that can be extracted to an interface.</value>
   </data>
-  <data name="can_t_not_construct_final_tree" xml:space="preserve">
-    <value>can't not construct final tree</value>
-  </data>
   <data name="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket" xml:space="preserve">
     <value>Parameters' type or return type cannot be an anonymous type : [{0}]</value>
   </data>
@@ -372,12 +369,6 @@
   <data name="Changing_visibility_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing visibility of {0} requires restarting the application.</value>
   </data>
-  <data name="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
-    <value>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</value>
-  </data>
-  <data name="Ceasing_to_capture_variable_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Ceasing to capture variable '{0}' requires restarting the application.</value>
-  </data>
   <data name="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application" xml:space="preserve">
     <value>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</value>
   </data>
@@ -389,9 +380,6 @@
   </data>
   <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
     <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
-  </data>
-  <data name="Deleting_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Deleting captured variable '{0}' requires restarting the application.</value>
   </data>
   <data name="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</value>
@@ -407,18 +395,6 @@
   </data>
   <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
-  </data>
-  <data name="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application" xml:space="preserve">
-    <value>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</value>
-  </data>
-  <data name="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application" xml:space="preserve">
-    <value>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</value>
-  </data>
-  <data name="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</value>
-  </data>
-  <data name="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application" xml:space="preserve">
-    <value>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</value>
   </data>
   <data name="Adding_0_into_a_1_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into a {1} requires restarting the application.</value>
@@ -671,7 +647,7 @@ Do you want to continue?</value>
     <value>&lt;Pending&gt;</value>
   </data>
   <data name="Awaited_task_returns_0" xml:space="preserve">
-    <value>Awaited task returns '{0}'</value>
+    <value>Awaited task returns {0}</value>
   </data>
   <data name="Awaited_task_returns_no_value" xml:space="preserve">
     <value>Awaited task returns no value</value>
@@ -1351,9 +1327,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
-  </data>
-  <data name="Resolve_conflict_markers" xml:space="preserve">
-    <value>Resolve conflict markers</value>
   </data>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
@@ -2989,6 +2962,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Wrap_long_initializer" xml:space="preserve">
     <value>Wrap long initializer</value>
   </data>
+  <data name="Unwrap_collection" xml:space="preserve">
+    <value>Unwrap collection</value>
+  </data>
+  <data name="Wrap_collection" xml:space="preserve">
+    <value>Wrap collection</value>
+  </data>
+  <data name="Wrap_long_collection" xml:space="preserve">
+    <value>Wrap long collection</value>
+  </data>
   <data name="Indent_all_elements" xml:space="preserve">
     <value>Indent all elements</value>
   </data>
@@ -3073,8 +3055,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
     <value>Apply using directive placement preferences</value>
   </data>
-  <data name="Remove_unnecessary_Imports_or_usings" xml:space="preserve">
-    <value>Remove unnecessary Imports or usings</value>
+  <data name="Remove_unnecessary_imports_or_usings" xml:space="preserve">
+    <value>Remove unnecessary imports or usings</value>
   </data>
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
@@ -3239,5 +3221,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Convert_number" xml:space="preserve">
     <value>Convert number</value>
+  </data>
+  <data name="Fix_All_0" xml:space="preserve">
+    <value>Fix All: {0}</value>
+  </data>
+  <data name="Built_in_Copilot_analysis" xml:space="preserve">
+    <value>Built-in Copilot analysis</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
   </data>
 </root>

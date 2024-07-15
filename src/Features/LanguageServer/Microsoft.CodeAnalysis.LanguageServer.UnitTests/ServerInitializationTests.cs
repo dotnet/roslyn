@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -33,14 +33,14 @@ public class ServerInitializationTests : AbstractLanguageServerHostTests
         response = await server.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, new DidChangeTextDocumentParams
         {
             TextDocument = document,
-            ContentChanges = new[]
-            {
+            ContentChanges =
+            [
                new TextDocumentContentChangeEvent
                {
-                   Range = new VisualStudio.LanguageServer.Protocol.Range { Start = new Position(0, 0), End = new Position(0, 0) },
+                   Range = new Roslyn.LanguageServer.Protocol.Range { Start = new Position(0, 0), End = new Position(0, 0) },
                    Text = "Console."
                }
-            }
+            ]
         }, CancellationToken.None);
 
         // These are notifications so we should get a null response (but no exceptions).

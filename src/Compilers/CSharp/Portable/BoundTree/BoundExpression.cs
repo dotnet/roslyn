@@ -27,17 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // If a qualified name is used as a valid receiver of an invocation syntax at some point,
-                // we probably want to treat it similarly to a MemberAccessExpression.
-                // However, we don't expect to encounter it.
-                Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
-
-                return syntax.Expression switch
-                {
-                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name,
-                    SimpleNameSyntax name => name,
-                    _ => null
-                };
+                return syntax.GetInterceptableNameSyntax();
             }
         }
 
@@ -495,6 +485,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+
+        public new bool IsParamsArrayOrCollection
+        {
+            get
+            {
+                return base.IsParamsArrayOrCollection;
+            }
+            init
+            {
+                base.IsParamsArrayOrCollection = value;
+            }
+        }
     }
 
     internal partial class BoundObjectCreationExpression
@@ -507,16 +509,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build an object creation expression without performing any rewriting
         /// </summary>
-        internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
+        internal BoundObjectCreationExpression Update(
+            MethodSymbol constructor,
             ImmutableArray<BoundExpression> newArguments,
             ImmutableArray<RefKind> newRefKinds,
             BoundObjectInitializerExpressionBase? newInitializerExpression,
             TypeSymbol? changeTypeOpt = null)
         {
             return Update(
-                constructor: Constructor,
+                constructor: constructor,
                 arguments: newArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
@@ -640,11 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }
-        public ImmutableBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
+        public ReadOnlyBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
         public BoundExpression TypeExpression { get; }
-        public ImmutableBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
+        public ReadOnlyBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ImmutableBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ImmutableBindingDiagnostic<AssemblySymbol> typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");

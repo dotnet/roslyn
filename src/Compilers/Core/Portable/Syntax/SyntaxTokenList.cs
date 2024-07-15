@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxToken"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
+    [CollectionBuilder(typeof(SyntaxTokenList), methodName: "Create")]
     public readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
     {
         private readonly SyntaxNode? _parent;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tokens">An array of tokens.</param>
         public SyntaxTokenList(params SyntaxToken[] tokens)
-            : this(null, CreateNode(tokens), 0, 0)
+            : this(null, CreateNodeFromSpan(tokens), 0, 0)
         {
         }
 
@@ -59,24 +61,32 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private static GreenNode? CreateNode(SyntaxToken[] tokens)
+        public static SyntaxTokenList Create(ReadOnlySpan<SyntaxToken> tokens)
         {
-            if (tokens == null)
-            {
-                return null;
-            }
+            if (tokens.Length == 0)
+                return default;
 
-            // TODO: we could remove the unnecessary builder allocations here and go directly
-            // from the array to the List nodes.
-            var builder = new SyntaxTokenListBuilder(tokens.Length);
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                var node = tokens[i].Node;
-                Debug.Assert(node is object);
-                builder.Add(node);
-            }
+            return new SyntaxTokenList(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0);
+        }
 
-            return builder.ToList().Node;
+        private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxToken> tokens)
+        {
+            switch (tokens.Length)
+            {
+                // Also handles case where tokens is `null`.
+                case 0: return null;
+                case 1: return tokens[0].Node;
+                case 2: return Syntax.InternalSyntax.SyntaxList.List(tokens[0].Node!, tokens[1].Node!);
+                case 3: return Syntax.InternalSyntax.SyntaxList.List(tokens[0].Node!, tokens[1].Node!, tokens[2].Node!);
+                default:
+                    {
+                        var copy = new ArrayElement<GreenNode>[tokens.Length];
+                        for (int i = 0, n = tokens.Length; i < n; i++)
+                            copy[i].Value = tokens[i].Node!;
+
+                        return Syntax.InternalSyntax.SyntaxList.List(copy);
+                    }
+            }
         }
 
         private static GreenNode? CreateNode(IEnumerable<SyntaxToken> tokens)

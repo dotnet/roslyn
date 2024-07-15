@@ -2,23 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
+#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
 public abstract class AbstractLanguageServer<TRequestContext>
+#else
+internal abstract class AbstractLanguageServer<TRequestContext>
+#endif
 {
     private readonly JsonRpc _jsonRpc;
+#pragma warning disable IDE1006 // Naming Styles - Required for API compat, TODO - https://github.com/dotnet/roslyn/issues/72251
     protected readonly ILspLogger _logger;
+#pragma warning restore IDE1006 // Naming Styles
 
     /// <summary>
     /// These are lazy to allow implementations to define custom variables that are used by
@@ -67,7 +72,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
     /// <summary>
     /// Initializes the LanguageServer.
     /// </summary>
-    /// <remarks>Should be called at the bottom of the implementing constructor or immedietly after construction.</remarks>
+    /// <remarks>Should be called at the bottom of the implementing constructor or immediately after construction.</remarks>
     public void Initialize()
     {
         GetRequestExecutionQueue();
@@ -80,6 +85,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
     /// <remarks>This should only be called once, and then cached.</remarks>
     protected abstract ILspServices ConstructLspServices();
 
+    [Obsolete($"Use {nameof(HandlerProvider)} property instead.", error: false)]
     protected virtual IHandlerProvider GetHandlerProvider()
     {
         var lspServices = _lspServices.Value;
@@ -89,11 +95,31 @@ public abstract class AbstractLanguageServer<TRequestContext>
         return handlerProvider;
     }
 
+    protected virtual AbstractHandlerProvider HandlerProvider
+    {
+        get
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var handlerProvider = GetHandlerProvider();
+#pragma warning restore CS0618 // Type or member is obsolete
+            if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
+            {
+                return abstractHandlerProvider;
+            }
+
+            return new WrappedHandlerProvider(handlerProvider);
+        }
+    }
+
     public ILspServices GetLspServices() => _lspServices.Value;
 
     protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
     {
-        foreach (var metadata in handlerProvider.GetRegisteredMethods())
+        // Get unique set of methods from the handler provider for the default language.
+        foreach (var metadata in handlerProvider
+            .GetRegisteredMethods()
+            .Select(m => new RequestHandlerMetadata(m.MethodName, m.RequestType, m.ResponseType, LanguageServerConstants.DefaultLanguageName))
+            .Distinct())
         {
             // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
             // generic method info from the exported handler types.  This allows us to define multiple handlers for
@@ -129,7 +155,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
     protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()
     {
-        var handlerProvider = GetHandlerProvider();
+        var handlerProvider = HandlerProvider;
         var queue = new RequestExecutionQueue<TRequestContext>(this, _logger, handlerProvider);
 
         queue.Start();
@@ -151,10 +177,10 @@ public abstract class AbstractLanguageServer<TRequestContext>
         private readonly string _method;
         private readonly AbstractLanguageServer<TRequestContext> _target;
 
-        private static readonly MethodInfo s_entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(EntryPointAsync));
-        private static readonly MethodInfo s_parameterlessEntryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessEntryPointAsync));
-        private static readonly MethodInfo s_notificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(NotificationEntryPointAsync));
-        private static readonly MethodInfo s_parameterlessNotificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessNotificationEntryPointAsync));
+        private static readonly MethodInfo s_entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(EntryPointAsync))!;
+        private static readonly MethodInfo s_parameterlessEntryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessEntryPointAsync))!;
+        private static readonly MethodInfo s_notificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(NotificationEntryPointAsync))!;
+        private static readonly MethodInfo s_parameterlessNotificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessNotificationEntryPointAsync))!;
 
         public DelegatingEntryPoint(string method, AbstractLanguageServer<TRequestContext> target)
         {
@@ -351,6 +377,11 @@ public abstract class AbstractLanguageServer<TRequestContext>
                 return requestExecution.GetTestAccessor();
 
             return null;
+        }
+
+        internal Task<TResponse> ExecuteRequestAsync<TRequest, TResponse>(string methodName, TRequest request, CancellationToken cancellationToken)
+        {
+            return _server._queue.Value.ExecuteAsync<TRequest, TResponse>(request, methodName, _server._lspServices.Value, cancellationToken);
         }
 
         internal JsonRpc GetServerRpc() => _server._jsonRpc;

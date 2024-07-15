@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // include compiler analyzer in build only state, if available
                 StateSet? compilerStateSet = null;
-                var hostAnalyzers = project.Solution.State.Analyzers;
+                var hostAnalyzers = project.Solution.SolutionState.Analyzers;
                 var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null && hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {

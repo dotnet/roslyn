@@ -22,7 +22,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-    public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         private const int FieldIndex = 0;
         private const int ReadonlyFieldIndex = 1;
@@ -92,14 +92,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
                     }
                 }
                 """,
-new[]
-{
+[
     string.Format(FeaturesResources.Generate_field_0, "goo"),
     string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
     string.Format(FeaturesResources.Generate_property_0, "goo"),
     string.Format(FeaturesResources.Generate_local_0, "goo"),
     string.Format(FeaturesResources.Generate_parameter_0, "goo"),
-});
+]);
         }
 
         [Fact]
@@ -115,11 +114,10 @@ new[]
                     }
                 }
                 """,
-new[]
-{
+[
     string.Format(FeaturesResources.Generate_field_0, "_goo"),
     string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
-});
+]);
         }
 
         [Fact]
@@ -359,7 +357,7 @@ index: PropertyIndex);
                     }
                 }
                 """,
-new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo")]);
         }
 
         [Fact]
@@ -380,7 +378,7 @@ new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(
                     }
                 }
                 """,
-new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo") });
+[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo")]);
         }
 
         [Fact]
@@ -557,7 +555,7 @@ index: ReadonlyFieldIndex);
                     }
                 }
                 """,
-new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo")]);
         }
 
         [Fact]
@@ -2434,7 +2432,7 @@ index: PropertyIndex);
                     }
                 }
                 """,
-new[] { string.Format(FeaturesResources.Generate_field_0, "p"), string.Format(FeaturesResources.Generate_property_0, "p"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
+[string.Format(FeaturesResources.Generate_field_0, "p"), string.Format(FeaturesResources.Generate_property_0, "p"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p")]);
 
             await TestInRegularAndScriptAsync(
                 """
@@ -5323,7 +5321,7 @@ index: PropertyIndex);
                 #line hidden
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar"), string.Format(FeaturesResources.Generate_parameter_0, "Bar") });
+            await TestExactActionSetOfferedAsync(code, [string.Format(FeaturesResources.Generate_local_0, "Bar"), string.Format(FeaturesResources.Generate_parameter_0, "Bar")]);
 
             await TestInRegularAndScriptAsync(code,
                 """
@@ -10552,11 +10550,11 @@ index: PropertyIndex);
                         };
                     }
                 }
-                """, new[]
-{
+                """,
+[
     string.Format(FeaturesResources.Generate_property_0, "Field"),
     string.Format(FeaturesResources.Generate_field_0, "Field"),
-});
+]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26502")]
@@ -10576,11 +10574,11 @@ index: PropertyIndex);
                         };
                     }
                 }
-                """, new[]
-{
+                """,
+[
     string.Format(FeaturesResources.Generate_property_0, "Field"),
     string.Format(FeaturesResources.Generate_field_0, "Field"),
-});
+]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45367")]
@@ -10599,11 +10597,11 @@ index: PropertyIndex);
                         [|Error|] = error;
                         Offset = offset;
                     }
-                """, new[]
-{
+                """,
+[
     string.Format(FeaturesResources.Generate_local_0, "Error", "MyException"),
     string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
-});
+]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48172")]

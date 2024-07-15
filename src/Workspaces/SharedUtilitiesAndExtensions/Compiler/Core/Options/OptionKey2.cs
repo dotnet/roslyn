@@ -10,53 +10,52 @@ using Roslyn.Utilities;
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #endif
 
-namespace Microsoft.CodeAnalysis.Options
+namespace Microsoft.CodeAnalysis.Options;
+
+[NonDefaultable]
+internal readonly partial record struct OptionKey2
 {
-    [NonDefaultable]
-    internal readonly partial record struct OptionKey2
+    public IOption2 Option { get; }
+    public string? Language { get; }
+
+    public OptionKey2(IOption2 option, string? language)
     {
-        public IOption2 Option { get; }
-        public string? Language { get; }
+        Debug.Assert(option.IsPerLanguage == language is not null);
 
-        public OptionKey2(IOption2 option, string? language)
+        Option = option;
+        Language = language;
+    }
+
+    public OptionKey2(IPerLanguageValuedOption option, string language)
+    {
+        Debug.Assert(option.IsPerLanguage);
+        if (language == null)
         {
-            Debug.Assert(option.IsPerLanguage == language is not null);
-
-            Option = option;
-            Language = language;
+            throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
         }
 
-        public OptionKey2(IPerLanguageValuedOption option, string language)
-        {
-            Debug.Assert(option.IsPerLanguage);
-            if (language == null)
-            {
-                throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
-            }
+        this.Option = option ?? throw new ArgumentNullException(nameof(option));
+        this.Language = language;
+    }
 
-            this.Option = option ?? throw new ArgumentNullException(nameof(option));
-            this.Language = language;
+    public OptionKey2(ISingleValuedOption option)
+    {
+        Debug.Assert(!option.IsPerLanguage);
+        this.Option = option ?? throw new ArgumentNullException(nameof(option));
+        this.Language = null;
+    }
+
+    public override string ToString()
+    {
+        if (Option is null)
+        {
+            return "";
         }
 
-        public OptionKey2(ISingleValuedOption option)
-        {
-            Debug.Assert(!option.IsPerLanguage);
-            this.Option = option ?? throw new ArgumentNullException(nameof(option));
-            this.Language = null;
-        }
+        var languageDisplay = Option.IsPerLanguage
+            ? $"({Language}) "
+            : string.Empty;
 
-        public override string ToString()
-        {
-            if (Option is null)
-            {
-                return "";
-            }
-
-            var languageDisplay = Option.IsPerLanguage
-                ? $"({Language}) "
-                : string.Empty;
-
-            return languageDisplay + Option.ToString();
-        }
+        return languageDisplay + Option.ToString();
     }
 }

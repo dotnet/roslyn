@@ -519,8 +519,8 @@ class C
 ";
 
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[0]')
-  Children(1):
+ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: ?, IsInvalid) (Syntax: '[0]')
+  Elements(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]

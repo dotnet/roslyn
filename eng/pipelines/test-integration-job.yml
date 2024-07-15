@@ -27,7 +27,7 @@ steps:
     displayName: Build and Test
     inputs:
       filePath: eng/build.ps1
-      arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
+      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results

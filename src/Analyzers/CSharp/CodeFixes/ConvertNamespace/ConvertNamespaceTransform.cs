@@ -113,7 +113,7 @@ internal static class ConvertNamespaceTransform
         var semicolonLine = text.Lines.GetLineFromPosition(fileScopedNamespace.SemicolonToken.SpanStart).LineNumber;
 
         // Cache what we compute so we don't have to recompute it for every line of a raw string literal.
-        (SyntaxToken stringLiteral, int closeTerminatorIndentationLength) lastRawStringLiteralData = default;
+        (SyntaxNode stringNode, int closeTerminatorIndentationLength) lastRawStringLiteralData = default;
 
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var changes);
         for (var line = semicolonLine + 1; line < text.Lines.Count; line++)
@@ -129,16 +129,37 @@ internal static class ConvertNamespaceTransform
             // dedented safely depending on the position of their close terminator.
             if (syntaxTree.IsEntirelyWithinStringLiteral(textLine.Span.Start, out var stringLiteral, cancellationToken))
             {
-                if (stringLiteral.Kind() is not SyntaxKind.MultiLineRawStringLiteralToken and not SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+                SyntaxNode stringNode;
+                if (stringLiteral.Kind() is SyntaxKind.InterpolatedStringTextToken)
+                {
+                    if (stringLiteral.GetRequiredParent() is not InterpolatedStringTextSyntax { Parent: InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken) } interpolatedString })
+                        return null;
+
+                    stringNode = interpolatedString;
+                }
+                else if (stringLiteral.Kind() is SyntaxKind.InterpolatedRawStringEndToken)
+                {
+                    if (stringLiteral.GetRequiredParent() is not InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken) } interpolatedString)
+                        return null;
+
+                    stringNode = interpolatedString;
+                }
+                else if (stringLiteral.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+                {
+                    stringNode = stringLiteral.GetRequiredParent();
+                }
+                else
+                {
                     return null;
+                }
 
                 // Don't touch the raw string if it already has issues.
-                if (stringLiteral.ContainsDiagnostics)
+                if (stringNode.ContainsDiagnostics)
                     return null;
 
                 // Ok, only dedent the raw string contents if we can dedent the closing terminator of the raw string.
-                if (lastRawStringLiteralData.stringLiteral != stringLiteral)
-                    lastRawStringLiteralData = (stringLiteral, ComputeCommonIndentationLength(text.Lines.GetLineFromPosition(stringLiteral.Span.End)));
+                if (lastRawStringLiteralData.stringNode != stringNode)
+                    lastRawStringLiteralData = (stringNode, ComputeCommonIndentationLength(text.Lines.GetLineFromPosition(stringNode.Span.End)));
 
                 // If we can't dedent the close terminator the right amount, don't dedent any contents.
                 if (lastRawStringLiteralData.closeTerminatorIndentationLength != indentation.Length)
@@ -271,7 +292,7 @@ internal static class ConvertNamespaceTransform
             (_, _) => converted.WithAdditionalAnnotations(annotation),
             new SyntaxToken[] { tokenAfterNamespace },
             (_, _) => tokenAfterNamespace.WithLeadingTrivia(triviaAfterSplit),
-            Array.Empty<SyntaxTrivia>(),
+            [],
             (_, _) => throw ExceptionUtilities.Unreachable());
     }
 

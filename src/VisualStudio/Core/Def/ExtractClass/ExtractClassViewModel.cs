@@ -11,62 +11,61 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass;
+
+internal class ExtractClassViewModel
 {
-    internal class ExtractClassViewModel
+    private readonly INotificationService _notificationService;
+    private readonly INamedTypeSymbol _selectedType;
+
+    public ExtractClassViewModel(
+        IUIThreadOperationExecutor uiThreadOperationExecutor,
+        INotificationService notificationService,
+        INamedTypeSymbol selectedType,
+        ImmutableArray<MemberSymbolViewModel> memberViewModels,
+        ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> memberToDependentsMap,
+        string defaultTypeName,
+        string defaultNamespace,
+        string languageName,
+        string typeParameterSuffix,
+        ImmutableArray<string> conflictingNames,
+        ISyntaxFactsService syntaxFactsService)
     {
-        private readonly INotificationService _notificationService;
-        private readonly INamedTypeSymbol _selectedType;
+        _notificationService = notificationService;
+        _selectedType = selectedType;
 
-        public ExtractClassViewModel(
-            IUIThreadOperationExecutor uiThreadOperationExecutor,
-            INotificationService notificationService,
-            INamedTypeSymbol selectedType,
-            ImmutableArray<MemberSymbolViewModel> memberViewModels,
-            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> memberToDependentsMap,
-            string defaultTypeName,
-            string defaultNamespace,
-            string languageName,
-            string typeParameterSuffix,
-            ImmutableArray<string> conflictingNames,
-            ISyntaxFactsService syntaxFactsService)
-        {
-            _notificationService = notificationService;
-            _selectedType = selectedType;
+        MemberSelectionViewModel = new MemberSelectionViewModel(
+            uiThreadOperationExecutor,
+            memberViewModels,
+            memberToDependentsMap,
+            destinationTypeKind: TypeKind.Class);
 
-            MemberSelectionViewModel = new MemberSelectionViewModel(
-                uiThreadOperationExecutor,
-                memberViewModels,
-                memberToDependentsMap,
-                destinationTypeKind: TypeKind.Class);
-
-            DestinationViewModel = new NewTypeDestinationSelectionViewModel(
-                defaultTypeName,
-                languageName,
-                defaultNamespace,
-                typeParameterSuffix,
-                conflictingNames,
-                syntaxFactsService);
-        }
-
-        internal bool TrySubmit()
-        {
-            if (!DestinationViewModel.TrySubmit(out var message))
-            {
-                SendFailureNotification(message);
-                return false;
-            }
-
-            return true;
-        }
-
-        private void SendFailureNotification(string message)
-            => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
-
-        public MemberSelectionViewModel MemberSelectionViewModel { get; }
-        public NewTypeDestinationSelectionViewModel DestinationViewModel { get; }
-        public string Title => _selectedType.IsRecord
-            ? ServicesVSResources.Extract_Base_Record
-            : ServicesVSResources.Extract_Base_Class;
+        DestinationViewModel = new NewTypeDestinationSelectionViewModel(
+            defaultTypeName,
+            languageName,
+            defaultNamespace,
+            typeParameterSuffix,
+            conflictingNames,
+            syntaxFactsService);
     }
+
+    internal bool TrySubmit()
+    {
+        if (!DestinationViewModel.TrySubmit(out var message))
+        {
+            SendFailureNotification(message);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void SendFailureNotification(string message)
+        => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
+
+    public MemberSelectionViewModel MemberSelectionViewModel { get; }
+    public NewTypeDestinationSelectionViewModel DestinationViewModel { get; }
+    public string Title => _selectedType.IsRecord
+        ? ServicesVSResources.Extract_Base_Record
+        : ServicesVSResources.Extract_Base_Class;
 }

@@ -5,6 +5,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -41,7 +44,8 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
     private readonly IAsynchronousOperationListener _listener = listener;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
+
+    public readonly OptionsProvider<ClassificationOptions> ClassificationOptionsProvider = globalOptions.GetClassificationOptionsProvider();
 
     /// <summary>
     /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that
@@ -165,7 +169,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // TLanguageService.  Once we get the results back we'll then decide what to do with them.  If we get only a
         // single result back, then we'll just go directly to it.  Otherwise, we'll present the results in the
         // IStreamingFindUsagesPresenter.
-        var findContext = new BufferedFindUsagesContext(_globalOptions);
+        var findContext = new BufferedFindUsagesContext();
 
         var cancellationToken = cancellationTokenSource.Token;
         var delayTask = DelayAsync(cancellationToken);
@@ -218,7 +222,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     {
         var cancellationToken = cancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, supportsReferences: false);
+        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, StreamingFindUsagesPresenterOptions.Default);
 
         try
         {
@@ -259,8 +263,8 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             var isFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             if (!isFullyLoaded)
             {
-                await findContext.ReportInformationalMessageAsync(
-                    EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, cancellationToken).ConfigureAwait(false);
+                await findContext.ReportMessageAsync(
+                    EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, NotificationSeverity.Information, cancellationToken).ConfigureAwait(false);
             }
 
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).

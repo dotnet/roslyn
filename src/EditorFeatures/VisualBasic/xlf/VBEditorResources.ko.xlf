@@ -12,16 +12,6 @@
         <target state="translated">누락된 import 추가 중...</target>
         <note>Thread awaited dialog text. "imports" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Case_Correction">
-        <source>Case Correction</source>
-        <target state="translated">대/소문자 수정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Correcting_word_casing">
-        <source>Correcting word casing...</source>
-        <target state="translated">단어 대/소문자 수정 중...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">디자이너에서 이 호출이 필요합니다.</target>
@@ -37,11 +27,6 @@
         <target state="translated">구문 종료</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">스마트 들여쓰기</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">문서 서식을 지정하는 중...</target>
@@ -50,11 +35,6 @@
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
         <target state="translated">새 줄 삽입</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">서식 붙여넣기</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_pasted_text">

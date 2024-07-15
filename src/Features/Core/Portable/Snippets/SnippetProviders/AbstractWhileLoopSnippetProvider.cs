@@ -7,17 +7,16 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+internal abstract class AbstractWhileLoopSnippetProvider : AbstractConditionalBlockSnippetProvider
 {
-    internal abstract class AbstractWhileLoopSnippetProvider : AbstractConditionalBlockSnippetProvider
-    {
-        public override string Identifier => "while";
+    public override string Identifier => "while";
 
-        public override string Description => FeaturesResources.while_loop;
+    public override string Description => FeaturesResources.while_loop;
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsWhileStatement;
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsWhileStatement;
 
-        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
-            => generator.WhileStatement(inlineExpression?.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
-    }
+    protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+        => generator.WhileStatement(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), []);
 }

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 try
                 {
                     F.CurrentFunction = this;
-                    F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType))));
+                    F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType, ReturnType))));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {

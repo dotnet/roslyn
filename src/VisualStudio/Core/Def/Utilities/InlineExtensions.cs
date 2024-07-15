@@ -9,16 +9,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 
-namespace Microsoft.VisualStudio.LanguageServices.Utilities
+namespace Microsoft.VisualStudio.LanguageServices.Utilities;
+
+internal static class InlineExtensions
 {
-    internal static class InlineExtensions
-    {
-        public static string? GetText(this Inline inline)
-            => inline switch
-            {
-                Run run => run.Text,
-                Hyperlink hyperlink => string.Join("", hyperlink.Inlines.Select(GetText)),
-                _ => null
-            };
-    }
+    public static string? GetText(this Inline inline)
+        => inline switch
+        {
+            Run run => run.Text,
+            Hyperlink hyperlink => string.Join("", hyperlink.Inlines.Select(GetText)),
+            _ => null
+        };
 }

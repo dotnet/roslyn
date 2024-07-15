@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis
                 if (diagnostic.ProgrammaticSuppressionInfo is { } programmaticSuppressionInfo)
                 {
                     var suppressionsStr = programmaticSuppressionInfo.Suppressions
-                        .OrderBy(idAndJustification => idAndJustification.Id)
-                        .Select(idAndJustification => $"Suppression Id: {idAndJustification.Id}, Suppression Justification: {idAndJustification.Justification}")
+                        .OrderBy(suppression => suppression.Descriptor.Id)
+                        .Select(suppression => $"Suppression Id: {suppression.Descriptor.Id}, Suppression Justification: {suppression.Descriptor.Justification}")
                         .Join(", ");
                     suppressionType = $"DiagnosticSuppressor {{ {suppressionsStr} }}";
                 }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(HasPath(diagnosticLocation));
 
-            FileLinePositionSpan span = diagnosticLocation.GetLineSpan();
+            FileLinePositionSpan span = diagnosticLocation.GetMappedLineSpan();
 
             _writer.WriteObjectStart(); // physicalLocation
 

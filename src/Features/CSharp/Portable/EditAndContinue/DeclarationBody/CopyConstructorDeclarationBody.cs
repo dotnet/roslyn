@@ -22,6 +22,9 @@ internal sealed class CopyConstructorDeclarationBody(RecordDeclarationSyntax rec
     public override SyntaxNode? ExplicitBody
         => null;
 
+    public override SyntaxNode? ParameterClosure
+        => null;
+
     public override SyntaxNode? MatchRoot
         => null;
 
@@ -41,7 +44,7 @@ internal sealed class CopyConstructorDeclarationBody(RecordDeclarationSyntax rec
         => InitializerActiveStatementSpan;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => ImmutableArray<ISymbol>.Empty;
+        => [];
 
     public override IEnumerable<SyntaxToken>? GetActiveTokens()
         => BreakpointSpans.GetActiveTokensForCopyConstructor(recordDeclaration);

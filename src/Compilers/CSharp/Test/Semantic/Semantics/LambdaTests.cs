@@ -4862,6 +4862,33 @@ class Program
             Assert.Equal(2, parameter.DefaultValueFromAttributes.Value);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66060")]
+        public void LambdaParameterAttributes_OverloadResolution()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+
+                new C().M(([Optional] int x = 1) => x);
+                new C().M((int x = 1) => x);
+
+                class C
+                {
+                    public void M(D1 d) { }
+                    public void M(D2 d) { }
+                }
+
+                delegate int D1(int x = 1);
+                delegate int D2([Optional, DefaultParameterValue(1)] int x);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D1)' and 'C.M(D2)'
+                // new C().M(([Optional] int x = 1) => x);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D1)", "C.M(D2)").WithLocation(3, 9),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D1)' and 'C.M(D2)'
+                // new C().M((int x = 1) => x);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D1)", "C.M(D2)").WithLocation(4, 9));
+        }
+
         [Fact]
         public void LambdaParameterAttributes_OptionalAndDateTimeConstantAttributes()
         {
@@ -8266,7 +8293,7 @@ class Program
                 var lam = (params int[] xs = null) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS1751: Cannot specify a default value for a parameter array
+                // (1,12): error CS1751: Cannot specify a default value for a parameter collection
                 // var lam = (params int[] xs = null) => xs.Length;
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(1, 12));
         }
@@ -8278,9 +8305,35 @@ class Program
                 var lam = ([System.ParamArray] int[] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.
                 // var lam = ([System.ParamArray] int[] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArray").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_ExplicitParamArrayOrCollection, "System.ParamArray").WithLocation(1, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66060")]
+        public void ParamsArray_ParamArrayAttribute_OverloadResolution()
+        {
+            var source = """
+                using System;
+
+                new C().M(([ParamArray] int[] xs) => xs.Length);
+                new C().M((params int[] xs) => xs.Length);
+
+                class C
+                {
+                    public void M(D d) { }
+                    public void M(Func<int[], int> f) { }
+                }
+
+                delegate int D(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D)' and 'C.M(Func<int[], int>)'
+                // new C().M(([ParamArray] int[] xs) => xs.Length);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D)", "C.M(System.Func<int[], int>)").WithLocation(3, 9),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D)' and 'C.M(Func<int[], int>)'
+                // new C().M((params int[] xs) => xs.Length);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D)", "C.M(System.Func<int[], int>)").WithLocation(4, 9));
         }
 
         [Fact]
@@ -8300,13 +8353,21 @@ class Program
             Assert.Equal(3, lambdas.Length);
             // lam1
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamsCollection);
             // lam2
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamsCollection);
             // lam3
             Assert.Equal(2, lambdas[2].ParameterCount);
             Assert.Equal(2, lambdas[2].Parameters.Length);
             Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamsCollection);
         }
 
         [Fact]
@@ -8327,14 +8388,26 @@ class Program
             Assert.Equal(3, lambdas[0].ParameterCount);
             Assert.Equal(3, lambdas[0].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamsCollection);
             Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamsCollection);
             // lam2
             Assert.Equal(3, lambdas[1].ParameterCount);
             Assert.Equal(3, lambdas[1].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamsCollection);
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamsCollection);
         }
 
         [Fact]
@@ -8357,12 +8430,20 @@ class Program
                 {
                     var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");
                     Assert.True(lam1.DelegateParameters().Single().IsParams);
+                    Assert.True(lam1.DelegateParameters().Single().IsParamsArray);
+                    Assert.False(lam1.DelegateParameters().Single().IsParamsCollection);
+                    AssertEx.Equal("TResult <>f__AnonymousDelegate0<T1, TResult>.Invoke(params T1[] arg)", lam1.DelegateInvokeMethod.ToTestDisplayString());
 
                     var lam3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate1");
                     var lam3Parameters = lam3.DelegateParameters();
                     Assert.Equal(2, lam3Parameters.Length);
                     Assert.False(lam3Parameters[0].IsParams);
+                    Assert.False(lam3Parameters[0].IsParamsArray);
+                    Assert.False(lam3Parameters[0].IsParamsCollection);
                     Assert.True(lam3Parameters[1].IsParams);
+                    Assert.True(lam3Parameters[1].IsParamsArray);
+                    Assert.False(lam3Parameters[1].IsParamsCollection);
+                    AssertEx.Equal("TResult <>f__AnonymousDelegate1<T1, T2, TResult>.Invoke(T1 arg1, params T2[] arg2)", lam3.DelegateInvokeMethod.ToTestDisplayString());
                 });
         }
 
@@ -8397,9 +8478,10 @@ class Program
                 var lam = (params int x) => x;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int x) => x;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12)
+                );
         }
 
         [Fact]
@@ -8409,9 +8491,10 @@ class Program
                 var lam = (params int[,] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int[,] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12)
+                );
         }
 
         [Fact]

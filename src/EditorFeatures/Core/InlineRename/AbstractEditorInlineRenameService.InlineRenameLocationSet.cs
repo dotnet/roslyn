@@ -7,42 +7,50 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractEditorInlineRenameService
 {
-    internal abstract partial class AbstractEditorInlineRenameService
+    private class InlineRenameLocationSet : IInlineRenameLocationSet
     {
-        private class InlineRenameLocationSet : IInlineRenameLocationSet
+        private readonly LightweightRenameLocations _renameLocationSet;
+        private readonly CodeCleanupOptionsProvider _fallbackOptions;
+        private readonly SymbolInlineRenameInfo _renameInfo;
+
+        public IList<InlineRenameLocation> Locations { get; }
+
+        public InlineRenameLocationSet(
+            SymbolInlineRenameInfo renameInfo,
+            LightweightRenameLocations renameLocationSet,
+            CodeCleanupOptionsProvider fallbackOptions)
         {
-            private readonly LightweightRenameLocations _renameLocationSet;
-            private readonly SymbolInlineRenameInfo _renameInfo;
+            _renameInfo = renameInfo;
+            _renameLocationSet = renameLocationSet;
+            _fallbackOptions = fallbackOptions;
+            this.Locations = renameLocationSet.Locations.Where(RenameLocation.ShouldRename)
+                                                        .Select(ConvertLocation)
+                                                        .ToImmutableArray();
+        }
 
-            public IList<InlineRenameLocation> Locations { get; }
+        private InlineRenameLocation ConvertLocation(RenameLocation location)
+        {
+            return new InlineRenameLocation(
+                _renameLocationSet.Solution.GetDocument(location.DocumentId), location.Location.SourceSpan);
+        }
 
-            public InlineRenameLocationSet(SymbolInlineRenameInfo renameInfo, LightweightRenameLocations renameLocationSet)
-            {
-                _renameInfo = renameInfo;
-                _renameLocationSet = renameLocationSet;
-                this.Locations = renameLocationSet.Locations.Where(RenameLocation.ShouldRename)
-                                                            .Select(ConvertLocation)
-                                                            .ToImmutableArray();
-            }
+        public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(
+            string replacementText,
+            SymbolRenameOptions options,
+            CancellationToken cancellationToken)
+        {
+            var conflicts = await _renameLocationSet.ResolveConflictsAsync(
+                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbolKeys: default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            private InlineRenameLocation ConvertLocation(RenameLocation location)
-            {
-                return new InlineRenameLocation(
-                    _renameLocationSet.Solution.GetDocument(location.DocumentId), location.Location.SourceSpan);
-            }
-
-            public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
-            {
-                var conflicts = await _renameLocationSet.ResolveConflictsAsync(
-                    _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
-
-                return new InlineRenameReplacementInfo(conflicts);
-            }
+            return new InlineRenameReplacementInfo(conflicts);
         }
     }
 }

@@ -7,7 +7,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -20,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [UseExportProvider]
     public abstract class AbstractTypingCommandHandlerTest<TCommandArgs> where TCommandArgs : CommandArgs
     {
-        internal abstract ICommandHandler<TCommandArgs> GetCommandHandler(TestWorkspace workspace);
+        internal abstract ICommandHandler<TCommandArgs> GetCommandHandler(EditorTestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string initialMarkup);
 
         protected abstract (TCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer);
 
-        protected void Verify(string initialMarkup, string expectedMarkup, Action<TestWorkspace> initializeWorkspace = null)
+        protected void Verify(string initialMarkup, string expectedMarkup, Action<EditorTestWorkspace> initializeWorkspace = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {

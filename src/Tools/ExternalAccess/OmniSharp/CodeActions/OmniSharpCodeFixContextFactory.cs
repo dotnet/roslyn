@@ -54,6 +54,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
                     diagnosticIds,
                     fixAllDiagnosticProvider,
                     new DelegatingCodeActionOptionsProvider(languageServices => optionsProvider(languageServices.Language).GetCodeActionOptions(languageServices))),
-                  new ProgressTracker(), cancellationToken);
+                  CodeAnalysisProgress.None, cancellationToken);
     }
 }

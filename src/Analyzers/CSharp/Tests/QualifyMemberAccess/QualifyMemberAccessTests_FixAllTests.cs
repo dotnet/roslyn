@@ -20,77 +20,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_QualifyMemberAccess()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                using System;
 
-class C
-{
-    int Property { get; set; }
-    int OtherProperty { get; set; }
+                class C
+                {
+                    int Property { get; set; }
+                    int OtherProperty { get; set; }
 
-    void M()
-    {
-        {|FixAllInSolution:Property|} = 1;
-        var x = OtherProperty;
-    }
-}
-        </Document>
-        <Document>
-using System;
+                    void M()
+                    {
+                        {|FixAllInSolution:Property|} = 1;
+                        var x = OtherProperty;
+                    }
+                }
+                        </Document>
+                        <Document>
+                using System;
 
-class D
-{
-    string StringProperty { get; set; }
-    int field;
+                class D
+                {
+                    string StringProperty { get; set; }
+                    int field;
 
-    void N()
-    {
-        StringProperty = string.Empty;
-        field = 0; // ensure this doesn't get qualified
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                    void N()
+                    {
+                        StringProperty = string.Empty;
+                        field = 0; // ensure this doesn't get qualified
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                using System;
 
-class C
-{
-    int Property { get; set; }
-    int OtherProperty { get; set; }
+                class C
+                {
+                    int Property { get; set; }
+                    int OtherProperty { get; set; }
 
-    void M()
-    {
-        this.Property = 1;
-        var x = this.OtherProperty;
-    }
-}
-        </Document>
-        <Document>
-using System;
+                    void M()
+                    {
+                        this.Property = 1;
+                        var x = this.OtherProperty;
+                    }
+                }
+                        </Document>
+                        <Document>
+                using System;
 
-class D
-{
-    string StringProperty { get; set; }
-    int field;
+                class D
+                {
+                    string StringProperty { get; set; }
+                    int field;
 
-    void N()
-    {
-        this.StringProperty = string.Empty;
-        field = 0; // ensure this doesn't get qualified
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                    void N()
+                    {
+                        this.StringProperty = string.Empty;
+                        field = 0; // ensure this doesn't get qualified
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestInRegularAndScriptAsync(
                 initialMarkup: input,

@@ -4,7 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReassignedVariable
 {
     public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
     {
-        protected override TestWorkspace CreateWorkspace(string markup)
-            => TestWorkspace.CreateCSharp(markup);
+        protected override EditorTestWorkspace CreateWorkspace(string markup)
+            => EditorTestWorkspace.CreateCSharp(markup);
 
         [Fact]
         public async Task TestNoParameterReassignment()

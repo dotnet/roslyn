@@ -4,6 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class GeneratedNameConstants
+        Friend Const IdSeparator As Char = "-"c
         Friend Const DotReplacementInTypeNames As Char = "-"c
         Friend Const MethodNameSeparator As Char = "_"c
         Friend Const AnonymousTypeOrDelegateCommonPrefix = "VB$Anonymous"

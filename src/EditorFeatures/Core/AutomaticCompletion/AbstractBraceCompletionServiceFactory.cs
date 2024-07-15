@@ -8,29 +8,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 
-namespace Microsoft.CodeAnalysis.AutomaticCompletion
+namespace Microsoft.CodeAnalysis.AutomaticCompletion;
+
+internal abstract class AbstractBraceCompletionServiceFactory : IBraceCompletionServiceFactory
 {
-    internal abstract class AbstractBraceCompletionServiceFactory : IBraceCompletionServiceFactory
+    private readonly ImmutableArray<IBraceCompletionService> _braceCompletionServices;
+
+    protected AbstractBraceCompletionServiceFactory(
+        IEnumerable<IBraceCompletionService> braceCompletionServices)
     {
-        private readonly ImmutableArray<IBraceCompletionService> _braceCompletionServices;
+        _braceCompletionServices = braceCompletionServices.ToImmutableArray();
+    }
 
-        protected AbstractBraceCompletionServiceFactory(
-            IEnumerable<IBraceCompletionService> braceCompletionServices)
+    public IBraceCompletionService? TryGetService(ParsedDocument document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
+    {
+        foreach (var service in _braceCompletionServices)
         {
-            _braceCompletionServices = braceCompletionServices.ToImmutableArray();
-        }
-
-        public IBraceCompletionService? TryGetService(ParsedDocument document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
-        {
-            foreach (var service in _braceCompletionServices)
+            if (service.CanProvideBraceCompletion(openingBrace, openingPosition, document, cancellationToken))
             {
-                if (service.CanProvideBraceCompletion(openingBrace, openingPosition, document, cancellationToken))
-                {
-                    return service;
-                }
+                return service;
             }
-
-            return null;
         }
+
+        return null;
     }
 }

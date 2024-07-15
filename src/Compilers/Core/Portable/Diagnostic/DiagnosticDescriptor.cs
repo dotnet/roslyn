@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An unique identifier for the diagnostic.
         /// </summary>
+        /// <remarks>
+        /// <a href="/dotnet/csharp/roslyn-sdk/choosing-diagnostic-ids">Choose an appropriate diagnostic ID</a> such that it is unique.
+        /// </remarks>
         public string Id { get; }
 
         /// <summary>
@@ -87,6 +90,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="description">An optional longer description of the diagnostic.</param>
         /// <param name="helpLinkUri">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
+        /// <remarks>
+        /// <a href="/dotnet/csharp/roslyn-sdk/choosing-diagnostic-ids">Choose an appropriate diagnostic ID</a> such that it is unique.
+        /// </remarks>
         public DiagnosticDescriptor(
             string id,
             string title,
@@ -114,7 +120,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="description">An optional longer localizable description of the diagnostic.</param>
         /// <param name="helpLinkUri">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
-        /// <remarks>Example descriptor for rule CA1001:
+        /// <remarks>
+        /// Example descriptor for rule CA1001:
+        /// <code>
         ///     internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
         ///         new LocalizableResourceString(nameof(FxCopRulesResources.TypesThatOwnDisposableFieldsShouldBeDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
         ///         new LocalizableResourceString(nameof(FxCopRulesResources.TypeOwnsDisposableFieldButIsNotDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
@@ -123,6 +131,8 @@ namespace Microsoft.CodeAnalysis
         ///         isEnabledByDefault: true,
         ///         helpLinkUri: "http://msdn.microsoft.com/library/ms182172.aspx",
         ///         customTags: DiagnosticCustomTags.Microsoft);
+        /// </code>
+        /// <a href="/dotnet/csharp/roslyn-sdk/choosing-diagnostic-ids">Choose an appropriate diagnostic ID</a> such that it is unique.
         /// </remarks>
         public DiagnosticDescriptor(
             string id,
@@ -282,11 +292,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if diagnostic descriptor is a built-in compiler diagnostic or is not configurable.
+        /// Returns true if diagnostic descriptor is custom configurable, i.e. analyzer supports custom
+        /// ways for configuring diagnostic severity that may not be understood by the compiler.
         /// </summary>
-        internal bool IsCompilerOrNotConfigurable()
+        internal bool IsCustomSeverityConfigurable()
         {
-            return AnalyzerManager.HasCompilerOrNotConfigurableTag(ImmutableCustomTags);
+            return AnalyzerManager.HasCustomSeverityConfigurableTag(ImmutableCustomTags);
+        }
+
+        /// <summary>
+        /// Returns true if diagnostic descriptor is a built-in compiler diagnostic or is not configurable
+        /// or is custom configurable.
+        /// </summary>
+        internal bool IsCompilerOrNotConfigurableOrCustomConfigurable()
+        {
+            return AnalyzerManager.HasCompilerOrNotConfigurableTagOrCustomConfigurableTag(ImmutableCustomTags);
         }
     }
 }

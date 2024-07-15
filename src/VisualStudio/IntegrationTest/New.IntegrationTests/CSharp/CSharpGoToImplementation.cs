@@ -8,10 +8,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -48,13 +50,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Editor.PlaceCaretAsync("interface IGoo", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
-            string identifierWithCaret;
-            if (!asyncNavigation)
-            {
-                // The navigation completed synchronously; no further action necessary
-                identifierWithCaret = "Implementation$$";
-            }
-            else
+            if (asyncNavigation)
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
                 Assert.Equal($"'IGoo' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -65,12 +61,10 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
                 results[0].NavigateTo(isPreview: false, shouldActivate: true);
 
                 await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
-
-                identifierWithCaret = "$$Implementation";
             }
 
             Assert.Equal($"FileImplementation.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync($@"class {identifierWithCaret}", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync("class $$Implementation", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
@@ -98,13 +92,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Editor.PlaceCaretAsync("interface IBar", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
-            string identifierWithCaret;
-            if (!asyncNavigation)
-            {
-                // The navigation completed synchronously; no further action necessary
-                identifierWithCaret = "Implementation$$";
-            }
-            else
+            if (asyncNavigation)
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
                 Assert.Equal($"'IBar' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -115,12 +103,10 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
                 results[0].NavigateTo(isPreview: true, shouldActivate: true);
 
                 await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
-
-                identifierWithCaret = "$$Implementation";
             }
 
             Assert.Equal("FileImplementation.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync($@"class {identifierWithCaret}", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync("class $$Implementation", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.True(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
@@ -148,13 +134,7 @@ class Implementation : IDisposable
             Assert.Equal("IDisposable [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
-            string identifierWithCaret;
-            if (!asyncNavigation)
-            {
-                // The navigation completed synchronously; no further action necessary
-                identifierWithCaret = "Implementation$$";
-            }
-            else
+            if (asyncNavigation)
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
                 Assert.Equal($"'IDisposable' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -169,12 +149,10 @@ class Implementation : IDisposable
                 results[0].NavigateTo(isPreview: false, shouldActivate: true);
 
                 await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
-
-                identifierWithCaret = "$$Implementation";
             }
 
             Assert.Equal($"FileImplementation.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync($@"class {identifierWithCaret} : IDisposable", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync("class $$Implementation : IDisposable", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
         [IdeTheory]
@@ -228,8 +206,19 @@ class C
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             // There are a lot of results, no point transcribing them all into a test
-            Assert.Contains(results, r => r.GetText() == "public void Dispose()" && Path.GetFileName(r.GetDocumentName()) == "FileImplementation.cs");
-            Assert.Contains(results, r => r.GetText() == "void Stream.Dispose()" && r.GetDocumentName() == "Stream");
+
+            // Doc:
+            // StandardTableKeyNames.DocumentName is the path used to navigate to the entry.
+            // StandardTableKeyNames.DisplayPath is only used for what is displayed to the end user.
+            // If this is not set, then StandardTableKeyNames.DocumentName is displayed to the end user.
+            //
+            // Metadata definitions do not have DocumentName. THey implement custom navigation.
+
+            AssertEx.Contains(results, r => r.GetText() == "public void Dispose()" && Path.GetFileName(r.GetDocumentName()) == "FileImplementation.cs", Inspect);
+            AssertEx.Contains(results, r => r.GetText() == "void Stream.Dispose()" && Path.GetFileName(r.GetDisplayPath()) == "mscorlib.dll", Inspect);
+
+            static string Inspect(ITableEntryHandle2 entry)
+                => $"Text: '{entry.GetText()}' DocumentName: '{entry.GetDocumentName()}' DisplayPath: '{entry.GetDisplayPath()}'";
         }
     }
 }

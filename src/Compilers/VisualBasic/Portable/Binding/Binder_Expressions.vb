@@ -41,6 +41,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
             End If
 
+#Disable Warning BC40000 ' Type or member is obsolete
+            Dim result As BoundExpression = BindExpressionCore(node, isInvocationOrAddressOf, isOperandOfConditionalBranch, eventContext, diagnostics)
+#Enable Warning BC40000 ' Type or member is obsolete
+
+            If IsEarlyAttributeBinder AndAlso result.Kind = BoundKind.MethodGroup AndAlso Not IsNameOfArgument(node) Then
+
+                Dim boundMethodGroup = DirectCast(result, BoundMethodGroup)
+                Dim compilation As VisualBasicCompilation = Me.Compilation
+
+                For Each method In boundMethodGroup.Methods
+                    If Not EarlyWellKnownAttributeBinder.IsConstantOptimizableLibraryMethod(compilation, method) Then
+                        Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
+                    End If
+                Next
+            End If
+
+            Return result
+        End Function
+
+        <Obsolete("Use BindExpression that is immediately above instead.")>
+        Private Function BindExpressionCore(node As ExpressionSyntax, isInvocationOrAddressOf As Boolean, isOperandOfConditionalBranch As Boolean, eventContext As Boolean, diagnostics As BindingDiagnosticBag) As BoundExpression
             Select Case node.Kind
                 Case SyntaxKind.MeExpression
                     Return BindMeExpression(DirectCast(node, MeExpressionSyntax), diagnostics)
@@ -673,7 +694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, node.Type, ErrorFactory.ErrorInfo(ERRID.ERR_VoidArrayDisallowed))
             End If
 
-            Return New BoundGetType(node, typeExpression, GetWellKnownType(WellKnownType.System_Type, node, diagnostics))
+            Return New BoundGetType(node, typeExpression, getTypeFromHandle:=Nothing, GetWellKnownType(WellKnownType.System_Type, node, diagnostics))
         End Function
 
         Private Function BindNameOfExpression(node As NameOfExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression

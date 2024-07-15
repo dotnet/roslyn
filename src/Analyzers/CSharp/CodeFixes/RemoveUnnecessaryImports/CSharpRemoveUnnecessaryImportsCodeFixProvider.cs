@@ -11,22 +11,21 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
+internal class CSharpRemoveUnnecessaryImportsCodeFixProvider : AbstractRemoveUnnecessaryImportsCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
-    internal class CSharpRemoveUnnecessaryImportsCodeFixProvider : AbstractRemoveUnnecessaryImportsCodeFixProvider
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpRemoveUnnecessaryImportsCodeFixProvider()
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpRemoveUnnecessaryImportsCodeFixProvider()
-        {
-        }
-
-        protected override string GetTitle()
-            => CSharpCodeFixesResources.Remove_Unnecessary_Usings;
-
-        protected override ISyntaxFormatting GetSyntaxFormatting()
-            => CSharpSyntaxFormatting.Instance;
     }
+
+    protected override string GetTitle()
+        => CSharpCodeFixesResources.Remove_unnecessary_usings;
+
+    protected override ISyntaxFormatting GetSyntaxFormatting()
+        => CSharpSyntaxFormatting.Instance;
 }

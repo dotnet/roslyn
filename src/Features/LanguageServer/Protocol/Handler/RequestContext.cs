@@ -8,10 +8,11 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -53,7 +54,7 @@ internal readonly struct RequestContext
     /// <remarks>
     /// This field is only initialized for handlers that request solution context.
     /// </remarks>
-    private readonly StrongBox<(Workspace Workspace, Solution Solution, Document? Document)>? _lspSolution;
+    private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
 
     /// <summary>
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
@@ -99,6 +100,29 @@ internal readonly struct RequestContext
     /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
     public Document? Document
+    {
+        get
+        {
+            if (this.TextDocument is null)
+            {
+                return null;
+            }
+
+            if (this.TextDocument is Document document)
+            {
+                return document;
+            }
+
+            // Explicitly throw for attempts to get a Document when only a TextDocument is available.
+            throw new InvalidOperationException("Attempted to retrieve a Document but a TextDocument was found instead.");
+        }
+    }
+
+    /// <summary>
+    /// The text document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
+    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
+    /// </summary>
+    public TextDocument? TextDocument
     {
         get
         {
@@ -149,7 +173,7 @@ internal readonly struct RequestContext
         string method,
         ClientCapabilities? clientCapabilities,
         WellKnownLspServerKinds serverKind,
-        Document? document,
+        TextDocument? document,
         IDocumentChangeTracker documentChangeTracker,
         ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
@@ -159,7 +183,7 @@ internal readonly struct RequestContext
         if (workspace is not null)
         {
             RoslynDebug.Assert(solution is not null);
-            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, Document? Document)>((workspace, solution, document));
+            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>((workspace, solution, document));
         }
         else
         {
@@ -191,6 +215,13 @@ internal readonly struct RequestContext
         return Document is null
             ? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}")
             : Document;
+    }
+
+    public TextDocument GetRequiredTextDocument()
+    {
+        return TextDocument is null
+            ? throw new ArgumentNullException($"{nameof(TextDocument)} is null when it was required for {Method}")
+            : TextDocument;
     }
 
     public static async Task<RequestContext> CreateAsync(
@@ -228,7 +259,7 @@ internal readonly struct RequestContext
         {
             Workspace? workspace = null;
             Solution? solution = null;
-            Document? document = null;
+            TextDocument? document = null;
             if (textDocument is not null)
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn document for this.
@@ -243,9 +274,11 @@ internal readonly struct RequestContext
                 (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            if (workspace is null)
+            if (workspace is null || solution is null)
             {
-                logger.LogError($"Could not find appropriate workspace for operation {workspace} on {method}");
+                logger.LogError($"Could not find appropriate workspace or solution on {method}");
+                FatalError.ReportWithDumpAndCatch(new Exception(
+                    $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
 
             context = new RequestContext(

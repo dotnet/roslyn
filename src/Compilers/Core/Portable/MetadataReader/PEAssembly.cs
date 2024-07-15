@@ -7,12 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -63,19 +62,22 @@ namespace Microsoft.CodeAnalysis
 
             _identity = modules[0].ReadAssemblyIdentityOrThrow();
 
-            var refs = ArrayBuilder<AssemblyIdentity>.GetInstance();
-            int[] refCounts = new int[modules.Length];
+            // Pre-calculate size to ensure this code only requires a single array allocation.
+            var totalRefCount = modules.Sum(static module => module.ReferencedAssemblies.Length);
+            var refCounts = ArrayBuilder<int>.GetInstance(modules.Length);
+
+            var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(totalRefCount);
 
             for (int i = 0; i < modules.Length; i++)
             {
                 ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
-                refCounts[i] = refsForModule.Length;
+                refCounts.Add(refsForModule.Length);
                 refs.AddRange(refsForModule);
             }
 
             _modules = modules;
             this.AssemblyReferences = refs.ToImmutableAndFree();
-            this.ModuleReferenceCounts = refCounts.AsImmutableOrNull();
+            this.ModuleReferenceCounts = refCounts.ToImmutableAndFree();
             _owner = owner;
         }
 

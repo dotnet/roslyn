@@ -29,227 +29,226 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename;
+
+using Workspace = Microsoft.CodeAnalysis.Workspace;
+
+[ExportWorkspaceServiceFactory(typeof(IInlineRenameUndoManager), ServiceLayer.Host), Shared]
+internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory : IWorkspaceServiceFactory
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    private readonly InlineRenameService _inlineRenameService;
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+    private readonly IGlobalOptionService _globalOptionService;
 
-    [ExportWorkspaceServiceFactory(typeof(IInlineRenameUndoManager), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory : IWorkspaceServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioInlineRenameUndoManagerServiceFactory(
+        InlineRenameService inlineRenameService,
+        IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+        IGlobalOptionService globalOptionService)
     {
-        private readonly InlineRenameService _inlineRenameService;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly IGlobalOptionService _globalOptionService;
+        _inlineRenameService = inlineRenameService;
+        _editorAdaptersFactoryService = editorAdaptersFactoryService;
+        _globalOptionService = globalOptionService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioInlineRenameUndoManagerServiceFactory(
-            InlineRenameService inlineRenameService,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IGlobalOptionService globalOptionService)
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new InlineRenameUndoManager(_inlineRenameService, _editorAdaptersFactoryService, _globalOptionService);
+
+    internal class InlineRenameUndoManager : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>, IInlineRenameUndoManager
+    {
+        private class RenameUndoPrimitive : IOleUndoUnit
         {
-            _inlineRenameService = inlineRenameService;
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            _globalOptionService = globalOptionService;
+            private readonly string _description;
+
+            public RenameUndoPrimitive(string description)
+                => _description = description;
+
+            public virtual void Do(IOleUndoManager pUndoManager)
+            {
+            }
+
+            public void GetDescription(out string pBstr)
+                => pBstr = _description;
+
+            public void GetUnitType(out Guid pClsid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")] out int plID)
+                => throw new NotImplementedException();
+
+            public void OnNextAdd()
+            {
+            }
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new InlineRenameUndoManager(_inlineRenameService, _editorAdaptersFactoryService, _globalOptionService);
-
-        internal class InlineRenameUndoManager : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>, IInlineRenameUndoManager
+        private class RedoPrimitive : RenameUndoPrimitive
         {
-            private class RenameUndoPrimitive : IOleUndoUnit
-            {
-                private readonly string _description;
+            private readonly IOleUndoManager _undoManager;
 
-                public RenameUndoPrimitive(string description)
-                    => _description = description;
+            public RedoPrimitive(IOleUndoManager undoManager, string replacementText) : base(replacementText)
+                => _undoManager = undoManager;
 
-                public virtual void Do(IOleUndoManager pUndoManager)
-                {
-                }
+            // Undoing this instance simply adds it to the Redo stack.
+            public override void Do(IOleUndoManager pUndoManager)
+                => _undoManager.Add(this);
+        }
 
-                public void GetDescription(out string pBstr)
-                    => pBstr = _description;
+        internal class BufferUndoState
+        {
+            public IOleUndoManager UndoManager { get; set; }
+            public ITextUndoHistory TextUndoHistory { get; set; }
+            public IOleUndoUnit StartRenameSessionUndoPrimitive { get; set; }
+            public IOleUndoUnit ConflictResolutionRenameUndoPrimitive { get; set; }
+            public ITextBuffer UndoHistoryBuffer { get; set; }
+        }
 
-                public void GetUnitType(out Guid pClsid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")] out int plID)
-                    => throw new NotImplementedException();
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
-                public void OnNextAdd()
-                {
-                }
-            }
+        public InlineRenameUndoManager(InlineRenameService inlineRenameService, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IGlobalOptionService globalOptionService) : base(inlineRenameService, globalOptionService)
+            => _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
-            private class RedoPrimitive : RenameUndoPrimitive
-            {
-                private readonly IOleUndoManager _undoManager;
+        public void CreateStartRenameUndoTransaction(Workspace workspace, ITextBuffer subjectBuffer, IInlineRenameSession inlineRenameSession)
+        {
+            var startRenameUndoPrimitive = new RenameUndoPrimitive(EditorFeaturesResources.Start_Rename);
+            var textUndoHistoryService = workspace.Services.GetService<ITextUndoHistoryWorkspaceService>();
+            Contract.ThrowIfFalse(textUndoHistoryService.TryGetTextUndoHistory(workspace, subjectBuffer, out var undoHistory));
+            Contract.ThrowIfFalse(undoHistory.Properties.TryGetProperty(typeof(ITextBuffer), out ITextBuffer primaryBuffer));
+            var undoManager = GetUndoManager(primaryBuffer);
 
-                public RedoPrimitive(IOleUndoManager undoManager, string replacementText) : base(replacementText)
-                    => _undoManager = undoManager;
+            UndoManagers[subjectBuffer] = new BufferUndoState() { UndoManager = undoManager, TextUndoHistory = undoHistory, StartRenameSessionUndoPrimitive = startRenameUndoPrimitive, UndoHistoryBuffer = primaryBuffer };
+            undoManager.Add(startRenameUndoPrimitive);
+        }
 
-                // Undoing this instance simply adds it to the Redo stack.
-                public override void Do(IOleUndoManager pUndoManager)
-                    => _undoManager.Add(this);
-            }
+        public void CreateConflictResolutionUndoTransaction(ITextBuffer subjectBuffer, Action applyEdit)
+        {
+            // Replace the StartRenameSession undo entry with an identically named entry that also includes
+            // the conflict resolution edits.
+            var undoManager = this.UndoManagers[subjectBuffer].UndoManager;
 
-            internal class BufferUndoState
-            {
-                public IOleUndoManager UndoManager { get; set; }
-                public ITextUndoHistory TextUndoHistory { get; set; }
-                public IOleUndoUnit StartRenameSessionUndoPrimitive { get; set; }
-                public IOleUndoUnit ConflictResolutionRenameUndoPrimitive { get; set; }
-                public ITextBuffer UndoHistoryBuffer { get; set; }
-            }
-
-            private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-
-            public InlineRenameUndoManager(InlineRenameService inlineRenameService, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IGlobalOptionService globalOptionService) : base(inlineRenameService, globalOptionService)
-                => _editorAdaptersFactoryService = editorAdaptersFactoryService;
-
-            public void CreateStartRenameUndoTransaction(Workspace workspace, ITextBuffer subjectBuffer, IInlineRenameSession inlineRenameSession)
-            {
-                var startRenameUndoPrimitive = new RenameUndoPrimitive(EditorFeaturesResources.Start_Rename);
-                var textUndoHistoryService = workspace.Services.GetService<ITextUndoHistoryWorkspaceService>();
-                Contract.ThrowIfFalse(textUndoHistoryService.TryGetTextUndoHistory(workspace, subjectBuffer, out var undoHistory));
-                Contract.ThrowIfFalse(undoHistory.Properties.TryGetProperty(typeof(ITextBuffer), out ITextBuffer primaryBuffer));
-                var undoManager = GetUndoManager(primaryBuffer);
-
-                UndoManagers[subjectBuffer] = new BufferUndoState() { UndoManager = undoManager, TextUndoHistory = undoHistory, StartRenameSessionUndoPrimitive = startRenameUndoPrimitive, UndoHistoryBuffer = primaryBuffer };
-                undoManager.Add(startRenameUndoPrimitive);
-            }
-
-            public void CreateConflictResolutionUndoTransaction(ITextBuffer subjectBuffer, Action applyEdit)
+            try
             {
                 // Replace the StartRenameSession undo entry with an identically named entry that also includes
                 // the conflict resolution edits.
-                var undoManager = this.UndoManagers[subjectBuffer].UndoManager;
-
-                try
-                {
-                    // Replace the StartRenameSession undo entry with an identically named entry that also includes
-                    // the conflict resolution edits.
-                    undoManager.UndoTo(this.UndoManagers[subjectBuffer].StartRenameSessionUndoPrimitive);
-                }
-                catch (COMException ex) when (ex.ErrorCode == VSConstants.E_UNEXPECTED && FatalError.ReportAndCatch(ex))
-                {
-                    // According to the documentation, E_UNEXPECTED (0x8000FFFF) is raised when the UndoManager is disabled.
-                    // https://docs.microsoft.com/en-us/windows/win32/api/ocidl/nf-ocidl-ioleundomanager-undoto#return-value
-                    // Report a non-fatal error so we can learn more about this scenario.
-                }
-
-                var adapter = _editorAdaptersFactoryService.GetBufferAdapter(this.UndoManagers[subjectBuffer].UndoHistoryBuffer);
-                var compoundAction = adapter as IVsCompoundAction;
-                compoundAction.OpenCompoundAction(EditorFeaturesResources.Start_Rename);
-                applyEdit();
-                compoundAction.CloseCompoundAction();
-
-                this.UndoManagers[subjectBuffer].ConflictResolutionRenameUndoPrimitive = GetUndoUnits(undoManager).Last();
+                undoManager.UndoTo(this.UndoManagers[subjectBuffer].StartRenameSessionUndoPrimitive);
+            }
+            catch (COMException ex) when (ex.ErrorCode == VSConstants.E_UNEXPECTED && FatalError.ReportAndCatch(ex))
+            {
+                // According to the documentation, E_UNEXPECTED (0x8000FFFF) is raised when the UndoManager is disabled.
+                // https://docs.microsoft.com/en-us/windows/win32/api/ocidl/nf-ocidl-ioleundomanager-undoto#return-value
+                // Report a non-fatal error so we can learn more about this scenario.
             }
 
-            public void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect)
-                => UndoTemporaryEdits(subjectBuffer, disconnect, true);
+            var adapter = _editorAdaptersFactoryService.GetBufferAdapter(this.UndoManagers[subjectBuffer].UndoHistoryBuffer);
+            var compoundAction = adapter as IVsCompoundAction;
+            compoundAction.OpenCompoundAction(EditorFeaturesResources.Start_Rename);
+            applyEdit();
+            compoundAction.CloseCompoundAction();
 
-            protected override void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect, bool undoConflictResolution)
+            this.UndoManagers[subjectBuffer].ConflictResolutionRenameUndoPrimitive = GetUndoUnits(undoManager).Last();
+        }
+
+        public void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect)
+            => UndoTemporaryEdits(subjectBuffer, disconnect, true);
+
+        protected override void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect, bool undoConflictResolution)
+        {
+            // There are crashes from Windows Error Reporting that indicate the BufferUndoState
+            // may be being unavailable here when inline rename has been dismissed due to an
+            // external workspace change. See bug #1167415.
+            if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
             {
-                // There are crashes from Windows Error Reporting that indicate the BufferUndoState
-                // may be being unavailable here when inline rename has been dismissed due to an
-                // external workspace change. See bug #1167415.
-                if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
-                {
-                    return;
-                }
+                return;
+            }
 
-                var undoManager = bufferUndoState.UndoManager;
-                var startRenameUndoPrimitive = bufferUndoState.StartRenameSessionUndoPrimitive;
-                var markerPrimitive = bufferUndoState.ConflictResolutionRenameUndoPrimitive ?? startRenameUndoPrimitive;
+            var undoManager = bufferUndoState.UndoManager;
+            var startRenameUndoPrimitive = bufferUndoState.StartRenameSessionUndoPrimitive;
+            var markerPrimitive = bufferUndoState.ConflictResolutionRenameUndoPrimitive ?? startRenameUndoPrimitive;
 
-                // If we're not undoing conflict resolution, we need to undo the next unit after our startRenameUndoPrimitive
-                var count = GetUndoUnits(undoManager).SkipWhile(u => u != markerPrimitive).Count() + (undoConflictResolution ? 0 : -1);
-                for (var i = 0; i < count; i++)
-                {
-                    undoManager.UndoTo(null);
-                }
+            // If we're not undoing conflict resolution, we need to undo the next unit after our startRenameUndoPrimitive
+            var count = GetUndoUnits(undoManager).SkipWhile(u => u != markerPrimitive).Count() + (undoConflictResolution ? 0 : -1);
+            for (var i = 0; i < count; i++)
+            {
+                undoManager.UndoTo(null);
+            }
 
-                if (disconnect)
+            if (disconnect)
+            {
+                // destroy the redo stack.
+                undoManager.Add(startRenameUndoPrimitive);
+                undoManager.UndoTo(null);
+            }
+            else if (undoConflictResolution)
+            {
+                // If we undid conflict resolution, then we need to put back our start rename transaction
+                undoManager.Add(startRenameUndoPrimitive);
+                bufferUndoState.ConflictResolutionRenameUndoPrimitive = null;
+            }
+        }
+
+        public void ApplyCurrentState(ITextBuffer subjectBuffer, object propagateSpansEditTag, IEnumerable<ITrackingSpan> spans)
+        {
+            // There are crash dumps that indicate the BufferUndoState may be being unavailable
+            // here when inline rename has been dismissed due to an external workspace change.
+            // See bug https://github.com/dotnet/roslyn/issues/31883.
+            if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
+            {
+                return;
+            }
+
+            ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
+
+            // Here we create the descriptions for the redo list dropdown.
+            var undoManager = bufferUndoState.UndoManager;
+            foreach (var state in this.RedoStack.Reverse())
+            {
+                undoManager.Add(new RedoPrimitive(undoManager, GetUndoTransactionDescription(state.ReplacementText)));
+            }
+
+            foreach (var _ in this.RedoStack)
+            {
+                undoManager.UndoTo(null);
+            }
+        }
+
+        private IOleUndoManager GetUndoManager(ITextBuffer subjectBuffer)
+        {
+            var adapter = _editorAdaptersFactoryService.GetBufferAdapter(subjectBuffer);
+            if (adapter != null)
+            {
+                if (ErrorHandler.Succeeded(adapter.GetUndoManager(out var manager)))
                 {
-                    // destroy the redo stack.
-                    undoManager.Add(startRenameUndoPrimitive);
-                    undoManager.UndoTo(null);
-                }
-                else if (undoConflictResolution)
-                {
-                    // If we undid conflict resolution, then we need to put back our start rename transaction
-                    undoManager.Add(startRenameUndoPrimitive);
-                    bufferUndoState.ConflictResolutionRenameUndoPrimitive = null;
+                    return manager;
                 }
             }
 
-            public void ApplyCurrentState(ITextBuffer subjectBuffer, object propagateSpansEditTag, IEnumerable<ITrackingSpan> spans)
+            return null;
+        }
+
+        private static IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
+        {
+            IEnumOleUndoUnits undoUnitEnumerator;
+            try
             {
-                // There are crash dumps that indicate the BufferUndoState may be being unavailable
-                // here when inline rename has been dismissed due to an external workspace change.
-                // See bug https://github.com/dotnet/roslyn/issues/31883.
-                if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
-                {
-                    return;
-                }
-
-                ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
-
-                // Here we create the descriptions for the redo list dropdown.
-                var undoManager = bufferUndoState.UndoManager;
-                foreach (var state in this.RedoStack.Reverse())
-                {
-                    undoManager.Add(new RedoPrimitive(undoManager, GetUndoTransactionDescription(state.ReplacementText)));
-                }
-
-                foreach (var _ in this.RedoStack)
-                {
-                    undoManager.UndoTo(null);
-                }
+                // Unfortunately, EnumUndoable returns the units in oldest-first order.
+                undoManager.EnumUndoable(out undoUnitEnumerator);
+            }
+            catch (COMException)
+            {
+                yield break;
             }
 
-            private IOleUndoManager GetUndoManager(ITextBuffer subjectBuffer)
+            const int BatchSize = 100;
+            var fetchedUndoUnits = new IOleUndoUnit[BatchSize];
+
+            while (true)
             {
-                var adapter = _editorAdaptersFactoryService.GetBufferAdapter(subjectBuffer);
-                if (adapter != null)
+                undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
+                for (var i = 0; i < fetchedCount; i++)
                 {
-                    if (ErrorHandler.Succeeded(adapter.GetUndoManager(out var manager)))
-                    {
-                        return manager;
-                    }
+                    yield return fetchedUndoUnits[i];
                 }
 
-                return null;
-            }
-
-            private static IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
-            {
-                IEnumOleUndoUnits undoUnitEnumerator;
-                try
+                if (fetchedCount < BatchSize)
                 {
-                    // Unfortunately, EnumUndoable returns the units in oldest-first order.
-                    undoManager.EnumUndoable(out undoUnitEnumerator);
-                }
-                catch (COMException)
-                {
-                    yield break;
-                }
-
-                const int BatchSize = 100;
-                var fetchedUndoUnits = new IOleUndoUnit[BatchSize];
-
-                while (true)
-                {
-                    undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
-                    for (var i = 0; i < fetchedCount; i++)
-                    {
-                        yield return fetchedUndoUnits[i];
-                    }
-
-                    if (fetchedCount < BatchSize)
-                    {
-                        break;
-                    }
+                    break;
                 }
             }
         }

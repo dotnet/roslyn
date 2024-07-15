@@ -77,7 +77,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -185,7 +185,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -269,7 +269,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 

@@ -9,12 +9,12 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LiveShare;
 using Newtonsoft.Json.Linq;
-using Task = System.Threading.Tasks.Task;
+using Roslyn.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             // Register Roslyn supported capabilities
             languageServerGuestService.RegisterClientMetadata(
-                new string[] { StringConstants.TypeScriptLanguageName },
+                [StringConstants.TypeScriptLanguageName],
                 new LS.LanguageServerClientMetadata(
                     true,
                     JObject.FromObject(new ServerCapabilities

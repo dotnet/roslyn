@@ -3095,5 +3095,49 @@ struct A : System.IDisposable
 
             CompileAndVerify(source, expectedOutput: "0");
         }
+
+        [Theory, CombinatorialData]
+        public void OptionalParameter([CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
+        {
+            var source = $$"""
+                using System;
+                using (var s = new S())
+                {
+                    Console.Write("1");
+                }
+                ref struct S
+                {
+                    public void Dispose({{modifier}} int x = 2) => Console.Write(x);
+                }
+                """;
+            if (modifier == "ref")
+            {
+                CreateCompilation(source).VerifyDiagnostics(
+                    // (2,8): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'S.Dispose(ref int)'
+                    // using (var s = new S())
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("x", "S.Dispose(ref int)").WithLocation(2, 8),
+                    // (2,8): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                    // using (var s = new S())
+                    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(2, 8),
+                    // (8,25): error CS1741: A ref or out parameter cannot have a default value
+                    //     public void Dispose(ref int x = 2) => Console.Write(x);
+                    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(8, 25));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(source, expectedOutput: "12");
+                if (modifier == "ref readonly")
+                {
+                    verifier.VerifyDiagnostics(
+                        // (8,46): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //     public void Dispose(ref readonly int x = 2) => Console.Write(x);
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("x").WithLocation(8, 46));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics();
+                }
+            }
+        }
     }
 }

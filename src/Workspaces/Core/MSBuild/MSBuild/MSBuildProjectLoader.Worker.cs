@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private readonly SolutionServices _solutionServices;
             private readonly DiagnosticReporter _diagnosticReporter;
             private readonly PathResolver _pathResolver;
-            private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
-            private readonly ProjectBuildManager _buildManager;
+            private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
+            private readonly BuildHostProcessManager _buildHostProcessManager;
             private readonly string _baseDirectory;
 
             /// <summary>
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 SolutionServices services,
                 DiagnosticReporter diagnosticReporter,
                 PathResolver pathResolver,
-                ProjectFileLoaderRegistry projectFileLoaderRegistry,
-                ProjectBuildManager buildManager,
+                ProjectFileExtensionRegistry projectFileExtensionRegistry,
+                BuildHostProcessManager buildHostProcessManager,
                 ImmutableArray<string> requestedProjectPaths,
                 string baseDirectory,
                 ImmutableDictionary<string, string> globalProperties,
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _solutionServices = services;
                 _diagnosticReporter = diagnosticReporter;
                 _pathResolver = pathResolver;
-                _projectFileLoaderRegistry = projectFileLoaderRegistry;
-                _buildManager = buildManager;
+                _projectFileExtensionRegistry = projectFileExtensionRegistry;
+                _buildHostProcessManager = buildHostProcessManager;
                 _baseDirectory = baseDirectory;
                 _requestedProjectPaths = requestedProjectPaths;
                 _globalProperties = globalProperties;
@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _requestedProjectOptions = requestedProjectOptions;
                 _discoveredProjectOptions = discoveredProjectOptions;
                 _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
-                _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
+                _projectIdToFileInfoMap = [];
                 _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
-                _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
+                _projectIdToProjectReferencesMap = [];
             }
 
             private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
@@ -132,72 +132,66 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-                _buildManager.StartBatchBuild(_globalProperties);
-                try
+                foreach (var projectPath in _requestedProjectPaths)
                 {
-                    foreach (var projectPath in _requestedProjectPaths)
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!_pathResolver.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var absoluteProjectPath))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        if (!_pathResolver.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var absoluteProjectPath))
-                        {
-                            continue; // Failure should already be reported.
-                        }
-
-                        if (!processedPaths.Add(absoluteProjectPath))
-                        {
-                            _diagnosticReporter.Report(
-                                new WorkspaceDiagnostic(
-                                    WorkspaceDiagnosticKind.Warning,
-                                    string.Format(WorkspaceMSBuildResources.Duplicate_project_discovered_and_skipped_0, absoluteProjectPath)));
-
-                            continue;
-                        }
-
-                        var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
-
-                        results.AddRange(projectFileInfos);
+                        continue; // Failure should already be reported.
                     }
 
-                    foreach (var (projectPath, projectInfos) in _pathToDiscoveredProjectInfosMap)
+                    if (!processedPaths.Add(absoluteProjectPath))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        _diagnosticReporter.Report(
+                            new WorkspaceDiagnostic(
+                                WorkspaceDiagnosticKind.Warning,
+                                string.Format(WorkspaceMSBuildResources.Duplicate_project_discovered_and_skipped_0, absoluteProjectPath)));
 
-                        if (!processedPaths.Contains(projectPath))
-                        {
-                            results.AddRange(projectInfos);
-                        }
+                        continue;
                     }
 
-                    return results.ToImmutable();
+                    var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
+
+                    results.AddRange(projectFileInfos);
                 }
-                finally
+
+                foreach (var (projectPath, projectInfos) in _pathToDiscoveredProjectInfosMap)
                 {
-                    _buildManager.EndBatchBuild();
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!processedPaths.Contains(projectPath))
+                    {
+                        results.AddRange(projectInfos);
+                    }
                 }
+
+                return results.ToImmutable();
             }
 
             private async Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
             {
-                if (!_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var loader))
+                if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
                 {
-                    return ImmutableArray<ProjectFileInfo>.Empty; // Failure should already be reported.
+                    return []; // Failure should already be reported.
                 }
 
+                var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
+                var (buildHost, actualBuildHostKind) = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
                 var projectFile = await DoOperationAndReportProgressAsync(
                     ProjectLoadOperation.Evaluate,
                     projectPath,
                     targetFramework: null,
-                    () => loader.LoadProjectFileAsync(projectPath, _buildManager, cancellationToken)
+                    () => buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken)
                 ).ConfigureAwait(false);
 
                 // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
-                if (projectFile.Log.HasFailure)
+                var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
+                if (diagnosticItems.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
                 {
-                    _diagnosticReporter.Report(projectFile.Log);
+                    _diagnosticReporter.Report(diagnosticItems);
 
-                    return ImmutableArray.Create(
-                        ProjectFileInfo.CreateEmpty(loader.Language, projectPath));
+                    return [ProjectFileInfo.CreateEmpty(languageName, projectPath)];
                 }
 
                 var projectFileInfos = await DoOperationAndReportProgressAsync(
@@ -211,12 +205,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 foreach (var projectFileInfo in projectFileInfos)
                 {
-                    // If any diagnostics were logged during build, we'll carry on and try to produce a meaningful project.
                     // Note: any diagnostics would have been logged to the original project file's log.
-                    _diagnosticReporter.Report(projectFile.Log);
 
                     results.Add(projectFileInfo);
                 }
+
+                // We'll go check for any further diagnostics and report them
+                diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
+                _diagnosticReporter.Report(diagnosticItems);
 
                 return results.MoveToImmutable();
             }
@@ -353,10 +349,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var metadataService = GetWorkspaceService<IMetadataService>();
                     var compilationOptions = commandLineArgs.CompilationOptions
                         .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
-                        .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
+                        .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                         // TODO: https://github.com/dotnet/roslyn/issues/4967
-                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
-                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
+                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory)))
+                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
                     var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
@@ -460,7 +456,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return results.ToImmutable();
             }
 
-            private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+            private static readonly char[] s_directorySplitChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
             private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
             {
@@ -469,14 +465,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     folders = pathNames.Length > 1
                         ? pathNames.Take(pathNames.Length - 1).ToImmutableArray()
-                        : ImmutableArray<string>.Empty;
+                        : [];
 
                     name = pathNames[^1];
                 }
                 else
                 {
                     name = logicalPath;
-                    folders = ImmutableArray<string>.Empty;
+                    folders = [];
                 }
             }
 

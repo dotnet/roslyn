@@ -1767,15 +1767,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var specifier = target != null
                 ? SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Identifier(target),
-                    SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), SyntaxKind.ColonToken, SyntaxFactory.TriviaList(SyntaxFactory.Space)))
+                    SyntaxFactory.Token([SyntaxFactory.ElasticMarker], SyntaxKind.ColonToken, [SyntaxFactory.Space]))
                 : null;
 
             return SyntaxFactory.AttributeList(
                 target: specifier,
-                attributes: SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Attribute(
-                        name: SyntaxFactory.ParseName(name),
-                        argumentList: SyntaxFactory.ParseAttributeArgumentList("(" + value + ")"))));
+                attributes: [SyntaxFactory.Attribute(
+                    name: SyntaxFactory.ParseName(name),
+                    argumentList: SyntaxFactory.ParseAttributeArgumentList("(" + value + ")"))]);
         }
 
         public override SyntaxNode CreateAttributeArgumentNode(string name, string value)
@@ -1917,16 +1916,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (kind)
             {
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindOut:
-                    newModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword));
+                    newModifiers = [SyntaxFactory.Token(SyntaxKind.OutKeyword)];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindRef:
-                    newModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+                    newModifiers = [SyntaxFactory.Token(SyntaxKind.RefKeyword)];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindIn:
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindNone:
-                    newModifiers = SyntaxFactory.TokenList();
+                    newModifiers = [];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray:
@@ -1935,7 +1934,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         if (parameterList.Parameters.LastOrDefault() == parameter &&
                             parameter.Type is ArrayTypeSyntax)
                         {
-                            newModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                            newModifiers = [SyntaxFactory.Token(SyntaxKind.ParamsKeyword)];
                             break;
                         }
 
@@ -2308,7 +2307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     if (method.Body != null && method.Body.Statements.Count == 0)
                     {
-                        member = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), SyntaxKind.SemicolonToken, method.Body.CloseBraceToken.TrailingTrivia));
+                        member = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token([SyntaxFactory.ElasticMarker], SyntaxKind.SemicolonToken, method.Body.CloseBraceToken.TrailingTrivia));
                     }
                 }
                 else
@@ -2329,11 +2328,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                                 continue;
                             }
 
-                            var updatedAccessor = accessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), SyntaxKind.SemicolonToken, accessor.Body.CloseBraceToken.TrailingTrivia));
+                            var updatedAccessor = accessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token([SyntaxFactory.ElasticMarker], SyntaxKind.SemicolonToken, accessor.Body.CloseBraceToken.TrailingTrivia));
                             updatedAccessors.Add(updatedAccessor);
                         }
 
-                        var updatedAccessorList = property.AccessorList.WithAccessors(SyntaxFactory.List<AccessorDeclarationSyntax>(updatedAccessors));
+                        var updatedAccessorList = property.AccessorList.WithAccessors([.. updatedAccessors]);
                         member = property.ReplaceNode(property.AccessorList, updatedAccessorList);
                     }
                 }
@@ -2373,7 +2372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             updatedAccessors.Add(updatedAccessor);
                         }
 
-                        var updatedAccessorList = property.AccessorList.WithAccessors(SyntaxFactory.List<AccessorDeclarationSyntax>(updatedAccessors));
+                        var updatedAccessorList = property.AccessorList.WithAccessors([.. updatedAccessors]);
                         member = property.ReplaceNode(property.AccessorList, updatedAccessorList);
                     }
                 }
@@ -3330,9 +3329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                 if (argumentList == null)
                 {
-                    newArgumentList = SyntaxFactory.AttributeArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            (AttributeArgumentSyntax)attributeArgument));
+                    newArgumentList = SyntaxFactory.AttributeArgumentList([(AttributeArgumentSyntax)attributeArgument]);
                 }
                 else
                 {
@@ -3705,7 +3702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var typeName = SyntaxFactory.ParseTypeName(typeSymbol.ToMinimalDisplayString(semanticModel, position));
             var baseList = typeDeclaration.BaseList != null
                 ? typeDeclaration.BaseList.WithTypes(typeDeclaration.BaseList.Types.Insert(insertionIndex, SyntaxFactory.SimpleBaseType(typeName)))
-                : SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList((BaseTypeSyntax)SyntaxFactory.SimpleBaseType(typeName)));
+                : SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(typeName)]);
 
             return typeDeclaration.WithBaseList(baseList);
         }

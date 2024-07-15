@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
         Inherits AbstractCompletionProviderTests(Of VisualBasicTestWorkspaceFixture)
 
-        Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(fileContents, composition:=GetComposition())
+        Protected Overrides Function CreateWorkspace(fileContents As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(fileContents, composition:=GetComposition())
         End Function
 
         Friend Overrides Function GetCompletionService(project As Project) As CompletionService

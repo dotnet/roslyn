@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
     {
         protected override string ContentType => ContentTypeNames.CSharpContentType;
 
-        protected override TestWorkspace CreateWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override EditorTestWorkspace CreateWorkspace(string code)
+            => EditorTestWorkspace.CreateCSharp(code);
 
         [Fact]
         public void Empty()
@@ -492,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             int endLength)
         {
             TestNavigator(code, func, startPosition, startLength, endPosition, endLength, null);
-            TestNavigator(code, func, startPosition, startLength, endPosition, endLength, Options.Script);
+            TestNavigator(code, func, startPosition, startLength, endPosition, endLength, TestOptions.Script);
         }
 
         private static void TestNavigator(
@@ -504,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             int endLength,
             CSharpParseOptions? options)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, options);
             var buffer = workspace.Documents.First().GetTextBuffer();
 
             var provider = Assert.IsType<CSharpTextStructureNavigatorProvider>(

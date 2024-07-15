@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// <remarks>
         /// Read/write access to this field is guarded by <see cref="s_gate"/>.
         /// </remarks>
-        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = ImmutableHashSet<Task>.Empty;
+        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = [];
 
         /// <summary>
         /// Set of cancellation token sources for normal priority diagnostic computation tasks which are currently executing.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// <remarks>
         /// Read/write access to this field is guarded by <see cref="s_gate"/>.
         /// </remarks>
-        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = ImmutableHashSet<CancellationTokenSource>.Empty;
+        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = [];
 
         /// <summary>
         /// Static gate controlling access to following static fields:
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var telemetry = getTelemetryInfo
                 ? GetTelemetryInfo(analysisResult, analyzers, analyzerToIdMap)
-                : ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)>.Empty;
+                : [];
 
             return new SerializableDiagnosticAnalysisResults(Dehydrate(builderMap, analyzerToIdMap), telemetry);
         }

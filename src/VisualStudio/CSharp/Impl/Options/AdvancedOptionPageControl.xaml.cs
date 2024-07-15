@@ -88,7 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Enable_navigation_to_sourcelink_and_embedded_sources, MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources);
             BindToOption(Enable_navigation_to_decompiled_sources, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             BindToOption(Always_use_default_symbol_servers_for_navigation, MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
-            BindToOption(Navigate_asynchronously_exerimental, FeatureOnOffOptions.NavigateAsynchronously);
 
             // Rename
             BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously);
@@ -217,63 +216,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Customized_Theme_Warning.Visibility = isSupportedTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
             Custom_VS_Theme_Warning.Visibility = isSupportedTheme ? Visibility.Collapsed : Visibility.Visible;
 
-            UpdatePullDiagnosticsOptions();
             UpdateInlineHintsOptions();
 
             base.OnLoad();
-        }
-
-        private void UpdatePullDiagnosticsOptions()
-        {
-            var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode);
-            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
-            AddSearchHandler(Enable_pull_diagnostics_experimental_requires_restart);
-
-            static bool? GetCheckboxValueForDiagnosticMode(DiagnosticMode mode)
-            {
-                return mode switch
-                {
-                    DiagnosticMode.SolutionCrawlerPush => false,
-                    DiagnosticMode.LspPull => true,
-                    DiagnosticMode.Default => null,
-                    _ => throw new System.ArgumentException("unknown diagnostic mode"),
-                };
-            }
-        }
-
-        private void Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            // Three state is only valid for the initial option state (default).  If changed we only
-            // allow the checkbox to be on or off.
-            Enable_pull_diagnostics_experimental_requires_restart.IsThreeState = false;
-            var checkboxValue = Enable_pull_diagnostics_experimental_requires_restart.IsChecked;
-            var newDiagnosticMode = GetDiagnosticModeForCheckboxValue(checkboxValue);
-            if (checkboxValue != null)
-            {
-                // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
-                this.OptionStore.SetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
-            }
-
-            // Update the workspace option.
-            this.OptionStore.SetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, newDiagnosticMode);
-
-            UpdatePullDiagnosticsOptions();
-
-            static DiagnosticMode GetDiagnosticModeForCheckboxValue(bool? checkboxValue)
-            {
-                return checkboxValue switch
-                {
-                    true => DiagnosticMode.LspPull,
-                    false => DiagnosticMode.SolutionCrawlerPush,
-                    null => DiagnosticMode.Default
-                };
-            }
-        }
-
-        private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.Default);
-            UpdatePullDiagnosticsOptions();
         }
 
         private void UpdateInlineHintsOptions()

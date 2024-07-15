@@ -13,34 +13,33 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
+
+/// <summary>
+/// View model used to display a member in MenuItem. Only used when there are multiple members on the same line.
+/// e.g.
+/// interface IBar
+/// {
+///     event EventHandler e1, e2
+/// }
+/// public class Bar : IBar
+/// {
+///    public event EventHandler e1, e2
+/// }
+/// And this view model is used to show the first level entry to let the user choose member.
+/// </summary>
+internal class MemberMenuItemViewModel : MenuItemViewModel
 {
     /// <summary>
-    /// View model used to display a member in MenuItem. Only used when there are multiple members on the same line.
-    /// e.g.
-    /// interface IBar
-    /// {
-    ///     event EventHandler e1, e2
-    /// }
-    /// public class Bar : IBar
-    /// {
-    ///    public event EventHandler e1, e2
-    /// }
-    /// And this view model is used to show the first level entry to let the user choose member.
+    /// Inheritance Targets for this member.
     /// </summary>
-    internal class MemberMenuItemViewModel : MenuItemViewModel
-    {
-        /// <summary>
-        /// Inheritance Targets for this member.
-        /// </summary>
-        public ImmutableArray<MenuItemViewModel> Targets { get; }
+    public ImmutableArray<MenuItemViewModel> Targets { get; }
 
-        public MemberMenuItemViewModel(
-            string displayContent,
-            ImageMoniker imageMoniker,
-            ImmutableArray<MenuItemViewModel> targets) : base(displayContent, imageMoniker)
-        {
-            Targets = targets;
-        }
+    public MemberMenuItemViewModel(
+        string displayContent,
+        ImageMoniker imageMoniker,
+        ImmutableArray<MenuItemViewModel> targets) : base(displayContent, imageMoniker)
+    {
+        Targets = targets;
     }
 }

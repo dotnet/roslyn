@@ -15,51 +15,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class SingleStatementCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
-                    MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
+                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                    MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
-
-                Public Shared Function IsExtractMethodOnSingleStatement(code As SelectionResult) As Boolean
-                    Dim result = DirectCast(code, VisualBasicSelectionResult)
-                    Dim firstStatement = result.GetFirstStatement()
-                    Dim lastStatement = result.GetLastStatement()
-
-                    Return firstStatement Is lastStatement OrElse firstStatement.Span.Contains(lastStatement.Span)
-                End Function
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     ' change this to more smarter one.
                     Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
-                    Dim containingScope = VBSelectionResult.GetContainingScope()
+                    Dim containingScope = Me.SelectionResult.GetContainingScope()
                     Return SyntaxFactory.Identifier(
                         nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
                 Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                    Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(VBSelectionResult))
+                    Contract.ThrowIfFalse(Me.SelectionResult.IsExtractMethodOnSingleStatement())
 
-                    Return ImmutableArray.Create(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
-                End Function
-
-                Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    If callSiteContainer IsNot Nothing Then
-                        Return callSiteContainer
-                    Else
-                        Dim first = VBSelectionResult.GetFirstStatement()
-                        Return first.Parent
-                    End If
+                    Return ImmutableArray.Create(Of StatementSyntax)(Me.SelectionResult.GetFirstStatement())
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return VBSelectionResult.GetFirstStatement()
+                    Return Me.SelectionResult.GetFirstStatement()
                 End Function
 
                 Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                     ' it is a single statement case. either first statement is same as last statement or
                     ' last statement belongs (embedded statement) to the first statement.
-                    Return VBSelectionResult.GetFirstStatement()
+                    Return Me.SelectionResult.GetFirstStatement()
                 End Function
 
                 Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)

@@ -362,22 +362,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int code = this.OriginalDefinition.GetHashCode();
             int containingHashCode;
 
-            if (OriginalDefinition is SynthesizedGlobalMethodSymbol global)
+            // If the containing type of the original definition is the same as our containing type
+            // it's possible that we will compare equal to the original definition under certain conditions 
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
+            // the original definition for the hashcode when we know equality is possible
+            containingHashCode = _containingType.GetHashCode();
+            if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode() &&
+                wasConstructedForAnnotations(this))
             {
-                containingHashCode = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(global.ContainingPrivateImplementationDetailsType);
-            }
-            else
-            {
-                // If the containing type of the original definition is the same as our containing type
-                // it's possible that we will compare equal to the original definition under certain conditions 
-                // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
-                // the original definition for the hashcode when we know equality is possible
-                containingHashCode = _containingType.GetHashCode();
-                if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode() &&
-                    wasConstructedForAnnotations(this))
-                {
-                    return code;
-                }
+                return code;
             }
 
             code = Hash.Combine(containingHashCode, code);
@@ -477,6 +470,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return code;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            return _underlyingMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
     }
 }

@@ -11,22 +11,21 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
-namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
-{
-    [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
-    internal class PropertyDeclarationOrganizer : AbstractSyntaxNodeOrganizer<PropertyDeclarationSyntax>
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PropertyDeclarationOrganizer()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
 
-        protected override PropertyDeclarationSyntax Organize(
-            PropertyDeclarationSyntax syntax,
-            CancellationToken cancellationToken)
-        {
-            return syntax.WithModifiers(ModifiersOrganizer.Organize(syntax.Modifiers));
-        }
+[ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
+internal class PropertyDeclarationOrganizer : AbstractSyntaxNodeOrganizer<PropertyDeclarationSyntax>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PropertyDeclarationOrganizer()
+    {
+    }
+
+    protected override PropertyDeclarationSyntax Organize(
+        PropertyDeclarationSyntax syntax,
+        CancellationToken cancellationToken)
+    {
+        return syntax.WithModifiers(ModifiersOrganizer.Organize(syntax.Modifiers));
     }
 }

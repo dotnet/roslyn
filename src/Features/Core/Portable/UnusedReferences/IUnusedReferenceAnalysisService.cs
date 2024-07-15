@@ -8,25 +8,24 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.UnusedReferences
-{
-    internal interface IUnusedReferenceAnalysisService : IWorkspaceService
-    {
-        Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
-            Solution solution,
-            string projectFilePath,
-            string projectAssetsFilePath,
-            ImmutableArray<ReferenceInfo> projectReferences,
-            CancellationToken cancellationToken);
-    }
+namespace Microsoft.CodeAnalysis.UnusedReferences;
 
-    internal interface IRemoteUnusedReferenceAnalysisService
-    {
-        ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
-            Checksum solutionChecksum,
-            string projectFilePath,
-            string projectAssetsFilePath,
-            ImmutableArray<ReferenceInfo> projectReferences,
-            CancellationToken cancellationToken);
-    }
+internal interface IUnusedReferenceAnalysisService : IWorkspaceService
+{
+    Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
+        Solution solution,
+        string projectFilePath,
+        string projectAssetsFilePath,
+        ImmutableArray<ReferenceInfo> projectReferences,
+        CancellationToken cancellationToken);
+}
+
+internal interface IRemoteUnusedReferenceAnalysisService
+{
+    ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
+        Checksum solutionChecksum,
+        string projectFilePath,
+        string projectAssetsFilePath,
+        ImmutableArray<ReferenceInfo> projectReferences,
+        CancellationToken cancellationToken);
 }

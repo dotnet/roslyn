@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {

@@ -5,27 +5,27 @@
     this target file. The build provenance tools need this to decompile IL for debugging purposes.
   -->
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\runtime.win-x64.microsoft.netcore.ildasm\$(runtimeWinX64MicrosoftNETCoreILDAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(Pkgruntime_win-x64_Microsoft_NETCore_ILDAsm)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.linux-x64.microsoft.netcore.ildasm\$(runtimeLinuxX64MicrosoftNETCoreILDAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(Pkgruntime_linux-x64_Microsoft_NETCore_ILDAsm)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.osx-x64.microsoft.netcore.ildasm\$(runtimeOSXX64MicrosoftNETCoreILDAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(Pkgruntime_osx-x64_Microsoft_NETCore_ILDAsm)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
 
-    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(runtimeWinX64MicrosoftNETCoreILDAsmPackageVersion)" ExcludeAssets="all" />
-    <PackageReference Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(runtimeLinuxX64MicrosoftNETCoreILDAsmPackageVersion)" ExcludeAssets="all" />
-    <PackageReference Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" Version="$(runtimeOSXX64MicrosoftNETCoreILDAsmPackageVersion)" ExcludeAssets="all" />
+    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" GeneratePathProperty="true" ExcludeAssets="all" />
   </ItemGroup>
 </Project>

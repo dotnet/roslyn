@@ -9,19 +9,20 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
@@ -235,7 +236,7 @@ class A
                     {
                         CompletionItem = new CompletionItemSetting
                         {
-                            DocumentationFormat = new MarkupKind[] { MarkupKind.Markdown }
+                            DocumentationFormat = [MarkupKind.Markdown]
                         }
                     }
                 }
@@ -346,6 +347,36 @@ link text";
             Assert.NotNull(results.Description);
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestSemanticSnippetChangeAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using System;
+                public class Program
+                {
+                    {|editRange:svm|}{|caret:|}
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.AlwaysInclude);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, true);
+
+            var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "svm").ConfigureAwait(false);
+
+            Assert.True(clientCompletionItem.VsResolveTextEditOnCommit);
+
+            var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, clientCompletionItem).ConfigureAwait(false);
+
+            Assert.NotNull(results.TextEdit);
+            Assert.Null(results.InsertText);
+            Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
+
+            var editRange = testLspServer.GetLocations("editRange").Single().Range;
+            Assert.Equal(editRange, results.TextEdit.Value.First.Range);
+        }
+
         private static async Task<LSP.CompletionItem> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName,
@@ -395,7 +426,7 @@ link text";
                 };
             }
 
-            expectedCompletionItem.Description = description;
+            expectedCompletionItem.Description = description.ToLSPElement();
             return expectedCompletionItem;
         }
 

@@ -27,164 +27,163 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.VSConstants;
 
-namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
+
+[Guid(Guids.StackTraceExplorerToolWindowIdString)]
+internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
 {
-    [Guid(Guids.StackTraceExplorerToolWindowIdString)]
-    internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
+    private bool _initialized;
+
+    [MemberNotNullWhen(true, nameof(_initialized))]
+    public StackTraceExplorerRoot? Root { get; private set; }
+
+    public StackTraceExplorerToolWindow() : base(null)
     {
-        private bool _initialized;
-
-        [MemberNotNullWhen(true, nameof(_initialized))]
-        public StackTraceExplorerRoot? Root { get; private set; }
-
-        public StackTraceExplorerToolWindow() : base(null)
+        Caption = ServicesVSResources.Stack_Trace_Explorer;
+        var dockPanel = new DockPanel
         {
-            Caption = ServicesVSResources.Stack_Trace_Explorer;
-            var dockPanel = new DockPanel
-            {
-                LastChildFill = true
-            };
+            LastChildFill = true
+        };
 
-            dockPanel.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, (s, e) =>
-            {
-                Root?.ViewModel.DoPasteAsync(default).FileAndForget("StackTraceExplorerPaste");
-            }));
-
-            Content = dockPanel;
-        }
-
-        /// <summary>
-        /// Checks the contents of the clipboard for a valid stack trace and 
-        /// opens stack trace explorer if anything parses correctly
-        /// </summary>
-        public async Task<bool> ShouldShowOnActivatedAsync(CancellationToken cancellationToken)
+        dockPanel.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, (s, e) =>
         {
-            if (Root is null)
-            {
-                return false;
-            }
+            Root?.ViewModel.DoPasteAsync(default).FileAndForget("StackTraceExplorerPaste");
+        }));
 
-            var text = ClipboardHelpers.GetTextNoRetry();
-            if (RoslynString.IsNullOrEmpty(text))
-            {
-                return false;
-            }
+        Content = dockPanel;
+    }
 
-            if (Root.ViewModel.ContainsTab(text))
-            {
-                return false;
-            }
-
-            var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
-            if (result.ParsedFrames.Any(static frame => FrameTriggersActivate(frame)))
-            {
-                await Root.ViewModel.AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
-                return true;
-            }
-
+    /// <summary>
+    /// Checks the contents of the clipboard for a valid stack trace and 
+    /// opens stack trace explorer if anything parses correctly
+    /// </summary>
+    public async Task<bool> ShouldShowOnActivatedAsync(CancellationToken cancellationToken)
+    {
+        if (Root is null)
+        {
             return false;
         }
 
-        private static bool FrameTriggersActivate(ParsedFrame frame)
+        var text = ClipboardHelpers.GetTextNoRetry();
+        if (RoslynString.IsNullOrEmpty(text))
         {
-            if (frame is not ParsedStackFrame parsedFrame)
-            {
-                return false;
-            }
-
-            var methodDeclaration = parsedFrame.Root.MethodDeclaration;
-
-            // Find the first token
-            var firstNodeOrToken = methodDeclaration.ChildAt(0);
-            while (firstNodeOrToken.IsNode)
-            {
-                firstNodeOrToken = firstNodeOrToken.Node.ChildAt(0);
-            }
-
-            if (firstNodeOrToken.Token.LeadingTrivia.IsDefault)
-            {
-                return false;
-            }
-
-            // If the stack frame starts with "at" we consider it a well formed stack frame and 
-            // want to automatically open the window. This helps avoids some false positive cases 
-            // where the window shows on code that parses as a stack frame but may not be. The explorer
-            // should still handle those cases if explicitly pasted in, but can lead to false positives 
-            // when automatically opening.
-            return firstNodeOrToken.Token.LeadingTrivia.Any(static t => t.Kind == StackFrameKind.AtTrivia);
+            return false;
         }
 
-        public void InitializeIfNeeded(RoslynPackage roslynPackage)
+        if (Root.ViewModel.ContainsTab(text))
         {
-            if (_initialized)
-            {
-                return;
-            }
-
-            var workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
-            var formatMapService = roslynPackage.ComponentModel.GetService<IClassificationFormatMapService>();
-            var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
-            var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
-            var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
-            var themingService = roslynPackage.ComponentModel.GetService<IWpfThemeService>();
-
-            Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch
-            };
-
-            var contentRoot = (DockPanel)Content;
-            themingService?.ApplyThemeToElement(contentRoot);
-            contentRoot.Children.Add(Root);
-
-            contentRoot.MouseRightButtonUp += (s, e) =>
-            {
-                var uiShell = roslynPackage.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
-                var relativePoint = e.GetPosition(contentRoot);
-                var screenPosition = contentRoot.PointToScreen(relativePoint);
-
-                var points = new[] {
-                    new POINTS()
-                    {
-                        x = (short)screenPosition.X,
-                        y = (short)screenPosition.Y
-                    }
-                };
-
-                var refCommandId = new Guid(Guids.StackTraceExplorerCommandIdString);
-                var result = uiShell.ShowContextMenu(0, ref refCommandId, 0x0300, points, null);
-                Debug.Assert(result == S_OK);
-            };
-
-            _initialized = true;
+            return false;
         }
 
-        public override void OnToolWindowCreated()
+        var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
+        if (result.ParsedFrames.Any(static frame => FrameTriggersActivate(frame)))
         {
-            // Hide the frame by default when VS starts
-            if (Frame is IVsWindowFrame windowFrame)
-            {
-                windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
-            }
+            await Root.ViewModel.AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
-        int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        return false;
+    }
+
+    private static bool FrameTriggersActivate(ParsedFrame frame)
+    {
+        if (frame is not ParsedStackFrame parsedFrame)
         {
-            if (pguidCmdGroup == GUID_VSStandardCommandSet97)
-            {
-                var command = (VSStd97CmdID)nCmdID;
-                switch (command)
+            return false;
+        }
+
+        var methodDeclaration = parsedFrame.Root.MethodDeclaration;
+
+        // Find the first token
+        var firstNodeOrToken = methodDeclaration.ChildAt(0);
+        while (firstNodeOrToken.IsNode)
+        {
+            firstNodeOrToken = firstNodeOrToken.Node.ChildAt(0);
+        }
+
+        if (firstNodeOrToken.Token.LeadingTrivia.IsDefault)
+        {
+            return false;
+        }
+
+        // If the stack frame starts with "at" we consider it a well formed stack frame and 
+        // want to automatically open the window. This helps avoids some false positive cases 
+        // where the window shows on code that parses as a stack frame but may not be. The explorer
+        // should still handle those cases if explicitly pasted in, but can lead to false positives 
+        // when automatically opening.
+        return firstNodeOrToken.Token.LeadingTrivia.Any(static t => t.Kind == StackFrameKind.AtTrivia);
+    }
+
+    public void InitializeIfNeeded(RoslynPackage roslynPackage)
+    {
+        if (_initialized)
+        {
+            return;
+        }
+
+        var workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
+        var formatMapService = roslynPackage.ComponentModel.GetService<IClassificationFormatMapService>();
+        var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
+        var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
+        var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
+        var themingService = roslynPackage.ComponentModel.GetService<IWpfThemeService>();
+
+        Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch
+        };
+
+        var contentRoot = (DockPanel)Content;
+        themingService?.ApplyThemeToElement(contentRoot);
+        contentRoot.Children.Add(Root);
+
+        contentRoot.MouseRightButtonUp += (s, e) =>
+        {
+            var uiShell = roslynPackage.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
+            var relativePoint = e.GetPosition(contentRoot);
+            var screenPosition = contentRoot.PointToScreen(relativePoint);
+
+            var points = new[] {
+                new POINTS()
                 {
-                    case VSStd97CmdID.Paste:
-                        Root?.ViewModel.DoPasteSynchronously(default);
-                        return S_OK;
+                    x = (short)screenPosition.X,
+                    y = (short)screenPosition.Y
                 }
-            }
+            };
 
-            // Return OLECMDERR_E_UNKNOWNGROUP if we don't handle the command
-            // see https://docs.microsoft.com/en-us/windows/win32/api/docobj/nf-docobj-iolecommandtarget-exec#return-value
-            return -2147221244;
+            var refCommandId = new Guid(Guids.StackTraceExplorerCommandIdString);
+            var result = uiShell.ShowContextMenu(0, ref refCommandId, 0x0300, points, null);
+            Debug.Assert(result == S_OK);
+        };
+
+        _initialized = true;
+    }
+
+    public override void OnToolWindowCreated()
+    {
+        // Hide the frame by default when VS starts
+        if (Frame is IVsWindowFrame windowFrame)
+        {
+            windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
         }
+    }
+
+    int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+    {
+        if (pguidCmdGroup == GUID_VSStandardCommandSet97)
+        {
+            var command = (VSStd97CmdID)nCmdID;
+            switch (command)
+            {
+                case VSStd97CmdID.Paste:
+                    Root?.ViewModel.DoPasteSynchronously(default);
+                    return S_OK;
+            }
+        }
+
+        // Return OLECMDERR_E_UNKNOWNGROUP if we don't handle the command
+        // see https://docs.microsoft.com/en-us/windows/win32/api/docobj/nf-docobj-iolecommandtarget-exec#return-value
+        return -2147221244;
     }
 }

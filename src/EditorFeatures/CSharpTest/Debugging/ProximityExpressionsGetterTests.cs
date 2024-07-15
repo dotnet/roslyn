@@ -72,7 +72,7 @@ namespace ConsoleApplication1
             string markup,
             Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup);
             var testDocument = workspace.Documents.Single();
             var caretPosition = testDocument.CursorPosition.Value;
             var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;

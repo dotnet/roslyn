@@ -1867,6 +1867,86 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Goo()").WithArguments("int", "System.Enum").WithLocation(13, 9));
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70206")]
+        public void DefaultParameterValueWithMethodGroup_01()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+static class Program
+{
+    public static void Evil([DefaultParameterValue(Evil)]) {}
+
+    public static void Main() {}
+}
+";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,52): warning CS8974: Converting method group 'Evil' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Evil").WithArguments("Evil", "object").WithLocation(6, 52),
+                // (6,52): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Evil").WithLocation(6, 52),
+                // (6,58): error CS1031: Type expected
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(6, 58),
+                // (6,58): error CS1001: Identifier expected
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 58)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70206")]
+        public void DefaultParameterValueWithMethodGroup_02()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+static class Program
+{
+    public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+
+    public static void Main() {}
+}
+";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,52): warning CS8974: Converting method group 'Evil' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Evil").WithArguments("Evil", "object").WithLocation(6, 52),
+                // (6,52): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Evil").WithLocation(6, 52),
+                // (6,70): error CS8017: The parameter has multiple distinct default values.
+                //     public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "null").WithLocation(6, 70)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70206")]
+        public void DefaultParameterValueWithMethodGroup_03()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+static class Program
+{
+    public static void Evil([Optional][DefaultParameterValue(nameof(Evil))] string x)
+    {
+        System.Console.WriteLine(x);
+    }
+
+    public static void Main()
+    {
+        Evil();
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "Evil").VerifyDiagnostics();
+        }
+
         #endregion
 
         #region DecimalConstantAttribute
@@ -8128,19 +8208,19 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(
                 // (26,13): warning CS0618: 'Convertible.implicit operator Convertible(int)' is obsolete: 'From int'
                 //             c++;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator Convertible(int)", "From int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator Convertible(int)", "From int").WithLocation(26, 13),
                 // (26,13): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //             c++;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator int(Convertible)", "To int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(26, 13),
                 // (27,13): warning CS0618: 'Convertible.implicit operator Convertible(int)' is obsolete: 'From int'
                 //             c -= 2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator Convertible(int)", "From int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator Convertible(int)", "From int").WithLocation(27, 13),
                 // (27,13): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //             c -= 2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator int(Convertible)", "To int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(27, 13),
                 // (23,9): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //         foreach (int i in new Convertible[1])
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "foreach").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "foreach").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(23, 9));
         }
 
         [Fact]
@@ -9660,6 +9740,8 @@ public class C
                 var param = method.Parameters.Single();
 
                 Assert.True(param.IsParams);
+                Assert.True(param.IsParamsArray);
+                Assert.False(param.IsParamsCollection);
                 Assert.False(param.IsOptional);
                 Assert.False(param.HasExplicitDefaultValue);
             };
@@ -9791,36 +9873,46 @@ class Class6
         }
 
         /// <summary>
-        /// Report warning or error based on last attribute.
+        /// Report warning or error based on first attribute.
         /// </summary>
         [WorkItem(18755, "https://github.com/dotnet/roslyn/issues/18755")]
-        [Fact]
-        public void TestMultipleDeprecatedAttributes()
+        [Theory, CombinatorialData]
+        public void TestMultipleDeprecatedAttributes(bool inSource)
         {
-            var source =
+            var libSrc =
 @"using Windows.Foundation.Metadata;
-class C
+public class C
 {
     [Deprecated(""Removed"", DeprecationType.Remove, 0)]
     [Deprecated(""Deprecated"", DeprecationType.Deprecate, 0)]
-    static void F() { }
+    public static void F() { }
     [Deprecated(""Deprecated"", DeprecationType.Deprecate, 0)]
     [Deprecated(""Removed"", DeprecationType.Remove, 0)]
-    static void G() { }
+    public static void G() { }
+}";
+
+            var src = @"
+class D
+{
     static void Main()
     {
-        F();
-        G();
+        C.F();
+        C.G();
     }
 }";
-            var compilation = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseDll);
+            var compilation = inSource
+               ? CreateEmptyCompilation(new[] { (libSrc, "libSrc"), (src, "src") }, WinRtRefs, TestOptions.ReleaseDll)
+               : CreateEmptyCompilation((src, "src"),
+                    references: WinRtRefs.Append(CreateEmptyCompilation(new[] { libSrc }, WinRtRefs, TestOptions.ReleaseDll).EmitToImageReference()).ToArray(),
+                    TestOptions.ReleaseDll);
+
             compilation.VerifyDiagnostics(
-                // (12,9): warning CS0618: 'C.F()' is obsolete: 'Deprecated'
-                //         F();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F()").WithArguments("C.F()", "Deprecated").WithLocation(12, 9),
-                // (13,9): error CS0619: 'C.G()' is obsolete: 'Removed'
-                //         G();
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "G()").WithArguments("C.G()", "Removed").WithLocation(13, 9));
+                // (6,9): error CS0619: 'C.F()' is obsolete: 'Removed'
+                //         C.F();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.F()").WithArguments("C.F()", "Removed").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.G()' is obsolete: 'Deprecated'
+                //         C.G();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.G()").WithArguments("C.G()", "Deprecated").WithLocation(7, 9));
         }
 
         private const string DeprecatedAttributeSourceTH1 =

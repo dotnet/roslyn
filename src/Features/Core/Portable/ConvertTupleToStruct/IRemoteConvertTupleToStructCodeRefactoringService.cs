@@ -15,48 +15,45 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
+namespace Microsoft.CodeAnalysis.ConvertTupleToStruct;
+
+internal interface IRemoteConvertTupleToStructCodeRefactoringService
 {
-    internal interface IRemoteConvertTupleToStructCodeRefactoringService
+    internal interface ICallback : IRemoteOptionsCallback<CleanCodeGenerationOptions>
     {
-        // TODO https://github.com/microsoft/vs-streamjsonrpc/issues/789 
-        internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
-        {
-            ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
-        }
-
-        ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
-            Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
-            DocumentId documentId,
-            TextSpan span,
-            Scope scope,
-            bool isRecord,
-            CancellationToken cancellationToken);
     }
 
-    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteConvertTupleToStructCodeRefactoringService)), Shared]
-    internal sealed class RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteConvertTupleToStructCodeRefactoringService.ICallback
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher()
-        {
-        }
+    ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
+        Checksum solutionChecksum,
+        RemoteServiceCallbackId callbackId,
+        DocumentId documentId,
+        TextSpan span,
+        Scope scope,
+        bool isRecord,
+        CancellationToken cancellationToken);
+}
 
-        public ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
-            => ((RemoteOptionsProvider<CleanCodeGenerationOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
+[ExportRemoteServiceCallbackDispatcher(typeof(IRemoteConvertTupleToStructCodeRefactoringService)), Shared]
+internal sealed class RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteConvertTupleToStructCodeRefactoringService.ICallback
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoteConvertTupleToStructCodeRefactoringServiceCallbackDispatcher()
+    {
     }
 
-    [DataContract]
-    internal readonly struct SerializableConvertTupleToStructResult(
-        ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
-        (DocumentId, TextSpan) renamedToken)
-    {
-        [DataMember(Order = 0)]
-        public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges = documentTextChanges;
+    public ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+        => ((RemoteOptionsProvider<CleanCodeGenerationOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
+}
 
-        [DataMember(Order = 1)]
-        public readonly (DocumentId, TextSpan) RenamedToken = renamedToken;
-    }
+[DataContract]
+internal readonly struct SerializableConvertTupleToStructResult(
+    ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
+    (DocumentId, TextSpan) renamedToken)
+{
+    [DataMember(Order = 0)]
+    public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges = documentTextChanges;
+
+    [DataMember(Order = 1)]
+    public readonly (DocumentId, TextSpan) RenamedToken = renamedToken;
 }

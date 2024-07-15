@@ -14,9 +14,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-    public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest
+    public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
 
         [Fact]
@@ -1089,6 +1089,29 @@ $@"class C
                     {
                         return ref refClass;
                     }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+        public async Task TestLocalFunctionInField()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+
+                class C
+                {
+                    private Action a = () =>
+                    {
+                        var s = default(S);
+                        SetValue(3);
+                        void [||]SetValue(int value) => s.Value = value;
+                    }
+                }
+                struct S
+                {
+                    public int Value;
                 }
                 """);
         }

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
     </Project>
 </Workspace>
 ";
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();
@@ -74,7 +74,7 @@ file class C
     </Project>
 </Workspace>
 """;
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();
@@ -113,7 +113,7 @@ file class C
     </Project>
 </Workspace>
 """;
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();
@@ -159,7 +159,7 @@ file class C
     </Project>
 </Workspace>
 ";
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();

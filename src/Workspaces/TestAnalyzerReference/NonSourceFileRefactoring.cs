@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 #pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
     [ExportCodeRefactoringProvider(
         LanguageNames.CSharp,
-        DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument) },
-        DocumentExtensions = new[] { ".txt", ".editorconfig" })]
+        DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument)],
+        DocumentExtensions = [".txt", ".editorconfig"])]
     [Shared]
     public sealed class NonSourceFileRefactoring : CodeRefactoringProvider
     {

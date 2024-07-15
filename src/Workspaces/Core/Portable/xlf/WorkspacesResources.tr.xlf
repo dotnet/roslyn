@@ -37,7 +37,7 @@
         <target state="translated">Değişen belge '{0}' desteklenmiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+      <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">'{0}' CodeAction, değiştirilmiş çözüm üretmedi</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
@@ -137,19 +137,9 @@
         <target state="translated">"{0}" sembolü kaynağa ait değil.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T">
-        <source>Documentation comment id must start with E, F, M, N, P or T</source>
-        <target state="translated">Belge açıklaması kimliği E, F, M, N, P veya T ile başlamalıdır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cycle_detected_in_extensions">
         <source>Cycle detected in extensions</source>
         <target state="translated">Uzantılarda döngü algılandı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_is_of_the_wrong_type">
-        <source>Node is of the wrong type.</source>
-        <target state="translated">Düğüm yanlış türde.</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -302,11 +292,6 @@
         <target state="translated">Proje zaten hedef projeye başvuruyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_solution_already_contains_the_specified_document">
-        <source>The solution already contains the specified document.</source>
-        <target state="translated">Çözüm belirtilen belgeyi zaten içeriyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
         <source>Temporary storage cannot be written more than once.</source>
         <target state="translated">Geçici depolamaya birden fazla kez yazılamaz.</target>
@@ -347,21 +332,6 @@
         <target state="translated">Çözümleyici başvurusu çözümlenemiyor: '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_Project">
-        <source>Invalid project block, expected "=" after Project.</source>
-        <target state="translated">Proje bloğu geçersiz, Proje'den sonra "=" bekleniyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_name">
-        <source>Invalid project block, expected "," after project name.</source>
-        <target state="translated">Proje bloğu geçersiz, proje adından sonra "," bekleniyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_path">
-        <source>Invalid project block, expected "," after project path.</source>
-        <target state="translated">Proje bloğu geçersiz, proje yolundan sonra "," bekleniyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expected_0">
         <source>Expected {0}.</source>
         <target state="translated">{0} bekleniyor.</target>
@@ -370,21 +340,6 @@
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
         <source>"{0}" must be a non-null and non-empty string.</source>
         <target state="translated">"{0}" null olmayan ve boş olmayan bir dize olmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_header_colon_0">
-        <source>Expected header: "{0}".</source>
-        <target state="translated">Üst bilgi bekleniyor: "{0}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_end_of_file">
-        <source>Expected end-of-file.</source>
-        <target state="translated">Dosya sonu bekleniyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_0_line">
-        <source>Expected {0} line.</source>
-        <target state="translated">{0} satırı bekleniyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_submission_already_references_another_submission_project">
@@ -402,24 +357,9 @@
         <target state="translated">{0} hala açık.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
-        <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">Birden çok boyutlu diziler seri hale getirilemez.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">Değer, 30 bit işaretsiz tamsayı olarak temsil edilemeyecek kadar büyük.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_path_must_be_absolute">
-        <source>Specified path must be absolute.</source>
-        <target state="translated">Belirtilen yol mutlak olmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_identifier">
-        <source>Unknown identifier.</source>
-        <target state="translated">Bilinmeyen tanıtıcı.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -477,11 +417,6 @@
         <target state="translated">Kaldırıldı:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_CodePage_value_colon_0">
-        <source>Invalid CodePage value: {0}</source>
-        <target state="translated">Geçersiz CodePage değeri: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
         <source>Adding additional documents is not supported.</source>
         <target state="translated">Ek belgelerin eklenmesi desteklenmiyor.</target>
@@ -495,11 +430,6 @@
       <trans-unit id="Adding_documents_is_not_supported">
         <source>Adding documents is not supported.</source>
         <target state="translated">Belgelerin eklenmesi desteklenmiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_metadata_references_is_not_supported">
-        <source>Adding metadata references is not supported.</source>
-        <target state="translated">Meta veri başvurularının eklenmesi desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_references_is_not_supported">
@@ -517,11 +447,6 @@
         <target state="translated">Belgelerin değiştirilmesi desteklenmiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_project_properties_is_not_supported">
-        <source>Changing project properties is not supported.</source>
-        <target state="translated">Proje özelliklerinin değiştirilmesi desteklenmiyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removing_additional_documents_is_not_supported">
         <source>Removing additional documents is not supported.</source>
         <target state="translated">Ek belgelerin kaldırılması desteklenmiyor.</target>
@@ -535,11 +460,6 @@
       <trans-unit id="Removing_documents_is_not_supported">
         <source>Removing documents is not supported.</source>
         <target state="translated">Belgelerin kaldırılması desteklenmiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_metadata_references_is_not_supported">
-        <source>Removing metadata references is not supported.</source>
-        <target state="translated">Meta veri başvurularının kaldırılması desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_references_is_not_supported">
@@ -560,21 +480,6 @@
       <trans-unit id="Diagnostic_must_have_span_0">
         <source>Diagnostic must have span '{0}'</source>
         <target state="translated">Tanı, '{0}' yayılmasına sahip olmalıdır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_deserialize_type_0">
-        <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">'{0}' türü seri durumdan çıkarılamıyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_serialize_type_0">
-        <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">'{0}' türü seri hale getirilemiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
-        <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">'{0}' türü, serileştirme bağlayıcısı tarafından anlaşılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
@@ -675,11 +580,6 @@
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">Akış çok uzun.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
-        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">'{0}' türünün seri durumdan çıkarma okuyucusu, yanlış sayıda değer okudu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

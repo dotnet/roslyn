@@ -685,10 +685,7 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
-            compilation.VerifyDiagnostics(
-                // (10,12): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>' from assembly comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 12));
+            compilation.VerifyEmitDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -8319,15 +8316,15 @@ public class C : CodeAccessSecurityAttribute
                 // (21,14): error CS0534: 'B' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
                 // public class B : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(21, 14),
-                // (16,14): error CS0225: The params parameter must be a single dimensional array
+                // (16,14): error CS0225: The params parameter must have a valid collection type
                 //     public A(params SecurityAction)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(16, 14),
-                // (23,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(16, 14),
+                // (23,22): error CS0225: The params parameter must have a valid collection type
                 //     public B(int p1, params SecurityAction p2)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(23, 22),
-                // (30,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(23, 22),
+                // (30,22): error CS0225: The params parameter must have a valid collection type
                 //     public C(int p1, params SecurityAction p2, string p3)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(30, 22),
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(30, 22),
                 // (7,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 //     [B(p2: SecurityAction.Assert, p1: 0)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "B").WithLocation(7, 6),
@@ -9025,8 +9022,7 @@ public static class Class
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput:
+            CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
 RemoveDetail
@@ -11712,8 +11708,7 @@ public static class Extensions
         throw new NotImplementedException();
 }";
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(code, verify: Verification.FailsILVerify, expectedOutput: @"2");
+            CompileAndVerify(code, expectedOutput: @"2");
         }
 
         [Fact]
@@ -11917,6 +11912,32 @@ class B : A
                 //         F<object>(default);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70659")]
+        public void IsStandardImplicitConversion_NullLiteral()
+        {
+            var source = """
+                class C
+                {
+                    void M(S? s)
+                    {
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+
+                readonly struct S
+                {
+                    public static implicit operator S(bool? x) => default;
+                    public static bool operator ==(S left, S right) => false;
+                    public static bool operator !=(S left, S right) => true;
+                    public override bool Equals(object obj) => false;
+                    public override int GetHashCode() => 0;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }

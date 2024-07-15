@@ -4,9 +4,8 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks
+namespace Microsoft.CodeAnalysis.Shared.TestHooks;
+
+internal interface IAsyncToken : IDisposable
 {
-    internal interface IAsyncToken : IDisposable
-    {
-    }
 }

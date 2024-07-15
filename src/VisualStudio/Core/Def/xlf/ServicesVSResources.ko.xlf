@@ -117,6 +117,11 @@
         <target state="translated">어셈블리</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyNameAndVersionDisplay">
+        <source>{0} ({1})</source>
+        <target state="translated">{0}({1})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">포커스에서 자동으로 스택 추적 탐색기 열기</target>
@@ -155,16 +160,6 @@
       <trans-unit id="Bitness64">
         <source>64-bit</source>
         <target state="translated">64비트</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Build_plus_live_analysis_NuGet_package">
-        <source>Build + live analysis (NuGet package)</source>
-        <target state="translated">빌드 + 실시간 분석(NuGet 패키지)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
-        <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="translated">C#/Visual Basic 진단 언어 클라이언트</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating">
@@ -249,7 +244,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">정의로 축소할 때 로컬 함수 축소</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -377,11 +372,6 @@
         <target state="translated">편집(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_0">
-        <source>Edit {0}</source>
-        <target state="translated">{0} 편집</target>
-        <note>{0} is a parameter description</note>
-      </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
         <target state="translated">편집기 색 구성표</target>
@@ -395,11 +385,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">요소가 잘못되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
-        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Razor '풀' 진단 사용(실험적, 다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
@@ -420,11 +405,6 @@
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
         <target state="translated">Source Link 및 포함된 소스 탐색 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">'풀' 진단 사용(실험적, 다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -465,11 +445,6 @@
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">표시 중지를 업데이트하는 동안 오류가 발생했습니다. {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Evaluating_0_tasks_in_queue">
-        <source>Evaluating ({0} tasks in queue)</source>
-        <target state="translated">평가 중(큐의 {0}개 작업)</target>
         <note />
       </trans-unit>
       <trans-unit id="External_sources">
@@ -582,16 +557,6 @@
         <target state="translated">컨텍스트에서 유추</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexed_in_organization">
-        <source>Indexed in organization</source>
-        <target state="translated">조직에서 인덱싱됨</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indexed_in_repo">
-        <source>Indexed in repo</source>
-        <target state="translated">리포지토리에서 인덱싱됨</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inheritance_Margin">
         <source>Inheritance Margin</source>
         <target state="translated">상속 여백</target>
@@ -602,11 +567,6 @@
         <target state="translated">상속된 인터페이스</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="translated">인라인 진단(실험적)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">인라인 힌트</target>
@@ -615,11 +575,6 @@
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="translated">호출 사이트 값 '{0}'을(를) 삽입하는 중</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
-        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
-        <target state="translated">일반적인 API 디자인, 보안, 성능 및 안정성 문제에 대한 추가 진단 및 수정을 제공하는 Microsoft 권장 Roslyn 분석기를 설치합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
@@ -635,11 +590,6 @@
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
         <target state="translated">잘못된 형식 이름</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Item_origin">
-        <source>Item origin</source>
-        <target state="translated">항목 원본</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_strings">
@@ -662,11 +612,6 @@
         <target state="translated">종류</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_analysis_VSIX_extension">
-        <source>Live analysis (VSIX extension)</source>
-        <target state="translated">실시간 분석(VSIX 확장)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Loaded_items">
         <source>Loaded items</source>
         <target state="translated">로드된 항목</target>
@@ -680,11 +625,6 @@
       <trans-unit id="Local">
         <source>Local</source>
         <target state="translated">로컬</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_metadata">
-        <source>Local metadata</source>
-        <target state="translated">로컬 메타데이터</target>
         <note />
       </trans-unit>
       <trans-unit id="Location">
@@ -1032,11 +972,6 @@
         <target state="translated">패키지</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_Details">
-        <source>Parameter Details</source>
-        <target state="translated">매개 변수 정보</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
         <target state="translated">매개 변수 이름:</target>
@@ -1081,11 +1016,6 @@
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">값을 보고 탐색하려면 스택 추적을 붙여넣습니다.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
-      </trans-unit>
-      <trans-unit id="Paused_0_tasks_in_queue">
-        <source>Paused ({0} tasks in queue)</source>
-        <target state="translated">일시 중지됨(큐의 {0}개 작업)</target>
-        <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
@@ -1212,11 +1142,6 @@
         <target state="translated">정규식</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_All">
-        <source>Remove All</source>
-        <target state="translated">모두 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
         <target state="translated">사용하지 않는 참조 제거</target>
@@ -1315,11 +1240,6 @@
       <trans-unit id="Running_code_analysis_for_Solution">
         <source>Running code analysis for Solution...</source>
         <target state="translated">솔루션에 대한 코드 분석을 실행하는 중...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Running_low_priority_background_processes">
-        <source>Running low priority background processes</source>
-        <target state="translated">낮은 우선 순위 백그라운드 프로세스 실행 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -1442,11 +1362,6 @@
         <target state="translated">색 구성표의 일부 색이 [환경] &gt; [글꼴 및 색] 옵션 페이지에서 변경한 내용에 따라 재정의됩니다. 모든 사용자 지정을 되돌리려면 [글꼴 및 색] 페이지에서 '기본값 사용'을 선택하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Using 정렬</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
         <target state="translated">스택 추적</target>
@@ -1499,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
         <source>'System.Void' is not a valid type for a parameter</source>
-        <target state="translated">'System.Void' 매개 변수에 올바른 형식이 아닙니다.</target>
+        <target state="translated">'System.Void'는 매개 변수에 유효한 형식이 아닙니다.</target>
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -1682,6 +1597,16 @@
         <target state="translated">이 작업 영역은 Visual Basic 컴파일 옵션 업데이트를 지원하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_types_exactly_match">
+        <source>When types exactly match</source>
+        <target state="translated">형식이 정확히 일치하는 경우</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_loosely_match">
+        <source>When types loosely match</source>
+        <target state="translated">형식이 느슨하게 일치하는 경우</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">
         <source>Where should the rename UI be shown?</source>
         <target state="translated">이름 바꾸기 UI는 어디에 표시되어야 하나요?</target>
@@ -1762,11 +1687,6 @@
         <target state="translated">상속</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">상속 대상</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">구현</target>
@@ -1775,16 +1695,6 @@
       <trans-unit id="Implemented_By">
         <source>Implemented By</source>
         <target state="translated">구현자</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Maximum_number_of_documents_are_open">
-        <source>Maximum number of documents are open.</source>
-        <target state="translated">최대 수의 문서가 열려 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_create_document_in_miscellaneous_files_project">
-        <source>Failed to create document in miscellaneous files project.</source>
-        <target state="translated">기타 파일 프로젝트에 문서를 만들지 못했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_access">
@@ -2019,16 +1929,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">분석기 어셈블리 '{0}'이(가) 변경되었습니다. Visual Studio를 다시 시작할 때까지 진단이 올바르지 않을 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Diagnostics_Table_Data_Source">
-        <source>C#/VB Diagnostics Table Data Source</source>
-        <target state="translated">C#/VB 진단 테이블 데이터 원본</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_VB_Todo_List_Table_Data_Source">
-        <source>C#/VB Todo List Table Data Source</source>
-        <target state="translated">C#/VB 할일 목록 테이블 데이터 원본</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cancel">
         <source>Cancel</source>
         <target state="translated">취소</target>
@@ -2179,11 +2079,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">{0}에 대한 추가 정보</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigation_must_be_performed_on_the_foreground_thread">
-        <source>Navigation must be performed on the foreground thread.</source>
-        <target state="translated">탐색은 포그라운드 스레드에서 수행해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="bracket_plus_bracket">
         <source>[+] </source>
         <target state="translated">[+] </target>
@@ -2217,11 +2112,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="AnalyzerDependencyConflict">
         <source>AnalyzerDependencyConflict</source>
         <target state="translated">AnalyzerDependencyConflict</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
-        <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
-        <target state="translated">'{0}' 및 '{1}' 분석기 어셈블리의 ID는 '{2}'(으)로 동일하지만 콘텐츠가 다릅니다. 둘 중 하나만 로드되며 이러한 어셈블리를 사용하는 분석기는 제대로 실행되지 않을 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -2269,19 +2159,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Build_Table_Data_Source">
-        <source>C#/VB Build Table Data Source</source>
-        <target state="translated">C#/VB 빌드 테이블 데이터 원본</target>
-        <note />
-      </trans-unit>
       <trans-unit id="MissingAnalyzerReference">
         <source>MissingAnalyzerReference</source>
         <target state="translated">MissingAnalyzerReference</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
-        <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
-        <target state="translated">분석기 어셈블리 '{0}'은(는) 찾을 수 없는 '{1}'에 종속됩니다. 없는 어셈블리가 분석기 참조로 추가되지 않으면 분석기가 올바르게 실행되지 않을 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_diagnostics">
@@ -2324,11 +2204,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">이 작업 영역은 Visual Basic 구문 분석 옵션 업데이트를 지원하지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Synchronize_0">
-        <source>Synchronize {0}</source>
-        <target state="translated">{0} 동기화</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Synchronizing_with_0">
         <source>Synchronizing with {0}...</source>
         <target state="translated">{0}과(와) 동기화하는 중...</target>
@@ -2369,24 +2244,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">예</target>
         <note />
       </trans-unit>
-      <trans-unit id="Choose_a_Symbol_Specification_and_a_Naming_Style">
-        <source>Choose a Symbol Specification and a Naming Style.</source>
-        <target state="translated">기호 사양 및 명명 스타일을 선택하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Naming_Rule">
-        <source>Enter a title for this Naming Rule.</source>
-        <target state="translated">이 명명 규칙의 제목을 입력하세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">이 명명 스타일의 제목을 입력하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Symbol_Specification">
-        <source>Enter a title for this Symbol Specification.</source>
-        <target state="translated">이 기호 사양의 제목을 입력하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Accessibilities_can_match_any">
@@ -2424,19 +2284,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">파스칼식 대/소문자 이름</target>
         <note />
       </trans-unit>
-      <trans-unit id="Severity_colon">
-        <source>Severity:</source>
-        <target state="translated">심각도:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifiers_must_match_all">
         <source>Modifiers (must match all)</source>
         <target state="translated">한정자(모두와 일치해야 함)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_colon2">
-        <source>Name:</source>
-        <target state="translated">이름:</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Rule">
@@ -2449,29 +2299,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">명명 스타일</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_Style_colon">
-        <source>Naming Style:</source>
-        <target state="translated">명명 스타일:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
-        <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
-        <target state="translated">명명 규칙을 사용하여 특정 기호 집합의 이름을 지정하는 방법과 이름이 잘못 지정된 기호를 처리하는 방법을 정의할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
-        <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
-        <target state="translated">기호 이름을 지정할 때는 기본적으로 첫 번째 일치하는 최상위 명명 규칙이 사용되지만, 특별한 경우는 일치하는 자식 규칙으로 처리됩니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Naming_Style_Title_colon">
         <source>Naming Style Title:</source>
         <target state="translated">명명 스타일 제목:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parent_Rule_colon">
-        <source>Parent Rule:</source>
-        <target state="translated">부모 규칙:</target>
         <note />
       </trans-unit>
       <trans-unit id="Required_Prefix_colon">
@@ -2497,11 +2327,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="Symbol_Specification">
         <source>Symbol Specification</source>
         <target state="translated">기호 사양</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Specification_colon">
-        <source>Symbol Specification:</source>
-        <target state="translated">기호 사양:</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Specification_Title_colon">
@@ -2547,37 +2372,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="Package_uninstall_failed_colon_0">
         <source>Package uninstall failed: {0}</source>
         <target state="translated">패키지 제거 실패: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled">
-        <source>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</source>
-        <target state="translated">프로젝트를 로드하는 동안 오류가 발생했습니다. 실패한 프로젝트 및 이 프로젝트에 종속된 프로젝트에 대한 전체 솔루션 분석과 같은 일부 프로젝트 기능을 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Project_loading_failed">
-        <source>Project loading failed.</source>
-        <target state="translated">프로젝트를 로드하지 못했습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows">
-        <source>To see what caused the issue, please try below.
-
-1. Close Visual Studio
-2. Open a Visual Studio Developer Command Prompt
-3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
-4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment variable (devenv)
-6. Open the solution
-7. Check '{0}' and look for the failed tasks (FAILED)</source>
-        <target state="translated">이 문제를 일으킨 원인을 확인하려면 다음을 시도하세요.
-
-1. Visual Studio를 닫습니다.
-2. Visual Studio 개발자 명령 프롬프트를 엽니다.
-3. 환경 변수 "TraceDesignTime"을 true로 설정합니다(set TraceDesignTime=true).
-4. .vs 디렉터리/.suo 파일을 삭제합니다.
-5. 환경 변수(devenv)를 설정한 명령 프롬프트에서 VS를 다시 시작합니다.
-6. 솔루션을 엽니다.
-7. '{0}'을(를) 확인하고 실패한 작업(FAILED)을 찾습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_information_colon">
@@ -2696,11 +2490,6 @@ Additional information: {1}</source>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">코드 수준 구문에 대한 가이드 표시</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
-        <source>Show guides for comments and preprocessor regions</source>
-        <target state="translated">설명 및 전처리기 영역에 대한 가이드 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_declaration_level_constructs">
@@ -2923,16 +2712,6 @@ Additional information: {1}</source>
         <target state="translated">멤버 선택</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_a_symbol_specification">
-        <source>Add a symbol specification</source>
-        <target state="translated">기호 사양 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_symbol_specification">
-        <source>Remove symbol specification</source>
-        <target state="translated">기호 사양 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_item">
         <source>Add item</source>
         <target state="translated">항목 추가</target>
@@ -3053,11 +2832,6 @@ Additional information: {1}</source>
         <target state="translated">자동 속성 선호</target>
         <note />
       </trans-unit>
-      <trans-unit id="ModuleHasBeenUnloaded">
-        <source>Module has been unloaded.</source>
-        <target state="translated">모듈이 언로드되었습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
         <target state="translated">디컴파일된 원본으로의 이동을 사용하도록 설정</target>
@@ -3071,11 +2845,6 @@ Additional information: {1}</source>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">클래스 뷰 동기화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzing_0">
-        <source>Analyzing '{0}'</source>
-        <target state="translated">'{0}' 분석 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_naming_styles">

@@ -716,6 +716,16 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        protected static T GetSyntax<T>(SyntaxTree tree, string text)
+        {
+            return GetSyntaxes<T>(tree, text).Single();
+        }
+
+        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<T>().Where(e => e.ToString() == text);
+        }
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);

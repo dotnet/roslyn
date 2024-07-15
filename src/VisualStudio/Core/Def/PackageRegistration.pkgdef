@@ -34,7 +34,7 @@
 // Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
 [$RootKey$\FeatureFlags\Lsp\PullDiagnostics]
 "Description"="Enables the LSP-powered diagnostics for managed .Net projects"
-"Value"=dword:00000000
+"Value"=dword:00000001
 
 // The option page configuration is duplicated in RoslynPackage
 // [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]

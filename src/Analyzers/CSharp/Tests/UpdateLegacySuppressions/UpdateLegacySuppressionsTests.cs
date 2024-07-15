@@ -39,47 +39,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppression
         [Theory]
         public async Task LegacySuppressions(string scope, string target, string fixedTarget)
         {
-            var input = $@"
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""Id: Title"", Scope = ""{scope}"", Target = {{|#0:""{target}""|}})]
+            var input = $$"""
+                [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = {|#0:"{{target}}"|})]
 
-namespace N
-{{
-    class C
-    {{
-        private int F;
-        public int P {{ get; set; }}
-        public void M() {{ }}
-        public int M2<T>(T t) => 0;
-        public event System.EventHandler<int> E;
+                namespace N
+                {
+                    class C
+                    {
+                        private int F;
+                        public int P { get; set; }
+                        public void M() { }
+                        public int M2<T>(T t) => 0;
+                        public event System.EventHandler<int> E;
 
-        class D
-        {{
-        }}
-    }}
-}}";
+                        class D
+                        {
+                        }
+                    }
+                }
+                """;
 
             var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
                                         .WithLocation(0)
                                         .WithArguments(target);
 
-            var fixedCode = $@"
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""Id: Title"", Scope = ""{scope}"", Target = ""{fixedTarget}"")]
+            var fixedCode = $$"""
+                [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = "{{fixedTarget}}")]
 
-namespace N
-{{
-    class C
-    {{
-        private int F;
-        public int P {{ get; set; }}
-        public void M() {{ }}
-        public int M2<T>(T t) => 0;
-        public event System.EventHandler<int> E;
+                namespace N
+                {
+                    class C
+                    {
+                        private int F;
+                        public int P { get; set; }
+                        public void M() { }
+                        public int M2<T>(T t) => 0;
+                        public event System.EventHandler<int> E;
 
-        class D
-        {{
-        }}
-    }}
-}}";
+                        class D
+                        {
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyCodeFixAsync(input, expectedDiagnostic, fixedCode);
         }
     }

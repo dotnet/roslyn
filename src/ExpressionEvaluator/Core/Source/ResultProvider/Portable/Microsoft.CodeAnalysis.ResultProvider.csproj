@@ -52,6 +52,9 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
+      <Link>Compiler\Symbols\CommonGeneratedNames.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Xml\XmlCharType.cs">
       <Link>Compiler\Xml\XmlCharType.cs</Link>
     </Compile>
@@ -76,9 +79,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" />
+    <PackageReference Include="System.Memory" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
 </Project>

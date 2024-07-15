@@ -227,21 +227,6 @@
         <target state="translated">Introduit une opération de conversion de type qui ne lève pas d'exception. En cas d'échec d'une tentative de conversion, TryCast retourne Nothing, qui peut être testé par votre programme.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Le nœud ne provient pas de la racine.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Le nœud ne figure pas dans la liste des enfants du parent</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia non associé au jeton</target>
-        <note />
-      </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
         <target state="translated">&lt;typeOrMember&gt;</target>

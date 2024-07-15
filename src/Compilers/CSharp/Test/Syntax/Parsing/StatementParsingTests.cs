@@ -2515,38 +2515,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(36413, "https://github.com/dotnet/roslyn/issues/36413")]
         public void TestUsingVarWithInvalidDeclaration()
         {
-            var text = "using public readonly var a = b;";
-            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+            UsingStatement("using public readonly var a = b;", TestOptions.Regular8,
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using public readonly var a = b;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "public").WithLocation(1, 7),
+                // (1,14): error CS9229: Modifiers cannot be placed on using declarations
+                // using public readonly var a = b;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 14));
 
-            Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
-            Assert.Equal(text, statement.ToString());
-            Assert.Equal(2, statement.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[0].Code);
-            Assert.Equal("public", statement.Errors()[0].Arguments[0]);
-            Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[1].Code);
-            Assert.Equal("readonly", statement.Errors()[1].Arguments[0]);
-
-            var us = (LocalDeclarationStatementSyntax)statement;
-            Assert.NotEqual(default, us.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
-
-            Assert.NotNull(us.Declaration);
-            Assert.NotNull(us.Declaration.Type);
-            Assert.Equal("var", us.Declaration.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
-            Assert.Equal(2, us.Modifiers.Count);
-            Assert.Equal("public", us.Modifiers[0].ToString());
-            Assert.Equal("readonly", us.Modifiers[1].ToString());
-            Assert.Equal(1, us.Declaration.Variables.Count);
-            Assert.NotEqual(default, us.Declaration.Variables[0].Identifier);
-            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
-            Assert.Null(us.Declaration.Variables[0].ArgumentList);
-            Assert.NotNull(us.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(default, us.Declaration.Variables[0].Initializer.EqualsToken);
-            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.ReadOnlyKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -3286,9 +3289,9 @@ class C
         public void TestUsingVarReadonlyMultipleDeclarations()
         {
             UsingStatement("using readonly var x, y = ref z;", TestOptions.Regular8,
-                // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using readonly var x, y = ref z;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);

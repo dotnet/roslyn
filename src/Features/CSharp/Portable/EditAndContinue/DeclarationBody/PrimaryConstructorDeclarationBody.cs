@@ -24,6 +24,9 @@ internal abstract class PrimaryConstructorDeclarationBody(TypeDeclarationSyntax 
     public sealed override OneOrMany<SyntaxNode> RootNodes
         => OneOrMany.Create(InitializerActiveStatement);
 
+    public sealed override SyntaxNode? ParameterClosure
+        => typeDeclaration;
+
     public sealed override TextSpan Envelope
         => InitializerActiveStatementSpan;
 }

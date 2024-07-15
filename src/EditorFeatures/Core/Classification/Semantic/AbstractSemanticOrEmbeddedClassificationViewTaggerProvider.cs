@@ -35,7 +35,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
     // We want to track text changes so that we can try to only reclassify a method body if
     // all edits were contained within one.
     protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-    protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(SemanticColorizerOptionsStorage.SemanticColorizer);
+    protected sealed override ImmutableArray<IOption2> Options { get; } = [SemanticColorizerOptionsStorage.SemanticColorizer];
 
     protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
         IThreadingContext threadingContext,
@@ -59,13 +59,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
 
         // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
         // SemanticChange notification. 
-        // 
-        // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
-        // semantics (esp. during solution load).  Because of this, we also register to hear when the full
-        // compilation is available so that reclassify and bring ourselves up to date.
-        return new CompilationAvailableTaggerEventSource(
-            subjectBuffer,
-            AsyncListener,
+        return TaggerEventSources.Compose(
             TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
             TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
             TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),

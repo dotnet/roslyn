@@ -7,10 +7,9 @@
 using System;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface INavigationBarControllerFactoryService
 {
-    internal interface INavigationBarControllerFactoryService
-    {
-        IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer);
-    }
+    IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer);
 }

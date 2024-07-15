@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-    public class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3);

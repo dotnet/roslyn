@@ -7,15 +7,21 @@
     <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
     <NoWarn>$(NoWarn),CA2007</NoWarn>
+    <!-- Xunit analyzer doesn't recognize benchmark attributes -->
+    <NoWarn>$(NoWarn),xUnit1013</NoWarn>
     <UseWpf>true</UseWpf>
+    <!-- This project is not a test project in context of how this repo views test projects.
+         Marking it as such will change TFMs, bring in additional targets, and generally fail to build.
+         However, it is a 'test' type project and depends on other test utility projects that may be built in
+         every build invocation. For intance, when building officially in the VMR, test and test utility projects are excluded.
+         So, when test projects are excluded, exclude this benchmark project.
+         See https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md for information
+         on controls. -->
+    <ExcludeFromDotNetBuild Condition="'$(DotNetBuildTests)' != 'true'">true</ExcludeFromDotNetBuild>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetDiagnosticsWindowsVersion)" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

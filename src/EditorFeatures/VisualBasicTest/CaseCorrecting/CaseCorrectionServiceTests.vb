@@ -24,12 +24,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Shared Async Function TestAsync(input As String, expected As String) As Tasks.Task
-            Using workspace = TestWorkspace.CreateVisualBasic(input)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function
 
-        Private Shared Async Function TestAsync(expected As String, workspace As TestWorkspace) As Task
+        Private Shared Async Function TestAsync(expected As String, workspace As EditorTestWorkspace) As Task
             Dim hostDocument = workspace.Documents.First()
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Shared Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
-            Using workspace = TestWorkspace.Create(input)
+            Using workspace = EditorTestWorkspace.Create(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function

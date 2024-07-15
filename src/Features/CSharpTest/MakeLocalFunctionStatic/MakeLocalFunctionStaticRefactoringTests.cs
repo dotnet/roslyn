@@ -14,9 +14,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionTest
+    public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new MakeLocalFunctionStaticCodeRefactoringProvider();
 
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);

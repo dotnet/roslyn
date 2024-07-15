@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, composition:=Composition)
+            Dim workspace = EditorTestWorkspace.Create(definition, composition:=Composition)
 
             Dim result As CodeModelTestState = Nothing
             Try

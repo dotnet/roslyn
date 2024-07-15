@@ -130,16 +130,6 @@ JSON 文字列のエディター機能の検出と提供;
         <target state="translated">Visual Basic ツール</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">空の Visual Basic スクリプト ファイル。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic スクリプト</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

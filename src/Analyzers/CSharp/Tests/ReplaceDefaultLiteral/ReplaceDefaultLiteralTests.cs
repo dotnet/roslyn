@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDefaultLiteral)]
-    public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public ReplaceDefaultLiteralTests(ITestOutputHelper logger)
             : base(logger)
@@ -211,13 +211,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         public async Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType(string expression)
         {
             await TestMissingWithLanguageVersionsAsync(
-$@"class C
-{{
-    void M()
-    {{
-        switch ({expression}) {{ case [||]default: }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        switch ({{expression}}) { case [||]default: }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Fact]
@@ -372,13 +374,15 @@ $@"class C
         public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType(string expression)
         {
             await TestMissingWithLanguageVersionsAsync(
-$@"class C
-{{
-    void M()
-    {{
-        switch ({expression}) {{ case [||]default when true: }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        switch ({{expression}}) { case [||]default when true: }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Fact]
@@ -492,20 +496,24 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_BuiltInType(string type, string expectedLiteral)
         {
             await TestWithLanguageVersionsAsync(
-$@"class C
-{{
-    void M({type} value)
-    {{
-        if (value is [||]default) {{ }}
-    }}
-}}",
-$@"class C
-{{
-    void M({type} value)
-    {{
-        if (value is {expectedLiteral}) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    void M({{type}} value)
+                    {
+                        if (value is [||]default) { }
+                    }
+                }
+                """,
+                $$"""
+                class C
+                {
+                    void M({{type}} value)
+                    {
+                        if (value is {{expectedLiteral}}) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Fact]
@@ -565,22 +573,26 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_CustomReferenceType(string typeDeclaration)
         {
             await TestWithLanguageVersionsAsync(
-$@"class C
-{{
-    {typeDeclaration}
-    void M()
-    {{
-        if (new Type() is [||]default) {{ }}
-    }}
-}}",
-$@"class C
-{{
-    {typeDeclaration}
-    void M()
-    {{
-        if (new Type() is null) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    {{typeDeclaration}}
+                    void M()
+                    {
+                        if (new Type() is [||]default) { }
+                    }
+                }
+                """,
+                $$"""
+                class C
+                {
+                    {{typeDeclaration}}
+                    void M()
+                    {
+                        if (new Type() is null) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Theory]
@@ -593,22 +605,26 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_CustomEnum_WithoutSpecialMember(string enumDeclaration)
         {
             await TestWithLanguageVersionsAsync(
-$@"class C
-{{
-    {enumDeclaration}
-    void M()
-    {{
-        if (new Enum() is [||]default) {{ }}
-    }}
-}}",
-$@"class C
-{{
-    {enumDeclaration}
-    void M()
-    {{
-        if (new Enum() is 0) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    {{enumDeclaration}}
+                    void M()
+                    {
+                        if (new Enum() is [||]default) { }
+                    }
+                }
+                """,
+                $$"""
+                class C
+                {
+                    {{enumDeclaration}}
+                    void M()
+                    {
+                        if (new Enum() is 0) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Theory]
@@ -626,22 +642,26 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_CustomEnum_WithSpecialMember(string enumDeclaration)
         {
             await TestWithLanguageVersionsAsync(
-$@"class C
-{{
-    {enumDeclaration}
-    void M()
-    {{
-        if (new Enum() is [||]default) {{ }}
-    }}
-}}",
-$@"class C
-{{
-    {enumDeclaration}
-    void M()
-    {{
-        if (new Enum() is Enum.None) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    {{enumDeclaration}}
+                    void M()
+                    {
+                        if (new Enum() is [||]default) { }
+                    }
+                }
+                """,
+                $$"""
+                class C
+                {
+                    {{enumDeclaration}}
+                    void M()
+                    {
+                        if (new Enum() is Enum.None) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Fact]
@@ -702,24 +722,28 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_CustomReferenceTypeOfAnonymousType(string typeDeclaration)
         {
             await TestWithLanguageVersionsAsync(
-$@"class C
-{{
-    {typeDeclaration}
-    Container<T> ToContainer<T>(T value) => new Container<T>();
-    void M()
-    {{
-        if (ToContainer(new {{ x = 0 }}) is [||]default) {{ }}
-    }}
-}}",
-$@"class C
-{{
-    {typeDeclaration}
-    Container<T> ToContainer<T>(T value) => new Container<T>();
-    void M()
-    {{
-        if (ToContainer(new {{ x = 0 }}) is null) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    {{typeDeclaration}}
+                    Container<T> ToContainer<T>(T value) => new Container<T>();
+                    void M()
+                    {
+                        if (ToContainer(new { x = 0 }) is [||]default) { }
+                    }
+                }
+                """,
+                $$"""
+                class C
+                {
+                    {{typeDeclaration}}
+                    Container<T> ToContainer<T>(T value) => new Container<T>();
+                    void M()
+                    {
+                        if (ToContainer(new { x = 0 }) is null) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Fact]
@@ -746,20 +770,24 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified(string @namespace, string type, string member)
         {
             await TestWithLanguageVersionsAsync(
-$@"class C
-{{
-    void M()
-    {{
-        if (default({@namespace}.{type}) is [||]default) {{ }}
-    }}
-}}",
-$@"class C
-{{
-    void M()
-    {{
-        if (default({@namespace}.{type}) is {@namespace}.{type}.{member}) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        if (default({{@namespace}}.{{type}}) is [||]default) { }
+                    }
+                }
+                """,
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        if (default({{@namespace}}.{{type}}) is {{@namespace}}.{{type}}.{{member}}) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Theory]
@@ -769,22 +797,26 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing(string @namespace, string type, string member)
         {
             await TestWithLanguageVersionsAsync(
-$@"using {@namespace};
-class C
-{{
-    void M()
-    {{
-        if (default({type}) is [||]default) {{ }}
-    }}
-}}",
-$@"using {@namespace};
-class C
-{{
-    void M()
-    {{
-        if (default({type}) is {type}.{member}) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                using {{@namespace}};
+                class C
+                {
+                    void M()
+                    {
+                        if (default({{type}}) is [||]default) { }
+                    }
+                }
+                """,
+                $$"""
+                using {{@namespace}};
+                class C
+                {
+                    void M()
+                    {
+                        if (default({{type}}) is {{type}}.{{member}}) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Theory]
@@ -794,13 +826,15 @@ class C
         public async Task TestCSharp7_1_InIsPattern_NotForSpecialTypeUnqualifiedWithoutUsing(string type)
         {
             await TestMissingWithLanguageVersionsAsync(
-$@"class C
-{{
-    void M()
-    {{
-        if (default({type}) is [||]default) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        if (default({{type}}) is [||]default) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Fact]
@@ -827,14 +861,16 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2(string expression)
         {
             await TestMissingWithLanguageVersionsAsync(
-$@"class C
-{{
-    void M()
-    {{ 
-        var value = {expression};
-        if (value is [||]default) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    void M()
+                    { 
+                        var value = {{expression}};
+                        if (value is [||]default) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Theory]
@@ -846,13 +882,15 @@ $@"class C
         public async Task TestCSharp7_1_InIsPattern_NotForInvalidType3(string expression)
         {
             await TestMissingWithLanguageVersionsAsync(
-$@"class C
-{{
-    void M()
-    {{
-        if ({expression} is [||]default) {{ }}
-    }}
-}}", s_csharp7_1above);
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        if ({{expression}} is [||]default) { }
+                    }
+                }
+                """, s_csharp7_1above);
         }
 
         [Fact]

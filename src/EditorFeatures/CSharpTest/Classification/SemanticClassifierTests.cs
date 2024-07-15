@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -31,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
-            return await GetSemanticClassificationsAsync(document, span);
+            return await GetSemanticClassificationsAsync(document, spans);
         }
 
         [Theory, CombinatorialData]
@@ -2241,7 +2239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 }
                 """,
                 testHost,
-                Class("var"));
+                Keyword("var"));
         }
 
         [Theory, WorkItem(9513, "DevDiv_Projects/Roslyn")]
@@ -2691,40 +2689,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Method("nameof"));
         }
 
-        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
-        public async Task TestCreateWithBufferNotInWorkspace()
-        {
-            // don't crash
-            using var workspace = TestWorkspace.CreateCSharp("");
-            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
-
-            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
-            var contentType = contentTypeService.GetDefaultContentType();
-            var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
-
-            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
-            using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-
-            var provider = new SemanticClassificationViewTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ClassificationTypeMap>(),
-                globalOptions,
-                visibilityTracker: null,
-                listenerProvider);
-
-            using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
-            using (var edit = extraBuffer.CreateEdit())
-            {
-                edit.Insert(0, "class A { }");
-                edit.Apply();
-            }
-
-            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.ExpeditedWaitAsync();
-        }
-
         [Theory, CombinatorialData]
         public async Task Tuples(TestHost testHost)
         {
@@ -2913,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -2958,7 +2922,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -2999,7 +2963,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -3050,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -3269,7 +3233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]
@@ -3314,7 +3278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]
@@ -3355,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]
@@ -3406,7 +3370,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]
@@ -3934,6 +3898,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Method("M"),
                 Method("staticLocalFunction"),
                 Static("staticLocalFunction"));
+        }
+
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
+        public async Task TestCreateWithBufferNotInWorkspace()
+        {
+            // don't crash
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
+
+            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
+            var contentType = contentTypeService.GetDefaultContentType();
+            var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
+
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
+            using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var provider = new SemanticClassificationViewTaggerProvider(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
+                visibilityTracker: null,
+                listenerProvider);
+
+            using var tagger = provider.CreateTagger(disposableView.TextView, extraBuffer);
+            using (var edit = extraBuffer.CreateEdit())
+            {
+                edit.Insert(0, "class A { }");
+                edit.Apply();
+            }
+
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.ExpeditedWaitAsync();
         }
     }
 }

@@ -4,137 +4,172 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
-        : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+    public CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer()
+        : base(
+            IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
+            EnforceOnBuildValues.RemoveRedundantNullableDirective,
+            option: null,
+            fadingOption: null,
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_redundant_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_redundant), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {
-        public CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer()
-            : base(
-                IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
-                EnforceOnBuildValues.RemoveRedundantNullableDirective,
-                option: null,
-                fadingOption: null,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_redundant_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_redundant), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+    }
+
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+    protected override void InitializeWorker(AnalysisContext context)
+        => context.RegisterCompilationStartAction(context =>
         {
+            var compilation = (CSharpCompilation)context.Compilation;
+            if (compilation.LanguageVersion < LanguageVersion.CSharp8)
+            {
+                // Compilation does not support nullable directives
+                return;
+            }
+
+            var compilationOptions = compilation.Options;
+            context.RegisterSyntaxTreeAction(context => ProcessSyntaxTree(compilationOptions, context));
+        });
+
+    private void ProcessSyntaxTree(
+        CSharpCompilationOptions compilationOptions,
+        SyntaxTreeAnalysisContext context)
+    {
+        if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
+            return;
+
+        var root = context.GetAnalysisRoot(findInTrivia: true);
+
+        // Bail out if the root contains no nullable directives.
+        if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
+            return;
+
+        var defaultNullableContext = compilationOptions.NullableContextOptions;
+        NullableContextOptions? currentState = context.Tree.IsGeneratedCode(context.Options, CSharpSyntaxFacts.Instance, context.CancellationToken)
+            ? NullableContextOptions.Disable
+            : defaultNullableContext;
+
+        using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+        var stack = pooledStack.Object;
+
+        stack.Push(root);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            if (!current.ContainsDirectives)
+                continue;
+
+            if (current.IsNode)
+            {
+                // Add the nodes in reverse so we continue walking in a depth-first fashion.
+                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                    stack.Push(child);
+            }
+            else if (current.IsToken)
+            {
+                foreach (var trivia in current.AsToken().LeadingTrivia)
+                    ProcessTrivia(trivia);
+            }
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+        return;
 
-        protected override void InitializeWorker(AnalysisContext context)
+        void ProcessTrivia(SyntaxTrivia trivia)
         {
-            context.RegisterCompilationStartAction(context =>
+            if (!trivia.IsDirective)
+                return;
+
+            var directive = trivia.GetStructure()!;
+            switch (directive.Kind())
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp8)
-                {
-                    // Compilation does not support nullable directives
-                    return;
-                }
-
-                var defaultNullableContext = ((CSharpCompilation)context.Compilation).Options.NullableContextOptions;
-                context.RegisterSyntaxTreeAction(context =>
-                {
-                    var root = context.GetAnalysisRoot(findInTrivia: true);
-
-                    // Bail out if the root contains no nullable directives.
-                    if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
-                        return;
-
-                    var initialState = context.Tree.IsGeneratedCode(context.Options, CSharpSyntaxFacts.Instance, context.CancellationToken)
-                        ? NullableContextOptions.Disable
-                        : defaultNullableContext;
-
-                    NullableContextOptions? currentState = initialState;
-                    for (var directive = root.GetFirstDirective(); directive is not null; directive = directive.GetNextDirective())
+                case SyntaxKind.NullableDirectiveTrivia:
                     {
-                        if (directive.DirectiveNameToken.IsKind(SyntaxKind.NullableKeyword))
-                        {
-                            var newState = GetNullableContextOptions(defaultNullableContext, currentState, (NullableDirectiveTriviaSyntax)directive);
-                            if (newState == currentState)
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, directive.GetLocation()));
+                        // Report if the nullable directive puts us in the same state we're already in.
+                        var newState = GetNullableContextOptions(defaultNullableContext, currentState, (NullableDirectiveTriviaSyntax)directive);
+                        if (newState == currentState)
+                            context.ReportDiagnostic(Diagnostic.Create(Descriptor, directive.GetLocation()));
 
-                            currentState = newState;
-                        }
-                        else if (directive.DirectiveNameToken.Kind() is
-                            SyntaxKind.IfKeyword or
-                            SyntaxKind.ElifKeyword or
-                            SyntaxKind.ElseKeyword or
-                            SyntaxKind.EndIfKeyword)
-                        {
-                            // Reset the known nullable state when crossing a conditional compilation boundary
-                            currentState = null;
-                        }
+                        currentState = newState;
+                        return;
                     }
-                });
-            });
+
+                case SyntaxKind.IfDirectiveTrivia or
+                     SyntaxKind.ElifDirectiveTrivia or
+                     SyntaxKind.ElseDirectiveTrivia or
+                     SyntaxKind.EndIfDirectiveTrivia:
+                    // Reset the known nullable state when crossing a conditional compilation boundary
+                    currentState = null;
+                    return;
+            }
         }
+    }
 
-        internal static NullableContextOptions? GetNullableContextOptions(NullableContextOptions compilationOptions, NullableContextOptions? options, NullableDirectiveTriviaSyntax directive)
+    internal static NullableContextOptions? GetNullableContextOptions(NullableContextOptions compilationOptions, NullableContextOptions? options, NullableDirectiveTriviaSyntax directive)
+    {
+        if (!directive.TargetToken.IsKind(SyntaxKind.None))
         {
-            if (!directive.TargetToken.IsKind(SyntaxKind.None))
+            if (options is not { } knownState)
             {
-                if (options is not { } knownState)
-                {
-                    return null;
-                }
-
-                NullableContextOptions flagToChange;
-                if (directive.TargetToken.IsKind(SyntaxKind.AnnotationsKeyword))
-                {
-                    flagToChange = NullableContextOptions.Annotations;
-                }
-                else if (directive.TargetToken.IsKind(SyntaxKind.WarningsKeyword))
-                {
-                    flagToChange = NullableContextOptions.Warnings;
-                }
-                else
-                {
-                    return null;
-                }
-
-                if (directive.SettingToken.IsKind(SyntaxKind.EnableKeyword))
-                {
-                    return knownState | flagToChange;
-                }
-                else if (directive.SettingToken.IsKind(SyntaxKind.DisableKeyword))
-                {
-                    return knownState & (~flagToChange);
-                }
-                else
-                {
-                    return null;
-                }
+                return null;
             }
 
-            if (directive.SettingToken.IsKind(SyntaxKind.EnableKeyword))
+            NullableContextOptions flagToChange;
+            if (directive.TargetToken.IsKind(SyntaxKind.AnnotationsKeyword))
             {
-                return NullableContextOptions.Annotations | NullableContextOptions.Warnings;
+                flagToChange = NullableContextOptions.Annotations;
             }
-            else if (directive.SettingToken.IsKind(SyntaxKind.DisableKeyword))
+            else if (directive.TargetToken.IsKind(SyntaxKind.WarningsKeyword))
             {
-                return NullableContextOptions.Disable;
-            }
-            else if (directive.SettingToken.IsKind(SyntaxKind.RestoreKeyword))
-            {
-                return compilationOptions;
+                flagToChange = NullableContextOptions.Warnings;
             }
             else
             {
                 return null;
             }
+
+            if (directive.SettingToken.IsKind(SyntaxKind.EnableKeyword))
+            {
+                return knownState | flagToChange;
+            }
+            else if (directive.SettingToken.IsKind(SyntaxKind.DisableKeyword))
+            {
+                return knownState & (~flagToChange);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        if (directive.SettingToken.IsKind(SyntaxKind.EnableKeyword))
+        {
+            return NullableContextOptions.Annotations | NullableContextOptions.Warnings;
+        }
+        else if (directive.SettingToken.IsKind(SyntaxKind.DisableKeyword))
+        {
+            return NullableContextOptions.Disable;
+        }
+        else if (directive.SettingToken.IsKind(SyntaxKind.RestoreKeyword))
+        {
+            return compilationOptions;
+        }
+        else
+        {
+            return null;
         }
     }
 }

@@ -43,6 +43,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteStackTraceExplorerService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnitTestingSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnitTestingSearchService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SourceGeneration" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSourceGenerationService+Factory" />
   </ItemGroup>
 
   <!--

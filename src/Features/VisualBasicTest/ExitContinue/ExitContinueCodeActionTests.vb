@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitContinue
     <Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
     Public Class ExitContinueCodeActionTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New IncorrectExitContinueCodeFixProvider())

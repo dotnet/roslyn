@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
 
             Dim qualifiedName = SyntaxFactory.QualifiedName(left:=SyntaxFactory.ParseName(containerName), right:=newName).
                 WithLeadingTrivia(leadingTrivia).
-                WithAdditionalAnnotations(Formatter.Annotation, CaseCorrector.Annotation)
+                WithAdditionalAnnotations(CaseCorrector.Annotation)
 
             Dim tree = simpleName.SyntaxTree
             Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)

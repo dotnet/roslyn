@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -255,6 +256,188 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
             errors = trivia[0].Errors();
             Assert.Equal(1, errors.Length);
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineCommentOnOneLine_Razor()
+        {
+            var text = "@* comment *@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineCommentOnMultipleLines_Razor()
+        {
+            var text =
+@"@* 
+ comment 
+ on many lines
+*@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineXmlCommentOnMultipleLines_Razor()
+        {
+            var text =
+@"@** 
+ xml comment 
+ on many lines
+**@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_Razor_01()
+        {
+            var text = "@* comment";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_Razor_02()
+        {
+            var text = "@*@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_WrongTerminator_Razor_01()
+        {
+            var text = "@* comment */";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_WrongTerminator_Razor_02()
+        {
+            var text = "/* comment *@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Theory]
+        [InlineData('/', '@')]
+        [InlineData('@', '/')]
+        public void TestMixedMultiLineCommentTerminators_01(char outsideDelimiter, char insideDelimiter)
+        {
+            var text = $"{outsideDelimiter}* *{insideDelimiter} *{outsideDelimiter}";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            if (outsideDelimiter == '@')
+            {
+                errors.Verify(
+                    // error CS1056: Unexpected character '@'
+                    TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            }
+            else
+            {
+                errors.Verify();
+            }
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
         }
 
         [Fact]
@@ -816,6 +999,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
+        public void TestStringLiteralWithEscape_CSharp12()
+        {
+            var text = """
+                "\e"
+                """;
+            var value = "\u001b";
+            var token = LexToken(text, TestOptions.Regular12);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestStringLiteralWithEscape_Preview()
+        {
+            var text = """
+                "\e"
+                """;
+            var value = "\u001b";
+            var token = LexToken(text, TestOptions.RegularNext);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimStringLiteralWithEscape()
+        {
+            var text = """
+                @"\e"
+                """;
+            var value = @"\e";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
         public void TestCharacterLiteral()
         {
             var value = "x";
@@ -933,6 +1171,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var value = "\v";
             var text = "'\\v'";
             var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestCharacterLiteralEscape_E_CSharp12()
+        {
+            var value = "\u001b";
+            var text = "'\\e'";
+            var token = LexToken(text, TestOptions.Regular12);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestCharacterLiteralEscape_E_CSharpPreview()
+        {
+            var value = "\u001b";
+            var text = "'\\e'";
+            var token = LexToken(text, TestOptions.RegularNext);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());

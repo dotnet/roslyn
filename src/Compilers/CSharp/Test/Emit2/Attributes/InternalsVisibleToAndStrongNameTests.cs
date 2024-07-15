@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -115,7 +116,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyFileAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyFileAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -209,8 +210,11 @@ public class Test
             var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
-            compilation.VerifyEmitDiagnostics();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
+                compilation.VerifyEmitDiagnostics();
+            }
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]
@@ -258,7 +262,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyNameAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyNameAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -2795,7 +2799,7 @@ class B
             {
                 var assembly = module.ContainingAssembly;
                 Assert.NotNull(assembly);
-                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(assembly, AttributeDescription.InternalsVisibleToAttribute)));
+                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute)));
             });
         }
 

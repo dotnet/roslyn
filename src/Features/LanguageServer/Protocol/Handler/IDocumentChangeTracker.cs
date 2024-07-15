@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 

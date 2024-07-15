@@ -19,82 +19,81 @@ using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.InheritanceMargin
+namespace Microsoft.CodeAnalysis.InheritanceMargin;
+
+using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
+
+internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
 {
-    using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
+    /// <summary>
+    /// Given the syntax nodes to search,
+    /// get all the method, event, property and type declaration syntax nodes.
+    /// </summary>
+    protected abstract ImmutableArray<SyntaxNode> GetMembers(IEnumerable<SyntaxNode> nodesToSearch);
 
-    internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
+    /// <summary>
+    /// Get the token that represents declaration node.
+    /// e.g. Identifier for method/property/event and this keyword for indexer.
+    /// </summary>
+    protected abstract SyntaxToken GetDeclarationToken(SyntaxNode declarationNode);
+
+    protected abstract string GlobalImportsTitle { get; }
+
+    public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemsAsync(
+        Document document,
+        TextSpan spanToSearch,
+        bool includeGlobalImports,
+        bool frozenPartialSemantics,
+        CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// Given the syntax nodes to search,
-        /// get all the method, event, property and type declaration syntax nodes.
-        /// </summary>
-        protected abstract ImmutableArray<SyntaxNode> GetMembers(IEnumerable<SyntaxNode> nodesToSearch);
-
-        /// <summary>
-        /// Get the token that represents declaration node.
-        /// e.g. Identifier for method/property/event and this keyword for indexer.
-        /// </summary>
-        protected abstract SyntaxToken GetDeclarationToken(SyntaxNode declarationNode);
-
-        protected abstract string GlobalImportsTitle { get; }
-
-        public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemsAsync(
-            Document document,
-            TextSpan spanToSearch,
-            bool includeGlobalImports,
-            bool frozenPartialSemantics,
-            CancellationToken cancellationToken)
+        var solution = document.Project.Solution;
+        var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (remoteClient != null)
         {
-            var solution = document.Project.Solution;
-            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-            if (remoteClient != null)
-            {
-                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
-                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
-                // accurate results in the future because taggers are set to recompute when compilations are fully
-                // available on the OOP side.
-                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) =>
-                        service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: frozenPartialSemantics, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+            // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
+            // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
+            // accurate results in the future because taggers are set to recompute when compilations are fully
+            // available on the OOP side.
+            var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
+                solution,
+                (service, solutionInfo, cancellationToken) =>
+                    service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: frozenPartialSemantics, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<InheritanceMarginItem>.Empty;
-                }
-
-                return result.Value;
-            }
-            else
+            if (!result.HasValue)
             {
-                return await GetInheritanceMarginItemsInProcessAsync(
-                    document,
-                    spanToSearch,
-                    includeGlobalImports: includeGlobalImports,
-                    frozenPartialSemantics: frozenPartialSemantics,
-                    cancellationToken).ConfigureAwait(false);
+                return [];
             }
+
+            return result.Value;
+        }
+        else
+        {
+            return await GetInheritanceMarginItemsInProcessAsync(
+                document,
+                spanToSearch,
+                includeGlobalImports: includeGlobalImports,
+                frozenPartialSemantics: frozenPartialSemantics,
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static bool CanHaveInheritanceTarget(ISymbol symbol)
+    {
+        if (symbol is INamedTypeSymbol namedType)
+        {
+            return !symbol.IsStatic && namedType.TypeKind is TypeKind.Interface or TypeKind.Class or TypeKind.Struct;
         }
 
-        private static bool CanHaveInheritanceTarget(ISymbol symbol)
+        if (symbol is IEventSymbol or IPropertySymbol
+            or IMethodSymbol
+            {
+                MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.UserDefinedOperator or MethodKind.Conversion
+            })
         {
-            if (symbol is INamedTypeSymbol namedType)
-            {
-                return !symbol.IsStatic && namedType.TypeKind is TypeKind.Interface or TypeKind.Class or TypeKind.Struct;
-            }
-
-            if (symbol is IEventSymbol or IPropertySymbol
-                or IMethodSymbol
-                {
-                    MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.UserDefinedOperator or MethodKind.Conversion
-                })
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
+
+        return false;
     }
 }

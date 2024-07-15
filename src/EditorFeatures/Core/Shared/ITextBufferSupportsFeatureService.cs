@@ -6,13 +6,12 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared
+namespace Microsoft.CodeAnalysis.Editor.Shared;
+
+internal interface ITextBufferSupportsFeatureService : IWorkspaceService
 {
-    internal interface ITextBufferSupportsFeatureService : IWorkspaceService
-    {
-        bool SupportsCodeFixes(ITextBuffer textBuffer);
-        bool SupportsRefactorings(ITextBuffer textBuffer);
-        bool SupportsRename(ITextBuffer textBuffer);
-        bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer);
-    }
+    bool SupportsCodeFixes(ITextBuffer textBuffer);
+    bool SupportsRefactorings(ITextBuffer textBuffer);
+    bool SupportsRename(ITextBuffer textBuffer);
+    bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer);
 }

@@ -9,17 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
-{
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FixFormatting), Shared]
-    internal class CSharpFormattingCodeFixProvider : AbstractFormattingCodeFixProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFormattingCodeFixProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CodeStyle;
 
-        protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FixFormatting), Shared]
+internal class CSharpFormattingCodeFixProvider : AbstractFormattingCodeFixProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpFormattingCodeFixProvider()
+    {
     }
+
+    protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
 }

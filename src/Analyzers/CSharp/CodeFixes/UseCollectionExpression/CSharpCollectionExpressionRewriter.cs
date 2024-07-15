@@ -90,7 +90,24 @@ internal static class CSharpCollectionExpressionRewriter
             // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
             // fresh collection expression, and replace the object entirely.
 
-            if (makeMultiLineCollectionExpression)
+            if (matches is [{ Node: ExpressionSyntax expression } match])
+            {
+                // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
+                // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
+                // behavior.  In particular, we do not want to generate something like:
+                //
+                //  [
+                //      .. x.y,
+                //  ]
+                //
+                // For that sort of case.  Single element collections should stay closely associated with the original
+                // expression.
+                return CollectionExpression([
+                    match.UseSpread
+                        ? SpreadElement(expression.WithoutTrivia())
+                        : ExpressionElement(expression.WithoutTrivia())]).WithTriviaFrom(expressionToReplace);
+            }
+            else if (makeMultiLineCollectionExpression)
             {
                 // Slightly difficult case.  We're replacing `new List<int>();` with a fresh, multi-line collection
                 // expression.  To figure out what to do here, we need to figure out where the braces *and* elements
@@ -101,7 +118,7 @@ internal static class CSharpCollectionExpressionRewriter
                 var initializer = InitializerExpression(
                     SyntaxKind.CollectionInitializerExpression,
                     Token(SyntaxKind.OpenBraceToken).WithAdditionalAnnotations(openBraceTokenAnnotation),
-                    SingletonSeparatedList<ExpressionSyntax>(LiteralExpression(SyntaxKind.NullLiteralExpression, Token(SyntaxKind.NullKeyword).WithAdditionalAnnotations(nullTokenAnnotation))),
+                    [LiteralExpression(SyntaxKind.NullLiteralExpression, Token(SyntaxKind.NullKeyword).WithAdditionalAnnotations(nullTokenAnnotation))],
                     Token(SyntaxKind.CloseBraceToken));
 
                 // Update the doc with the new object (now with initializer).
@@ -407,8 +424,27 @@ internal static class CSharpCollectionExpressionRewriter
 
                 Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
 
-                foreach (var expression in expressions)
-                    yield return CreateCollectionElement(match.UseSpread, expression);
+                if (match.UseSpread && expressions is [CollectionExpressionSyntax collectionExpression])
+                {
+                    // If we're spreading a collection expression, just insert those inner collection expression
+                    // elements as is into the outer collection expression.
+                    foreach (var element in collectionExpression.Elements)
+                    {
+                        if (element is SpreadElementSyntax spreadElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: true, spreadElement.Expression);
+                        }
+                        else if (element is ExpressionElementSyntax expressionElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: false, expressionElement.Expression);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var expression in expressions)
+                        yield return CreateCollectionElement(match.UseSpread, expression);
+                }
             }
             else if (node is ForEachStatementSyntax foreachStatement)
             {
@@ -427,8 +463,8 @@ internal static class CSharpCollectionExpressionRewriter
                     // Create: `x ? [y] : []` for `if (x) collection.Add(y)`
                     var expression = ConditionalExpression(
                         condition,
-                        CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
-                            ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null)))),
+                        CollectionExpression([
+                            ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null))]),
                         CollectionExpression());
                     yield return CreateCollectionElement(match.UseSpread, expression);
                 }
@@ -728,7 +764,7 @@ internal static class CSharpCollectionExpressionRewriter
         static ImmutableArray<ExpressionSyntax> ConvertAssignment(
             AssignmentExpressionSyntax assignment, Func<ExpressionSyntax, ExpressionSyntax> indent)
         {
-            return ImmutableArray.Create(indent(assignment.Right));
+            return [indent(assignment.Right)];
         }
 
         static ImmutableArray<ExpressionSyntax> ConvertInvocation(

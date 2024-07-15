@@ -7,20 +7,19 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
+namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment;
+
+[ExportLanguageService(typeof(ISplitCommentService), LanguageNames.CSharp), Shared]
+internal class CSharpSplitCommentService : ISplitCommentService
 {
-    [ExportLanguageService(typeof(ISplitCommentService), LanguageNames.CSharp), Shared]
-    internal class CSharpSplitCommentService : ISplitCommentService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSplitCommentService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSplitCommentService()
-        {
-        }
-
-        public string CommentStart => "//";
-
-        public bool IsAllowed(SyntaxNode root, SyntaxTrivia trivia)
-            => true;
     }
+
+    public string CommentStart => "//";
+
+    public bool IsAllowed(SyntaxNode root, SyntaxTrivia trivia)
+        => true;
 }

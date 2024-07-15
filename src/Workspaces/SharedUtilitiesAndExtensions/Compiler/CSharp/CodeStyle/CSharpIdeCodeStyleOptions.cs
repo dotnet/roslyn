@@ -15,18 +15,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 [DataContract]
 internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatable<CSharpIdeCodeStyleOptions>
 {
-    private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault = ImmutableArray.Create(
-        SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
+    private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault =
+    [
+        SyntaxKind.PublicKeyword,
+        SyntaxKind.PrivateKeyword,
+        SyntaxKind.ProtectedKeyword,
+        SyntaxKind.InternalKeyword,
         SyntaxKind.FileKeyword,
         SyntaxKind.StaticKeyword,
         SyntaxKind.ExternKeyword,
         SyntaxKind.NewKeyword,
-        SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
+        SyntaxKind.VirtualKeyword,
+        SyntaxKind.AbstractKeyword,
+        SyntaxKind.SealedKeyword,
+        SyntaxKind.OverrideKeyword,
         SyntaxKind.ReadOnlyKeyword,
         SyntaxKind.UnsafeKeyword,
         SyntaxKind.RequiredKeyword,
         SyntaxKind.VolatileKeyword,
-        SyntaxKind.AsyncKeyword);
+        SyntaxKind.AsyncKeyword,
+    ];
 
     private static readonly CodeStyleOption2<UnusedValuePreference> s_discardVariableWithSilentEnforcement =
         new(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent);

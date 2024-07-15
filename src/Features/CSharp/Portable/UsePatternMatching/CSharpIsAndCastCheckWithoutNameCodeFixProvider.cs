@@ -20,53 +20,52 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
+namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternMatchingIsAndCastCheckWithoutName), Shared]
+internal partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternMatchingIsAndCastCheckWithoutName), Shared]
-    internal partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpIsAndCastCheckWithoutNameCodeFixProvider()
+        : base(supportsFixAll: false)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpIsAndCastCheckWithoutNameCodeFixProvider()
-            : base(supportsFixAll: false)
-        {
-        }
+    }
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId);
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId];
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CSharpAnalyzersResources.Use_pattern_matching,
-                    GetDocumentUpdater(context),
-                    nameof(CSharpAnalyzersResources.Use_pattern_matching),
-                    CodeActionPriority.Low),
-                context.Diagnostics);
-            return Task.CompletedTask;
-        }
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                CSharpAnalyzersResources.Use_pattern_matching,
+                GetDocumentUpdater(context),
+                nameof(CSharpAnalyzersResources.Use_pattern_matching),
+                CodeActionPriority.Low),
+            context.Diagnostics);
+        return Task.CompletedTask;
+    }
 
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            Debug.Assert(diagnostics.Length == 1);
-            var location = diagnostics[0].Location;
-            var isExpression = (BinaryExpressionSyntax)location.FindNode(
-                getInnermostNodeForTie: true, cancellationToken: cancellationToken);
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        Debug.Assert(diagnostics.Length == 1);
+        var location = diagnostics[0].Location;
+        var isExpression = (BinaryExpressionSyntax)location.FindNode(
+            getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();
 
-            var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.AnalyzeExpression(
-                semanticModel, isExpression, expressionTypeOpt, cancellationToken);
+        var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.AnalyzeExpression(
+            semanticModel, isExpression, expressionTypeOpt, cancellationToken);
 
-            var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.ReplaceMatches(
-                semanticModel, isExpression, localName, matches, cancellationToken);
+        var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.ReplaceMatches(
+            semanticModel, isExpression, localName, matches, cancellationToken);
 
-            var updatedRoot = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
-            editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
-        }
+        var updatedRoot = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
+        editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
     }
 }

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (length == 0)
                 return;
 
-            if (sourceArray.SyncRoot == destinationArray.SyncRoot
+            if (SegmentedCollectionsMarshal.AsSegments(sourceArray) == SegmentedCollectionsMarshal.AsSegments(destinationArray)
                 && sourceIndex + length > destinationIndex)
             {
                 // We are copying in the same array with overlap
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public AlignedSegmentEnumerator<T> GetEnumerator()
-                => new((T[][])_first.SyncRoot, _firstOffset, (T[][])_second.SyncRoot, _secondOffset, _length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_first), _firstOffset, SegmentedCollectionsMarshal.AsSegments(_second), _secondOffset, _length);
         }
 
         private struct AlignedSegmentEnumerator<T>
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public UnalignedSegmentEnumerator<T> GetEnumerator()
-                => new((T[][])_first.SyncRoot, _firstOffset, (T[][])_second.SyncRoot, _secondOffset, _length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_first), _firstOffset, SegmentedCollectionsMarshal.AsSegments(_second), _secondOffset, _length);
 
             public ReverseEnumerable Reverse()
                 => new(this);
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 public UnalignedSegmentEnumerator<T>.Reverse GetEnumerator()
-                => new((T[][])_enumerable._first.SyncRoot, _enumerable._firstOffset, (T[][])_enumerable._second.SyncRoot, _enumerable._secondOffset, _enumerable._length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_enumerable._first), _enumerable._firstOffset, SegmentedCollectionsMarshal.AsSegments(_enumerable._second), _enumerable._secondOffset, _enumerable._length);
 
                 public UnalignedSegmentEnumerable<T> Reverse()
                     => _enumerable;
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public SegmentEnumerator<T> GetEnumerator()
-                => new((T[][])_array.SyncRoot, _offset, _length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_array), _offset, _length);
 
             public ReverseEnumerable Reverse()
                 => new(this);
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 public SegmentEnumerator<T>.Reverse GetEnumerator()
-                    => new((T[][])_enumerable._array.SyncRoot, _enumerable._offset, _enumerable._length);
+                    => new(SegmentedCollectionsMarshal.AsSegments(_enumerable._array), _enumerable._offset, _enumerable._length);
 
                 public SegmentEnumerable<T> Reverse()
                     => _enumerable;

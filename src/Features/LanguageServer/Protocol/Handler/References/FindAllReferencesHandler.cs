@@ -7,6 +7,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,9 +15,9 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -65,7 +66,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 progress, workspace, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
-            await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);
+            var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
+            await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, classificationOptions, cancellationToken).ConfigureAwait(false);
             await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
 
             return progress.GetFlattenedValues();

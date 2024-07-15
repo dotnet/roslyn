@@ -42,9 +42,9 @@
         <target state="translated">Zaman Uyumsuz Alt Yap</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Gereksiz İçeri Aktarmaları Kaldır</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="translated">Gereksiz içeri aktarmaları kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

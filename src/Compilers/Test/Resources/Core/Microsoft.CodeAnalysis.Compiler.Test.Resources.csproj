@@ -10,7 +10,8 @@
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Compiler.Test.Resources</PackageId>
     <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
-    <NoWarn>NU5100,NU5106,CS1591</NoWarn>
+    <NoWarn>$(NoWarn),NU5100,NU5106,CS1591</NoWarn>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />

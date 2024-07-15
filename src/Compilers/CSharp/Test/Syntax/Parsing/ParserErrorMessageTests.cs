@@ -6735,7 +6735,7 @@ class Program
                 builder.AppendLine("}, u = 0");
             }
 
-            builder.Append(@"}");
+            builder.Append('}');
 
             var expr = SyntaxFactory.ParseExpression(builder.ToString());
             var actualErrors = expr.GetDiagnostics().ToArray();
@@ -6762,7 +6762,7 @@ class Program
                 builder.AppendLine("}, u = 0");
             }
 
-            builder.Append(@"}");
+            builder.Append('}');
 
             var stmt = SyntaxFactory.ParseStatement(builder.ToString());
             var actualErrors = stmt.GetDiagnostics().ToArray();

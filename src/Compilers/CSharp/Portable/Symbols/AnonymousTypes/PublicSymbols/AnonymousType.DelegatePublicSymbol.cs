@@ -16,9 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private ImmutableArray<Symbol> _lazyMembers;
 
-            internal AnonymousDelegatePublicSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr) :
+            /// <summary>
+            /// This member does not participate in equality because it is not reflecting any semantic aspect of the symbol.
+            /// It is only used to determine if we need to check for <see cref="MessageID.IDS_FeatureParamsCollections"/>
+            /// feature availability, which happens if this field is set to 'true'. 
+            /// If in the process of merging equivalent types, the one with 'false' wins over the one with 'true',
+            /// that is fine, because that means that the feature availability check is performed on a
+            /// method declared in this compilation.
+            /// </summary>
+            internal readonly bool CheckParamsCollectionsFeatureAvailability;
+
+            internal AnonymousDelegatePublicSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr, bool checkParamsCollectionsFeatureAvailability) :
                 base(manager, typeDescr)
             {
+                CheckParamsCollectionsFeatureAvailability = checkParamsCollectionsFeatureAvailability;
             }
 
             internal override NamedTypeSymbol MapToImplementationSymbol()
@@ -30,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeDescr = TypeDescriptor.SubstituteTypes(map, out bool changed);
                 return changed ?
-                    new AnonymousDelegatePublicSymbol(Manager, typeDescr) :
+                    new AnonymousDelegatePublicSymbol(Manager, typeDescr, CheckParamsCollectionsFeatureAvailability) :
                     this;
             }
 

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer</RootNamespace>
-    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetVSShared);netstandard2.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Language Server Protocol.
@@ -15,16 +15,11 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-    <ProjectReference Include="..\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="StreamJsonRpc" />
+    <PackageReference Include="ICSharpCode.Decompiler" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,12 +33,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Xaml" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
@@ -60,7 +57,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
@@ -69,11 +65,22 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="AnalyzerRunner" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.Example" />
+    <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Protocol\.editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
@@ -82,18 +89,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="LanguageServerResources.Designer.cs">
+    <Compile Update="LanguageServerProtocolResources.Designer.cs">
+      <DependentUpon>LanguageServerProtocolResources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>LanguageServerResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.LanguageServer">
+    <EmbeddedResource Update="LanguageServerProtocolResources.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>LanguageServerProtocolResources.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>LanguageServerResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Import Project="..\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems" Label="Shared" />
 
 </Project>

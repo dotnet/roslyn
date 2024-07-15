@@ -4,45 +4,76 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynBuildHostNetCoreVersion);net472</TargetFrameworks>
     <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
     <UseAppHost>false</UseAppHost>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
     <SelfContained>false</SelfContained>
+    <!-- We don't ship a regular NuGet package for this (it gets included in the Workspaces.MSBuild package directly), but we still need to publish symbols -->
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <!-- Explicitly mark ourselves as AnyCPU; if we don't do this, since this project is an executable targeting net472, the SDK has logic that assumes we're targeting Windows
+         and will explicitly provide a RuntimeIdentifier for us which will target win7-x86. This then causes PlatformTarget to be set to x86, which
+         in turn causes our NuGet PackageId (set by IsSymbolPublishingPackage above) to be set to a different name only the net472 variant. This mismatched PackageId
+         can then break the NuGet tooling which assumes the package will have a single PackageId across all TFMs.
+
+         Although we could change the logic in IsSymbolPublishingPackage to ignore that PlatformTarget, it seems more robust to explicitly be AnyCPU so we don't get
+         a RuntimeIdentifier given to us, since we really don't want to accidentally pick up platform specific binaries since we also have to run on Mono.
+         -->
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
-      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonFixedVersion)" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
-    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
+    <!-- We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible net6.0. The version targeted is only used for build time, since
+         we use MSBuildLocator to discover the proper version at runtime. -->
+    <PackageReference Include="Microsoft.Build" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.4" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
+    <PackageReference Include="System.Text.Json" VersionOverride="8.0.4" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <Aliases>global,workspaces</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerFeatureRequiredAttribute.cs" Link="Utilities\CompilerFeatureRequiredAttribute.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\RequiredMemberAttribute.cs" Link="Utilities\RequiredMemberAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="WorkspaceMSBuildResources.resx" GenerateSource="true" />
-  </ItemGroup>
+  
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Rpc\Readme.md" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
+  </ItemGroup>
+
+  <!--
+    This target is used by Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj to copy the .deps.json file into its BuildHost subfolder.
+    The .deps.json file is required for the BuildHost to resolve assemblies using the directory as a binding path
+    -->
+  <Target Name="GetProjectDepsJsonFile" Returns="@(ProjectDepsJsonFile)">
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <ProjectDepsJsonFile Include="$(ProjectDepsFilePath)">
+        <TargetPath>$(ProjectDepsFileName)</TargetPath>
+      </ProjectDepsJsonFile>
+    </ItemGroup>
+  </Target>
 </Project>

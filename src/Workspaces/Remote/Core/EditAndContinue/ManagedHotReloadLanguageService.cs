@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Contracts.Client;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,14 +15,17 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Export(typeof(IManagedHotReloadLanguageService))]
-internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ManagedHotReloadLanguageService(
+    IServiceBrokerProvider serviceBrokerProvider,
+    IEditAndContinueService encService,
+    SolutionSnapshotRegistry solutionSnapshotRegistry) : IManagedHotReloadLanguageService
 {
     private sealed class PdbMatchingSourceTextProvider : IPdbMatchingSourceTextProvider
     {
@@ -35,28 +39,13 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
     private static readonly ActiveStatementSpanProvider s_emptyActiveStatementProvider =
         (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-    private readonly IManagedHotReloadService _debuggerService;
-    private readonly ISolutionSnapshotProvider _solutionSnapshotProvider;
-    private readonly IEditAndContinueService _encService;
-    private readonly SolutionSnapshotRegistry _solutionSnapshotRegistry;
+    private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBrokerProvider.ServiceBroker);
+    private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBrokerProvider.ServiceBroker);
 
     private bool _disabled;
     private DebuggingSessionId? _debuggingSession;
     private Solution? _committedDesignTimeSolution;
     private Solution? _pendingUpdatedDesignTimeSolution;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ManagedHotReloadLanguageService(
-        [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
-        IEditAndContinueService encService,
-        SolutionSnapshotRegistry registry)
-    {
-        _debuggerService = new ManagedHotReloadServiceProxy(serviceBroker);
-        _solutionSnapshotProvider = new SolutionSnapshotProviderProxy(serviceBroker);
-        _encService = encService;
-        _solutionSnapshotRegistry = registry;
-    }
 
     private void Disable()
     {
@@ -64,7 +53,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         _debuggingSession = null;
         _committedDesignTimeSolution = null;
         _pendingUpdatedDesignTimeSolution = null;
-        _solutionSnapshotRegistry.Clear();
+        solutionSnapshotRegistry.Clear();
     }
 
     private async ValueTask<Solution> GetCurrentDesignTimeSolutionAsync(CancellationToken cancellationToken)
@@ -74,7 +63,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         // Once complete the snapshot should be registered.
         var id = await _solutionSnapshotProvider.RegisterSolutionSnapshotAsync(cancellationToken).ConfigureAwait(false);
 
-        return _solutionSnapshotRegistry.GetRegisteredSolutionSnapshot(id);
+        return solutionSnapshotRegistry.GetRegisteredSolutionSnapshot(id);
     }
 
     private static Solution GetCurrentCompileTimeSolution(Solution currentDesignTimeSolution)
@@ -94,11 +83,11 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
             var compileTimeSolution = GetCurrentCompileTimeSolution(currentDesignTimeSolution);
 
             // TODO: use remote proxy once we transition to pull diagnostics
-            _debuggingSession = await _encService.StartDebuggingSessionAsync(
+            _debuggingSession = await encService.StartDebuggingSessionAsync(
                 compileTimeSolution,
                 _debuggerService,
                 PdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
@@ -120,7 +109,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         try
         {
             Contract.ThrowIfNull(_debuggingSession);
-            _encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState, out _);
+            encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState, out _);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -154,7 +143,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
 
             _committedDesignTimeSolution = committedDesignTimeSolution;
 
-            _encService.CommitSolutionUpdate(_debuggingSession.Value, out _);
+            encService.CommitSolutionUpdate(_debuggingSession.Value, out _);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -176,7 +165,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
             Contract.ThrowIfNull(_debuggingSession);
             Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null));
 
-            _encService.DiscardSolutionUpdate(_debuggingSession.Value);
+            encService.DiscardSolutionUpdate(_debuggingSession.Value);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -197,7 +186,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         {
             Contract.ThrowIfNull(_debuggingSession);
 
-            _encService.EndDebuggingSession(_debuggingSession.Value, out _);
+            encService.EndDebuggingSession(_debuggingSession.Value, out _);
 
             _debuggingSession = null;
             _committedDesignTimeSolution = null;
@@ -252,7 +241,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            return new ManagedHotReloadUpdates([], []);
         }
 
         try
@@ -269,7 +258,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
 
             try
             {
-                var results = await _encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false);
+                var results = await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false);
 
                 moduleUpdates = results.ModuleUpdates;
                 diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
@@ -285,9 +274,9 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(designTimeSolution, diagnostic, project: null));
-                rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
+                diagnosticData = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)];
+                rudeEdits = [];
+                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []);
                 syntaxError = null;
             }
 
@@ -303,7 +292,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
             Disable();
-            return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            return new ManagedHotReloadUpdates([], []);
         }
     }
 }

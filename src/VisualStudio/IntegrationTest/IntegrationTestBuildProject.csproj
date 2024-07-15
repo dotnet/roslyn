@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.Build.Traversal">
+  <PropertyGroup>
+   <TargetFrameworks>net472</TargetFrameworks>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+  </PropertyGroup>
+  <!--
+    This build project is used to allow CI to only build the projects required to build and run integration tests.
+    Everything else (for example other unit test projects) are excluded to speed up the build time.
+    -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Extension\Roslyn.Compilers.Extension.csproj" />
+    <ProjectReference Include="..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" />
+    <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\arm64\Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj" />
+    <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x64\Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj" />
+    <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x86\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj" />
+    <ProjectReference Include="..\..\Setup\DevDivVsix\ServiceHubConfig\Roslyn.VisualStudio.Setup.ServiceHub.Desktop.Config.csproj" />
+    <ProjectReference Include="..\..\Setup\Installer\Installer.Package.csproj" />
+    <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" />
+    <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" />
+    <ProjectReference Include="..\..\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj" />
+    <ProjectReference Include="..\..\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj" />
+    <ProjectReference Include="..\Setup.Dependencies\Roslyn.VisualStudio.Setup.Dependencies.csproj" />
+    <ProjectReference Include="..\Setup\Roslyn.VisualStudio.Setup.csproj" />
+    <ProjectReference Include="..\VisualStudioDiagnosticsToolWindow\Roslyn.VisualStudio.DiagnosticsWindow.csproj" />
+    <ProjectReference Include="New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj" />
+    <ProjectReference Include="TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
+  </ItemGroup>
+</Project>

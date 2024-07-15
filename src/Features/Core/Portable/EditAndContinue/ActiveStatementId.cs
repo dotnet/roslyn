@@ -4,11 +4,10 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal readonly struct ActiveStatementId(DocumentId documentId, int ordinal)
 {
-    internal readonly struct ActiveStatementId(DocumentId documentId, int ordinal)
-    {
-        public readonly DocumentId DocumentId = documentId;
-        public readonly int Ordinal = ordinal;
-    }
+    public readonly DocumentId DocumentId = documentId;
+    public readonly int Ordinal = ordinal;
 }

@@ -110,10 +110,61 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string AnalyzerWithLaterFakeCompilerDependency { get; }
 
+        /// <summary>
+        /// An analyzer that can be used to load a resource
+        /// </summary>
+        public string AnalyzerWithLoc { get; }
+
+        /// <summary>
+        /// An analyzer that can be used to load a resource
+        /// </summary>
+        public string AnalyzerWithLocResourceEnGB { get; }
+
         public AssemblyLoadTestFixture()
         {
             _temp = new TempRoot();
             _directory = _temp.CreateDirectory();
+
+            const string AnalyzerWithLocSource = """
+using System;
+using System.Resources;
+using System.Reflection;
+using System.Threading;
+using System.Globalization;
+
+[assembly: System.Reflection.AssemblyTitle("AnalyzerWithLoc")]
+[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+
+namespace AnalyzerWithLoc
+{
+    public static class Util
+    {
+        public static void Exec(string culture)
+        {
+            try
+            {
+                var ci = new CultureInfo(culture);
+                var rm = new ResourceManager("rmc", typeof(Util).Assembly);
+                _ = rm.GetString("hello", ci);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+    }
+}
+""";
+
+            AnalyzerWithLoc = GenerateDll("AnalyzerWithLoc", _directory, AnalyzerWithLocSource);
+
+            const string AnalyzerWithLocResourceEnGBSource = @"
+[assembly: System.Reflection.AssemblyTitle(""AnalyzerWithLoc"")]
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+[assembly: System.Reflection.AssemblyCulture(""en-GB"")]
+";
+
+            AnalyzerWithLocResourceEnGB = GenerateDll("AnalyzerWithLoc.resources", _directory.CreateDirectory("en-GB"), AnalyzerWithLocResourceEnGBSource);
 
             const string Delta1Source = @"
 using System.Text;
@@ -134,6 +185,7 @@ namespace Delta
 ";
 
             Delta1 = GenerateDll("Delta", _directory, Delta1Source);
+
             var delta1Reference = MetadataReference.CreateFromFile(Delta1);
             DeltaPublicSigned1 = GenerateDll("DeltaPublicSigned", _directory.CreateDirectory("Delta1PublicSigned"), Delta1Source, publicKeyOpt: SigningTestHelpers.PublicKey);
 

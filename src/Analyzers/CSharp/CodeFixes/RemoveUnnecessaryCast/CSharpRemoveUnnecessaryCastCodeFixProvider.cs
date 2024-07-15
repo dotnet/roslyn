@@ -21,74 +21,73 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast), Shared]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
+internal partial class CSharpRemoveUnnecessaryCastCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal partial class CSharpRemoveUnnecessaryCastCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpRemoveUnnecessaryCastCodeFixProvider()
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpRemoveUnnecessaryCastCodeFixProvider()
+    }
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+        [IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId];
+
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, nameof(AnalyzersResources.Remove_Unnecessary_Cast));
+        return Task.CompletedTask;
+    }
+
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        var castNodes = diagnostics.SelectAsArray(
+            d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
+
+        await editor.ApplyExpressionLevelSemanticEditsAsync(
+            document, castNodes,
+            (semanticModel, castExpression) => CastSimplifier.IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
+            (_, currentRoot, castExpression) =>
+            {
+                var oldParent = castExpression.WalkUpParentheses();
+                var newParent = Recurse(oldParent);
+
+                return currentRoot.ReplaceNode(oldParent, newParent);
+            },
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static ExpressionSyntax Recurse(ExpressionSyntax old)
+    {
+        if (old is ParenthesizedExpressionSyntax parenthesizedExpression)
         {
+            // It's common in C# to have to write  ((Goo)expr).Etc(). we don't just want to
+            // remove the cast and produce (expr).Etc().  So we mark all parent parenthesized
+            // expressions as worthy of simplification.  The simplifier will remove these
+            // if possible, or leave them alone if not.
+            return parenthesizedExpression.ReplaceNode(parenthesizedExpression.Expression, Recurse(parenthesizedExpression.Expression))
+                                          .WithAdditionalAnnotations(Simplifier.Annotation);
         }
-
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId);
-
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        else if (old is CastExpressionSyntax castExpression)
         {
-            RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, nameof(AnalyzersResources.Remove_Unnecessary_Cast));
-            return Task.CompletedTask;
+            // parenthesize the uncasted value to help ensure any proper parsing. The excess
+            // parens will be removed if unnecessary. 
+            return castExpression.Uncast().WithAdditionalAnnotations(Formatter.Annotation)
+                                 .Parenthesize();
         }
-
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        else if (old is BinaryExpressionSyntax binaryExpression)
         {
-            var castNodes = diagnostics.SelectAsArray(
-                d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
-
-            await editor.ApplyExpressionLevelSemanticEditsAsync(
-                document, castNodes,
-                (semanticModel, castExpression) => CastSimplifier.IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
-                (_, currentRoot, castExpression) =>
-                {
-                    var oldParent = castExpression.WalkUpParentheses();
-                    var newParent = Recurse(oldParent);
-
-                    return currentRoot.ReplaceNode(oldParent, newParent);
-                },
-                cancellationToken).ConfigureAwait(false);
+            return binaryExpression.Left.WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
+                                   .WithAdditionalAnnotations(Simplifier.Annotation);
         }
-
-        private static ExpressionSyntax Recurse(ExpressionSyntax old)
+        else
         {
-            if (old is ParenthesizedExpressionSyntax parenthesizedExpression)
-            {
-                // It's common in C# to have to write  ((Goo)expr).Etc(). we don't just want to
-                // remove the cast and produce (expr).Etc().  So we mark all parent parenthesized
-                // expressions as worthy of simplification.  The simplifier will remove these
-                // if possible, or leave them alone if not.
-                return parenthesizedExpression.ReplaceNode(parenthesizedExpression.Expression, Recurse(parenthesizedExpression.Expression))
-                                              .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
-            else if (old is CastExpressionSyntax castExpression)
-            {
-                // parenthesize the uncasted value to help ensure any proper parsing. The excess
-                // parens will be removed if unnecessary. 
-                return castExpression.Uncast().WithAdditionalAnnotations(Formatter.Annotation)
-                                     .Parenthesize();
-            }
-            else if (old is BinaryExpressionSyntax binaryExpression)
-            {
-                return binaryExpression.Left.WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
-                                       .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(old);
-            }
+            throw ExceptionUtilities.UnexpectedValue(old);
         }
     }
 }

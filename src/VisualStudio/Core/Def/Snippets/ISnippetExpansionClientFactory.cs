@@ -1,0 +1,16 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
+
+internal interface ISnippetExpansionClientFactory : IWorkspaceService
+{
+    SnippetExpansionClient? TryGetSnippetExpansionClient(ITextView textView);
+    SnippetExpansionClient GetOrCreateSnippetExpansionClient(Document document, ITextView textView, ITextBuffer subjectBuffer);
+}

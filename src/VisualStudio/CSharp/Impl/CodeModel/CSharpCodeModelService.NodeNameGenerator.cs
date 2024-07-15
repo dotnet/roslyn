@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     if (firstSeen)
                     {
-                        builder.Append(",");
+                        builder.Append(',');
                     }
 
                     if (parameter.Modifiers.Any(SyntaxKind.RefKeyword))

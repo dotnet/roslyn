@@ -5,6 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CodeStyle;
 
@@ -31,7 +32,7 @@ internal record class IdeCodeStyleOptions
     internal static readonly IdeCodeStyleOptions CommonDefaults = new();
 
     [DataMember] public CodeStyleOption2<bool> PreferObjectInitializer { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferCollectionExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<CollectionExpressionPreference> PreferCollectionExpression { get; init; } = new(CollectionExpressionPreference.WhenTypesLooselyMatch, NotificationOption2.Suggestion);
     [DataMember] public CodeStyleOption2<bool> PreferCollectionInitializer { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping { get; init; } = OperatorPlacementWhenWrappingPreference.BeginningOfLine;
@@ -66,7 +67,7 @@ internal record class IdeCodeStyleOptions
     private protected IdeCodeStyleOptions(IOptionsReader options, IdeCodeStyleOptions fallbackOptions, string language)
     {
         PreferObjectInitializer = options.GetOption(CodeStyleOptions2.PreferObjectInitializer, language, fallbackOptions.PreferObjectInitializer);
-        PreferCollectionExpression = options.GetOption(CodeStyleOptions2.PreferCollectionExpression, language, fallbackOptions.PreferCollectionInitializer);
+        PreferCollectionExpression = options.GetOption(CodeStyleOptions2.PreferCollectionExpression, language, fallbackOptions.PreferCollectionExpression);
         PreferCollectionInitializer = options.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language, fallbackOptions.PreferCollectionInitializer);
         PreferSimplifiedBooleanExpressions = options.GetOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, language, fallbackOptions.PreferSimplifiedBooleanExpressions);
         OperatorPlacementWhenWrapping = options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.OperatorPlacementWhenWrapping);

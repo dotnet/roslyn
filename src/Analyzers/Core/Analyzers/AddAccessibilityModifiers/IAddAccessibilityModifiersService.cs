@@ -5,20 +5,19 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
-{
-    internal static partial class AddAccessibilityModifiersConstants
-    {
-        public const string ModifiersAdded = nameof(ModifiersAdded);
-    }
+namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 
-    internal interface IAddAccessibilityModifiers
-    {
-        bool ShouldUpdateAccessibilityModifier(
-            IAccessibilityFacts accessibilityFacts,
-            SyntaxNode member,
-            AccessibilityModifiersRequired option,
-            out SyntaxToken name,
-            out bool modifiersAdded);
-    }
+internal static partial class AddAccessibilityModifiersConstants
+{
+    public const string ModifiersAdded = nameof(ModifiersAdded);
+}
+
+internal interface IAddAccessibilityModifiers
+{
+    bool ShouldUpdateAccessibilityModifier(
+        IAccessibilityFacts accessibilityFacts,
+        SyntaxNode member,
+        AccessibilityModifiersRequired option,
+        out SyntaxToken name,
+        out bool modifiersAdded);
 }

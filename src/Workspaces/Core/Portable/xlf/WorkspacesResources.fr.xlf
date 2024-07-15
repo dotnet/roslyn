@@ -37,7 +37,7 @@
         <target state="translated">Le changement du document '{0}' n'est pas pris en charge.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+      <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">Le CodeAction '{0}' n'a pas produit de solution contenant des changements</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
@@ -137,19 +137,9 @@
         <target state="translated">Le symbole "{0}" ne provient pas de la source.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T">
-        <source>Documentation comment id must start with E, F, M, N, P or T</source>
-        <target state="translated">L'ID du commentaire de documentation doit commencer par E, F, M, N, P ou T</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cycle_detected_in_extensions">
         <source>Cycle detected in extensions</source>
         <target state="translated">Cycle détecté dans les extensions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_is_of_the_wrong_type">
-        <source>Node is of the wrong type.</source>
-        <target state="translated">Le type de nœud est incorrect.</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -302,11 +292,6 @@
         <target state="translated">Le projet référence déjà le projet cible.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_solution_already_contains_the_specified_document">
-        <source>The solution already contains the specified document.</source>
-        <target state="translated">La solution contient déjà le document spécifié.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
         <source>Temporary storage cannot be written more than once.</source>
         <target state="translated">Il est impossible d'écrire plusieurs fois dans le stockage temporaire.</target>
@@ -347,21 +332,6 @@
         <target state="translated">Impossible de résoudre la référence de l'analyseur : '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_Project">
-        <source>Invalid project block, expected "=" after Project.</source>
-        <target state="translated">Bloc de projet non valide, "=" attendu après Project.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_name">
-        <source>Invalid project block, expected "," after project name.</source>
-        <target state="translated">Bloc de projet non valide, "," attendu après le nom du projet.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_path">
-        <source>Invalid project block, expected "," after project path.</source>
-        <target state="translated">Bloc de projet non valide, "," attendu après le chemin d'accès au projet.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expected_0">
         <source>Expected {0}.</source>
         <target state="translated">{0} attendu.</target>
@@ -370,21 +340,6 @@
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
         <source>"{0}" must be a non-null and non-empty string.</source>
         <target state="translated">"{0}" doit être une chaîne non null et non vide.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_header_colon_0">
-        <source>Expected header: "{0}".</source>
-        <target state="translated">En-tête attendu : "{0}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_end_of_file">
-        <source>Expected end-of-file.</source>
-        <target state="translated">Fin de fichier attendue.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_0_line">
-        <source>Expected {0} line.</source>
-        <target state="translated">Ligne {0} attendue.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_submission_already_references_another_submission_project">
@@ -402,24 +357,9 @@
         <target state="translated">{0} est toujours ouvert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
-        <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">Impossible de sérialiser les tableaux de plus d'une dimension.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">La valeur est trop grande pour être représentée comme un entier non signé 30 bits.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_path_must_be_absolute">
-        <source>Specified path must be absolute.</source>
-        <target state="translated">Le chemin d'accès spécifié doit être absolu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_identifier">
-        <source>Unknown identifier.</source>
-        <target state="translated">Identificateur inconnu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -477,11 +417,6 @@
         <target state="translated">Supprimé :</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_CodePage_value_colon_0">
-        <source>Invalid CodePage value: {0}</source>
-        <target state="translated">Valeur de CodePage non valide : {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
         <source>Adding additional documents is not supported.</source>
         <target state="translated">L'ajout de documents supplémentaires n'est pas pris en charge.</target>
@@ -495,11 +430,6 @@
       <trans-unit id="Adding_documents_is_not_supported">
         <source>Adding documents is not supported.</source>
         <target state="translated">L'ajout de documents n'est pas pris en charge.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_metadata_references_is_not_supported">
-        <source>Adding metadata references is not supported.</source>
-        <target state="translated">L'ajout de références de métadonnées n'est pas pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_references_is_not_supported">
@@ -517,11 +447,6 @@
         <target state="translated">La modification de documents n'est pas prise en charge.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_project_properties_is_not_supported">
-        <source>Changing project properties is not supported.</source>
-        <target state="translated">La modification des propriétés de projet n'est pas prise en charge.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removing_additional_documents_is_not_supported">
         <source>Removing additional documents is not supported.</source>
         <target state="translated">La suppression de documents supplémentaires n'est pas prise en charge.</target>
@@ -535,11 +460,6 @@
       <trans-unit id="Removing_documents_is_not_supported">
         <source>Removing documents is not supported.</source>
         <target state="translated">La suppression de documents n'est pas prise en charge.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_metadata_references_is_not_supported">
-        <source>Removing metadata references is not supported.</source>
-        <target state="translated">La suppression de références de métadonnées n'est pas prise en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_references_is_not_supported">
@@ -560,21 +480,6 @@
       <trans-unit id="Diagnostic_must_have_span_0">
         <source>Diagnostic must have span '{0}'</source>
         <target state="translated">Le diagnostic doit avoir l'étendue '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_deserialize_type_0">
-        <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">Impossible de désérialiser le type '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_serialize_type_0">
-        <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">Impossible de sérialiser le type '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
-        <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">Le type '{0}' n'est pas pris en charge par le binder de sérialisation.</target>
         <note />
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
@@ -675,11 +580,6 @@
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">Le flux est trop long.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
-        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">Le lecteur de désérialisation pour '{0}' a lu un nombre incorrect de valeurs.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

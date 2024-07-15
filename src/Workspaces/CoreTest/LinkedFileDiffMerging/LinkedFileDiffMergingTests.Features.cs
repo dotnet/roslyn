@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }",
-                new List<string>
-                {
+                [
                     @"public class Class1
 {
     void M(int z, int x)
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }"
-                },
+                ],
                 @"public class Class1
 {
     void M(int z, int x)
@@ -112,8 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }",
-                new List<string>
-                {
+                [
                     @"public class Class1
 {
     void Method()
@@ -148,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }"
-                },
+                ],
                 @"public class Class1
 {
     void Method()

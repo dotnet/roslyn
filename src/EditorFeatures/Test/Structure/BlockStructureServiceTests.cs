@@ -92,6 +92,24 @@ class C
             Assert.Equal(4, spans.Length);
         }
 
+        [Fact]
+        public async Task TestTwoInvocationExpressionsThreeLines()
+        {
+            // The inner argument list should be collapsible, but the outer one shouldn't.
+            var code = """
+                var x = MyMethod1(MyMethod2(
+                    "",
+                    "");
+                """;
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var spans = await GetSpansFromWorkspaceAsync(workspace);
+
+            Assert.Equal(1, spans.Length);
+
+            Assert.Equal(27, spans[0].TextSpan.Start);
+        }
+
         private static async Task<ImmutableArray<BlockSpan>> GetSpansFromWorkspaceAsync(
             TestWorkspace workspace)
         {

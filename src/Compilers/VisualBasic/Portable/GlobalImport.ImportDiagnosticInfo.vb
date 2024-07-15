@@ -13,31 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class ImportDiagnosticInfo
             Inherits DiagnosticInfo
 
-            Shared Sub New()
-                ObjectBinder.RegisterTypeReader(GetType(ImportDiagnosticInfo), Function(r) New ImportDiagnosticInfo(r))
-            End Sub
-
             Private ReadOnly _importText As String
             Private ReadOnly _startIndex As Integer
             Private ReadOnly _length As Integer
             Private ReadOnly _wrappedDiagnostic As DiagnosticInfo
-
-            Private Sub New(reader As ObjectReader)
-                MyBase.New(reader)
-                Me._importText = reader.ReadString()
-                Me._startIndex = reader.ReadInt32()
-                Me._length = reader.ReadInt32()
-                Me._wrappedDiagnostic = DirectCast(reader.ReadValue(), DiagnosticInfo)
-            End Sub
-
-            Protected Overrides Sub WriteTo(writer As ObjectWriter)
-                MyBase.WriteTo(writer)
-
-                writer.WriteString(_importText)
-                writer.WriteInt32(_startIndex)
-                writer.WriteInt32(_length)
-                writer.WriteValue(_wrappedDiagnostic)
-            End Sub
 
             Public Overrides Function GetMessage(Optional formatProvider As IFormatProvider = Nothing) As String
                 Dim msg = ErrorFactory.IdToString(ERRID.ERR_GeneralProjectImportsError3, TryCast(formatProvider, CultureInfo))

@@ -7,20 +7,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Runtime;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
@@ -162,8 +156,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private sealed class InProcRemoteServices : IDisposable
         {
             public readonly ServiceProvider ServiceProvider;
-            private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
-            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _remoteBrokeredServicesMap = new();
+            private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = [];
+            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _remoteBrokeredServicesMap = [];
 
             public readonly IServiceBroker ServiceBroker;
             public readonly ServiceBrokerClient ServiceBrokerClient;
@@ -214,10 +208,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
-                RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
                 RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnitTestingSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSourceGenerationService.Factory());
             }
 
             public void Dispose()

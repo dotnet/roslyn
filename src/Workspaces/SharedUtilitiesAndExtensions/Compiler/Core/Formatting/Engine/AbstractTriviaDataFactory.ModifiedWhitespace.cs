@@ -7,84 +7,83 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal abstract partial class AbstractTriviaDataFactory
 {
-    internal abstract partial class AbstractTriviaDataFactory
+    protected class ModifiedWhitespace : Whitespace
     {
-        protected class ModifiedWhitespace : Whitespace
+        private readonly Whitespace? _original;
+
+        public ModifiedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic, string language)
+            : base(options, lineBreaks, indentation, elastic, language)
         {
-            private readonly Whitespace? _original;
+            _original = null;
+        }
 
-            public ModifiedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic, string language)
-                : base(options, lineBreaks, indentation, elastic, language)
+        public ModifiedWhitespace(SyntaxFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
+            : base(options, lineBreaks, indentation, elastic, language)
+        {
+            Contract.ThrowIfNull(original);
+            _original = original;
+        }
+
+        public override bool ContainsChanges => false;
+
+        public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
+        {
+            if (_original == null)
             {
-                _original = null;
-            }
-
-            public ModifiedWhitespace(SyntaxFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
-                : base(options, lineBreaks, indentation, elastic, language)
-            {
-                Contract.ThrowIfNull(original);
-                _original = original;
-            }
-
-            public override bool ContainsChanges => false;
-
-            public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                if (_original == null)
-                {
-                    return base.WithSpace(space, context, formattingRules);
-                }
-
-                if (this.LineBreaks == _original.LineBreaks && _original.Spaces == space)
-                {
-                    return _original;
-                }
-
                 return base.WithSpace(space, context, formattingRules);
             }
 
-            public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
+            if (this.LineBreaks == _original.LineBreaks && _original.Spaces == space)
             {
-                if (_original == null)
-                {
-                    return base.WithLine(line, indentation, context, formattingRules, cancellationToken);
-                }
+                return _original;
+            }
 
-                if (_original.LineBreaks == line && _original.Spaces == indentation)
-                {
-                    return _original;
-                }
+            return base.WithSpace(space, context, formattingRules);
+        }
 
+        public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
+        {
+            if (_original == null)
+            {
                 return base.WithLine(line, indentation, context, formattingRules, cancellationToken);
             }
 
-            public override TriviaData WithIndentation(
-                int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
+            if (_original.LineBreaks == line && _original.Spaces == indentation)
             {
-                if (_original == null)
-                {
-                    return base.WithIndentation(indentation, context, formattingRules, cancellationToken);
-                }
+                return _original;
+            }
 
-                if (this.LineBreaks == _original.LineBreaks && _original.Spaces == indentation)
-                {
-                    return _original;
-                }
+            return base.WithLine(line, indentation, context, formattingRules, cancellationToken);
+        }
 
+        public override TriviaData WithIndentation(
+            int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
+        {
+            if (_original == null)
+            {
                 return base.WithIndentation(indentation, context, formattingRules, cancellationToken);
             }
 
-            public override void Format(
-                FormattingContext context,
-                ChainedFormattingRules formattingRules,
-                Action<int, TokenStream, TriviaData> formattingResultApplier,
-                CancellationToken cancellationToken,
-                int tokenPairIndex = TokenPairIndexNotNeeded)
+            if (this.LineBreaks == _original.LineBreaks && _original.Spaces == indentation)
             {
-                formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.Options, this.LineBreaks, this.Spaces, this.Language));
+                return _original;
             }
+
+            return base.WithIndentation(indentation, context, formattingRules, cancellationToken);
+        }
+
+        public override void Format(
+            FormattingContext context,
+            ChainedFormattingRules formattingRules,
+            Action<int, TokenStream, TriviaData> formattingResultApplier,
+            CancellationToken cancellationToken,
+            int tokenPairIndex = TokenPairIndexNotNeeded)
+        {
+            formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.Options, this.LineBreaks, this.Spaces, this.Language));
         }
     }
 }

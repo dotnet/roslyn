@@ -7,31 +7,30 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal readonly struct UnmappedActiveStatement(TextSpan unmappedSpan, ActiveStatement statement, ActiveStatementExceptionRegions exceptionRegions)
 {
-    internal readonly struct UnmappedActiveStatement(TextSpan unmappedSpan, ActiveStatement statement, ActiveStatementExceptionRegions exceptionRegions)
+    /// <summary>
+    /// Unmapped span of the active statement
+    /// (span within the file that contains #line directive that has an effect on the active statement, if there is any).
+    /// </summary>
+    public TextSpan UnmappedSpan { get; } = unmappedSpan;
+
+    /// <summary>
+    /// Active statement - its <see cref="ActiveStatement.FileSpan"/> is mapped.
+    /// </summary>
+    public ActiveStatement Statement { get; } = statement;
+
+    /// <summary>
+    /// Mapped exception regions around the active statement.
+    /// </summary>
+    public ActiveStatementExceptionRegions ExceptionRegions { get; } = exceptionRegions;
+
+    public void Deconstruct(out TextSpan unmappedSpan, out ActiveStatement statement, out ActiveStatementExceptionRegions exceptionRegions)
     {
-        /// <summary>
-        /// Unmapped span of the active statement
-        /// (span within the file that contains #line directive that has an effect on the active statement, if there is any).
-        /// </summary>
-        public TextSpan UnmappedSpan { get; } = unmappedSpan;
-
-        /// <summary>
-        /// Active statement - its <see cref="ActiveStatement.FileSpan"/> is mapped.
-        /// </summary>
-        public ActiveStatement Statement { get; } = statement;
-
-        /// <summary>
-        /// Mapped exception regions around the active statement.
-        /// </summary>
-        public ActiveStatementExceptionRegions ExceptionRegions { get; } = exceptionRegions;
-
-        public void Deconstruct(out TextSpan unmappedSpan, out ActiveStatement statement, out ActiveStatementExceptionRegions exceptionRegions)
-        {
-            unmappedSpan = UnmappedSpan;
-            statement = Statement;
-            exceptionRegions = ExceptionRegions;
-        }
+        unmappedSpan = UnmappedSpan;
+        statement = Statement;
+        exceptionRegions = ExceptionRegions;
     }
 }

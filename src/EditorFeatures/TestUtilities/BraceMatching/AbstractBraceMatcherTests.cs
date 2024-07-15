@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
     [UseExportProvider]
     public abstract class AbstractBraceMatcherTests
     {
-        protected abstract TestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options);
+        protected abstract EditorTestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options);
 
         protected async Task TestAsync(string markup, string expectedCode, ParseOptions options = null)
         {

@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
-{
-    [ExportLanguageServiceFactory(typeof(ISyntaxTriviaService), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxTriviaServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxTriviaServiceFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => CSharpSyntaxTriviaService.Instance;
+[ExportLanguageServiceFactory(typeof(ISyntaxTriviaService), LanguageNames.CSharp), Shared]
+internal class CSharpSyntaxTriviaServiceFactory : ILanguageServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSyntaxTriviaServiceFactory()
+    {
     }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices provider)
+        => CSharpSyntaxTriviaService.Instance;
 }

@@ -5,39 +5,20 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+internal abstract class AbstractConstructorSnippetProvider : AbstractSingleChangeSnippetProvider
 {
-    internal abstract class AbstractConstructorSnippetProvider : AbstractSingleChangeSnippetProvider
-    {
-        public override string Identifier => "ctor";
+    public override string Identifier => "ctor";
 
-        public override string Description => FeaturesResources.constructor;
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("constructor");
+    public override string Description => FeaturesResources.constructor;
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsConstructorDeclaration;
+    public override ImmutableArray<string> AdditionalFilterTexts { get; } = ["constructor"];
 
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-            => ImmutableArray<SnippetPlaceholder>.Empty;
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsConstructorDeclaration;
 
-        protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
-            var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
-            Contract.ThrowIfNull(containingType);
-            var constructorDeclaration = generator.ConstructorDeclaration(
-                containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).ToString(),
-                accessibility: Accessibility.Public);
-            return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
-        }
-    }
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        => [];
 }

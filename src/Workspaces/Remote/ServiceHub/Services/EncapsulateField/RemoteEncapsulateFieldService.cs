@@ -2,41 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteEncapsulateFieldService : BrokeredServiceBase, IRemoteEncapsulateFieldService
+    internal sealed class RemoteEncapsulateFieldService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteEncapsulateFieldService
     {
         internal sealed class Factory : FactoryBase<IRemoteEncapsulateFieldService, IRemoteEncapsulateFieldService.ICallback>
         {
             protected override IRemoteEncapsulateFieldService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback)
                 => new RemoteEncapsulateFieldService(arguments, callback);
         }
-
-        private readonly RemoteCallback<IRemoteEncapsulateFieldService.ICallback> _callback;
-
-        public RemoteEncapsulateFieldService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
-
-        // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
-        private CleanCodeGenerationOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-            => new ClientCleanCodeGenerationOptionsProvider(
-                (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         public ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
             Checksum solutionChecksum,
@@ -63,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var fallbackOptions = GetClientOptionsProvider<CleanCodeGenerationOptions, IRemoteEncapsulateFieldService.ICallback>(callback, callbackId).ToCleanCodeGenerationOptionsProvider();
 
                 var newSolution = await service.EncapsulateFieldsAsync(
                     document, fields.ToImmutable(), fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);

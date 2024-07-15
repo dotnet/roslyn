@@ -8,16 +8,15 @@ using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
+namespace Microsoft.CodeAnalysis.CSharp.BraceMatching;
+
+[ExportBraceMatcher(LanguageNames.CSharp), Shared]
+internal class LessThanGreaterThanBraceMatcher : AbstractCSharpBraceMatcher
 {
-    [ExportBraceMatcher(LanguageNames.CSharp), Shared]
-    internal class LessThanGreaterThanBraceMatcher : AbstractCSharpBraceMatcher
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LessThanGreaterThanBraceMatcher()
+        : base(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LessThanGreaterThanBraceMatcher()
-            : base(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken)
-        {
-        }
     }
 }

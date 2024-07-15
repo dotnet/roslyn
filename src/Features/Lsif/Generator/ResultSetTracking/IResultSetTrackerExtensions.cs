@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking
 {

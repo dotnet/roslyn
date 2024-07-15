@@ -1,6 +1,1 @@
-Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12 = 1200 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
-Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionExpression.get -> bool
-Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
-Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
+

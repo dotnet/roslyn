@@ -3555,5 +3555,15 @@ class C
                 """;
             await TestAsync(markup, "global::Color", TestMode.Position);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70803")]
+        public async Task TestArgumentToBaseRecordPrimaryConstructor()
+        {
+            var markup = """
+                class Base(int Alice, int Bob);
+                class Derived(int Other) : Base([||]
+                """;
+            await TestAsync(markup, "global::System.Int32", TestMode.Position);
+        }
     }
 }

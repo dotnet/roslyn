@@ -15,37 +15,36 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
+
+/// <summary>
+/// The View Model would be used when there are multiple targets with same name in the group.
+/// It contains an addtional image moniker represents the source language in the UI.
+/// </summary>
+internal class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewModel
 {
     /// <summary>
-    /// The View Model would be used when there are multiple targets with same name in the group.
-    /// It contains an addtional image moniker represents the source language in the UI.
+    /// Icon represets the source language of this target.
     /// </summary>
-    internal class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewModel
+    public ImageMoniker LanguageMoniker { get; }
+
+    // Internal for testing purpose
+    internal DisambiguousTargetMenuItemViewModel(
+        string displayContent,
+        ImageMoniker imageMoniker,
+        DetachedDefinitionItem definitionItem,
+        ImageMoniker languageMoniker) : base(displayContent, imageMoniker, definitionItem)
     {
-        /// <summary>
-        /// Icon represets the source language of this target.
-        /// </summary>
-        public ImageMoniker LanguageMoniker { get; }
+        LanguageMoniker = languageMoniker;
+    }
 
-        // Internal for testing purpose
-        internal DisambiguousTargetMenuItemViewModel(
-            string displayContent,
-            ImageMoniker imageMoniker,
-            DetachedDefinitionItem definitionItem,
-            ImageMoniker languageMoniker) : base(displayContent, imageMoniker, definitionItem)
-        {
-            LanguageMoniker = languageMoniker;
-        }
-
-        public static DisambiguousTargetMenuItemViewModel CreateWithSourceLanguageGlyph(
-            InheritanceTargetItem target)
-        {
-            return new(
-                target.DisplayName,
-                target.Glyph.GetImageMoniker(),
-                target.DefinitionItem,
-                target.LanguageGlyph.GetImageMoniker());
-        }
+    public static DisambiguousTargetMenuItemViewModel CreateWithSourceLanguageGlyph(
+        InheritanceTargetItem target)
+    {
+        return new(
+            target.DisplayName,
+            target.Glyph.GetImageMoniker(),
+            target.DefinitionItem,
+            target.LanguageGlyph.GetImageMoniker());
     }
 }

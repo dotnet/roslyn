@@ -45,7 +45,7 @@ public class FormatterTests
     [Fact]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport()
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts([typeof(NoCompilationLanguageService), typeof(TestFormattingService)]).GetHostServices();
         using var workspace = new AdhocWorkspace(hostServices);
 
         var project = workspace.AddProject("Dummy", NoCompilationConstants.LanguageName);
@@ -63,7 +63,7 @@ public class FormatterTests
     [CombinatorialData]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts([typeof(NoCompilationLanguageService), typeof(TestFormattingService)]).GetHostServices();
 
         using var workspace = new AdhocWorkspace(hostServices);
 

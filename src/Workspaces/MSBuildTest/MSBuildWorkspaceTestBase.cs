@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             bool skipUnrecognizedProjects = false,
             (string key, string value)[] additionalProperties = null)
         {
-            additionalProperties ??= Array.Empty<(string key, string value)>();
+            additionalProperties ??= [];
             var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
             if (throwOnWorkspaceFailed)
             {
@@ -190,6 +190,24 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
 
             return properties;
+        }
+
+        protected static async Task AssertThrowsExceptionForInvalidPath(Func<Task> testCode)
+        {
+#if NET
+
+            // On .NET Core, invalid file paths don't throw exceptions when calling Path manipulation APIs, they just throw FileNotFound once you
+            // actually try to use the path
+            await Assert.ThrowsAsync<FileNotFoundException>(testCode);
+
+#else
+
+            // On .NET Framework, invalid file paths throw exceptions that we caught as IOExceptions we re-raise an InvalidOperationException.
+            // We'll assert the paths we test with contain "Invalid" to have some confidence this isn't an unrelated exception being thrown.
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(testCode);
+            Assert.Contains("Invalid", exception.Message);
+
+#endif
         }
     }
 }

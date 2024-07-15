@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.EventHookup
+namespace Microsoft.CodeAnalysis.EventHookup;
+
+internal static class EventHookupOptionsStorage
 {
-    internal static class EventHookupOptionsStorage
-    {
-        public static readonly Option2<bool> EventHookup = new("dotnet_enable_event_hook_up", defaultValue: true);
-    }
+    public static readonly Option2<bool> EventHookup = new("dotnet_enable_event_hook_up", defaultValue: true);
 }

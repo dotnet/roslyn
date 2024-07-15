@@ -1,14 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!--
-        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
-        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
-
-        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
-    -->
-    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -21,6 +14,15 @@
     <IsPackable>true</IsPackable>
     <!-- Our outer Pack task (defined in PackAllRids.targets) invokes Pack passing in a PackRuntimeIdentifier to produce one package per RID; from that we can set everything else. -->
     <RuntimeIdentifier Condition="'$(PackRuntimeIdentifier)' != '' and '$(PackRuntimeIdentifier)' != 'neutral'">$(PackRuntimeIdentifier)</RuntimeIdentifier>
+
+    <!--
+        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
+        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
+
+        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
+    -->
+    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
+
     <PackageId>$(AssemblyName).$(PackRuntimeIdentifier)</PackageId>
     <!--
         Publish the platform specific executables before any of the pack related targets run.
@@ -32,23 +34,31 @@
     <BeforePack>PackPublishContent;$(BeforePack)</BeforePack>
 
     <!-- Since this is not a standard nuget package and is only consumed by the extension build, we don't care if the folder structure doesn't match what nuget expects. -->
-    <NoWarn>NU5100</NoWarn>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
 
     <!-- Publishing settings -->
     <SelfContained>false</SelfContained>
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
     <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
-    <!--
-        Set the minimum runtime to a .NET 7 prerelease so that prerelease SDKs will be considered during rollForward.
-        RollForward values for roslyn are set in eng/config/runtimeconfig.template.json
-    -->
-    <RuntimeFrameworkVersion>7.0.0-preview.7.22362.8</RuntimeFrameworkVersion>
 
-    <!-- List of runtime identifiers that we want to publish an executable for -->
-    <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;alpine-x64;alpine-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <!-- List of runtime identifiers that we want to publish an executable for. -->
+    <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid.
+         TargetRid is provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
+         https://github.com/dotnet/dotnet/blob/main/repo-projects/roslyn.proj. For definitions of the TargetRid
+         and other common properties, see https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md -->
+    <RuntimeIdentifiers Condition="'$(TargetRid)' != ''">$(TargetRid)</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(TargetRid)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
-    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != '' AND '$(Configuration)' == 'Release' ">true</PublishReadyToRun>
   </PropertyGroup>
+
+  <!-- When we are packing each RID, we set PackRuntimeIdentifier; by default this will also get passed to the builds of all ResolveProjectReferences
+       which causes a lot of duplicate building. This removes it. -->
+  <ItemDefinitionGroup>
+    <ProjectReference>
+      <GlobalPropertiesToRemove>PackRuntimeIdentifier</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemDefinitionGroup>
 
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
@@ -58,23 +68,26 @@
 
     <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+
+    <!-- Not directly referenced but needed for Razor source generators -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+
+    <!-- Not directly referenced but needed for Route embedded language features -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\Xaml\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
-    <PackageReference Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformTranslationLayerVersion)" />
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="$(MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion)" />
-    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
-    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" />
+    <PackageReference Include="Microsoft.TestPlatform.TranslationLayer" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" />
+    <PackageReference Include="NuGet.ProjectModel" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
   <ItemGroup>
@@ -113,36 +126,6 @@
         <CopyToOutput>false</CopyToOutput>
         <BuildAction>None</BuildAction>
       </Content>
-    </ItemGroup>
-  </Target>
-
-  <!--
-    Deploy a net472 version of the BuildHost process.
-  -->
-  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
-    <ItemGroup>
-      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>net472</TargetFramework>
-      </_NetFrameworkBuildHostProjectReference>
-    </ItemGroup>
-
-    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433; we pass
-         BuildInParallel="false" to avoid multiple builds potentially building the same project at the same time, but since we
-         expect the builds to have completed by this point they should be fast.  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
-             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
-             BuildInParallel="false"
-             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
-      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
-    </MSBuild>
-
-    <ItemGroup>
-      <!-- We set Pack="false" because we only care about the RID-specific folders -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               Pack="false"
-               TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
-               CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

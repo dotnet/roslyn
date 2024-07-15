@@ -6,11 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
+
+internal interface ISupportsNavigation
 {
-    internal interface ISupportsNavigation
-    {
-        bool CanNavigateTo();
-        Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken);
-    }
+    bool CanNavigateTo();
+    Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken);
 }

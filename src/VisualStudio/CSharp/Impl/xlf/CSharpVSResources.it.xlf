@@ -32,11 +32,6 @@
         <target state="translated">Consenti istruzioni incorporate sulla stessa riga</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Applica tutte le regole di formattazione di C# (rientro, ritorno a capo, spaziatura)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">Completa automaticamente istruzione dopo punto e virgola</target>
@@ -59,7 +54,7 @@
       </trans-unit>
       <trans-unit id="CSharp_Interactive">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# Interactive</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -85,11 +80,6 @@
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Con ambito file</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Impostazioni formattazione documento (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="General">
@@ -130,11 +120,6 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Preferenze per criteri di ricerca:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Esegui la pulizia del codice aggiuntiva durante la formattazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -205,11 +190,6 @@
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Mostra i commenti in Informazioni rapide</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Ordina using</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -522,11 +502,6 @@
         <target state="translated">Variabile locale inutilizzata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">Usa 'var' durante la generazione di variabili locali</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">_Mostra separatori di riga routine</target>
@@ -650,11 +625,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">Suggerisci le direttive using per i tipi in pacchetti _NuGet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">Preferenze per inferenza del tipo:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -820,16 +790,6 @@
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
         <target state="translated">Preferisci criteri di ricerca a 'as' con controllo 'null'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">Preferisci corpo del blocco</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">Preferisci corpo dell'espressione</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_return">

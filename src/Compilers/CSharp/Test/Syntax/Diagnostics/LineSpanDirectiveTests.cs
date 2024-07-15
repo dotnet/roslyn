@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     static void Main()
     {
-#line (1, 16) - (1, 26) 15 ""a.cs""
+#line (1, 16) - (1, 26) 14 ""a.cs""
         B1(); A2(); A3(); B4();
         B5();
     }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expectedTextSpans = new[]
             {
                 (@"B1();", @"[|A2(); A3();|]"),
-                (@"A2();", @"[|A2(); A3();|]"),
+                (@"A2();", @"[|A2();|]"),
                 (@"A3();", @"[|A3();|]"),
                 (@"B4();", @"[|//123|]"),
                 (@"B5();", @"[|0|]"),
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     static void Main()
     {
-#line (1, 16) - (5, 26) 15 ""a.cs""
+#line (1, 16) - (5, 26) 14 ""a.cs""
         B1(); A2(); A3(); B4();
         B5();
     }
@@ -103,10 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 //4567890
 //ABCDEF
 |]".NormalizeLineEndings()),
-                (@"A2();", @"[|A2(); A3(); //123
-//4567890
-//ABCDEF
-|]".NormalizeLineEndings()),
+                (@"A2();", @"[|A2();|]"),
                 (@"A3();", @"[|A3();|]"),
                 (@"B4();", @"[|//123|]"),
                 (@"B5();", @"[|0|]"),
@@ -172,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"class Program
 {
  static void Main() {
-#line (1,10)-(1,15) 3 ""a"" // 3
+#line (1,10)-(1,15) 2 ""a"" // 3
   A();B(              // 4
 );C();                // 5
     D();              // 6
@@ -198,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
             var expectedTextSpans = new[]
             {
-                (@"A();", @"[|A();B(|]"),
+                (@"A();", @"[|A();|]"),
                 (@"B(              // 4...", @"[|B(
 );|]".NormalizeLineEndings()),
                 (@"C();", @"[|C();|]"),
@@ -225,7 +222,7 @@ class Page
 {
 void Render()
 {
-#line (2,2)-(4,1) 16 ""page.razor"" // spanof('F(...)')
+#line (2,2)-(4,1) 15 ""page.razor"" // spanof('F(...)')
   _builder.Add(F(() => 1+1,       // 5
    () => 2+2                      // 6
 ));                               // 7
@@ -308,7 +305,7 @@ void Render()
             var expectedLineMappings = new[]
             {
                 "(1,0)-(5,26) -> : (0,0)-(0,0)",
-                "(7,0)-(7,31),14 -> page.razor: (1,7)-(1,19)",
+                "(7,0)-(7,31),15 -> page.razor: (1,7)-(1,19)",
                 "(9,0)-(10,1) -> : (0,0)-(0,0)",
             };
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
@@ -343,7 +340,7 @@ class Page
 {
 void Render()
 {
-#line (2,2)-(6,3) 16 ""page.razor"" // spanof('JsonToHtml(...)')
+#line (2,2)-(6,3) 15 ""page.razor"" // spanof('JsonToHtml(...)')
   _builder.Add(JsonToHtml(@""
 {
   """"key1"""": """"value1"""",
@@ -398,11 +395,11 @@ class Page
     Builder _builder;
     void Execute()
     {
-#line (1, 2) - (5, 2) 22 ""a.razor"" // spanof('HtmlHelper(() => { ... })')
+#line (1, 2) - (5, 2) 21 ""a.razor"" // spanof('HtmlHelper(() => { ... })')
         _builder.Add(Html.Helper(() =>
 #line 2 ""a.razor"" // lineof('{')
         {
-#line (4, 6) - (4, 17) 26 ""a.razor"" // spanof('DateTime.Now')
+#line (4, 6) - (4, 17) 25 ""a.razor"" // spanof('DateTime.Now')
             _builder.Add(DateTime.Now);
 #line 5 ""a.razor"" // lineof('})')
         })
@@ -528,9 +525,9 @@ class Page
                 // b.txt(1,9): error CS0103: The name 'C' does not exist in the current context
                 //         C();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(1, 9),
-                // a.txt(3,4): error CS0103: The name 'A' does not exist in the current context
+                // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
                 //         A();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 4),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
                 // (8,9): error CS0103: The name 'B' does not exist in the current context
                 //         B();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(8, 9));
@@ -564,9 +561,9 @@ class Page
                 // (10,9): error CS0103: The name 'C' does not exist in the current context
                 //         C();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(10, 9),
-                // b.txt(200,8): error CS0103: The name 'B' does not exist in the current context
+                // b.txt(200,7): error CS0103: The name 'B' does not exist in the current context
                 //         B();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(200, 8),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(200, 7),
                 // b.txt(201,29): error CS1578: Quoted file name, single-line comment or end-of-line expected
                 // #line (300, 1) - (300, 100) x "c.txt"
                 Diagnostic(ErrorCode.ERR_MissingPPFile, "x").WithLocation(201, 29));
@@ -577,10 +574,39 @@ class Page
             {
                 "(0,0)-(3,7) -> : (0,0)-(3,7)",
                 "(5,0)-(5,14) -> : (5,0)-(5,14)",
-                "(7,0)-(7,14),1 -> b.txt: (199,0)-(199,100)",
+                "(7,0)-(7,14),2 -> b.txt: (199,0)-(199,100)",
                 "(9,0)-(11,1) -> : (9,0)-(11,1)"
             };
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]
+        public void Diagnostics_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+#line (3, 3) - (6, 6) ""a.txt""
+A(); // 1
+#line (3, 3) - (6, 6) 8 ""a.txt""
+        A(); // 2
+#line 3
+  A(); // 3
+    }
+}".NormalizeLineEndings();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
+                // A(); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
+                // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
+                //         A(); // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
+                // (3,3): error CS0103: The name 'A' does not exist in the current context
+                //   A(); // 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3));
         }
 
         [Fact]
@@ -637,7 +663,7 @@ class Page
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""3"" startColumn=""4"" endLine=""3"" endColumn=""8"" document=""2"" />
+        <entry offset=""0x1"" startLine=""3"" startColumn=""3"" endLine=""3"" endColumn=""7"" document=""2"" />
         <entry offset=""0x7"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""13"" document=""1"" />
         <entry offset=""0xd"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""3"" />
         <entry offset=""0x13"" startLine=""2"" startColumn=""3"" endLine=""2"" endColumn=""5"" document=""2"" />

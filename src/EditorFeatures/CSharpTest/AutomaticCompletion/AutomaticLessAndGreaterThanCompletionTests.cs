@@ -174,8 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         public void TypeParameterReturnType()
         {
             var code = """
@@ -191,8 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         public void TypeParameterInDecl()
         {
             var code = """
@@ -208,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         public void TypeParameterInDeclWith()
         {
             var code = """
@@ -225,8 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         public void TypeArgumentWithUsing()
         {
             var code = """
@@ -247,8 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         public void TypeArgumentNoUsing()
         {
             var code = """
@@ -265,8 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         public void NotInLessThanComparisonOperation()
         {
             var code = """
@@ -284,8 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         public void NotInLessThanComparisonOperationAfterConditionalAccessExpression()
         {
             var code = """
@@ -303,8 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         public void TypeArgumentInConditionalAccessExpressionSimple()
         {
             var code = """
@@ -322,8 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         public void TypeArgumentInConditionalAccessExpressionNested()
         {
             var code = """
@@ -354,8 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         public void TypeArgumentInConditionalAccessExpressionDeeplyNested()
         {
             var code = """
@@ -392,8 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         public void TypeArgumentInConditionalAccessExpressionWithLambdas()
         {
             var code = """
@@ -447,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         internal static Holder CreateSession(string code)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 LessAndGreaterThan.OpenCharacter, LessAndGreaterThan.CloseCharacter);
         }
     }

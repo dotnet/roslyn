@@ -1059,8 +1059,8 @@
   <data name="ERR_BadVarargs" xml:space="preserve">
     <value>A method with vararg cannot be generic, be in a generic type, or have a params parameter</value>
   </data>
-  <data name="ERR_ParamsMustBeArray" xml:space="preserve">
-    <value>The params parameter must be a single dimensional array</value>
+  <data name="ERR_ParamsMustBeCollection" xml:space="preserve">
+    <value>The params parameter must have a valid collection type</value>
   </data>
   <data name="ERR_IllegalArglist" xml:space="preserve">
     <value>An __arglist expression may only appear inside of a call or new expression</value>
@@ -2000,8 +2000,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_SystemVoid" xml:space="preserve">
     <value>System.Void cannot be used from C# -- use typeof(void) to get the void type object</value>
   </data>
-  <data name="ERR_ExplicitParamArray" xml:space="preserve">
-    <value>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</value>
+  <data name="ERR_ExplicitParamArrayOrCollection" xml:space="preserve">
+    <value>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</value>
   </data>
   <data name="WRN_BitwiseOrSignExtend" xml:space="preserve">
     <value>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</value>
@@ -2757,6 +2757,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
+  </data>
+  <data name="ERR_SpreadMissingMember" xml:space="preserve">
+    <value>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement.</value>
@@ -4077,7 +4080,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Cannot specify a default value for the 'this' parameter</value>
   </data>
   <data name="ERR_DefaultValueForParamsParameter" xml:space="preserve">
-    <value>Cannot specify a default value for a parameter array</value>
+    <value>Cannot specify a default value for a parameter collection</value>
   </data>
   <data name="ERR_NoConversionForDefaultParam" xml:space="preserve">
     <value>A value of type '{0}' cannot be used as a default parameter because there are no standard conversions to type '{1}'</value>
@@ -5938,6 +5941,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid C# compound assignment operation</value>
   </data>
+  <data name="ISpreadOperationIsNotCSharpSpread" xml:space="preserve">
+    <value>{0} is not a valid C# spread operation</value>
+  </data>
   <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
     <value>Filter expression is a constant 'false', consider removing the catch clause</value>
   </data>
@@ -6850,6 +6856,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionBuilderNoElementType" xml:space="preserve">
     <value>'{0}' has a CollectionBuilderAttribute but no element type.</value>
   </data>
+  <data name="ERR_CollectionExpressionTargetNoElementType" xml:space="preserve">
+    <value>Collection expression target '{0}' has no element type.</value>
+  </data>
+  <data name="ERR_CollectionExpressionMissingConstructor" xml:space="preserve">
+    <value>Collection expression type must have an applicable constructor that can be called with no arguments.</value>
+  </data>
+  <data name="ERR_CollectionExpressionMissingAdd" xml:space="preserve">
+    <value>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</value>
+  </data>
   <data name="ERR_CollectionBuilderAttributeInvalidType" xml:space="preserve">
     <value>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</value>
   </data>
@@ -7283,9 +7298,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PatternSpanCharCannotBeStringNull" xml:space="preserve">
     <value>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</value>
-  </data>
-  <data name="ERR_EncUpdateFailedDelegateTypeChanged" xml:space="preserve">
-    <value>Cannot update because an inferred delegate type has changed.</value>
   </data>
   <data name="WRN_CompileTimeCheckedOverflow" xml:space="preserve">
     <value>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</value>
@@ -7771,16 +7783,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Inline array conversion operator will not be used for conversion from expression of the declaring type.</value>
   </data>
   <data name="WRN_InlineArrayNotSupportedByLanguage" xml:space="preserve">
-    <value>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</value>
+    <value>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</value>
   </data>
   <data name="WRN_InlineArrayNotSupportedByLanguage_Title" xml:space="preserve">
-    <value>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</value>
+    <value>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</value>
   </data>
   <data name="ERR_InlineArrayForEachNotSupported" xml:space="preserve">
     <value>foreach statement on an inline array of type '{0}' is not supported</value>
   </data>
   <data name="IDS_FeatureRefReadonlyParameters" xml:space="preserve">
     <value>ref readonly parameters</value>
+  </data>
+  <data name="IDS_FeatureStringEscapeCharacter" xml:space="preserve">
+    <value>string escape character</value>
   </data>
   <data name="WRN_OverridingDifferentRefness" xml:space="preserve">
     <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</value>
@@ -7806,10 +7821,88 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
     <value>Ref field should be ref-assigned before use.</value>
   </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
   <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
     <value>Expected interpolated string</value>
   </data>
   <data name="ERR_CollectionExpressionImmutableArray" xml:space="preserve">
     <value>This version of '{0}' cannot be used with collection expressions.</value>
+  </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
+  </data>
+  <data name="IDS_FeatureImplicitIndexerInitializer" xml:space="preserve">
+    <value>implicit indexer initializer</value>
+  </data>
+  <data name="WRN_ConvertingLock" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</value>
+  </data>
+  <data name="WRN_ConvertingLock_Title" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</value>
+  </data>
+  <data name="ERR_BadSpecialByRefLock" xml:space="preserve">
+    <value>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</value>
+  </data>
+  <data name="IDS_FeatureLockObject" xml:space="preserve">
+    <value>Lock object</value>
+  </data>
+  <data name="IDS_FeatureParamsCollections" xml:space="preserve">
+    <value>params collections</value>
+  </data>
+  <data name="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections" xml:space="preserve">
+    <value>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</value>
+  </data>
+  <data name="ERR_ParamsCollectionAmbiguousDynamicArgument" xml:space="preserve">
+    <value>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</value>
+  </data>
+  <data name="WRN_DynamicDispatchToParamsCollectionMethod" xml:space="preserve">
+    <value>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+  </data>
+  <data name="WRN_DynamicDispatchToParamsCollectionMethod_Title" xml:space="preserve">
+    <value>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+  </data>
+  <data name="WRN_DynamicDispatchToParamsCollectionIndexer" xml:space="preserve">
+    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+  </data>
+  <data name="WRN_DynamicDispatchToParamsCollectionIndexer_Title" xml:space="preserve">
+    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+  </data>
+  <data name="WRN_DynamicDispatchToParamsCollectionConstructor" xml:space="preserve">
+    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+  </data>
+  <data name="WRN_DynamicDispatchToParamsCollectionConstructor_Title" xml:space="preserve">
+    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+  </data>
+  <data name="ERR_ParamsCollectionInfiniteChainOfConstructorCalls" xml:space="preserve">
+    <value>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</value>
+  </data>
+  <data name="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember" xml:space="preserve">
+    <value>Method '{0}' cannot be less visible than the member with params collection '{1}'.</value>
+  </data>
+  <data name="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember" xml:space="preserve">
+    <value>Constructor '{0}' leaves required member '{1}' uninitialized.</value>
+  </data>
+  <data name="ERR_ParamsCollectionExpressionTree" xml:space="preserve">
+    <value>An expression tree may not contain an expanded form of non-array params collection parameter.</value>
+  </data>
+  <data name="ERR_ParamsCollectionExtensionAddMethod" xml:space="preserve">
+    <value>'{0}' does not contain a definition for a suitable instance 'Add' method</value>
+  </data>
+  <data name="ERR_ParamsCollectionMissingConstructor" xml:space="preserve">
+    <value>Non-array params collection type must have an applicable constructor that can be called with no arguments.</value>
+  </data>
+  <data name="ERR_NoModifiersOnUsing" xml:space="preserve">
+    <value>Modifiers cannot be placed on using declarations</value>
   </data>
 </root>

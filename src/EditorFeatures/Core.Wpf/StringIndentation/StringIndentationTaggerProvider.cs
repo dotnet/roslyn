@@ -37,7 +37,7 @@ internal sealed partial class StringIndentationTaggerProvider : AsynchronousView
 {
     private readonly IEditorFormatMap _editorFormatMap;
 
-    protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(StringIndentationOptionsStorage.StringIdentation);
+    protected override ImmutableArray<IOption2> Options { get; } = [StringIndentationOptionsStorage.StringIdentation];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

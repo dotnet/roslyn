@@ -6,28 +6,27 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class GroupKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    internal class GroupKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    public GroupKeywordRecommender()
+        : base(SyntaxKind.GroupKeyword)
     {
-        public GroupKeywordRecommender()
-            : base(SyntaxKind.GroupKeyword)
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        var token = context.TargetToken;
+
+        // var q = from x in y
+        //         |
+        if (!token.IntersectsWith(position) &&
+            token.IsLastTokenOfQueryClause())
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var token = context.TargetToken;
-
-            // var q = from x in y
-            //         |
-            if (!token.IntersectsWith(position) &&
-                token.IsLastTokenOfQueryClause())
-            {
-                return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-    public partial class RemoveUnnecessaryPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class RemoveUnnecessaryPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper logger)
           : base(logger)

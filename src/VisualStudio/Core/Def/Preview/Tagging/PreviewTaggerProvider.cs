@@ -14,28 +14,27 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
+
+[Export(typeof(IViewTaggerProvider))]
+[TagType(typeof(HighlightTag))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.XamlContentType)]
+internal class PreviewTaggerProvider : IViewTaggerProvider
 {
-    [Export(typeof(IViewTaggerProvider))]
-    [TagType(typeof(HighlightTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    internal class PreviewTaggerProvider : IViewTaggerProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PreviewTaggerProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PreviewTaggerProvider()
+    }
+
+    public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+    {
+        if (textView.Properties.TryGetProperty(typeof(PreviewUpdater.PreviewTagger), out PreviewUpdater.PreviewTagger tagger))
         {
+            return tagger as ITagger<T>;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
-        {
-            if (textView.Properties.TryGetProperty(typeof(PreviewUpdater.PreviewTagger), out PreviewUpdater.PreviewTagger tagger))
-            {
-                return tagger as ITagger<T>;
-            }
-
-            return null;
-        }
+        return null;
     }
 }

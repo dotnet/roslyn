@@ -384,7 +384,7 @@ namespace D
                 {
                     case methodToken1: return new MethodDebugInfoBytes.Builder().AddForward(methodToken2).Build().Bytes.ToArray();
                     case methodToken2: return new MethodDebugInfoBytes.Builder().AddForward(methodToken3).Build().Bytes.ToArray();
-                    case methodToken3: return new MethodDebugInfoBytes.Builder(new[] { new[] { importString } }).Build().Bytes.ToArray();
+                    case methodToken3: return new MethodDebugInfoBytes.Builder([new[] { importString }]).Build().Bytes.ToArray();
                     default: throw null;
                 }
             });
@@ -522,7 +522,7 @@ public class C
 
                 symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { new[] { "USystem", "USystem.IO" } }, suppressUsingInfo: true).AddUsingInfo(1, 1).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder([new[] { "USystem", "USystem.IO" }], suppressUsingInfo: true).AddUsingInfo(1, 1).Build() },
                 }.ToImmutableDictionary());
             }
 
@@ -562,7 +562,7 @@ namespace N
 
                 symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { new[] { "USystem" } }, suppressUsingInfo: true).AddUsingInfo(1).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder([new[] { "USystem" }], suppressUsingInfo: true).AddUsingInfo(1).Build() },
                 }.ToImmutableDictionary());
             }
 
@@ -602,7 +602,7 @@ namespace N
 
                 symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { new[] { "TSystem.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" } }, suppressUsingInfo: true).AddUsingInfo(1).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder([new[] { "TSystem.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" }], suppressUsingInfo: true).AddUsingInfo(1).Build() },
                 }.ToImmutableDictionary());
             }
 

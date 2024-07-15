@@ -4,54 +4,42 @@
 
 using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal class InsertionPoint
 {
-    internal class InsertionPoint
+    private readonly SyntaxAnnotation _annotation;
+    private readonly Lazy<SyntaxNode?> _context;
+
+    public InsertionPoint(SemanticDocument document, SyntaxAnnotation annotation)
     {
-        private readonly SyntaxAnnotation _annotation;
-        private readonly Lazy<SyntaxNode?> _context;
+        Contract.ThrowIfNull(document);
+        Contract.ThrowIfNull(annotation);
 
-        public static async Task<InsertionPoint> CreateAsync(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var root = document.Root;
-            var annotation = new SyntaxAnnotation();
-            var newRoot = root.AddAnnotations(SpecializedCollections.SingletonEnumerable(Tuple.Create(node, annotation)));
-            return new InsertionPoint(await document.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false), annotation);
-        }
+        SemanticDocument = document;
+        _annotation = annotation;
+        _context = CreateLazyContextNode();
+    }
 
-        private InsertionPoint(SemanticDocument document, SyntaxAnnotation annotation)
-        {
-            Contract.ThrowIfNull(document);
-            Contract.ThrowIfNull(annotation);
+    public SemanticDocument SemanticDocument { get; }
 
-            SemanticDocument = document;
-            _annotation = annotation;
-            _context = CreateLazyContextNode();
-        }
+    public SyntaxNode GetRoot()
+        => SemanticDocument.Root;
 
-        public SemanticDocument SemanticDocument { get; }
+    public SyntaxNode? GetContext()
+        => _context.Value;
 
-        public SyntaxNode GetRoot()
-            => SemanticDocument.Root;
+    public InsertionPoint With(SemanticDocument document)
+        => new(document, _annotation);
 
-        public SyntaxNode? GetContext()
-            => _context.Value;
+    private Lazy<SyntaxNode?> CreateLazyContextNode()
+        => new(ComputeContextNode, isThreadSafe: true);
 
-        public InsertionPoint With(SemanticDocument document)
-            => new(document, _annotation);
-
-        private Lazy<SyntaxNode?> CreateLazyContextNode()
-            => new(ComputeContextNode, isThreadSafe: true);
-
-        private SyntaxNode? ComputeContextNode()
-        {
-            var root = SemanticDocument.Root;
-            return root.GetAnnotatedNodesAndTokens(_annotation).SingleOrDefault().AsNode();
-        }
+    private SyntaxNode? ComputeContextNode()
+    {
+        var root = SemanticDocument.Root;
+        return root.GetAnnotatedNodesAndTokens(_annotation).SingleOrDefault().AsNode();
     }
 }

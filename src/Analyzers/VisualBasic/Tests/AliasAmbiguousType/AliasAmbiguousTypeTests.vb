@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AliasAmbiguousType
     <Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
     Public Class AliasAmbiguousTypeTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicAliasAmbiguousTypeCodeFixProvider())

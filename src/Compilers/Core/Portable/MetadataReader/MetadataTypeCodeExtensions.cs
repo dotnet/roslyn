@@ -128,6 +128,18 @@ namespace Microsoft.CodeAnalysis
 
         internal static SerializationTypeCode ToSerializationType(this SpecialType specialType)
         {
+            var result = ToSerializationTypeOrInvalid(specialType);
+
+            if (result == SerializationTypeCode.Invalid)
+            {
+                throw ExceptionUtilities.UnexpectedValue(specialType);
+            }
+
+            return result;
+        }
+
+        internal static SerializationTypeCode ToSerializationTypeOrInvalid(this SpecialType specialType)
+        {
             switch (specialType)
             {
                 case SpecialType.System_Boolean:
@@ -173,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                     return SerializationTypeCode.TaggedObject;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(specialType);
+                    return SerializationTypeCode.Invalid;
             }
         }
     }

@@ -2,27 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
+    internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
         private readonly IInitializeManager _initializeManager;
+        private readonly LspWorkspaceManager _lspWorkspaceManager;
 
         /// <summary>
         /// Serial access is guaranteed by the queue.
         /// </summary>
         private CultureInfo? _cultureInfo;
 
-        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
             : base(languageServer, logger, handlerProvider)
         {
             _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
+            _lspWorkspaceManager = languageServer.GetLspServices().GetRequiredService<LspWorkspaceManager>();
         }
 
         public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
@@ -37,6 +42,50 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 return nonMutatingRequestTask.ReportNonFatalErrorAsync();
             }
+        }
+
+        protected override string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
+        {
+            var uri = GetUriForRequest(methodName, request);
+            if (uri is not null)
+            {
+                return _lspWorkspaceManager.GetLanguageForUri(uri);
+            }
+
+            return base.GetLanguageForRequest(methodName, request);
+        }
+
+        private static Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
+        {
+            if (request is ITextDocumentParams textDocumentParams)
+            {
+                return textDocumentParams.TextDocument.Uri;
+            }
+
+            if (IsDocumentResolveMethod(methodName))
+            {
+                var dataToken = (JToken?)request?.GetType().GetProperty("Data")?.GetValue(request);
+                var resolveData = dataToken?.ToObject<DocumentResolveData>();
+                if (resolveData is null)
+                {
+                    throw new InvalidOperationException($"{methodName} requires resolve data object to derive from {nameof(DocumentResolveData)}.");
+                }
+
+                return resolveData.TextDocument.Uri;
+            }
+
+            return null;
+
+            static bool IsDocumentResolveMethod(string methodName)
+                => methodName switch
+                {
+                    Methods.CodeActionResolveName => true,
+                    Methods.CodeLensResolveName => true,
+                    Methods.DocumentLinkResolveName => true,
+                    Methods.InlayHintResolveName => true,
+                    Methods.TextDocumentCompletionResolveName => true,
+                    _ => false,
+                };
         }
 
         /// <summary>

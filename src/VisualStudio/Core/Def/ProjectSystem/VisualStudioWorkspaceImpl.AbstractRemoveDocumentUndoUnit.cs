@@ -7,46 +7,45 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal partial class VisualStudioWorkspaceImpl
 {
-    internal partial class VisualStudioWorkspaceImpl
+    private abstract class AbstractRemoveDocumentUndoUnit : AbstractAddRemoveUndoUnit
     {
-        private abstract class AbstractRemoveDocumentUndoUnit : AbstractAddRemoveUndoUnit
+        protected readonly DocumentId DocumentId;
+
+        protected AbstractRemoveDocumentUndoUnit(
+            VisualStudioWorkspaceImpl workspace,
+            DocumentId documentId)
+            : base(workspace, documentId.ProjectId)
         {
-            protected readonly DocumentId DocumentId;
+            DocumentId = documentId;
+        }
 
-            protected AbstractRemoveDocumentUndoUnit(
-                VisualStudioWorkspaceImpl workspace,
-                DocumentId documentId)
-                : base(workspace, documentId.ProjectId)
+        protected abstract IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject);
+
+        protected abstract TextDocument? GetDocument(Solution currentSolution);
+
+        public override void Do(IOleUndoManager pUndoManager)
+        {
+            var currentSolution = Workspace.CurrentSolution;
+            var fromProject = currentSolution.GetProject(FromProjectId);
+
+            if (fromProject != null &&
+                GetDocumentIds(fromProject).Contains(DocumentId))
             {
-                DocumentId = documentId;
+                var updatedProject = fromProject.RemoveDocument(DocumentId);
+                Workspace.TryApplyChanges(updatedProject.Solution);
             }
+        }
 
-            protected abstract IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject);
-
-            protected abstract TextDocument? GetDocument(Solution currentSolution);
-
-            public override void Do(IOleUndoManager pUndoManager)
-            {
-                var currentSolution = Workspace.CurrentSolution;
-                var fromProject = currentSolution.GetProject(FromProjectId);
-
-                if (fromProject != null &&
-                    GetDocumentIds(fromProject).Contains(DocumentId))
-                {
-                    var updatedProject = fromProject.RemoveDocument(DocumentId);
-                    Workspace.TryApplyChanges(updatedProject.Solution);
-                }
-            }
-
-            public override void GetDescription(out string pBstr)
-            {
-                var currentSolution = Workspace.CurrentSolution;
-                var document = GetDocument(currentSolution);
-                var documentName = document?.Name ?? "";
-                pBstr = string.Format(FeaturesResources.Remove_document_0, documentName);
-            }
+        public override void GetDescription(out string pBstr)
+        {
+            var currentSolution = Workspace.CurrentSolution;
+            var document = GetDocument(currentSolution);
+            var documentName = document?.Name ?? "";
+            pBstr = string.Format(FeaturesResources.Remove_document_0, documentName);
         }
     }
 }

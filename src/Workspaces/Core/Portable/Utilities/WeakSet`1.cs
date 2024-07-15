@@ -4,32 +4,31 @@
 
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+/// <summary>
+/// A simple collection of values held as weak references. Objects in the set are compared by reference equality.
+/// </summary>
+/// <typeparam name="T">The type of object stored in the set.</typeparam>
+internal sealed class WeakSet<T>
+    where T : class?
 {
-    /// <summary>
-    /// A simple collection of values held as weak references. Objects in the set are compared by reference equality.
-    /// </summary>
-    /// <typeparam name="T">The type of object stored in the set.</typeparam>
-    internal sealed class WeakSet<T>
-        where T : class?
+    private readonly HashSet<ReferenceHolder<T>> _values = [];
+
+    public WeakSet()
     {
-        private readonly HashSet<ReferenceHolder<T>> _values = new();
+    }
 
-        public WeakSet()
-        {
-        }
+    public bool Add(T value)
+    {
+        if (Contains(value))
+            return false;
 
-        public bool Add(T value)
-        {
-            if (Contains(value))
-                return false;
+        return _values.Add(ReferenceHolder<T>.Weak(value));
+    }
 
-            return _values.Add(ReferenceHolder<T>.Weak(value));
-        }
-
-        public bool Contains(T value)
-        {
-            return _values.Contains(ReferenceHolder<T>.Strong(value));
-        }
+    public bool Contains(T value)
+    {
+        return _values.Contains(ReferenceHolder<T>.Strong(value));
     }
 }

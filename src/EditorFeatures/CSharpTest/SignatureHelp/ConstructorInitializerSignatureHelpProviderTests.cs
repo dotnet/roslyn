@@ -39,8 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass()", string.Empty, null, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass()", string.Empty, null, currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -62,8 +64,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -84,8 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -109,8 +115,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -134,8 +142,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                     { }
                 }
                 """;
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -159,8 +169,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -401,8 +413,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         [Fact]
         public void TestTriggerCharacters()
         {
-            char[] expectedCharacters = { ',', '(' };
-            char[] unexpectedCharacters = { ' ', '[', '<' };
+            char[] expectedCharacters = [',', '('];
+            char[] unexpectedCharacters = [' ', '[', '<'];
 
             VerifyTriggerCharacters(expectedCharacters, unexpectedCharacters);
         }
@@ -428,8 +440,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                     { }
                 }
                 """;
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -457,8 +471,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                     { }
                 }
                 """;
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -486,8 +502,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                     { }
                 }
                 """;
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -528,12 +546,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                     { }
                 }
                 """;
-            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
-            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
-            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("BaseClass(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("BaseClass(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -662,8 +684,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -679,8 +703,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -697,8 +723,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -714,8 +742,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
                 }
                 """;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }

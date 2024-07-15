@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false,
                    (declarationModifiers, MakeFlags(
                                                     methodKind, refKind, declarationModifiers, returnType.IsVoidType(), returnsVoidIsSet: true, isExpressionBodied: false,
-                                                    isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false, isExplicitInterfaceImplementation: false)))
+                                                    isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false, isExplicitInterfaceImplementation: false, hasThisInitializer: false)))
         {
             _returnType = returnType;
         }
@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
 
                 if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {

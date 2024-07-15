@@ -282,23 +282,63 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="TItem">Type of the source array items</typeparam>
         /// <typeparam name="TResult">Type of the transformed array items</typeparam>
         /// <param name="array">The array to transform</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <returns>If the array's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, ImmutableArray<TResult>> selector)
+        {
+            if (array.Length == 0)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+                builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
         /// <param name="predicate">The condition to use for filtering the array content.</param>
         /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, IEnumerable<TResult>> selector)
         {
             if (array.Length == 0)
-            {
                 return ImmutableArray<TResult>.Empty;
-            }
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
             {
                 if (predicate(item))
-                {
                     builder.AddRange(selector(item));
-                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, ImmutableArray<TResult>> selector)
+        {
+            if (array.Length == 0)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                    builder.AddRange(selector(item));
             }
 
             return builder.ToImmutableAndFree();
@@ -309,6 +349,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
@@ -324,6 +367,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
@@ -346,9 +392,9 @@ namespace Microsoft.CodeAnalysis
                 return selector(source[0], arg, cancellationToken);
             }
 
-            return CreateTask();
+            return CreateTaskAsync();
 
-            async ValueTask<ImmutableArray<TResult>> CreateTask()
+            async ValueTask<ImmutableArray<TResult>> CreateTaskAsync()
             {
                 var builder = ArrayBuilder<TResult>.GetInstance();
 
@@ -824,7 +870,48 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
+        /// <summary>
+        /// Determines whether duplicates exist using default equality comparer.
+        /// </summary>
+        /// <param name="array">Array to search for duplicates</param>
+        /// <returns>Whether duplicates were found</returns>
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+        {
+            switch (array.Length)
+            {
+                case 0:
+                case 1:
+                    return false;
+
+                case 2:
+                    return EqualityComparer<T>.Default.Equals(array[0], array[1]);
+
+                default:
+                    var set = PooledHashSet<T>.GetInstance();
+                    var foundDuplicate = false;
+
+                    foreach (var element in array)
+                    {
+                        if (!set.Add(element))
+                        {
+                            foundDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    set.Free();
+                    return foundDuplicate;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether duplicates exist using <paramref name="comparer"/>. Use other override
+        /// if you don't need a custom comparer.
+        /// </summary>
+        /// <param name="array">Array to search for duplicates</param>
+        /// <param name="comparer">Comparer to use in search</param>
+        /// <returns>Whether duplicates were found</returns>
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
         {
             switch (array.Length)
             {
@@ -838,9 +925,9 @@ namespace Microsoft.CodeAnalysis
 
                 default:
                     var set = new HashSet<T>(comparer);
-                    foreach (var i in array)
+                    foreach (var element in array)
                     {
-                        if (!set.Add(i))
+                        if (!set.Add(element))
                         {
                             return true;
                         }
@@ -874,6 +961,15 @@ namespace Microsoft.CodeAnalysis
             var sum = 0;
             foreach (var item in items)
                 sum += selector(item);
+
+            return sum;
+        }
+
+        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int, int> selector)
+        {
+            var sum = 0;
+            for (var i = 0; i < items.Length; i++)
+                sum += selector(items[i], i);
 
             return sum;
         }
@@ -946,7 +1042,13 @@ namespace Microsoft.CodeAnalysis
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
         {
-            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(comparer);
+            // Initialize dictionary capacity to avoid resize allocations during Add calls.
+            // Most iterations through the loop add an entry. If map is smaller than the
+            // smallest capacity dictionary will use, we'll let it grow organically as
+            // it's possible we might not add anything to the dictionary.
+            var capacity = map.Count > 3 ? map.Count : 0;
+
+            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(capacity, comparer);
 
             foreach (var (name, members) in map)
             {
@@ -1024,8 +1126,10 @@ namespace Microsoft.CodeAnalysis
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
 
-        internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T> comparer)
+        internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T>? comparer = null)
         {
+            comparer ??= Comparer<T>.Default;
+
             for (var i = 1; i < array.Length; i++)
             {
                 if (comparer.Compare(array[i - 1], array[i]) > 0)
@@ -1095,6 +1199,44 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ~low;
+        }
+
+        public static bool IsSubsetOf<TElement>(this ImmutableArray<TElement> array, ImmutableArray<TElement> other)
+        {
+            if (other.Length == 0)
+            {
+                return array.Length == 0;
+            }
+
+            switch (array.Length)
+            {
+                case 0:
+                    return true;
+                case 1:
+                    return other.Contains(array[0]);
+                case 2:
+                    return other.Contains(array[0]) && other.Contains(array[1]);
+                case 3:
+                    return other.Contains(array[0]) && other.Contains(array[1]) && other.Contains(array[2]);
+            }
+
+            var set = PooledHashSet<TElement>.GetInstance();
+            foreach (var item in other)
+            {
+                set.Add(item);
+            }
+
+            foreach (var item in array)
+            {
+                if (!set.Contains(item))
+                {
+                    set.Free();
+                    return false;
+                }
+            }
+
+            set.Free();
+            return true;
         }
     }
 }

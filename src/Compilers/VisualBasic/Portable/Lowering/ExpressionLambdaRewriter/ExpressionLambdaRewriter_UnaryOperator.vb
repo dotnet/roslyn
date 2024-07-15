@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim method As MethodSymbol = GetHelperForObjectUnaryOperation(opKind)
-                    Return If(method Is Nothing, argument, ConvertRuntimeHelperToExpressionTree("UnaryPlus", argument, Me._factory.MethodInfo(method)))
+                    Return If(method Is Nothing, argument, ConvertRuntimeHelperToExpressionTree("UnaryPlus", argument, Me._factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo))))
 
                 Case UnaryOperatorKind.Minus
                     helperName = If(isChecked, "NegateChecked", "Negate")
@@ -64,7 +64,7 @@ lNotAndMinus:
                     End If
 
                     If method IsNot Nothing Then
-                        Return ConvertRuntimeHelperToExpressionTree(helperName, argument, Me._factory.MethodInfo(method))
+                        Return ConvertRuntimeHelperToExpressionTree(helperName, argument, Me._factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
                     End If
 
                     ' No standard method
@@ -177,7 +177,7 @@ lNotAndMinus:
 
                     Return ConvertRuntimeHelperToExpressionTree(GetUnaryOperatorMethodName(opKind, False),
                                                                 Visit(node.Operand),
-                                                                _factory.MethodInfo(node.Call.Method))
+                                                                _factory.MethodInfo(node.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(opKind)

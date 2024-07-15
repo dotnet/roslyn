@@ -22,6 +22,13 @@ namespace RunTests
         Failed,
     }
 
+    internal enum TestRuntime
+    {
+        Both,
+        Core,
+        Framework
+    }
+
     internal class Options
     {
         /// <summary>
@@ -44,7 +51,7 @@ namespace RunTests
         /// <summary>
         /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
-        public List<string> TargetFrameworks { get; set; } = new List<string>();
+        public TestRuntime TestRuntime { get; set; } = TestRuntime.Both;
 
         public List<string> IncludeFilter { get; set; } = new List<string>();
 
@@ -56,11 +63,6 @@ namespace RunTests
         /// Time after which the runner should kill the xunit process and exit with a failure.
         /// </summary>
         public TimeSpan? Timeout { get; set; }
-
-        /// <summary>
-        /// Retry tests on failure 
-        /// </summary>
-        public bool Retry { get; set; }
 
         /// <summary>
         /// Whether or not to collect dumps on crashes and timeouts.
@@ -141,7 +143,7 @@ namespace RunTests
             string? dotnetFilePath = null;
             var architecture = "x64";
             var includeHtml = false;
-            var targetFrameworks = new List<string>();
+            var testRuntime = TestRuntime.Both;
             var configuration = "Debug";
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
@@ -149,7 +151,6 @@ namespace RunTests
             var helix = false;
             var helixQueueName = "Windows.10.Amd64.Open";
             string? helixApiAccessToken = null;
-            var retry = false;
             string? testFilter = null;
             int? timeout = null;
             string? resultFileDirectory = null;
@@ -167,7 +168,7 @@ namespace RunTests
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "configuration=", "Configuration to test: Debug or Release", (string s) => configuration = s },
-                { "tfm=", "Target framework to test", (string s) => targetFrameworks.Add(s) },
+                { "runtime=", "The runtime to test: both, core or framework", (TestRuntime t) => testRuntime = t},
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
                 { "arch=", "Architecture to test on: x86, x64 or arm64", (string s) => architecture = s },
@@ -184,7 +185,6 @@ namespace RunTests
                 { "artifactspath=", "Path to the artifacts directory", (string s) => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
-                { "retry", "Retry failed test a few times", o => retry = o is object },
                 { "accessToken=", "Pipeline access token with permissions to view test history", (string s) => accessToken = s },
                 { "projectUri=", "ADO project containing the pipeline", (string s) => projectUri = s },
                 { "pipelineDefinitionId=", "Pipeline definition id", (string s) => pipelineDefinitionId = s },
@@ -209,11 +209,6 @@ namespace RunTests
                 includeFilter.Add(".*UnitTests.*");
             }
 
-            if (targetFrameworks.Count == 0)
-            {
-                targetFrameworks.Add("net472");
-            }
-
             artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
             {
@@ -234,12 +229,6 @@ namespace RunTests
                 return null;
             }
 
-            if (retry && includeHtml)
-            {
-                ConsoleUtil.WriteLine($"Cannot specify both --retry and --html");
-                return null;
-            }
-
             if (procDumpFilePath is { } && !collectDumps)
             {
                 ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
@@ -253,7 +242,7 @@ namespace RunTests
                 logFilesDirectory: logFileDirectory,
                 architecture: architecture)
             {
-                TargetFrameworks = targetFrameworks,
+                TestRuntime = testRuntime,
                 IncludeFilter = includeFilter,
                 ExcludeFilter = excludeFilter,
                 Display = display,
@@ -266,7 +255,6 @@ namespace RunTests
                 IncludeHtml = includeHtml,
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
-                Retry = retry,
                 AccessToken = accessToken,
                 ProjectUri = projectUri,
                 PipelineDefinitionId = pipelineDefinitionId,

@@ -10,30 +10,29 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
+
+internal class StackTraceExplorerTab
 {
-    internal class StackTraceExplorerTab
+    private readonly StackTraceExplorerViewModel _stackExplorerVM;
+    public int NameIndex { get; }
+    public string Header => string.Format(ServicesVSResources.Stack_trace_0, NameIndex);
+    public string CloseTab => ServicesVSResources.Close_tab;
+    public StackTraceExplorer Content { get; }
+    public ICommand CloseClick { get; }
+    public event EventHandler? OnClosed;
+    public bool IsEmpty => _stackExplorerVM.Frames.Count == 0;
+
+    public StackTraceExplorerTab(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, int nameIndex)
     {
-        private readonly StackTraceExplorerViewModel _stackExplorerVM;
-        public int NameIndex { get; }
-        public string Header => string.Format(ServicesVSResources.Stack_trace_0, NameIndex);
-        public string CloseTab => ServicesVSResources.Close_tab;
-        public StackTraceExplorer Content { get; }
-        public ICommand CloseClick { get; }
-        public event EventHandler? OnClosed;
-        public bool IsEmpty => _stackExplorerVM.Frames.Count == 0;
+        NameIndex = nameIndex;
 
-        public StackTraceExplorerTab(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, int nameIndex)
+        _stackExplorerVM = new StackTraceExplorerViewModel(threadingContext, workspace, typeMap, formatMap);
+        Content = new StackTraceExplorer(_stackExplorerVM);
+
+        CloseClick = new DelegateCommand(_ =>
         {
-            NameIndex = nameIndex;
-
-            _stackExplorerVM = new StackTraceExplorerViewModel(threadingContext, workspace, typeMap, formatMap);
-            Content = new StackTraceExplorer(_stackExplorerVM);
-
-            CloseClick = new DelegateCommand(_ =>
-            {
-                OnClosed?.Invoke(this, null);
-            });
-        }
+            OnClosed?.Invoke(this, null);
+        });
     }
 }

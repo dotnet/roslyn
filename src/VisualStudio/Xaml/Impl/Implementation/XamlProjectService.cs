@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private readonly VisualStudioProjectFactory _visualStudioProjectFactory;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IThreadingContext _threadingContext;
-        private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = new();
+        private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = [];
         private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
 
         private RunningDocumentTable? _rdt;

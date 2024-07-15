@@ -396,7 +396,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1906990")>
         Public Async Function TestBackspaceBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2060,9 +2060,23 @@ End Class
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
+
+                ' Assert the lack of a completion session (which implicitly waits for background operations to complete)
+                ' to ensure the session is dismissed before typing the next character.
+                ' https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2003327
+                Await state.AssertNoCompletionSession()
+
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendTypeChars("Thi")
                 Await state.AssertSelectedCompletionItem("Thing1")
+                Assert.True(state.GetSelectedItem().Tags.Contains(WellKnownTags.Warning))
+                state.SendBackspace()
+                state.SendBackspace()
+                state.SendBackspace()
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("M")
+                Await state.AssertSelectedCompletionItem("M")
+                Assert.False(state.GetSelectedItem().Tags.Contains(WellKnownTags.Warning))
             End Using
         End Function
 

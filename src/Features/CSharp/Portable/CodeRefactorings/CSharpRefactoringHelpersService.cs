@@ -17,99 +17,98 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings;
+
+[ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
+internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService<ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax>
 {
-    [ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
-    internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService<ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpRefactoringHelpersService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRefactoringHelpersService()
+    }
+
+    protected override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
+
+    public override bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
+    {
+        var token = root.FindToken(position);
+        var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
+        typeDeclaration = typeDecl;
+
+        if (typeDecl == null)
+            return false;
+
+        RoslynDebug.AssertNotNull(typeDeclaration);
+        if (position < typeDecl.OpenBraceToken.Span.End ||
+            position > typeDecl.CloseBraceToken.Span.Start)
         {
-        }
-
-        protected override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
-
-        public override bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
-        {
-            var token = root.FindToken(position);
-            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
-            typeDeclaration = typeDecl;
-
-            if (typeDecl == null)
-                return false;
-
-            RoslynDebug.AssertNotNull(typeDeclaration);
-            if (position < typeDecl.OpenBraceToken.Span.End ||
-                position > typeDecl.CloseBraceToken.Span.Start)
-            {
-                return false;
-            }
-
-            var line = sourceText.Lines.GetLineFromPosition(position);
-            if (!line.IsEmptyOrWhitespace())
-                return false;
-
-            var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
-            if (member == null)
-            {
-                // There are no members, or we're after the last member.
-                return true;
-            }
-            else
-            {
-                // We're within a member.  Make sure we're in the leading whitespace of
-                // the member.
-                if (position < member.SpanStart)
-                {
-                    foreach (var trivia in member.GetLeadingTrivia())
-                    {
-                        if (!trivia.IsWhitespaceOrEndOfLine())
-                            return false;
-
-                        if (trivia.FullSpan.Contains(position))
-                            return true;
-                    }
-                }
-            }
-
             return false;
         }
 
-        protected override IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode? node, ISyntaxFactsService syntaxFacts)
+        var line = sourceText.Lines.GetLineFromPosition(position);
+        if (!line.IsEmptyOrWhitespace())
+            return false;
+
+        var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
+        if (member == null)
         {
-            if (node == null)
+            // There are no members, or we're after the last member.
+            return true;
+        }
+        else
+        {
+            // We're within a member.  Make sure we're in the leading whitespace of
+            // the member.
+            if (position < member.SpanStart)
             {
-                yield break;
-            }
-
-            foreach (var extractedNode in base.ExtractNodesSimple(node, syntaxFacts))
-            {
-                yield return extractedNode;
-            }
-
-            // `var a = b;`
-            // -> `var a = b`;
-            if (node is LocalDeclarationStatementSyntax localDeclaration)
-            {
-                yield return localDeclaration.Declaration;
-            }
-
-            // var `a = b`;
-            if (node is VariableDeclaratorSyntax declarator)
-            {
-                var declaration = declarator.Parent;
-                if (declaration?.Parent is LocalDeclarationStatementSyntax localDeclarationStatement)
+                foreach (var trivia in member.GetLeadingTrivia())
                 {
-                    var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
-                    if (variables.Count == 1)
-                    {
-                        // -> `var a = b`;
-                        yield return declaration;
+                    if (!trivia.IsWhitespaceOrEndOfLine())
+                        return false;
 
-                        // -> `var a = b;`
-                        yield return localDeclarationStatement;
-                    }
+                    if (trivia.FullSpan.Contains(position))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    protected override IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode? node, ISyntaxFactsService syntaxFacts)
+    {
+        if (node == null)
+        {
+            yield break;
+        }
+
+        foreach (var extractedNode in base.ExtractNodesSimple(node, syntaxFacts))
+        {
+            yield return extractedNode;
+        }
+
+        // `var a = b;`
+        // -> `var a = b`;
+        if (node is LocalDeclarationStatementSyntax localDeclaration)
+        {
+            yield return localDeclaration.Declaration;
+        }
+
+        // var `a = b`;
+        if (node is VariableDeclaratorSyntax declarator)
+        {
+            var declaration = declarator.Parent;
+            if (declaration?.Parent is LocalDeclarationStatementSyntax localDeclarationStatement)
+            {
+                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
+                if (variables.Count == 1)
+                {
+                    // -> `var a = b`;
+                    yield return declaration;
+
+                    // -> `var a = b;`
+                    yield return localDeclarationStatement;
                 }
             }
         }

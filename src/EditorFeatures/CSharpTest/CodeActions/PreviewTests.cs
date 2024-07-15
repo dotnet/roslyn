@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
     public partial class PreviewTests : AbstractCSharpCodeActionTest
     {
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(
-                typeof(MockDiagnosticUpdateSourceRegistrationService),
                 typeof(MockPreviewPaneService));
 
         private const string AddedDocumentName = "AddedDocument";
@@ -42,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 
         protected override TestComposition GetComposition() => s_composition;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new MyCodeRefactoringProvider();
 
-        private class MyCodeRefactoringProvider : CodeRefactoringProvider
+        private sealed class MyCodeRefactoringProvider : CodeRefactoringProvider
         {
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
@@ -69,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                     }
                 }
 
-                protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override Task<Solution> GetChangedSolutionAsync(
+                    IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var solution = _oldDocument.Project.Solution;
 
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        private async Task<(Document document, SolutionPreviewResult previews)> GetMainDocumentAndPreviewsAsync(TestParameters parameters, TestWorkspace workspace)
+        private async Task<(Document document, SolutionPreviewResult previews)> GetMainDocumentAndPreviewsAsync(TestParameters parameters, EditorTestWorkspace workspace)
         {
             var document = GetDocument(workspace);
             var provider = CreateCodeRefactoringProvider(workspace, parameters);
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             return (document, previews);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14421")]
+        [WpfFact]
         public async Task TestPickTheRightPreview_NoPreference()
         {
             var parameters = new TestParameters();

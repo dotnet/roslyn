@@ -9,9 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -20,9 +22,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         where TSelf : EditAndContinueTest<TSelf>
     {
         private readonly Verification _verification = verification ?? Verification.Passes;
-        private readonly List<IDisposable> _disposables = new();
-        private readonly List<GenerationInfo> _generations = new();
-        private readonly List<SourceWithMarkedNodes> _sources = new();
+        private readonly List<IDisposable> _disposables = [];
+        private readonly List<GenerationInfo> _generations = [];
+        private readonly List<SourceWithMarkedNodes> _sources = [];
 
         private bool _hasVerified;
 
@@ -32,16 +34,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private TSelf This => (TSelf)this;
 
-        internal TSelf AddBaseline(string source, Action<GenerationVerifier> validator)
-            => AddBaseline(CreateSourceWithMarkedNodes(source), validator);
-
-        internal TSelf AddBaseline(SourceWithMarkedNodes source, Action<GenerationVerifier> validator)
+        internal TSelf AddBaseline(string source, Action<GenerationVerifier>? validator = null)
         {
             _hasVerified = false;
 
             Assert.Empty(_generations);
 
-            var compilation = CreateCompilation(source.Tree);
+            var markedSource = CreateSourceWithMarkedNodes(source);
+
+            var compilation = CreateCompilation(markedSource.Tree);
 
             var verifier = new CompilationVerifier(compilation);
 
@@ -58,47 +59,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
             _disposables.Add(md);
 
-            var baseline = EmitBaseline.CreateInitialBaseline(md, verifier.CreateSymReader().GetEncMethodDebugInfo);
+            var baseline = EditAndContinueTestUtilities.CreateInitialBaseline(compilation, md, verifier.CreateSymReader().GetEncMethodDebugInfo);
 
-            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator));
-            _sources.Add(source);
+            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator ?? new(x => { })));
+            _sources.Add(markedSource);
 
             return This;
         }
 
         internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator)
-            => AddGeneration(CreateSourceWithMarkedNodes(source), edits, validator);
+            => AddGeneration(source, _ => edits, validator);
 
-        internal TSelf AddGeneration(SourceWithMarkedNodes source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator)
+        internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator)
         {
             _hasVerified = false;
 
             Assert.NotEmpty(_generations);
             Assert.NotEmpty(_sources);
 
+            var markedSource = CreateSourceWithMarkedNodes(source);
             var previousGeneration = _generations[^1];
             var previousSource = _sources[^1];
 
-            Assert.Equal(previousSource.MarkedSpans.IsEmpty, source.MarkedSpans.IsEmpty);
-
-            var compilation = previousGeneration.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(source.Tree);
+            var compilation = previousGeneration.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(markedSource.Tree);
             var unmappedNodes = new List<SyntaxNode>();
 
-            var semanticEdits = GetSemanticEdits(edits, previousGeneration.Compilation, previousSource, compilation, source, unmappedNodes);
+            var semanticEdits = GetSemanticEdits(edits(markedSource), previousGeneration.Compilation, previousSource, compilation, markedSource, unmappedNodes);
 
             CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
 
             Assert.Empty(diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
 
-            // EncVariableSlotAllocator attempted to map from current source to the previous one,
-            // but the mapping failed for these nodes. Mark the nodes in sources with node markers <N:x>...</N:x>.
-            Assert.Empty(unmappedNodes);
-
             var md = diff.GetMetadata();
             _disposables.Add(md);
 
             _generations.Add(new GenerationInfo(compilation, md.Reader, diff, compilationVerifier: null, diff.NextGeneration, validator));
-            _sources.Add(source);
+            _sources.Add(markedSource);
 
             return This;
         }
@@ -111,6 +107,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var readers = new List<MetadataReader>();
             int index = 0;
+            var exceptions = new List<ImmutableArray<Exception>>();
+
             foreach (var generation in _generations)
             {
                 if (readers.Count > 0)
@@ -119,13 +117,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation, readers);
+                var verifier = new GenerationVerifier(index, generation, readers.ToImmutableArray());
                 generation.Verifier(verifier);
+
+                exceptions.Add(verifier.Exceptions.ToImmutableArray());
 
                 index++;
             }
 
+            var assertMessage = GetAggregateMessage(exceptions);
+            Assert.True(assertMessage == "", assertMessage);
+
             return This;
+        }
+
+        private static string GetAggregateMessage(IReadOnlyList<ImmutableArray<Exception>> exceptions)
+        {
+            var builder = new StringBuilder();
+            for (int generation = 0; generation < exceptions.Count; generation++)
+            {
+                if (exceptions[generation].Any())
+                {
+                    builder.AppendLine($"-------------------------------------");
+                    builder.AppendLine($" Generation #{generation} failures");
+                    builder.AppendLine($"-------------------------------------");
+
+                    foreach (var exception in exceptions[generation])
+                    {
+                        builder.AppendLine(exception.Message);
+                        builder.AppendLine();
+                        builder.AppendLine(exception.StackTrace);
+                    }
+                }
+            }
+
+            return builder.ToString();
         }
 
         private ImmutableArray<SemanticEdit> GetSemanticEdits(
@@ -159,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     syntaxMap = null;
                 }
 
-                return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.PreserveLocalVariables);
+                return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.RudeEdits);
             }));
         }
 

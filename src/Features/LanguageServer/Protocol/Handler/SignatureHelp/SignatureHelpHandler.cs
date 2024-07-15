@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Text.Adornments;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {

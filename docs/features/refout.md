@@ -100,6 +100,6 @@ As mentioned above, there may be further refinements after C# 7.1:
 ## Related issues
 - Produce ref assemblies from command-line and msbuild (https://github.com/dotnet/roslyn/issues/2184)
 - Refine what is in reference assemblies and what diagnostics prevent generating one (https://github.com/dotnet/roslyn/issues/17612)
-- [Are private members part of the API surface?](http://blog.paranoidcoding.com/2016/02/15/are-private-members-api-surface.html)
+- [Are private members part of the API surface?](https://blog.paranoidcoding.org/2016/02/15/are-private-members-api-surface.html)
 - MSBuild work items and design notes (https://github.com/Microsoft/msbuild/issues/1986)
 - Fast up-to-date check in project-system (https://github.com/dotnet/project-system/issues/2254)

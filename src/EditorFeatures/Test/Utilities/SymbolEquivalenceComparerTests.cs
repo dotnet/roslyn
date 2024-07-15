@@ -1116,8 +1116,8 @@ class C
             var method_v1 = type1_v1.GetMembers("M").Single();
             var method_v2 = type1_v2.GetMembers("M").Single();
 
-            var trueComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
-            var falseComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var trueComp = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var falseComp = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             Assert.False(trueComp.Equals(method_v1, method_v2));
             Assert.False(trueComp.Equals(method_v2, method_v1));
@@ -1314,8 +1314,9 @@ class C
         }
 
         [Fact]
-        public async Task TestNullable()
+        public async Task TestNullableBothEnabled()
         {
+            // Both are nullable enabled.  So `T?` should not be equal to `T` unless we are ignoring nullability.
             var csharpCode1 =
 @"
 #nullable enable
@@ -1355,8 +1356,8 @@ class T
             Assert.Equal(NullableAnnotation.Annotated, a1.NullableAnnotation);
             Assert.Equal(NullableAnnotation.NotAnnotated, a2.NullableAnnotation);
 
-            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             Assert.True(ignoreComparer.Equals(a1, a2));
             Assert.True(ignoreComparer.Equals(b1, b2));
@@ -1375,8 +1376,11 @@ class T
         }
 
         [Fact]
-        public async Task TestNullableDisableVsEnable()
+        public async Task TestNullableDisableVsEnable1()
         {
+            // One side is nullable disabled. Since we don't know the nullability, we should consider it equals to the
+            // type without nullability.
+
             var csharpCode1 =
 @"
 #nullable disable
@@ -1416,8 +1420,134 @@ class T
             Assert.Equal(NullableAnnotation.None, a1.NullableAnnotation);
             Assert.Equal(NullableAnnotation.NotAnnotated, a2.NullableAnnotation);
 
-            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+
+            Assert.True(ignoreComparer.Equals(a1, a2));
+            Assert.True(ignoreComparer.Equals(b1, b2));
+            Assert.True(ignoreComparer.Equals(c1, c2));
+            Assert.True(ignoreComparer.Equals(d1, d2));
+            Assert.True(notIgnoreComparer.Equals(a1, a2));
+            Assert.True(notIgnoreComparer.Equals(b1, b2));
+            Assert.True(notIgnoreComparer.Equals(c1, c2));
+            Assert.True(notIgnoreComparer.Equals(d1, d2));
+
+            // The hashcodes of distinct objects don't have to be distinct.
+            Assert.Equal(ignoreComparer.GetHashCode(a1), ignoreComparer.GetHashCode(a2));
+            Assert.Equal(ignoreComparer.GetHashCode(b1), ignoreComparer.GetHashCode(b2));
+            Assert.Equal(ignoreComparer.GetHashCode(c1), ignoreComparer.GetHashCode(c2));
+            Assert.Equal(ignoreComparer.GetHashCode(d1), ignoreComparer.GetHashCode(d2));
+        }
+
+        [Fact]
+        public async Task TestNullableDisableVsEnable2()
+        {
+            // One side is nullable disabled. One side definitely annotated.  Treat as different.
+
+            var csharpCode1 =
+@"
+#nullable disable
+class T
+{
+    string A;
+    string[] B;
+    dynamic C;
+    dynamic[] D;
+}";
+
+            var csharpCode2 =
+@"
+#nullable enable
+class T
+{
+    string? A;
+    string?[] B;
+    dynamic? C;
+    dynamic?[] D;
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var t1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+            var t2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+
+            var a1 = ((IFieldSymbol)t1.GetMembers("A").Single()).Type;
+            var b1 = ((IFieldSymbol)t1.GetMembers("B").Single()).Type;
+            var c1 = ((IFieldSymbol)t1.GetMembers("C").Single()).Type;
+            var d1 = ((IFieldSymbol)t1.GetMembers("D").Single()).Type;
+            var a2 = ((IFieldSymbol)t2.GetMembers("A").Single()).Type;
+            var b2 = ((IFieldSymbol)t2.GetMembers("B").Single()).Type;
+            var c2 = ((IFieldSymbol)t2.GetMembers("C").Single()).Type;
+            var d2 = ((IFieldSymbol)t2.GetMembers("D").Single()).Type;
+
+            Assert.Equal(NullableAnnotation.None, a1.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, a2.NullableAnnotation);
+
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+
+            Assert.True(ignoreComparer.Equals(a1, a2));
+            Assert.True(ignoreComparer.Equals(b1, b2));
+            Assert.True(ignoreComparer.Equals(c1, c2));
+            Assert.True(ignoreComparer.Equals(d1, d2));
+            Assert.False(notIgnoreComparer.Equals(a1, a2));
+            Assert.False(notIgnoreComparer.Equals(b1, b2));
+            Assert.False(notIgnoreComparer.Equals(c1, c2));
+            Assert.False(notIgnoreComparer.Equals(d1, d2));
+
+            // The hashcodes of distinct objects don't have to be distinct.
+            Assert.Equal(ignoreComparer.GetHashCode(a1), ignoreComparer.GetHashCode(a2));
+            Assert.Equal(ignoreComparer.GetHashCode(b1), ignoreComparer.GetHashCode(b2));
+            Assert.Equal(ignoreComparer.GetHashCode(c1), ignoreComparer.GetHashCode(c2));
+            Assert.Equal(ignoreComparer.GetHashCode(d1), ignoreComparer.GetHashCode(d2));
+        }
+
+        [Fact]
+        public async Task TestNullableDisableVsEnable3()
+        {
+            // One side is nullable disabled. One side definitely annotated.  Treat as different.
+
+            var csharpCode1 =
+@"
+#nullable disable
+class T
+{
+    string A;
+    string[] B;
+    dynamic C;
+    dynamic[] D;
+}";
+
+            var csharpCode2 =
+@"
+#nullable enable
+class T
+{
+    string? A;
+    string[]? B;
+    dynamic? C;
+    dynamic[]? D;
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var t1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+            var t2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+
+            var a1 = ((IFieldSymbol)t1.GetMembers("A").Single()).Type;
+            var b1 = ((IFieldSymbol)t1.GetMembers("B").Single()).Type;
+            var c1 = ((IFieldSymbol)t1.GetMembers("C").Single()).Type;
+            var d1 = ((IFieldSymbol)t1.GetMembers("D").Single()).Type;
+            var a2 = ((IFieldSymbol)t2.GetMembers("A").Single()).Type;
+            var b2 = ((IFieldSymbol)t2.GetMembers("B").Single()).Type;
+            var c2 = ((IFieldSymbol)t2.GetMembers("C").Single()).Type;
+            var d2 = ((IFieldSymbol)t2.GetMembers("D").Single()).Type;
+
+            Assert.Equal(NullableAnnotation.None, a1.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, a2.NullableAnnotation);
+
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             Assert.True(ignoreComparer.Equals(a1, a2));
             Assert.True(ignoreComparer.Equals(b1, b2));

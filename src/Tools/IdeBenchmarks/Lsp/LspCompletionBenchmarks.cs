@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace IdeBenchmarks.Lsp
 {
@@ -81,7 +81,7 @@ class A
                     {
                         CompletionListSetting = new LSP.CompletionListSetting
                         {
-                            ItemDefaults = new string[] { "editRange" },
+                            ItemDefaults = ["editRange"],
                         }
                     }
                 }

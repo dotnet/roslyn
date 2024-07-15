@@ -88,6 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function SupportsCollectionExpressionNaturalType(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsCollectionExpressionNaturalType
+            Return False
+        End Function
+
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
@@ -706,6 +710,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFacts.GetContainingMemberDeclaration
+            Dim isApplicableDeclaration = Function(node As SyntaxNode)
+                                              If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                                                  Return True
+                                              End If
+
+                                              If TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+                                                  Return True
+                                              End If
+
+                                              If TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                                                  Return True
+                                              End If
+
+                                              If TypeOf node Is EventStatementSyntax AndAlso Not TypeOf node.Parent Is EventBlockSyntax Then
+                                                  Return True
+                                              End If
+
+                                              If TypeOf node Is PropertyBlockSyntax OrElse
+                                                 TypeOf node Is TypeBlockSyntax OrElse
+                                                 TypeOf node Is EnumBlockSyntax OrElse
+                                                 TypeOf node Is NamespaceBlockSyntax OrElse
+                                                 TypeOf node Is EventBlockSyntax OrElse
+                                                 TypeOf node Is FieldDeclarationSyntax Then
+                                                  Return True
+                                              End If
+
+                                              Return False
+                                          End Function
+
+            Return GetContainingMemberDeclaration(root, position, isApplicableDeclaration, useFullSpan)
+        End Function
+
+        Public Function GetContainingMethodDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFacts.GetContainingMethodDeclaration
+            Dim isApplicableDeclaration = Function(node As SyntaxNode)
+                                              If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                                                  Return True
+                                              End If
+
+                                              If TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+                                                  Return True
+                                              End If
+
+                                              Return False
+                                          End Function
+
+            Return GetContainingMemberDeclaration(root, position, isApplicableDeclaration, useFullSpan)
+        End Function
+
+        Private Shared Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, isApplicableDeclaration As Func(Of SyntaxNode, Boolean), Optional useFullSpan As Boolean = True) As SyntaxNode
             Dim [end] = root.FullSpan.End
             If [end] = 0 Then
                 ' empty file
@@ -718,29 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Dim node = root.FindToken(position).Parent
             While node IsNot Nothing
                 If useFullSpan OrElse node.Span.Contains(position) Then
-
-                    If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
-                        Return node
-                    End If
-
-                    If TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
-                        Return node
-                    End If
-
-                    If TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
-                        Return node
-                    End If
-
-                    If TypeOf node Is EventStatementSyntax AndAlso Not TypeOf node.Parent Is EventBlockSyntax Then
-                        Return node
-                    End If
-
-                    If TypeOf node Is PropertyBlockSyntax OrElse
-                       TypeOf node Is TypeBlockSyntax OrElse
-                       TypeOf node Is EnumBlockSyntax OrElse
-                       TypeOf node Is NamespaceBlockSyntax OrElse
-                       TypeOf node Is EventBlockSyntax OrElse
-                       TypeOf node Is FieldDeclarationSyntax Then
+                    If isApplicableDeclaration(node) Then
                         Return node
                     End If
                 End If
@@ -1750,6 +1781,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName
             Return TypeOf node Is SimpleNameSyntax
+        End Function
+
+        Public Function IsAnyName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyName
+            Return TypeOf node Is NameSyntax
+        End Function
+
+        Public Function IsAnyType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyType
+            Return TypeOf node Is TypeSyntax
         End Function
 
         Public Function IsNamedMemberInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedMemberInitializer

@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+internal abstract class BlockStructureProvider
 {
-    internal abstract class BlockStructureProvider
-    {
-        public abstract void ProvideBlockStructure(in BlockStructureContext context);
-    }
+    public abstract void ProvideBlockStructure(in BlockStructureContext context);
 }

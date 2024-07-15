@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -111,6 +112,28 @@ public class C
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70782")]
+        public async Task TestNintNuint()
+        {
+            var source = @"
+
+public class C
+{
+    void M(nint x);
+    void N(nuint x);
+}
+";
+            var netstandardReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
+            var netcoreReferences = await ReferenceAssemblies.Net.Net70.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
+
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, references: [.. netstandardReferences]);
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, references: [.. netcoreReferences]);
+            TestRoundTrip(GetDeclaredSymbols(compilation1), compilation1, useSymbolEquivalence: false);
+            TestRoundTrip(GetDeclaredSymbols(compilation1), compilation2, useSymbolEquivalence: true);
+            TestRoundTrip(GetDeclaredSymbols(compilation2), compilation1, useSymbolEquivalence: true);
+            TestRoundTrip(GetDeclaredSymbols(compilation2), compilation2, useSymbolEquivalence: false);
         }
 
         [Fact]
@@ -308,7 +331,7 @@ namespace A { namespace N { } }
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
             Assert.Equal(5, symbols.Count());
-            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N" },
+            Assert.Equal(["N", "A", "A.B", "A.B.C", "A.N"],
                 symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);
         }
@@ -1062,8 +1085,8 @@ class C
 }";
 
             // We don't add metadata references, so even `int` will be an error type.
-            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", Array.Empty<MetadataReference>());
-            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", Array.Empty<MetadataReference>());
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", []);
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", []);
 
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
@@ -1097,8 +1120,8 @@ class C
 end class";
 
             // We don't add metadata references, so even `int` will be an error type.
-            var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", Array.Empty<MetadataReference>());
-            var compilation2 = GetCompilation(source, LanguageNames.VisualBasic, "File2.vb", Array.Empty<MetadataReference>());
+            var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", []);
+            var compilation2 = GetCompilation(source, LanguageNames.VisualBasic, "File2.vb", []);
 
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
@@ -1411,15 +1434,15 @@ public class C
             }
         }
 
-        private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private static void TestRoundTrip(
+            IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null, bool useSymbolEquivalence = false)
         {
             foreach (var symbol in symbols)
-            {
-                TestRoundTrip(symbol, compilation, fnId: fnId);
-            }
+                TestRoundTrip(symbol, compilation, fnId, useSymbolEquivalence);
         }
 
-        private static void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private static void TestRoundTrip(
+            ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null, bool useSymbolEquivalence = false)
         {
             var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
@@ -1434,7 +1457,14 @@ public class C
             }
             else
             {
-                Assert.Equal(symbol, found);
+                if (useSymbolEquivalence)
+                {
+                    Assert.True(SymbolEquivalenceComparer.Instance.Equals(symbol, found));
+                }
+                else
+                {
+                    Assert.Equal(symbol, found);
+                }
             }
         }
 
@@ -1449,12 +1479,12 @@ public class C
             if (language == LanguageNames.CSharp)
             {
                 var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
                 var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
 
             throw new NotSupportedException();

@@ -6,10 +6,9 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings
+namespace Microsoft.CodeAnalysis.CodeRefactorings;
+
+internal interface ICodeRefactoringProviderFactory
 {
-    internal interface ICodeRefactoringProviderFactory
-    {
-        ImmutableArray<CodeRefactoringProvider> GetRefactorings();
-    }
+    ImmutableArray<CodeRefactoringProvider> GetRefactorings();
 }

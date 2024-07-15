@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
     public abstract class AbstractNewDocumentFormattingServiceTests
     {
         protected abstract string Language { get; }
-        protected abstract TestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions);
 
         internal async Task TestAsync(string testCode, string expected, OptionsCollection? options = null, ParseOptions? parseOptions = null)
         {

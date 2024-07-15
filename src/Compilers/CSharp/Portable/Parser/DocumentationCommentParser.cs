@@ -32,15 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     // trying to understand them, e.g. like comments or CDATA, so that they are available
     // to whoever processes these comments and do not produce an error. 
 
-    internal class DocumentationCommentParser : SyntaxParser
+    internal sealed class DocumentationCommentParser : SyntaxParser
     {
         private readonly SyntaxListPool _pool = new SyntaxListPool();
         private bool _isDelimited;
 
-        internal DocumentationCommentParser(Lexer lexer, LexerMode modeflags)
-            : base(lexer, LexerMode.XmlDocComment | LexerMode.XmlDocCommentLocationStart | modeflags, null, null, true)
+        internal DocumentationCommentParser(Lexer lexer)
+            : base(lexer, LexerMode.None, oldTree: null, changes: null, allowModeReset: true)
         {
-            _isDelimited = (modeflags & LexerMode.XmlDocCommentStyleDelimited) != 0;
         }
 
         internal void ReInitialize(LexerMode modeflags)
