@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Return statement
         End Function
 
-        Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
+        Protected Overrides Function SyntaxFormatting() As ISyntaxFormatting
             Return VisualBasicSyntaxFormatting.Instance
         End Function
     End Class

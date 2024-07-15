@@ -82,7 +82,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var removeUnnecessaryImports = documentWithMovedType.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
 
             // Remove all unnecessary imports from the new document we've created.
-            documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, documentWithMovedTypeFormattingOptions, CancellationToken).ConfigureAwait(false);
+            documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, CancellationToken).ConfigureAwait(false);
 
             solution = solution.WithDocumentSyntaxRoot(
                 documentWithMovedTypeId, await documentWithMovedType.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false));
@@ -99,7 +99,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             sourceDocument = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(
                 sourceDocument,
                 n => movedImports.Contains(i => syntaxFacts.AreEquivalent(i, n)),
-                sourceDocumentFormattingOptions,
                 CancellationToken).ConfigureAwait(false);
 
             return solution.WithDocumentSyntaxRoot(

@@ -798,7 +798,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             return await removeImportService.RemoveUnnecessaryImportsAsync(
                 doc,
                 import => importsToRemove.Any(importToRemove => syntaxFacts.AreEquivalent(importToRemove, import)),
-                formattingOptions,
                 token).ConfigureAwait(false);
         }
     }
