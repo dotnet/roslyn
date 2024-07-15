@@ -245,31 +245,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
 
-            var data = s_tokenListPool.Allocate();
-            try
-            {
-                for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
-                {
-                    currentClassifiedSpanIndex = ComputeNextToken(
-                        lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
-                        currentClassifiedSpanIndex, tokenTypeMap, tokenTypesToIndex,
-                        out var deltaLine, out var startCharacterDelta, out var tokenLength,
-                        out var tokenType, out var tokenModifiers);
+            using var pooledData = s_tokenListPool.GetPooledObject();
+            var data = pooledData.Object;
 
-                    data.Add(deltaLine);
-                    data.Add(startCharacterDelta);
-                    data.Add(tokenLength);
-                    data.Add(tokenType);
-                    data.Add(tokenModifiers);
-                }
+            // Items in the pool may not have been cleared
+            data.Clear();
 
-                return data.ToArray();
-            }
-            finally
+            for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
             {
-                data.Clear();
-                s_tokenListPool.Free(data);
+                currentClassifiedSpanIndex = ComputeNextToken(
+                    lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
+                    currentClassifiedSpanIndex, tokenTypeMap, tokenTypesToIndex,
+                    out var deltaLine, out var startCharacterDelta, out var tokenLength,
+                    out var tokenType, out var tokenModifiers);
+
+                data.Add(deltaLine);
+                data.Add(startCharacterDelta);
+                data.Add(tokenLength);
+                data.Add(tokenType);
+                data.Add(tokenModifiers);
             }
+
+            return data.ToArray();
         }
 
         private static int ComputeNextToken(
