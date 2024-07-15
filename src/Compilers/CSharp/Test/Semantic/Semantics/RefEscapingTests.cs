@@ -9529,7 +9529,7 @@ public struct Vec4
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/63852")]
-        public void  UserDefinedBinaryOperator_RefStruct_Compound_RegressionTest2()
+        public void UserDefinedBinaryOperator_RefStruct_Compound_RegressionTest2()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("""
                 using System;
