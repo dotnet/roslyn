@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -886,10 +887,12 @@ public partial class CodeCleanupTests
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
         // must set global options since incremental analyzer infra reads from global options
-        var globalOptions = workspace.GlobalOptions;
-        globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups);
-        globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst);
-        globalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement);
+        workspace.SetAnalyzerFallbackAndGlobalOptions(new OptionsCollection(LanguageNames.CSharp)
+        {
+            { GenerationOptions.SeparateImportDirectiveGroups, separateUsingGroups },
+            { GenerationOptions.PlaceSystemNamespaceFirst, systemUsingsFirst },
+            { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement },
+        });
 
         var solution = workspace.CurrentSolution.WithAnalyzerReferences(new[]
         {
@@ -923,7 +926,7 @@ public partial class CodeCleanupTests
             enabledDiagnostics = VisualStudio.LanguageServices.Implementation.CodeCleanup.AbstractCodeCleanUpFixer.AdjustDiagnosticOptions(enabledDiagnostics, enabledFixIdsFilter);
 
         var newDoc = await codeCleanupService.CleanupAsync(
-            document, enabledDiagnostics, CodeAnalysisProgress.None, globalOptions.CreateProvider(), CancellationToken.None);
+            document, enabledDiagnostics, CodeAnalysisProgress.None, workspace.GlobalOptions.CreateProvider(), CancellationToken.None);
 
         var actual = await newDoc.GetTextAsync();
 

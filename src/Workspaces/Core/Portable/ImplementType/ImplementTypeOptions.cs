@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.ImplementType;
 
@@ -19,7 +18,3 @@ internal readonly record struct ImplementTypeOptions
 
     public static readonly ImplementTypeOptions Default = new();
 }
-
-internal readonly record struct ImplementTypeGenerationOptions(
-    ImplementTypeOptions ImplementTypeOptions,
-    CleanCodeGenerationOptionsProvider FallbackOptions);

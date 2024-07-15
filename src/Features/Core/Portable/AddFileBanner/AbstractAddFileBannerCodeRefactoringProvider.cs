@@ -40,7 +40,7 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
             return;
         }
 
-        var formattingOptions = await document.GetDocumentFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetDocumentFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         if (!string.IsNullOrEmpty(formattingOptions.FileHeaderTemplate))
         {
             // If we have a defined file header template, allow the analyzer and code fix to handle it

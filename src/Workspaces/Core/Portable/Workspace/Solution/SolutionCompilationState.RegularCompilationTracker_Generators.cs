@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    private partial class CompilationTracker : ICompilationTracker
+    private partial class RegularCompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo nextGeneratorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
             CreationPolicy creationPolicy,
@@ -91,12 +91,16 @@ internal partial class SolutionCompilationState
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
             using var _ = await RemoteKeepAliveSession.CreateAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
-            // First, grab the info from our external host about the generated documents it has for this project.
+            // First, grab the info from our external host about the generated documents it has for this project.  Note:
+            // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
+            // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
+            // any overlaid 'frozen' source generated documents.
             var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, projectId, cancellationToken),
+                (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratedDocumentInfoAsync(
+                    solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!infosOpt.HasValue)
@@ -153,13 +157,16 @@ internal partial class SolutionCompilationState
                     : (compilationWithStaleGeneratedTrees, oldGeneratedDocuments);
             }
 
-            // Either we generated a different number of files, and/or we had contents of files that changed. Ensure
-            // we know the contents of any new/changed files.
+            // Either we generated a different number of files, and/or we had contents of files that changed. Ensure we
+            // know the contents of any new/changed files.  Note: we ourselves are the innermost
+            // "RegularCompilationTracker" responsible for actually running generators. As such, our call to the oop
+            // side reflects that by asking for the real source generated docs, and *not* any overlaid 'frozen' source
+            // generated documents.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
                 (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
-                    solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
+                    solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), withFrozenSourceGeneratedDocuments: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!generatedSourcesOpt.HasValue)

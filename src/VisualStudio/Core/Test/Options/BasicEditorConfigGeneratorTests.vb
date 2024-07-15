@@ -36,6 +36,11 @@ tab_width = 4
 end_of_line = crlf
 insert_final_newline = false
 
+#### .NET Code Actions ####
+
+# Type members
+dotnet_hide_advanced_members = false
+
 #### .NET Coding Conventions ####
 
 # Organize usings
@@ -178,6 +183,11 @@ tab_width = 4
 # New line preferences
 end_of_line = crlf
 insert_final_newline = false
+
+#### .NET Code Actions ####
+
+# Type members
+dotnet_hide_advanced_members = false
 
 #### .NET Coding Conventions ####
 

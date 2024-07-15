@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -35,7 +36,7 @@ internal class CSharpImplementInterfaceService : AbstractImplementInterfaceServi
 
     protected override bool TryInitializeState(
         Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,
-        out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes)
+        out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out ImmutableArray<INamedTypeSymbol> interfaceTypes)
     {
         if (!cancellationToken.IsCancellationRequested)
         {
@@ -69,7 +70,7 @@ internal class CSharpImplementInterfaceService : AbstractImplementInterfaceServi
 
         classOrStructDecl = null;
         classOrStructType = null;
-        interfaceTypes = null;
+        interfaceTypes = default;
         return false;
     }
 

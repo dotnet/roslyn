@@ -7,13 +7,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,122 +20,38 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
+using static ImplementHelpers;
+
 internal abstract partial class AbstractImplementInterfaceService
 {
-    // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
-    // the naming style that the user has specified.
-    private static readonly ImmutableArray<string> s_disposedValueNameParts =
-        ["disposed", "value"];
-
-    // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
-    private static readonly SymbolDisplayFormat s_format = new(
-        memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
-        parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
-        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-    private static IMethodSymbol? TryGetIDisposableDispose(Compilation compilation)
+    private sealed partial class ImplementInterfaceGenerator
     {
-        // Get symbol for 'System.IDisposable'.
-        var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
-        if (idisposable?.TypeKind == TypeKind.Interface)
-        {
-            var idisposableMembers = idisposable.GetMembers(nameof(IDisposable.Dispose));
-            foreach (var member in idisposableMembers)
-            {
-                if (member is IMethodSymbol disposeMethod &&
-                    !disposeMethod.IsStatic &&
-                    disposeMethod.ReturnsVoid &&
-                    disposeMethod.Arity == 0 &&
-                    disposeMethod.Parameters.Length == 0)
-                {
-                    return disposeMethod;
-                }
-            }
-        }
+        // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
+        // the naming style that the user has specified.
+        private static readonly ImmutableArray<string> s_disposedValueNameParts = ["disposed", "value"];
 
-        return null;
-    }
+        // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
+        private static readonly SymbolDisplayFormat s_format = new(
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-    private static bool ShouldImplementDisposePattern(State state, bool explicitly)
-    {
-        // Dispose pattern should be implemented only if -
-        // 1. An interface named 'System.IDisposable' is unimplemented.
-        // 2. This interface has one and only one member - a non-generic method named 'Dispose' that takes no arguments and returns 'void'.
-        // 3. The implementing type is a class that does not already declare any conflicting members named 'disposedValue' or 'Dispose'
-        //    (because we will be generating a 'disposedValue' field and a couple of methods named 'Dispose' as part of implementing 
-        //    the dispose pattern).
-        if (state.ClassOrStructType.TypeKind != TypeKind.Class)
-            return false;
-
-        var disposeMethod = TryGetIDisposableDispose(state.Model.Compilation);
-        if (disposeMethod == null)
-            return false;
-
-        var idisposableType = disposeMethod.ContainingType;
-        var unimplementedMembers = explicitly
-            ? state.MembersWithoutExplicitImplementation
-            : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-        if (!unimplementedMembers.Any(static (m, idisposableType) => m.type.Equals(idisposableType), idisposableType))
-            return false;
-
-        // The dispose pattern is only applicable if the implementing type does
-        // not already have an implementation of IDisposableDispose.
-        return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
-    }
-
-    private sealed class ImplementInterfaceWithDisposePatternCodeAction(
-        AbstractImplementInterfaceService service,
-        Document document,
-        ImplementTypeGenerationOptions options,
-        State state,
-        bool explicitly,
-        bool abstractly,
-        ISymbol? throughMember) : ImplementInterfaceCodeAction(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
-    {
-        public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
-        }
-
-        public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
-            AbstractImplementInterfaceService service,
-            Document document,
-            ImplementTypeGenerationOptions options,
-            State state)
-        {
-            return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
-        }
-
-        public override string Title
-            => Explicitly
-                ? FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern
-                : FeaturesResources.Implement_interface_with_Dispose_pattern;
-
-        public override async Task<Document> GetUpdatedDocumentAsync(
-            Document document,
+        private async Task<Document> ImplementDisposePatternAsync(
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-            INamedTypeSymbol classType,
-            SyntaxNode classDecl,
             CancellationToken cancellationToken)
         {
+            var document = this.Document;
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var disposedValueField = await CreateDisposedValueFieldAsync(
-                document, classType, cancellationToken).ConfigureAwait(false);
+                document, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
 
             var disposeMethod = TryGetIDisposableDispose(compilation)!;
-            var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, classType, disposeMethod, disposedValueField);
+            var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, disposeMethod, disposedValueField);
 
             // First, implement all the interfaces (except for IDisposable).
-            var docWithCoreMembers = await GetUpdatedDocumentAsync(
-                document,
+            var docWithCoreMembers = await ImplementInterfaceAsync(
                 unimplementedMembers.WhereAsArray(m => !m.type.Equals(disposeMethod.ContainingType)),
-                classType,
-                classDecl,
                 extraMembers: [disposedValueField],
                 cancellationToken).ConfigureAwait(false);
 
@@ -153,7 +67,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 sortMembers: false,
                 autoInsertionLocation: false);
 
-            var info = await document.GetCodeGenerationInfoAsync(context, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
             var typeDeclarationWithAllMembers = info.Service.AddMembers(
                 typeDeclarationWithCoreMembers,
@@ -196,41 +110,36 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private (ImmutableArray<ISymbol>, SyntaxNode) CreateDisposableMethods(
             Compilation compilation,
-            Document document,
-            INamedTypeSymbol classType,
             IMethodSymbol disposeMethod,
             IFieldSymbol disposedValueField)
         {
-            var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classType, disposeMethod, disposedValueField);
+            var disposeImplMethod = CreateDisposeImplementationMethod(compilation, disposeMethod, disposedValueField);
 
             var disposeMethodDisplayString = this.Service.ToDisplayString(disposeImplMethod, s_format);
 
             var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
-                compilation, document, classType, disposeMethod,
-                disposedValueField, disposeMethodDisplayString);
+                compilation, disposeMethod, disposeMethodDisplayString);
 
-            var g = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var finalizer = Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
+            var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var finalizer = Service.CreateFinalizer(g, State.ClassOrStructType, disposeMethodDisplayString);
 
             return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
         }
 
         private IMethodSymbol CreateDisposeImplementationMethod(
             Compilation compilation,
-            Document document,
-            INamedTypeSymbol classType,
             IMethodSymbol disposeMethod,
             IFieldSymbol disposedValueField)
         {
-            var accessibility = classType.IsSealed
+            var accessibility = State.ClassOrStructType.IsSealed
                 ? Accessibility.Private
                 : Accessibility.Protected;
 
-            var modifiers = classType.IsSealed
+            var modifiers = State.ClassOrStructType.IsSealed
                 ? DeclarationModifiers.None
                 : DeclarationModifiers.Virtual;
 
-            var g = document.GetRequiredLanguageService<SyntaxGenerator>();
+            var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // if (disposing)
             // {
@@ -257,7 +166,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 disposeMethod,
-                containingType: classType,
+                containingType: State.ClassOrStructType,
                 accessibility: accessibility,
                 modifiers: modifiers,
                 name: disposeMethod.Name,
@@ -270,16 +179,13 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private IMethodSymbol CreateDisposeInterfaceMethod(
             Compilation compilation,
-            Document document,
-            INamedTypeSymbol classType,
             IMethodSymbol disposeMethod,
-            IFieldSymbol disposedValueField,
             string disposeMethodDisplayString)
         {
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
 
-            var g = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var syntaxFacts = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // // Do not change...
             // Dispose(true);
@@ -318,39 +224,18 @@ internal abstract partial class AbstractImplementInterfaceService
             return result;
         }
 
-        /// <summary>
-        /// This helper is implementing access to the editorconfig option. This would usually be done via <see cref="CodeFixOptionsProvider"/> but
-        /// we do not have access to <see cref="CodeActionOptionsProvider"/> here since the code action implementation is also used to implement <see cref="IImplementInterfaceService "/>.
-        /// TODO: remove - see https://github.com/dotnet/roslyn/issues/60990.
-        /// </summary>
-        public async ValueTask<AccessibilityModifiersRequired> GetAccessibilityModifiersRequiredAsync(Document document, CancellationToken cancellationToken)
-        {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-
-            if (configOptions.TryGetEditorConfigOption<CodeStyleOption2<AccessibilityModifiersRequired>>(CodeStyleOptions2.AccessibilityModifiersRequired, out var value))
-            {
-                return value.Value;
-            }
-
-            var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
-
-            return fallbackFormattingOptions.AccessibilityModifiersRequired;
-        }
-
-        private async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
+        private static async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
             Document document,
             INamedTypeSymbol containingType,
             CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
-                SymbolKind.Field, Accessibility.Private, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
 
-            var requireAccessiblity = await GetAccessibilityModifiersRequiredAsync(document, cancellationToken).ConfigureAwait(false);
-
+            var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            var accessibilityLevel = requireAccessiblity is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
+            var accessibilityLevel = options.AccessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
                 ? Accessibility.NotApplicable
                 : Accessibility.Private;
 

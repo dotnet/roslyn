@@ -1042,7 +1042,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var options = await document.GetSyntaxFormattingOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 return await Formatter.FormatAsync(
                     document,

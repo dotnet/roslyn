@@ -46,8 +46,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
                     if (!ShouldOfferRefactoring(project))
                         continue;
 
-                    solution = await EnableNullableReferenceTypesAsync(project, purpose,
-                        fixAllContext.GetOptionsProvider(), progress, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    solution = await EnableNullableReferenceTypesAsync(project, purpose, fixAllContext.CancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;

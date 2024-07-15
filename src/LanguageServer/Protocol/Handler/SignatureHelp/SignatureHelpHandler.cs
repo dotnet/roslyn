@@ -21,21 +21,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(SignatureHelpHandler)), Shared]
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class SignatureHelpHandler(SignatureHelpService signatureHelpService) : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
-        private readonly SignatureHelpService _signatureHelpService;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler(
-            SignatureHelpService signatureHelpService,
-            IGlobalOptionService globalOptions)
-        {
-            _signatureHelpService = signatureHelpService;
-            _globalOptions = globalOptions;
-        }
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
@@ -49,16 +38,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
             var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
-            return GetSignatureHelpAsync(_globalOptions, _signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken);
+            return GetSignatureHelpAsync(signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken);
         }
 
-        internal static async Task<LSP.SignatureHelp?> GetSignatureHelpAsync(IGlobalOptionService globalOptions, SignatureHelpService signatureHelpService, Document document, LinePosition linePosition, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
+        internal static async Task<LSP.SignatureHelp?> GetSignatureHelpAsync(SignatureHelpService signatureHelpService, Document document, LinePosition linePosition, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
         {
             var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
-            var options = globalOptions.GetSignatureHelpOptions(document.Project.Language);
 
-            var (_, sigItems) = await signatureHelpService.GetSignatureHelpAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
+            var (_, sigItems) = await signatureHelpService.GetSignatureHelpAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
             if (sigItems is null)
             {
                 return null;
