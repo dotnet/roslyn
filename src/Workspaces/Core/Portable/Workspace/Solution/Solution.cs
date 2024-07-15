@@ -1169,18 +1169,9 @@ public partial class Solution
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the specified file path.
     /// </summary>
-    public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
+    public Solution WithDocumentFilePath(DocumentId documentId, string? filePath)
     {
         CheckContainsDocument(documentId);
-
-        // TODO (https://github.com/dotnet/roslyn/issues/37125): 
-        // We *do* support null file paths. Why can't you switch a document back to null?
-        // See DocumentState.GetSyntaxTreeFilePath
-        if (filePath == null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
         return WithCompilationState(_compilationState.WithDocumentFilePath(documentId, filePath));
     }
 

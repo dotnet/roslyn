@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
             var options = new object[]
             {
-                ExtractMethodOptions.Default,
                 AddImportPlacementOptions.Default,
                 LineFormattingOptions.Default,
                 DocumentFormattingOptions.Default,
@@ -236,8 +235,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 SyntaxFormattingOptions.GetDefault(languageServices),
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),
-                IdeCodeStyleOptions.GetDefault(languageServices),
-                CodeActionOptions.GetDefault(languageServices),
+                CodeActionOptions.Default,
                 IndentationOptions.GetDefault(languageServices),
                 ExtractMethodGenerationOptions.GetDefault(languageServices),
 
@@ -266,12 +264,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     NewLines = NewLinePlacement.BeforeFinally
                 },
 
-                new CSharpIdeCodeStyleOptions()
-                {
-                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(true, NotificationOption2.Error),
-                    PreferConditionalDelegateCall = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
-                },
-
                 new VisualBasicSyntaxFormattingOptions()
                 {
                     AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
@@ -286,12 +278,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 {
                     NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
                 },
-
-                new VisualBasicIdeCodeStyleOptions()
-                {
-                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error),
-                    PreferredModifierOrder = new CodeStyleOption2<string>("Public Private", NotificationOption2.Error)
-                }
             };
 
             foreach (var original in options)

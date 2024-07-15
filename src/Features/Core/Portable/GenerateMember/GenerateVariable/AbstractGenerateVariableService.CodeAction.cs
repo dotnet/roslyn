@@ -28,7 +28,6 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         private readonly RefKind _refKind;
         private readonly SemanticDocument _semanticDocument;
         private readonly string _equivalenceKey;
-        private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
         public GenerateVariableCodeAction(
             SemanticDocument document,
@@ -36,8 +35,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             bool generateProperty,
             bool isReadonly,
             bool isConstant,
-            RefKind refKind,
-            CodeAndImportGenerationOptionsProvider fallbackOptions)
+            RefKind refKind)
         {
             _semanticDocument = document;
             _state = state;
@@ -46,7 +44,6 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             _isConstant = isConstant;
             _refKind = refKind;
             _equivalenceKey = Title;
-            _fallbackOptions = fallbackOptions;
         }
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -59,8 +56,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 new CodeGenerationContext(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation()),
-                _fallbackOptions);
+                    contextLocation: _state.IdentifierToken.GetLocation()));
 
             if (_generateProperty)
             {

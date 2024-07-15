@@ -34,13 +34,12 @@ internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : 
     {
     }
 
-    protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
     {
         var rule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
             property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
             Accessibility.Private,
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();

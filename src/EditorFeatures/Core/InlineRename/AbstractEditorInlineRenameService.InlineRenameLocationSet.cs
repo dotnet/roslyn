@@ -17,19 +17,16 @@ internal abstract partial class AbstractEditorInlineRenameService
     private class InlineRenameLocationSet : IInlineRenameLocationSet
     {
         private readonly LightweightRenameLocations _renameLocationSet;
-        private readonly CodeCleanupOptionsProvider _fallbackOptions;
         private readonly SymbolInlineRenameInfo _renameInfo;
 
         public IList<InlineRenameLocation> Locations { get; }
 
         public InlineRenameLocationSet(
             SymbolInlineRenameInfo renameInfo,
-            LightweightRenameLocations renameLocationSet,
-            CodeCleanupOptionsProvider fallbackOptions)
+            LightweightRenameLocations renameLocationSet)
         {
             _renameInfo = renameInfo;
             _renameLocationSet = renameLocationSet;
-            _fallbackOptions = fallbackOptions;
             this.Locations = renameLocationSet.Locations.Where(RenameLocation.ShouldRename)
                                                         .Select(ConvertLocation)
                                                         .ToImmutableArray();
@@ -47,7 +44,7 @@ internal abstract partial class AbstractEditorInlineRenameService
             CancellationToken cancellationToken)
         {
             var conflicts = await _renameLocationSet.ResolveConflictsAsync(
-                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbolKeys: default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
 
             return new InlineRenameReplacementInfo(conflicts);
         }

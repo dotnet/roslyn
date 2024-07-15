@@ -59,7 +59,7 @@ internal abstract class AbstractMoveStaticMembersRefactoringProvider : CodeRefac
             memberNodeSymbolPairs.First().node.FullSpan.Start,
             memberNodeSymbolPairs.Last().node.FullSpan.End);
 
-        var action = new MoveStaticMembersWithDialogCodeAction(document, service, containingType, context.Options, selectedMembers);
+        var action = new MoveStaticMembersWithDialogCodeAction(document, service, containingType, selectedMembers);
 
         context.RegisterRefactoring(action, memberSpan);
     }

@@ -56,8 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // If the collection type is ImmutableArray<T>, then construction is optimized to use
                         // ImmutableCollectionsMarshal.AsImmutableArray.
+                        // The only exception is when collection expression is just `[.. readOnlySpan]` of the same element type, in such cases
+                        // it is more efficient to emit a direct call of `ImmutableArray.Create`
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType) &&
-                            _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray)
+                            _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray &&
+                            !CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
                         {
                             return VisitImmutableArrayCollectionExpression(node, arrayElementType, asImmutableArray);
                         }
@@ -136,6 +139,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
             }
+        }
+
+        private static bool CanOptimizeSingleSpreadAsCollectionBuilderArgument(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
+        {
+            spreadExpression = null;
+
+            if (node is
+                {
+                    CollectionBuilderMethod: { } builder,
+                    Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }],
+                } &&
+                ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
+                (!builder.ReturnType.IsRefLikeType || builder.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
+            {
+                spreadExpression = expr;
+            }
+
+            return spreadExpression is not null;
         }
 
         private BoundExpression VisitImmutableArrayCollectionExpression(BoundCollectionExpression node, TypeWithAnnotations elementType, MethodSymbol asImmutableArray)
@@ -375,7 +396,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
             var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-            BoundExpression span = VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
+
+            // If collection expression is of form `[.. anotherReadOnlySpan]`
+            // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
+            // and that span cannot be captured in a returned ref struct
+            // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
+            BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
+                ? spreadExpression
+                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
             var invocation = new BoundCall(
                 node.Syntax,

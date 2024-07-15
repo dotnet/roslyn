@@ -28,7 +28,6 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
     {
         private readonly TService _service;
         private readonly SemanticDocument _document;
-        private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
         private readonly NamingRule _fieldNamingRule;
         private readonly NamingRule _propertyNamingRule;
@@ -54,7 +53,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
         public bool IsContainedInUnsafeType { get; private set; }
 
-        private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule, CodeAndImportGenerationOptionsProvider fallbackOptions)
+        private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule)
         {
             _service = service;
             _document = document;
@@ -64,21 +63,19 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             ParameterToNewFieldMap = ImmutableDictionary<string, string>.Empty;
             ParameterToNewPropertyMap = ImmutableDictionary<string, string>.Empty;
-            _fallbackOptions = fallbackOptions;
         }
 
         public static async Task<State?> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
+            var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
+            var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
 
-            var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule, fallbackOptions);
+            var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule);
             if (!await state.TryInitializeAsync(node, cancellationToken).ConfigureAwait(false))
             {
                 return null;
@@ -597,8 +594,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             var context = new CodeGenerationSolutionContext(
                 document.Project.Solution,
-                new CodeGenerationContext(Token.GetLocation()),
-                _fallbackOptions);
+                new CodeGenerationContext(Token.GetLocation()));
 
             return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
                 context,
@@ -646,8 +642,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    new CodeGenerationContext(Token.GetLocation()),
-                    _fallbackOptions),
+                    new CodeGenerationContext(Token.GetLocation())),
                 TypeToGenerateIn,
                 provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
                     semanticModel,

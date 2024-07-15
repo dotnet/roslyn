@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ? EditorTestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions)
                 : EditorTestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions);
 
-            options?.SetGlobalOptions(workspace.GlobalOptions);
+            workspace.SetAnalyzerFallbackAndGlobalOptions(options);
 
             return new ExtractInterfaceTestState(workspace);
         }
@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 typeDiscoveryRule,
-                Workspace.GlobalOptions.CreateProvider(),
                 CancellationToken.None);
         }
 
@@ -86,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
-                Workspace.GlobalOptions.CreateProvider(),
                 (errorMessage, severity) =>
                 {
                     this.ErrorMessage = errorMessage;
@@ -100,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             var actions = await ExtractInterfaceService.GetExtractInterfaceCodeActionAsync(
                 ExtractFromDocument,
                 new TextSpan(_testDocument.CursorPosition.Value, 1),
-                Workspace.GlobalOptions.CreateProvider(),
                 CancellationToken.None);
 
             var action = actions.Single();
@@ -111,8 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 options.IncludedMembers,
                 options.InterfaceName,
                 options.FileName,
-                ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
-                options.FallbackOptions);
+                ExtractInterfaceOptionsResult.ExtractLocation.SameFile);
 
             var operations = await action.GetOperationsAsync(
                 this.OriginalSolution, changedOptions, CodeAnalysisProgress.None, CancellationToken.None);
