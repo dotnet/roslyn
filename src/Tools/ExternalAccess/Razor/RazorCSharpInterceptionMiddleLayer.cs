@@ -7,7 +7,6 @@ using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
-using Newtonsoft.Json.Linq;
 using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public override Task<JsonElement> HandleRequestAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task<JsonElement>> sendRequest)
         {
-            // Razor only implements a middlelayer for smeantic tokens refresh, which is a notification.
+            // Razor only implements a middlelayer for semantic tokens refresh, which is a notification.
             // Cohosting makes all this unnecessary, so keeping this as minimal as possible until then.
             throw new NotImplementedException();
         }
