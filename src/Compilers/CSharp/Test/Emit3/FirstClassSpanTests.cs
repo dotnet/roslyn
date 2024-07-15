@@ -3531,23 +3531,6 @@ public class FirstClassSpanTests : CSharpTestBase
 
             C.M(null);
             C.M(default);
-
-            static class C
-            {
-                public static void M(object[] x) => Console.Write(1);
-                public static void M(ReadOnlySpan<object> x) => Console.Write(2);
-            }
-            """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
-    }
-
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_ReadOnlySpanVsArray_06(LanguageVersion langVersion)
-    {
-        var source = """
-            using System;
-
             C.M(default(object[]));
 
             static class C
@@ -3557,7 +3540,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -3640,6 +3623,7 @@ public class FirstClassSpanTests : CSharpTestBase
             
             C.R(() => C.M(null));
             C.R(() => C.M(default));
+            C.R(() => C.M(default(object[])));
             
             static class C
             {
@@ -3649,27 +3633,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        CompileAndVerify(comp, expectedOutput: "1null 1null").VerifyDiagnostics();
-    }
-
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_ReadOnlySpanVsArray_ExpressionTree_05(LanguageVersion langVersion)
-    {
-        var source = """
-            using System;
-            using System.Linq.Expressions;
-
-            C.R(() => C.M(default(object[])));
-
-            static class C
-            {
-                public static void R(Expression<Action> e) => e.Compile()();
-                public static void M(object[] x) => Console.Write(1);
-                public static void M(ReadOnlySpan<object> x) => Console.Write(2);
-            }
-            """;
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "1null 1null 1null").VerifyDiagnostics();
     }
 
     [Fact]
