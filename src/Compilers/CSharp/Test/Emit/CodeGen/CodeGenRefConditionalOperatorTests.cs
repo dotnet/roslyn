@@ -2300,5 +2300,177 @@ class C
                 Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b ? ref c1.F : ref c2.F").WithLocation(28, 18)
                 );
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+        public void AwaitInRefConditional_07()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class C
+{
+    static void Main()
+    {
+        _ = NumberBuggy().Result;
+        Console.WriteLine(""--------"");
+        _ = NumberNotBuggy();
+    }
+
+    public static async Task<int> NumberBuggy()
+    {
+        string str = ""a2"";
+        int x = 1;
+        int y = 2;
+
+        ref int r =
+              ref await EvalAsync(str, 1) is ""a1"" ? ref x
+            : ref await EvalAsync(str, 2) is ""a2"" ? ref y
+            : ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+        
+        r++;
+        r++;
+        r++;
+        int xxx = r;
+        System.Console.WriteLine(xxx);
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y); //should be 5 now!
+        return xxx;
+    }
+    
+    public static ValueTask<int> NumberNotBuggy()
+    {
+        string str = ""a2"";
+        int x = 1;
+        int y = 2;
+
+        ref int r =
+              ref EvalAsync(str, 1).Result is ""a1"" ? ref x
+            : ref EvalAsync(str, 2).Result is ""a2"" ? ref y
+            : ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+        
+        r++;
+        r++;
+        r++;
+        int xxx = r;
+        System.Console.WriteLine(xxx);
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y);
+        return new(xxx);
+    }
+    static ValueTask<string> EvalAsync(string s, int i)
+    {
+        System.Console.WriteLine($""{s} {i}"");
+        return ValueTask.FromResult(s);
+    }
+}
+";
+            var expectedOutput = @"
+a2 1
+a2 2
+5
+1
+5
+--------
+a2 1
+a2 2
+5
+1
+5
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
+            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+        public void SpillingInRefConditional_01()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        string str = ""a2"";
+        int x = 1;
+        int y = 2;
+
+        ref int r =
+              ref str is ""Hallo"" ? ref x
+            : ref str is { Length: >= 2 and <= 10 or 22 } ? ref y
+            : ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+
+        r++;
+        r++;
+        r++;
+        int xxx = r;
+        System.Console.WriteLine(xxx);
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y);
+    }
+}
+";
+            var expectedOutput = @"
+5
+1
+5
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
+            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+        public void SpillingInRefConditional_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        string str = ""a2"";
+        int x = 1;
+        int y = 2;
+
+        ref readonly var xx = ref x; 
+
+        ref readonly int r =
+              ref Eval(str, 1) is ""Hallo"" ? ref xx
+            : ref Eval(str, 2) is { Length: >= 2 and <= 10 or 22 } ? ref y
+            : ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+
+        ref var rx = ref System.Runtime.CompilerServices.Unsafe.AsRef(in r);
+
+        rx++;
+        rx++;
+        rx++;
+        int xxx = r;
+        System.Console.WriteLine(xxx);
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y);
+    }
+
+    static T Eval<T>(T s, int i)
+    {
+        System.Console.WriteLine($""{s} {i}"");
+        return s;
+    }
+}
+";
+            var expectedOutput = @"
+a2 1
+a2 2
+5
+1
+5
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
+            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
+        }
     }
 }
