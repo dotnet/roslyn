@@ -192,32 +192,36 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+        var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
+        var listenerToken = listener.BeginAsyncOperation(nameof(SessionPropertyChanged));
+        var sessionPropertyChangedTask = SessionPropertyChangedAsync(sender, e).CompletesAsyncOperation(listenerToken);
+    }
+
+    private async Task SessionPropertyChangedAsync(object sender, PropertyChangedEventArgs e)
+    {
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        // _smartRenameSession.SuggestedNames is a normal list. We need to convert it to ObservableCollection to bind to UI Element.
+        if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var textInputBackup = BaseViewModel.IdentifierText;
 
-            // _smartRenameSession.SuggestedNames is a normal list. We need to convert it to ObservableCollection to bind to UI Element.
-            if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
+            SuggestedNames.Clear();
+            // Set limit of 3 results
+            foreach (var name in _smartRenameSession.SuggestedNames.Take(3))
             {
-                var textInputBackup = BaseViewModel.IdentifierText;
-
-                SuggestedNames.Clear();
-                // Set limit of 3 results
-                foreach (var name in _smartRenameSession.SuggestedNames.Take(3))
-                {
-                    SuggestedNames.Add(name);
-                }
-
-                // Changing the list may have changed the text in the text box. We need to restore it.
-                BaseViewModel.IdentifierText = textInputBackup;
-
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
-                return;
+                SuggestedNames.Add(name);
             }
 
-            // For the rest of the property, like HasSuggestions, IsAvailable and etc. Just forward it has changed to subscriber
-            PropertyChanged?.Invoke(this, e);
-        });
+            // Changing the list may have changed the text in the text box. We need to restore it.
+            BaseViewModel.IdentifierText = textInputBackup;
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuggestionsPanelExpanded)));
+            return;
+        }
+
+        // For the rest of the property, like HasSuggestions, IsAvailable and etc. Just forward it has changed to subscriber
+        PropertyChanged?.Invoke(this, e);
     }
 
     public string? ScrollSuggestions(string currentIdentifier, bool down)
