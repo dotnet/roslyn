@@ -36,19 +36,21 @@
       "console": "internalConsole"
     },
     {
-      "name": "Launch PrepareTests.dll",
+      "name": "Launch PrepareTests",
       "type": "coreclr",
       "request": "launch",
-      "preLaunchTask": "build",
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net7.0/PrepareTests.dll",
-      "args": [
-        "--source", "${workspaceFolder}",
-        "--destination", "${workspaceFolder}/artifacts/testPayload"
+      "preLaunchTask": "build current project",
+      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net8.0/PrepareTests.dll",
+      "args":
+      [
+        "--source",
+        "${workspaceFolder}",
+        "--destination",
+        "${workspaceFolder}/artifacts/testPayload"
       ],
-      "cwd": "${workspaceFolder}/artifacts/bin/PrepareTests",
-      "stopAtEntry": false,
-      "console": "internalConsole"
+      "cwd": "${workspaceFolder}/src/Tools/PrepareTests",
+      "console": "internalConsole",
+      "stopAtEntry": false
     },
     {
       "name": "Launch Replay.dll",

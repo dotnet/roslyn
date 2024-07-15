@@ -22,8 +22,8 @@ internal static class MinimizeUtil
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        File.Copy(Path.Combine(sourceDirectory, @"eng\get-machine-guid.ps1"), duplicateDirectory);
-        File.Copy(Path.Combine(sourceDirectory, @"eng\get-machine-guid.cmd"), duplicateDirectory);
+        hardLinkFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.ps1"), duplicateDirectory);
+        hardLinkFileToDirectory(Path.Combine(sourceDirectory, @"eng\get-machine-guid.cmd"), duplicateDirectory);
 
         // https://github.com/dotnet/roslyn/issues/49486
         // we should avoid copying the files under Resources.
@@ -287,6 +287,13 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
 
                 return groupDirectory;
             }
+        }
+
+        static void hardLinkFileToDirectory(string sourceFilePath, string destinationDirectory)
+        {
+            var fileName = Path.GetFileName(sourceFilePath);
+            var destinationFilePath = Path.Combine(destinationDirectory, fileName);
+            CreateHardLink(destinationFilePath, sourceFilePath);
         }
     }
 
