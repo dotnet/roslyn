@@ -1744,7 +1744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (name == "field" &&
                 ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } })
             {
-                var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+                var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
                 diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
             }
         }
