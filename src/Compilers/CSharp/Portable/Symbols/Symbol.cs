@@ -1233,7 +1233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool DeriveUseSiteInfoFromParameter(ref UseSiteInfo<AssemblySymbol> result, ParameterSymbol param)
         {
-            return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+            return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations,
+                param.Ordinal == 0 && this is (PEMethodSymbol { IsExtensionInstanceUnderlyingSymbol: true } or PEPropertySymbol { IsExtensionInstanceUnderlyingSymbol: true }) ?
+                    AllowedRequiredModifierType.System_Runtime_CompilerServices_ExtensionAttribute :
+                    AllowedRequiredModifierType.None) ||
                    DeriveUseSiteInfoFromCustomModifiers(ref result, param.RefCustomModifiers,
                                                               this is MethodSymbol method && method.MethodKind == MethodKind.FunctionPointerSignature ?
                                                                   AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute :
@@ -1261,6 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             System_Runtime_InteropServices_InAttribute = 1 << 1,
             System_Runtime_CompilerServices_IsExternalInit = 1 << 2,
             System_Runtime_CompilerServices_OutAttribute = 1 << 3,
+            System_Runtime_CompilerServices_ExtensionAttribute = 1 << 4,
         }
 
         internal bool DeriveUseSiteInfoFromCustomModifiers(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<CustomModifier> customModifiers, AllowedRequiredModifierType allowedRequiredModifierType)
@@ -1295,6 +1299,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         modifierType.IsWellKnownTypeOutAttribute())
                     {
                         current = AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_ExtensionAttribute) != 0 &&
+                        modifierType.IsWellKnownTypeExtensionAttribute())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_ExtensionAttribute;
                     }
 
                     if (current == AllowedRequiredModifierType.None ||

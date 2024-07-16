@@ -370,10 +370,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private UncommonFields _uncommonFields;
 
+        // PROTOTYPE(Roles): Pack this flag
+        private readonly bool _isExtensionInstanceUnderlyingSymbol;
+
         internal PEMethodSymbol(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
-            MethodDefinitionHandle methodDef)
+            MethodDefinitionHandle methodDef,
+            TypeSymbol extendedType)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -404,7 +408,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             Debug.Assert((uint)localflags <= ushort.MaxValue);
             _flags = (ushort)localflags;
+
+            // If this check causes a perf problem, we could optimize it.
+            if (extendedType is not null && this.IsStatic && this.ParameterCount > 0 &&
+                PENamedTypeSymbol.IsSynthesizedExtensionThisParameter(extendedType, this.Parameters[0]) &&
+                this.MethodKind is not MethodKind.Constructor)
+            {
+                _isExtensionInstanceUnderlyingSymbol = true;
+            }
         }
+
+        internal bool IsExtensionInstanceUnderlyingSymbol => _isExtensionInstanceUnderlyingSymbol;
 
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {

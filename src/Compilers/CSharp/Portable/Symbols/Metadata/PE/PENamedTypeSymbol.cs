@@ -2353,13 +2353,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
-                        var method = new PEMethodSymbol(moduleSymbol, this, methodHandle);
+                        var method = new PEMethodSymbol(moduleSymbol, this, methodHandle, extendedType);
                         PEExtensionInstanceMethodSymbol extensionInstanceMethod = null;
 
-                        // If this check causes a perf problem, we could optimize it.
-                        if (extendedType is not null && method.IsStatic && method.ParameterCount > 0 &&
-                            IsSynthesizedExtensionThisParameter(extendedType, method.Parameters[0]) &&
-                            method.MethodKind is not MethodKind.Constructor)
+                        if (method.IsExtensionInstanceUnderlyingSymbol)
                         {
                             extensionInstanceMethod = new PEExtensionInstanceMethodSymbol(method);
                             members.Add(extensionInstanceMethod);
@@ -2381,13 +2378,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal static bool IsSynthesizedExtensionThisParameter(TypeSymbol extendedType, ParameterSymbol parameter)
         {
-            return parameter.Type.Equals(extendedType, TypeCompareKind.AllIgnoreOptions) &&
-                   parameter.TypeWithAnnotations.CustomModifiers.All(static (modifier) => modifier.IsOptional) &&
-                   parameter.TypeWithAnnotations.CustomModifiers.Any(
-                       static (modifier) => SourceAttributeData.IsTargetAttribute(
-                                                ((CSharpCustomModifier)modifier).ModifierSymbol,
-                                                AttributeDescription.CaseSensitiveExtensionAttribute.Namespace,
-                                                AttributeDescription.CaseSensitiveExtensionAttribute.Name));
+            if (!parameter.Type.Equals(extendedType, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            bool result = false;
+
+            foreach (var modifier in parameter.TypeWithAnnotations.CustomModifiers)
+            {
+                if (!modifier.IsOptional)
+                {
+                    if (((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeExtensionAttribute())
+                    {
+                        result = true;
+                    }
+                    else
+                    {
+                        // Unexpected required modifier
+                        return false;
+                    }
+                }
+            }
+
+            return result;
         }
 
         private void CreateProperties(Dictionary<MethodDefinitionHandle, (PEMethodSymbol, PEExtensionInstanceMethodSymbol)> methodHandleToSymbol, ArrayBuilder<Symbol> members)
@@ -2410,11 +2424,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         if (((object)getMethod != null) || ((object)setMethod != null))
                         {
-                            PEPropertySymbol property = PEPropertySymbol.Create(moduleSymbol, this, propertyDef, getMethod, extensionGet, setMethod, extensionSet);
+                            PEPropertySymbol property = PEPropertySymbol.Create(moduleSymbol, this, propertyDef, getMethod, extensionGet, setMethod, extensionSet, extendedType);
 
                             // If this check causes a perf problem, we could optimize it.
-                            if (extendedType is not null && property.IsStatic && property.ParameterCount > 0 &&
-                                IsSynthesizedExtensionThisParameter(extendedType, property.Parameters[0]))
+                            if (property.IsExtensionInstanceUnderlyingSymbol)
                             {
                                 var extensionProperty = new PEExtensionInstancePropertySymbol(property, extensionGet, extensionSet);
 

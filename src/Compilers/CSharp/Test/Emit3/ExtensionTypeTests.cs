@@ -39970,7 +39970,7 @@ class Program
 	// Methods
 	.method public hidebysig static 
 		void Method (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
@@ -39979,12 +39979,12 @@ class Program
 		IL_0000: ldarg.0
 		IL_0001: callvirt instance void C::Increment()
 		IL_0006: ldarg.0
-		IL_0007: call void E::EIncrement(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		IL_0007: call void E::EIncrement(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
 		IL_000c: ret
 	} // end of method E::Method
 	.method public hidebysig static 
 		void EIncrement (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x205e
@@ -40140,7 +40140,7 @@ class Program
 	// Methods
 	.method public hidebysig static 
 		void Method (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
@@ -40149,12 +40149,12 @@ class Program
 		IL_0000: ldarg.0
 		IL_0001: call instance void C::Increment()
 		IL_0006: ldarg.0
-		IL_0007: call void E::EIncrement(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_0007: call void E::EIncrement(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
 		IL_000c: ret
 	} // end of method E::Method
 	.method public hidebysig static 
 		void EIncrement (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x205e
@@ -40305,7 +40305,7 @@ class C<T>
 	// Methods
 	.method public hidebysig static 
 		void Method (
-			class C`1<!T> modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C`1<!T> modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			!T x
 		) cil managed 
 	{
@@ -40317,12 +40317,12 @@ class C<T>
 		IL_0002: callvirt instance void class C`1<!T>::Increment(!0)
 		IL_0007: ldarg.0
 		IL_0008: ldarg.1
-		IL_0009: call void valuetype E`1<!T>::EIncrement(class C`1<!0> modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), !0)
+		IL_0009: call void valuetype E`1<!T>::EIncrement(class C`1<!0> modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), !0)
 		IL_000e: ret
 	} // end of method E`1::Method
 	.method public hidebysig static 
 		void EIncrement (
-			class C`1<!T> modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C`1<!T> modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			!T x
 		) cil managed 
 	{
@@ -40460,7 +40460,7 @@ class C
 	// Methods
 	.method public hidebysig static 
 		void Method<S> (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			!!S x
 		) cil managed 
 	{
@@ -40472,12 +40472,12 @@ class C
 		IL_0002: callvirt instance void C::Increment<!!S>(!!0)
 		IL_0007: ldarg.0
 		IL_0008: ldarg.1
-		IL_0009: call void E::EIncrement<!!S>(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), !!0)
+		IL_0009: call void E::EIncrement<!!S>(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), !!0)
 		IL_000e: ret
 	} // end of method E::Method
 	.method public hidebysig static 
 		void EIncrement<S> (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			!!S x
 		) cil managed 
 	{
@@ -40617,7 +40617,7 @@ class C : I1
 	// Methods
 	.method public hidebysig static 
 		void Method (
-			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			!T modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
@@ -40627,12 +40627,12 @@ class C : I1
 		IL_0001: box !T
 		IL_0006: callvirt instance void I1::Increment()
 		IL_000b: ldarg.0
-		IL_000c: call void valuetype E`1<!T>::EIncrement(!0 modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		IL_000c: call void valuetype E`1<!T>::EIncrement(!0 modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
 		IL_0011: ret
 	} // end of method E`1::Method
 	.method public hidebysig static 
 		void EIncrement (
-			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			!T modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2063
@@ -40835,7 +40835,7 @@ struct S : I1
 	// Methods
 	.method public hidebysig static 
 		void Method (
-			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			!T modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
@@ -40845,12 +40845,12 @@ struct S : I1
 		IL_0001: constrained. !T
 		IL_0007: callvirt instance void I1::Increment()
 		IL_000c: ldarg.0
-		IL_000d: call void valuetype E`1<!T>::EIncrement(!0 modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_000d: call void valuetype E`1<!T>::EIncrement(!0 modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
 		IL_0012: ret
 	} // end of method E`1::Method
 	.method public hidebysig static 
 		void EIncrement (
-			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			!T modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2064
@@ -40995,7 +40995,7 @@ struct S : I1
 	// Methods
 	.method public hidebysig static 
 		void Method (
-			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			!T modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
@@ -41005,12 +41005,12 @@ struct S : I1
 		IL_0001: constrained. !T
 		IL_0007: callvirt instance void I1::Increment()
 		IL_000c: ldarg.0
-		IL_000d: call void valuetype E`1<!T>::EIncrement(!0 modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_000d: call void valuetype E`1<!T>::EIncrement(!0 modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
 		IL_0012: ret
 	} // end of method E`1::Method
 	.method public hidebysig static 
 		void EIncrement (
-			!T modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			!T modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2064
@@ -41823,19 +41823,19 @@ class Program
 	// Methods
 	.method public hidebysig specialname static 
 		int32 get_P1 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call int32 E::get_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		IL_0001: call int32 E::get_P2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
 		IL_0006: ret
 	} // end of method E::get_P1
 	.method public hidebysig specialname static 
 		void set_P1 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			int32 'value'
 		) cil managed 
 	{
@@ -41844,12 +41844,12 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: call void E::set_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+		IL_0002: call void E::set_P2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
 		IL_0007: ret
 	} // end of method E::set_P1
 	.method public hidebysig specialname static 
 		int32 get_P2 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2061
@@ -41861,7 +41861,7 @@ class Program
 	} // end of method E::get_P2
 	.method public hidebysig specialname static 
 		void set_P2 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			int32 'value'
 		) cil managed 
 	{
@@ -41885,18 +41885,18 @@ class Program
 	} // end of method E::'<ImplicitExtension>$'
 	// Properties
 	.property int32 P1(
-		class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 	)
 	{
-		.get int32 E::get_P1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
-		.set void E::set_P1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+		.get int32 E::get_P1(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		.set void E::set_P1(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
 	}
 	.property int32 P2(
-		class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 	)
 	{
-		.get int32 E::get_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
-		.set void E::set_P2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+		.get int32 E::get_P2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute))
+		.set void E::set_P2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
 	}
 } // end of class E
 """);
@@ -41993,19 +41993,19 @@ class Program
 	// Methods
 	.method public hidebysig specialname static 
 		int32 get_P1 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call int32 E::get_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		IL_0001: call int32 E::get_P2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
 		IL_0006: ret
 	} // end of method E::get_P1
 	.method public hidebysig specialname static 
 		void set_P1 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			int32 'value'
 		) cil managed 
 	{
@@ -42014,12 +42014,12 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: call void E::set_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+		IL_0002: call void E::set_P2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
 		IL_0007: ret
 	} // end of method E::set_P1
 	.method public hidebysig specialname static 
 		int32 get_P2 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		// Method begins at RVA 0x2061
@@ -42031,7 +42031,7 @@ class Program
 	} // end of method E::get_P2
 	.method public hidebysig specialname static 
 		void set_P2 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			int32 'value'
 		) cil managed 
 	{
@@ -42055,18 +42055,18 @@ class Program
 	} // end of method E::'<ImplicitExtension>$'
 	// Properties
 	.property int32 P1(
-		valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 	)
 	{
-		.get int32 E::get_P1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
-		.set void E::set_P1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+		.get int32 E::get_P1(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		.set void E::set_P1(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
 	}
 	.property int32 P2(
-		valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 	)
 	{
-		.get int32 E::get_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
-		.set void E::set_P2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+		.get int32 E::get_P2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		.set void E::set_P2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
 	}
 } // end of class E
 """);
@@ -42160,7 +42160,7 @@ class Program
 	// Methods
 	.method public hidebysig specialname static 
 		int32 get_Item (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			int32 x
 		) cil managed 
 	{
@@ -42173,7 +42173,7 @@ class Program
 	} // end of method E::get_Item
 	.method public hidebysig specialname static 
 		void set_Item (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			int32 x,
 			int32 'value'
 		) cil managed 
@@ -42198,12 +42198,12 @@ class Program
 	} // end of method E::'<ImplicitExtension>$'
 	// Properties
 	.property int32 Item(
-		class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+		class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 		int32 x
 	)
 	{
-		.get int32 E::get_Item(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
-		.set void E::set_Item(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32, int32)
+		.get int32 E::get_Item(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+		.set void E::set_Item(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), int32, int32)
 	}
 } // end of class E
 """);
@@ -42300,7 +42300,7 @@ class Program
 	// Methods
 	.method public hidebysig specialname static 
 		int32 get_Item (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			int32 x
 		) cil managed 
 	{
@@ -42313,7 +42313,7 @@ class Program
 	} // end of method E::get_Item
 	.method public hidebysig specialname static 
 		void set_Item (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			int32 x,
 			int32 'value'
 		) cil managed 
@@ -42338,12 +42338,12 @@ class Program
 	} // end of method E::'<ImplicitExtension>$'
 	// Properties
 	.property int32 Item(
-		valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+		valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 		int32 x
 	)
 	{
-		.get int32 E::get_Item(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
-		.set void E::set_Item(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32, int32)
+		.get int32 E::get_Item(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+		.set void E::set_Item(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, int32, int32)
 	}
 } // end of class E
 """);
@@ -42452,7 +42452,7 @@ class Program
 	// Methods
 	.method public hidebysig specialname static 
 		void add_E1 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42461,12 +42461,12 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: call void E::add_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		IL_0002: call void E::add_E2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
 		IL_0007: ret
 	} // end of method E::add_E1
 	.method public hidebysig specialname static 
 		void remove_E1 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42475,12 +42475,12 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: call void E::remove_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		IL_0002: call void E::remove_E2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
 		IL_0007: ret
 	} // end of method E::remove_E1
 	.method public hidebysig specialname static 
 		void add_E2 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42494,7 +42494,7 @@ class Program
 	} // end of method E::add_E2
 	.method public hidebysig specialname static 
 		void remove_E2 (
-			class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42519,13 +42519,13 @@ class Program
 	// Events
 	.event [System.Runtime]System.Action E1
 	{
-		.addon void E::add_E1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
-		.removeon void E::remove_E1(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		.addon void E::add_E1(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		.removeon void E::remove_E1(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
 	}
 	.event [System.Runtime]System.Action E2
 	{
-		.addon void E::add_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
-		.removeon void E::remove_E2(class C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		.addon void E::add_E2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
+		.removeon void E::remove_E2(class C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute), class [System.Runtime]System.Action)
 	}
 } // end of class E
 """);
@@ -42637,7 +42637,7 @@ class Program
 	// Methods
 	.method public hidebysig specialname static 
 		void add_E1 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42646,12 +42646,12 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: call void E::add_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		IL_0002: call void E::add_E2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
 		IL_0007: ret
 	} // end of method E::add_E1
 	.method public hidebysig specialname static 
 		void remove_E1 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42660,12 +42660,12 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: call void E::remove_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		IL_0002: call void E::remove_E2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
 		IL_0007: ret
 	} // end of method E::remove_E1
 	.method public hidebysig specialname static 
 		void add_E2 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42679,7 +42679,7 @@ class Program
 	} // end of method E::add_E2
 	.method public hidebysig specialname static 
 		void remove_E2 (
-			valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			class [System.Runtime]System.Action 'value'
 		) cil managed 
 	{
@@ -42704,13 +42704,13 @@ class Program
 	// Events
 	.event [System.Runtime]System.Action E1
 	{
-		.addon void E::add_E1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
-		.removeon void E::remove_E1(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		.addon void E::add_E1(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		.removeon void E::remove_E1(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
 	}
 	.event [System.Runtime]System.Action E2
 	{
-		.addon void E::add_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
-		.removeon void E::remove_E2(valuetype C modopt([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		.addon void E::add_E2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
+		.removeon void E::remove_E2(valuetype C modreq([System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute)&, class [System.Runtime]System.Action)
 	}
 } // end of class E
 """);
@@ -42774,7 +42774,7 @@ class Program
 
 	.method public hidebysig static 
 		void Method (
-			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		.maxstack 8
@@ -42822,6 +42822,9 @@ class Program
 }
 """;
 
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         var src2 = """
 class Program
@@ -42837,6 +42840,8 @@ class Program
     }
 }
 """;
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "012").VerifyDiagnostics();
 #else
         var src2 = """
 class Program
@@ -42849,12 +42854,23 @@ class Program
         System.Console.Write(c.F);
         E.Method(c);
         System.Console.Write(c.F);
+        c.Method();
     }
 }
 """;
-#endif
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "012").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (7,11): error CS0570: 'E.Method(C)' is not supported by the language
+            //         E.Method(c);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "Method").WithArguments("E.Method(C)").WithLocation(7, 11),
+            // (9,11): error CS0570: 'E.Method(C)' is not supported by the language
+            //         E.Method(c);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "Method").WithArguments("E.Method(C)").WithLocation(9, 11),
+            // (11,11): error CS1061: 'C' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.Method();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("C", "Method").WithLocation(11, 11)
+            );
+#endif
     }
 
     [Fact]
@@ -42888,7 +42904,7 @@ class Program
 
     .method public hidebysig static 
     	void Method (
-    		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+    		valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
     	) cil managed 
     {
     	.maxstack 8
@@ -42927,6 +42943,9 @@ class Program
 }
 """;
 
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         var src2 = """
 class Program
@@ -42942,6 +42961,8 @@ class Program
     }
 }
 """;
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "012").VerifyDiagnostics();
 #else
         var src2 = """
 class Program
@@ -42954,12 +42975,23 @@ class Program
         System.Console.Write(c.F);
         E.Method(ref c);
         System.Console.Write(c.F);
+        c.Method();
     }
 }
 """;
-#endif
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "012").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (7,11): error CS0570: 'E.Method(ref C)' is not supported by the language
+            //         E.Method(ref c);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "Method").WithArguments("E.Method(ref C)").WithLocation(7, 11),
+            // (9,11): error CS0570: 'E.Method(ref C)' is not supported by the language
+            //         E.Method(ref c);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "Method").WithArguments("E.Method(ref C)").WithLocation(9, 11),
+            // (11,11): error CS1061: 'C' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //         c.Method();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("C", "Method").WithLocation(11, 11)
+            );
+#endif
     }
 
     [Fact]
@@ -42989,7 +43021,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		int32 get_P1 (
-			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+			class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 		) cil managed 
 	{
 		.maxstack 8
@@ -43000,7 +43032,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		void set_P1 (
-			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			int32 'value'
 		) cil managed 
 	{
@@ -43021,11 +43053,11 @@ class Program
 	}
 
 	.property int32 P1(
-		class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
 	)
 	{
-		.get int32 E::get_P1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute))
-		.set void E::set_P1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+		.get int32 E::get_P1(class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute))
+		.set void E::set_P1(class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32)
 	}
 }
 
@@ -43094,6 +43126,10 @@ class Program
 """;
 
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 #else
@@ -43139,7 +43175,14 @@ class Program
 }
 """;
         comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0570: 'E.set_P1(C, int)' is not supported by the language
+            //         E.set_P1(c, 2);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "set_P1").WithArguments("E.set_P1(C, int)").WithLocation(6, 11),
+            // (7,36): error CS0570: 'E.get_P1(C)' is not supported by the language
+            //         System.Console.WriteLine(E.get_P1(c));
+            Diagnostic(ErrorCode.ERR_BindToBogus, "get_P1").WithArguments("E.get_P1(C)").WithLocation(7, 36)
+            );
 #endif
     }
 
@@ -43170,7 +43213,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		int32 get_P1 (
-			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+			valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 		) cil managed 
 	{
 		.maxstack 8
@@ -43181,7 +43224,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		void set_P1 (
-			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			int32 'value'
 		) cil managed 
 	{
@@ -43202,11 +43245,11 @@ class Program
 	}
 
 	.property int32 P1(
-		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
+		valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this'
 	)
 	{
-		.get int32 E::get_P1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&)
-		.set void E::set_P1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+		.get int32 E::get_P1(valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&)
+		.set void E::set_P1(valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
 	}
 }
 
@@ -43265,6 +43308,10 @@ class Program
 }
 """;
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 #else
@@ -43310,7 +43357,14 @@ class Program
 }
 """;
         comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0570: 'E.set_P1(ref C, int)' is not supported by the language
+            //         E.set_P1(ref c, 2);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "set_P1").WithArguments("E.set_P1(ref C, int)").WithLocation(6, 11),
+            // (7,36): error CS0570: 'E.get_P1(ref C)' is not supported by the language
+            //         System.Console.WriteLine(E.get_P1(ref c));
+            Diagnostic(ErrorCode.ERR_BindToBogus, "get_P1").WithArguments("E.get_P1(ref C)").WithLocation(7, 36)
+            );
 #endif
     }
 
@@ -43345,7 +43399,7 @@ class Program
 
     .method public hidebysig specialname static 
     	int32 get_Item (
-    		class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+    		class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
     		int32 i
     	) cil managed 
     {
@@ -43357,7 +43411,7 @@ class Program
 
     .method public hidebysig specialname static 
     	void set_Item (
-    		class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+    		class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
     		int32 i,
     		int32 'value'
     	) cil managed 
@@ -43381,12 +43435,12 @@ class Program
     }
 
     .property int32 Item(
-    	class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+    	class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
     	int32 i
     )
     {
-    	.get int32 E::get_Item(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32)
-    	.set void E::set_Item(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32, int32)
+    	.get int32 E::get_Item(class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32)
+    	.set void E::set_Item(class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), int32, int32)
     }
 }
 
@@ -43454,6 +43508,10 @@ class Program
 }
 """;
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 #else
@@ -43502,12 +43560,12 @@ class Program
 
         comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
         comp.VerifyDiagnostics(
-            // (6,11): error CS0571: 'E.this[C, int].set': cannot explicitly call operator or accessor
+            // (6,11): error CS0570: 'E.set_Item(C, int, int)' is not supported by the language
             //         E.set_Item(c, 1, 2);
-            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Item").WithArguments("E.this[C, int].set").WithLocation(6, 11),
-            // (7,36): error CS0571: 'E.this[C, int].get': cannot explicitly call operator or accessor
+            Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("E.set_Item(C, int, int)").WithLocation(6, 11),
+            // (7,36): error CS0570: 'E.get_Item(C, int)' is not supported by the language
             //         System.Console.WriteLine(E.get_Item(c, 1));
-            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Item").WithArguments("E.this[C, int].get").WithLocation(7, 36)
+            Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("E.get_Item(C, int)").WithLocation(7, 36)
             );
 #endif
     }
@@ -43543,7 +43601,7 @@ class Program
 
     .method public hidebysig specialname static 
     	int32 get_Item (
-    		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+    		valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
     		int32 i
     	) cil managed 
     {
@@ -43555,7 +43613,7 @@ class Program
 
     .method public hidebysig specialname static 
     	void set_Item (
-    		valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+    		valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
     		int32 i,
     		int32 'value'
     	) cil managed 
@@ -43577,12 +43635,12 @@ class Program
     }
 
     .property int32 Item(
-    	valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+    	valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
     	int32 i
     )
     {
-    	.get int32 E::get_Item(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
-    	.set void E::set_Item(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32, int32)
+    	.get int32 E::get_Item(valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32)
+    	.set void E::set_Item(valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, int32, int32)
     }
 }
 
@@ -43642,6 +43700,10 @@ class Program
 }
 """;
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 #else
@@ -43689,7 +43751,14 @@ class Program
 """;
 
         comp = CreateCompilationWithIL(src4, ilSource, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0570: 'E.set_Item(ref C, int, int)' is not supported by the language
+            //         E.set_Item(ref c, 1, 2);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("E.set_Item(ref C, int, int)").WithLocation(6, 11),
+            // (7,36): error CS0570: 'E.get_Item(ref C, int)' is not supported by the language
+            //         System.Console.WriteLine(E.get_Item(ref c, 1));
+            Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("E.get_Item(ref C, int)").WithLocation(7, 36)
+            );
 #endif
     }
 
@@ -43722,7 +43791,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		void add_E1 (
-			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
@@ -43735,7 +43804,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		void remove_E1 (
-			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
+			class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this',
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
@@ -43757,8 +43826,8 @@ class Program
 
 	.event [mscorlib]System.Action E1
 	{
-		.addon void E::add_E1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), class [mscorlib]System.Action)
-		.removeon void E::remove_E1(class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), class [mscorlib]System.Action)
+		.addon void E::add_E1(class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), class [mscorlib]System.Action)
+		.removeon void E::remove_E1(class C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute), class [mscorlib]System.Action)
 	}
 }
 
@@ -43888,6 +43957,9 @@ class Program
 """;
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
 
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
 #else
@@ -43921,7 +43993,17 @@ class Program
 }
 """;
         comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0570: 'E.add_E1(C, Action)' is not supported by the language
+            //         E.add_E1(c, M2());
+            Diagnostic(ErrorCode.ERR_BindToBogus, "add_E1").WithArguments("E.add_E1(C, System.Action)").WithLocation(6, 11),
+            // (8,11): error CS0570: 'E.add_E1(C, Action)' is not supported by the language
+            //         E.add_E1(c, M3());
+            Diagnostic(ErrorCode.ERR_BindToBogus, "add_E1").WithArguments("E.add_E1(C, System.Action)").WithLocation(8, 11),
+            // (9,11): error CS0570: 'E.remove_E1(C, Action)' is not supported by the language
+            //         E.remove_E1(c, M2());
+            Diagnostic(ErrorCode.ERR_BindToBogus, "remove_E1").WithArguments("E.remove_E1(C, System.Action)").WithLocation(9, 11)
+            );
 #endif
     }
 
@@ -43954,7 +44036,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		void add_E1 (
-			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
@@ -43967,7 +44049,7 @@ class Program
 
 	.method public hidebysig specialname static 
 		void remove_E1 (
-			valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
+			valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)& '<>4__this',
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
@@ -43989,8 +44071,8 @@ class Program
 
 	.event [mscorlib]System.Action E1
 	{
-		.addon void E::add_E1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, class [mscorlib]System.Action)
-		.removeon void E::remove_E1(valuetype C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, class [mscorlib]System.Action)
+		.addon void E::add_E1(valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, class [mscorlib]System.Action)
+		.removeon void E::remove_E1(valuetype C modreq([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute)&, class [mscorlib]System.Action)
 	}
 }
 
@@ -44110,6 +44192,10 @@ class Program
 }
 """;
         var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+
+        // The conditional compilation symbol PREVIOUSVERSIONOFCOMPILER is intentionally not defined.
+        // The branch that is not taken reflects behavior of the compiler in main.
+        // The test can be run manually in 'main' by copy/pasting it into a file and defining the conditional compilation symbol.
 #if !PREVIOUSVERSIONOFCOMPILER
         CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
 #else
@@ -44143,7 +44229,17 @@ class Program
 }
 """;
         comp = CreateCompilationWithIL(src3, ilSource, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (6,11): error CS0570: 'E.add_E1(ref C, Action)' is not supported by the language
+            //         E.add_E1(ref c, M2());
+            Diagnostic(ErrorCode.ERR_BindToBogus, "add_E1").WithArguments("E.add_E1(ref C, System.Action)").WithLocation(6, 11),
+            // (8,11): error CS0570: 'E.add_E1(ref C, Action)' is not supported by the language
+            //         E.add_E1(ref c, M3());
+            Diagnostic(ErrorCode.ERR_BindToBogus, "add_E1").WithArguments("E.add_E1(ref C, System.Action)").WithLocation(8, 11),
+            // (9,11): error CS0570: 'E.remove_E1(ref C, Action)' is not supported by the language
+            //         E.remove_E1(ref c, M2());
+            Diagnostic(ErrorCode.ERR_BindToBogus, "remove_E1").WithArguments("E.remove_E1(ref C, System.Action)").WithLocation(9, 11)
+            );
 #endif
     }
 }

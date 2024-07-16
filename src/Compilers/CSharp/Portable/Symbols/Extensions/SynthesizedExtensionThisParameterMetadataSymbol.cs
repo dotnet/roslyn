@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ((SourceExtensionTypeSymbol)_containingSymbol.ContainingSymbol).GetExtendedTypeNoUseSiteDiagnostics(null),
                     NullableAnnotation.NotAnnotated,
                     ImmutableArray.Create<CustomModifier>(
-                        CSharpCustomModifier.CreateOptional(
+                        CSharpCustomModifier.CreateRequired(
                             _containingSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ExtensionAttribute))));
 
         public override RefKind RefKind
