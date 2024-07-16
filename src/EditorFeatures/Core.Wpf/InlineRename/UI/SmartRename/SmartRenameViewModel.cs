@@ -31,7 +31,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private readonly IGlobalOptionService _globalOptionService;
     private readonly IThreadingContext _threadingContext;
-    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+    private readonly IAsynchronousOperationListener _asyncListener;
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
@@ -116,7 +116,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         _globalOptionService = globalOptionService;
         _threadingContext = threadingContext;
-        _listenerProvider = listenerProvider;
+        _asyncListener = listenerProvider.GetListener(FeatureAttribute.SmartRename);
         _smartRenameSession = smartRenameSession;
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
 
@@ -147,8 +147,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
         {
-            var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
-            var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
+            var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
             _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
@@ -192,8 +191,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
-        var listenerToken = listener.BeginAsyncOperation(nameof(SessionPropertyChanged));
+        var listenerToken = _asyncListener.BeginAsyncOperation(nameof(SessionPropertyChanged));
         var sessionPropertyChangedTask = SessionPropertyChangedAsync(sender, e).CompletesAsyncOperation(listenerToken);
     }
 
