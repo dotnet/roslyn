@@ -78,9 +78,9 @@ variables:
   - name: Insertion.TitleSuffix
     value: ''
 
-  #- ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
-  - name: enableSourceIndex
-    value: true
+  - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+    - name: enableSourceIndex
+      value: true
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
