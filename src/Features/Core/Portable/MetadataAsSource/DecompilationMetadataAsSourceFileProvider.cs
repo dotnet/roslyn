@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
@@ -64,6 +65,10 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
         TelemetryMessage? telemetryMessage,
         CancellationToken cancellationToken)
     {
+        // Use the current fallback analyzer config options from the source workspace.
+        // Decompilation does not add projects to the MAS workspace, hence the workspace might remain empty and not receive fallback options automatically.
+        var metadataSolution = metadataWorkspace.CurrentSolution.WithFallbackAnalyzerOptions(sourceWorkspace.CurrentSolution.FallbackAnalyzerOptions);
+
         MetadataAsSourceGeneratedFileInfo fileInfo;
         Location? navigateLocation = null;
         var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
@@ -102,7 +107,7 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
         {
             // We need to generate this. First, we'll need a temporary project to do the generation into. We
             // avoid loading the actual file from disk since it doesn't exist yet.
-            var metadataSolution = metadataWorkspace.CurrentSolution;
+
             var (temporaryProjectInfo, temporaryDocumentId) = fileInfo.GetProjectInfoAndDocumentId(metadataSolution.Services, loadFileFromDisk: false);
             var temporaryDocument = metadataSolution
                 .AddProject(temporaryProjectInfo)
@@ -119,7 +124,7 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
 
                     if (decompiledSourceService != null)
                     {
-                        var decompilationDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.GenerationOptions.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                        var decompilationDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, formattingOptions: null, cancellationToken).ConfigureAwait(false);
                         telemetryMessage?.SetDecompiled(decompilationDocument is not null);
                         if (decompilationDocument is not null)
                         {
@@ -144,7 +149,7 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
             if (!useDecompiler)
             {
                 var sourceFromMetadataService = temporaryDocument.Project.Services.GetRequiredService<IMetadataAsSourceService>();
-                temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, options.GenerationOptions, cancellationToken).ConfigureAwait(false);
+                temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, formattingOptions: null, cancellationToken).ConfigureAwait(false);
             }
 
             // We have the content, so write it out to disk
@@ -206,7 +211,7 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
         }
 
         // If we don't have a location yet, then that means we're re-using an existing file. In this case, we'll want to relocate the symbol.
-        navigateLocation ??= await RelocateSymbol_NoLockAsync(metadataWorkspace.CurrentSolution, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
+        navigateLocation ??= await RelocateSymbol_NoLockAsync(metadataSolution, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
 
         var documentName = string.Format(
             "{0} [{1}]",

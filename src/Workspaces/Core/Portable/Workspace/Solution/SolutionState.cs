@@ -48,7 +48,8 @@ internal sealed partial class SolutionState
     public ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions { get; } = ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty;
 
     /// <summary>
-    /// Number of projects in the solution of the given language.
+    /// Number of projects in the solution of the given language.  The value is guaranteed to always be greater than zero.
+    /// If the project count does ever hit zero then there simply is no key/value pair for that language in this map.
     /// </summary>
     internal ImmutableDictionary<string, int> ProjectCountByLanguage { get; } = ImmutableDictionary<string, int>.Empty;
 

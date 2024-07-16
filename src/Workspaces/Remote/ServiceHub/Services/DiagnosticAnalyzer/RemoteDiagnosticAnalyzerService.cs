@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         var result = await DiagnosticComputer.GetDiagnosticsAsync(
                             document, project, solutionChecksum,
-                            arguments.IdeOptions, documentSpan,
+                            documentSpan,
                             arguments.AnalyzerIds, documentAnalysisKind,
                             _analyzerInfoCache, hostWorkspaceServices,
                             isExplicit: arguments.IsExplicit,

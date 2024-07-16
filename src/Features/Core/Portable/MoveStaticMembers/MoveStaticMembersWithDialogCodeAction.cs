@@ -26,14 +26,12 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
     Document document,
     IMoveStaticMembersOptionsService service,
     INamedTypeSymbol selectedType,
-    CleanCodeGenerationOptionsProvider fallbackOptions,
     ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
 {
     private readonly Document _document = document;
     private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
     private readonly INamedTypeSymbol _selectedType = selectedType;
     private readonly IMoveStaticMembersOptionsService _service = service;
-    private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
     public override string Title => FeaturesResources.Move_static_members_to_another_type;
 
@@ -109,7 +107,6 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             sourceDoc.Folders,
             newType,
             sourceDoc,
-            _fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         // get back type declaration in the newly created file
@@ -133,7 +130,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
 
         var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-        var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
 
         return [new ApplyChangesOperation(movedSolution)];
     }
@@ -159,7 +156,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
     /// <param name="typeArgIndices">generic type arg indices to keep when refactoring generic class access to the new type. Empty if not relevant</param>
     /// <param name="sourceDocId">Id of the document where the mebers are being moved from</param>
     /// <returns>The solution with references refactored and members moved to the newType</returns>
-    private async Task<Solution> RefactorAndMoveAsync(
+    private static async Task<Solution> RefactorAndMoveAsync(
         ImmutableArray<ISymbol> selectedMembers,
         ImmutableArray<SyntaxNode> oldMemberNodes,
         Solution oldSolution,
@@ -213,7 +210,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         newType = (INamedTypeSymbol)newTypeSemanticModel.GetRequiredDeclaredSymbol(newTypeRoot.GetCurrentNode(newTypeNode)!, cancellationToken);
 
         var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-        return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+        return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<Solution> RefactorReferencesAsync(

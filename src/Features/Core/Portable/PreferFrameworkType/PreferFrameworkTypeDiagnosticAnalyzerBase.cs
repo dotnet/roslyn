@@ -36,16 +36,6 @@ internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<
     {
     }
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-    {
-        // analyzer is only active in C# and VB projects
-        Contract.ThrowIfNull(options);
-
-        return
-            !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-              options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

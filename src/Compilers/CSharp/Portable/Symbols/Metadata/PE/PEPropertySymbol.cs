@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // d = Use site diagnostic flag. 1 bit
             // o = Obsolete flag. 1 bit
             // c = Custom attributes flag. 1 bit
+            // p = Overload resolution priority populated. 1 bit
             private const int IsSpecialNameFlag = 1 << 0;
             private const int IsRuntimeSpecialNameFlag = 1 << 1;
             private const int CallMethodsDirectlyFlag = 1 << 2;
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsUseSiteDiagnosticPopulatedBit = 1 << 8;
             private const int IsObsoleteAttributePopulatedBit = 1 << 9;
             private const int IsCustomAttributesPopulatedBit = 1 << 10;
+            private const int IsOverloadResolutionPriorityPopulatedBit = 1 << 11;
 
             private int _bits;
 
@@ -141,6 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             public readonly bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
+
+            public void SetOverloadResolutionPriorityPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsOverloadResolutionPriorityPopulatedBit);
+            }
+
+            public readonly bool IsOverloadResolutionPriorityPopulated => (_bits & IsOverloadResolutionPriorityPopulatedBit) != 0;
         }
 
         private sealed class UncommonFields
@@ -149,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public Tuple<CultureInfo, string> _lazyDocComment;
             public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
             public ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+            public int _lazyOverloadResolutionPriority;
         }
 
         internal static PEPropertySymbol Create(
@@ -1009,6 +1019,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            Debug.Assert(IsIndexer || IsIndexedProperty);
+            if (!_flags.IsOverloadResolutionPriorityPopulated)
+            {
+                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority))
+                {
+                    Interlocked.CompareExchange(ref AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0);
+                }
+#if DEBUG
+                else
+                {
+                    // 0 is the default if nothing is present in metadata, and we don't care about preserving the difference between "not present" and "set to the default value".
+                    Debug.Assert(_uncommonFields is null or { _lazyOverloadResolutionPriority: 0 });
+                }
+#endif
+
+                _flags.SetOverloadResolutionPriorityPopulated();
+            }
+
+            return _uncommonFields?._lazyOverloadResolutionPriority;
         }
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol

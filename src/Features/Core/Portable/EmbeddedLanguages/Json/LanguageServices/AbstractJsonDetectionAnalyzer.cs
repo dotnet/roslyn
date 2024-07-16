@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -39,16 +40,13 @@ internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyle
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-        => false;
-
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSemanticModelAction(Analyze);
 
     public void Analyze(SemanticModelAnalysisContext context)
     {
-        if (!context.GetIdeAnalyzerOptions().DetectAndOfferEditorFeaturesForProbableJsonStrings
-            || ShouldSkipAnalysis(context, notification: null))
+        if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.DetectAndOfferEditorFeaturesForProbableJsonStrings) ||
+            ShouldSkipAnalysis(context, notification: null))
         {
             return;
         }

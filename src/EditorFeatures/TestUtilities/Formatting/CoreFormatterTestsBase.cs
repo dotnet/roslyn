@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         {
             using var workspace = CreateWorkspace(codeWithMarker, parseOptions);
 
-            options?.SetGlobalOptions(workspace.GlobalOptions);
+            workspace.SetAnalyzerFallbackAndGlobalOptions(options);
 
             // set up caret position
             var testDocument = workspace.Documents.Single();
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
             var formattingOptions = (options != null)
-                ? formattingService.GetFormattingOptions(options, fallbackOptions: null)
+                ? formattingService.GetFormattingOptions(options)
                 : formattingService.DefaultOptions;
 
             ImmutableArray<AbstractFormattingRule> rules = [formattingRuleProvider.CreateRule(documentSyntax, 0), .. Formatter.GetDefaultFormattingRules(document)];
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         {
             using var workspace = new AdhocWorkspace();
             var formattingService = workspace.Services.GetLanguageServices(node.Language).GetRequiredService<ISyntaxFormattingService>();
-            var options = formattingService.GetFormattingOptions(StructuredAnalyzerConfigOptions.Empty, fallbackOptions: null);
+            var options = formattingService.GetFormattingOptions(StructuredAnalyzerConfigOptions.Empty);
             var result = Formatter.Format(node, workspace.Services.SolutionServices, options, CancellationToken.None);
             var actual = result.GetText().ToString();
 

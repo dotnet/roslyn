@@ -17,24 +17,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
         OmniSharpImplementTypeOptions ImplementTypeOptions,
         OmniSharpLineFormattingOptions LineFormattingOptions)
     {
+#pragma warning disable IDE0060 // Remove unused parameter
         internal CodeActionOptions GetCodeActionOptions(LanguageServices languageServices)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            var defaultOptions = CodeActionOptions.GetDefault(languageServices);
-            return defaultOptions with
+            return CodeActionOptions.Default with
             {
-                CleanupOptions = defaultOptions.CleanupOptions with
-                {
-                    FormattingOptions = defaultOptions.CleanupOptions.FormattingOptions with
-                    {
-                        LineFormatting = new()
-                        {
-                            IndentationSize = LineFormattingOptions.IndentationSize,
-                            TabSize = LineFormattingOptions.TabSize,
-                            UseTabs = LineFormattingOptions.UseTabs,
-                            NewLine = LineFormattingOptions.NewLine,
-                        }
-                    }
-                },
                 ImplementTypeOptions = new()
                 {
                     InsertionBehavior = (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,

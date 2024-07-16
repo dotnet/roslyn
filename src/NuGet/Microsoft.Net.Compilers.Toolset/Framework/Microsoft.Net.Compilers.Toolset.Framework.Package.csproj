@@ -34,6 +34,7 @@
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
+      <!-- IMPORTANT: Package Microsoft.Net.Sdk.Compilers.Toolset built in the SDK relies on the layout (`tasks/net472`). -->
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />

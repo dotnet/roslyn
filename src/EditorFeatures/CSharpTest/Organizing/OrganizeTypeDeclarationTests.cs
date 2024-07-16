@@ -1183,7 +1183,6 @@ $@"{typeKind} Program
 
         var handler = new OrganizeDocumentCommandHandler(
             workspace.GetService<IThreadingContext>(),
-            workspace.GlobalOptions,
             workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
         var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));

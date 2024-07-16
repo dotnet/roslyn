@@ -59,9 +59,9 @@ internal class CSharpGenerateVariableCodeFixProvider : AbstractGenerateMemberCod
     }
 
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-        Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         var service = document.GetLanguageService<IGenerateVariableService>();
-        return service.GenerateVariableAsync(document, node, fallbackOptions, cancellationToken);
+        return service.GenerateVariableAsync(document, node, cancellationToken);
     }
 }

@@ -13,7 +13,7 @@ internal static class IndentationOptionsStorage
 {
     public static async Task<IndentationOptions> GetIndentationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
     {
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         return new IndentationOptions(formattingOptions)
         {

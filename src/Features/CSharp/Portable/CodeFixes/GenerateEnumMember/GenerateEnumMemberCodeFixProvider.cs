@@ -33,10 +33,10 @@ internal class GenerateEnumMemberCodeFixProvider : AbstractGenerateMemberCodeFix
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [CS0117, CS1061];
 
-    protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IGenerateEnumMemberService>();
-        return service.GenerateEnumMemberAsync(document, node, fallbackOptions, cancellationToken);
+        return service.GenerateEnumMemberAsync(document, node, cancellationToken);
     }
 
     protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)

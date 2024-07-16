@@ -237,7 +237,10 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             }
 
             // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
-            stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
+            // since this only runs on Windows for VS.
+            stream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
         }

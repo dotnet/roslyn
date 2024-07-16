@@ -419,11 +419,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var boundAttribute = boundAttributeArray[i];
                             Debug.Assert(boundAttribute is not null);
+                            Binder attributeBinder = binders[i];
                             if (boundAttribute.Constructor is { } ctor)
                             {
                                 Binder.CheckRequiredMembersInObjectInitializer(ctor, ImmutableArray<BoundExpression>.CastUp(boundAttribute.NamedArguments), boundAttribute.Syntax, diagnostics);
+                                attributeBinder.ReportDiagnosticsIfObsolete(diagnostics, ctor, boundAttribute.Syntax, hasBaseReceiver: false);
                             }
-                            NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
+                            NullableWalker.AnalyzeIfNeeded(attributeBinder, boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
                         }
                     }
 

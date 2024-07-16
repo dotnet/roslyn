@@ -8,12 +8,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal interface IGenerateVariableService : ILanguageService
 {
-    Task<ImmutableArray<CodeAction>> GenerateVariableAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    Task<ImmutableArray<CodeAction>> GenerateVariableAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
 }
