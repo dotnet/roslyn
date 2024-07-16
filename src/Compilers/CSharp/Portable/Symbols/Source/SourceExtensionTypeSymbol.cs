@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ExtensionInfo _lazyDeclaredExtensionInfo = ExtensionInfo.Sentinel;
         // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
         private TypeSymbol? _lazyExtensionUnderlyingType = ErrorTypeSymbol.UnknownResultType;
-        // For non-static extensions, we emit a field of the underlying type
-        private FieldSymbol? _lazyUnderlyingInstanceField = null;
 
         private ConcurrentDictionary<Symbol, Symbol>? _lazyInstanceMetadataMembers;
 
@@ -437,38 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
-        }
-
-        private FieldSymbol? UnderlyingInstanceField
-        {
-            get
-            {
-                if (IsStatic)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                var extendedType = GetExtendedTypeNoUseSiteDiagnostics(null);
-                if (extendedType is null)
-                {
-                    return null;
-                }
-
-                if (_lazyUnderlyingInstanceField is null)
-                {
-                    var field = new SynthesizedFieldSymbol(this, extendedType, WellKnownMemberNames.ExtensionFieldName);
-                    Interlocked.CompareExchange(ref _lazyUnderlyingInstanceField, field, comparand: null);
-                }
-
-                return _lazyUnderlyingInstanceField;
-            }
-        }
-
-        internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
-        {
-            return !IsStatic && UnderlyingInstanceField is { } underlyingField
-                ? [underlyingField, .. base.GetFieldsToEmit()]
-                : base.GetFieldsToEmit();
         }
     }
 }

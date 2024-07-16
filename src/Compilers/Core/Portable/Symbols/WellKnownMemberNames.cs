@@ -406,16 +406,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The name of marker method for an implicit extension type.
         /// </summary>
-        internal const string ImplicitExtensionMarkerMethodName = "<ImplicitExtension>$"; // PROTOTYPE(static) confirm name with WG
+        internal const string ImplicitExtensionMarkerMethodName = "<ImplicitExtension>$"; // PROTOTYPE confirm name with WG
 
         /// <summary>
         /// The name of marker method for an explicit extension type.
         /// </summary>
-        internal const string ExplicitExtensionMarkerMethodName = "<ExplicitExtension>$"; // PROTOTYPE(static) confirm name with WG
-
-        /// <summary>
-        /// The name of field to underlying instance for an extension type.
-        /// </summary>
-        internal const string ExtensionFieldName = "<UnderlyingInstance>$"; // PROTOTYPE(static) confirm name with WG
+        internal const string ExplicitExtensionMarkerMethodName = "<ExplicitExtension>$"; // PROTOTYPE confirm name with WG
     }
 }
