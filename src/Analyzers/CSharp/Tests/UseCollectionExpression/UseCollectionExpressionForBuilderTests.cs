@@ -1679,9 +1679,9 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        //Leading
+                        //Leading 1
                         {{pattern}}
-                        //Leading
+                        //Leading 2
                         [|builder.Add(|]0); //Trailing
                         ImmutableArray<int> array = builder.ToImmutable();
                     }
@@ -1694,10 +1694,10 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        //Leading
+                        //Leading 1
                         ImmutableArray<int> array =
                         [
-                            //Leading
+                            //Leading 2
                             0, //Trailing
                         ];
                     }
