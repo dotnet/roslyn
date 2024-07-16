@@ -1981,9 +1981,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M({{type}}<string> x) { }
             }
             """;
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
-            noStringToReadOnlySpanConversionInSource: true);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
             {

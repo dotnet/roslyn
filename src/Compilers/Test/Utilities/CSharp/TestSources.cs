@@ -8,11 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal static class TestSources
     {
-        private const string StringToReadOnlySpanConversion = """
-            // NOTE: This is defined on String in the BCL (and the target type is non-generic ReadOnlySpan<char>).
-            public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
-            """;
-
         internal const string Span = @"
 namespace System
 {
@@ -179,7 +174,7 @@ namespace System
 
         public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
 
-        " + StringToReadOnlySpanConversion + @"
+        public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
     }
@@ -253,12 +248,6 @@ namespace System
         }
     }
 }";
-
-        /// <summary>
-        /// Use if the non-standardly defined string-to-ReadOnlySpan conversion causes problems
-        /// (e.g., when converting from null to ReadOnlySpan you would get an ambiguity for the user-defined conversion).
-        /// </summary>
-        internal static readonly string SpanWithoutStringConversion = Span.Replace(StringToReadOnlySpanConversion, "");
 
         internal const string Index = @"
 
