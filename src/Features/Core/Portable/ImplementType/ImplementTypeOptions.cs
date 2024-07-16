@@ -33,15 +33,16 @@ internal static class ImplementTypeOptionsStorage
         group: MemberDisplayOptionsStorage.TypeMemberGroup,
         isEditorConfigOption: true,
         serializer: EditorConfigValueSerializer.CreateSerializerForEnum(
-            map: new BidirectionalMap<string, ImplementTypeInsertionBehavior>(
+            entries:
             [
                 ("at_the_end", ImplementTypeInsertionBehavior.AtTheEnd),
                 ("with_other_members_of_the_same_kind", ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind),
-            ]),
-            alternative: ImmutableDictionary<string, ImplementTypeInsertionBehavior>.Empty
-                .Add("AtTheEnd", ImplementTypeInsertionBehavior.AtTheEnd)
-                .Add("WithOtherMembersOfTheSameKind", ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind)
-            ));
+            ],
+            alternativeEntries:
+            [
+                ("AtTheEnd", ImplementTypeInsertionBehavior.AtTheEnd),
+                ("WithOtherMembersOfTheSameKind", ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind),
+            ]));
 
     public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior = new(
         "dotnet_property_generation_behavior",
@@ -49,15 +50,16 @@ internal static class ImplementTypeOptionsStorage
         group: MemberDisplayOptionsStorage.TypeMemberGroup,
         isEditorConfigOption: true,
         serializer: EditorConfigValueSerializer.CreateSerializerForEnum(
-            map: new BidirectionalMap<string, ImplementTypePropertyGenerationBehavior>(
+            entries:
             [
                 ("prefer_throwing_properties", ImplementTypePropertyGenerationBehavior.PreferThrowingProperties),
                 ("prefer_auto_properties", ImplementTypePropertyGenerationBehavior.PreferAutoProperties),
-            ]),
-            alternative: ImmutableDictionary<string, ImplementTypePropertyGenerationBehavior>.Empty
-                .Add("PreferThrowingProperties", ImplementTypePropertyGenerationBehavior.PreferThrowingProperties)
-                .Add("PreferAutoProperties", ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
-            ));
+            ],
+            alternativeEntries:
+            [
+                ("PreferThrowingProperties", ImplementTypePropertyGenerationBehavior.PreferThrowingProperties),
+                ("PreferAutoProperties", ImplementTypePropertyGenerationBehavior.PreferAutoProperties),
+            ]));
 
     /// <summary>
     /// Options that we expect the user to set in editorconfig.

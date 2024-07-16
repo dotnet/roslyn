@@ -20,15 +20,15 @@ internal class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
     private readonly ImmutableDictionary<TKey, TValue> _forwardMap;
     private readonly ImmutableDictionary<TValue, TKey> _backwardMap;
 
-    public BidirectionalMap(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
-        : this(forwardMap: ImmutableDictionary.CreateRange(pairs),
-               backwardMap: ImmutableDictionary.CreateRange(pairs.Select(static p => KeyValuePairUtil.Create(p.Value, p.Key))))
+    public BidirectionalMap(IEnumerable<KeyValuePair<TKey, TValue>> pairs, IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TValue>? valueComparer = null)
+        : this(forwardMap: ImmutableDictionary.CreateRange(keyComparer, pairs),
+               backwardMap: ImmutableDictionary.CreateRange(valueComparer, pairs.Select(static p => KeyValuePairUtil.Create(p.Value, p.Key))))
     {
     }
 
-    public BidirectionalMap(IEnumerable<(TKey key, TValue value)> pairs)
-        : this(forwardMap: ImmutableDictionary.CreateRange(pairs.Select(static p => KeyValuePairUtil.Create(p.key, p.value))),
-               backwardMap: ImmutableDictionary.CreateRange(pairs.Select(static p => KeyValuePairUtil.Create(p.value, p.key))))
+    public BidirectionalMap(IEnumerable<(TKey key, TValue value)> pairs, IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TValue>? valueComparer = null)
+        : this(forwardMap: ImmutableDictionary.CreateRange(keyComparer, pairs.Select(static p => KeyValuePairUtil.Create(p.key, p.value))),
+               backwardMap: ImmutableDictionary.CreateRange(valueComparer, pairs.Select(static p => KeyValuePairUtil.Create(p.value, p.key))))
     {
     }
 

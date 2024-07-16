@@ -172,10 +172,20 @@ public class OptionSerializerTests
             Assert.Equal(allowsSnakeCase ? expectedSnakeCase : expectedPascalCase, serializedValue);
 
             if (allowsPacalCase)
+            {
                 VerifyParsing(expectedPascalCase);
 
+                // parsing should be case-insensitive:
+                VerifyParsing(expectedPascalCase.ToLowerInvariant());
+            }
+
             if (allowsSnakeCase)
+            {
                 VerifyParsing(expectedSnakeCase);
+
+                // parsing should be case-insensitive:
+                VerifyParsing(expectedSnakeCase.ToUpperInvariant());
+            }
 
             void VerifyParsing(string value)
             {
