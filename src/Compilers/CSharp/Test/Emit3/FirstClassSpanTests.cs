@@ -1964,12 +1964,10 @@ public class FirstClassSpanTests : CSharpTestBase
         verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
     }
 
-    [Theory, CombinatorialData]
-    public void Conversion_Array_Span_Implicit_ExpressionTree_02(
-        [CombinatorialLangVersions] LanguageVersion langVersion,
-        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_ExpressionTree_02(LanguageVersion langVersion)
     {
-        var source = $$"""
+        var source = """
             using System;
             using System.Linq.Expressions;
 
@@ -1978,17 +1976,17 @@ public class FirstClassSpanTests : CSharpTestBase
             static class C
             {
                 public static void R(Expression<Action> e) { }
-                public static void M({{type}}<string> x) { }
+                public static void M(Span<string> x) { }
             }
             """;
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
-        verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
             {
               // Code size       97 (0x61)
               .maxstack  9
               IL_0000:  ldnull
-              IL_0001:  ldtoken    "void C.M(System.{{type}}<string>)"
+              IL_0001:  ldtoken    "void C.M(System.Span<string>)"
               IL_0006:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)"
               IL_000b:  castclass  "System.Reflection.MethodInfo"
               IL_0010:  ldc.i4.1
@@ -1999,10 +1997,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0019:  ldtoken    "string[]"
               IL_001e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
               IL_0023:  call       "System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)"
-              IL_0028:  ldtoken    "System.{{type}}<string>"
+              IL_0028:  ldtoken    "System.Span<string>"
               IL_002d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-              IL_0032:  ldtoken    "System.{{type}}<string> System.{{type}}<string>.op_Implicit(string[])"
-              IL_0037:  ldtoken    "System.{{type}}<string>"
+              IL_0032:  ldtoken    "System.Span<string> System.Span<string>.op_Implicit(string[])"
+              IL_0037:  ldtoken    "System.Span<string>"
               IL_003c:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)"
               IL_0041:  castclass  "System.Reflection.MethodInfo"
               IL_0046:  call       "System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)"
@@ -2014,6 +2012,84 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0060:  ret
             }
             """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_ReadOnlySpan_Implicit_ExpressionTree_02(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(() => C.M(null));
+
+            static class C
+            {
+                public static void R(Expression<Action> e) { }
+                public static void M(ReadOnlySpan<string> x) { }
+            }
+            """;
+
+        var expectedIl = """
+            {
+                // Code size       97 (0x61)
+                .maxstack  9
+                IL_0000:  ldnull
+                IL_0001:  ldtoken    "void C.M(System.ReadOnlySpan<string>)"
+                IL_0006:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)"
+                IL_000b:  castclass  "System.Reflection.MethodInfo"
+                IL_0010:  ldc.i4.1
+                IL_0011:  newarr     "System.Linq.Expressions.Expression"
+                IL_0016:  dup
+                IL_0017:  ldc.i4.0
+                IL_0018:  ldnull
+                IL_0019:  ldtoken    "string[]"
+                IL_001e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                IL_0023:  call       "System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)"
+                IL_0028:  ldtoken    "System.ReadOnlySpan<string>"
+                IL_002d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                IL_0032:  ldtoken    "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
+                IL_0037:  ldtoken    "System.ReadOnlySpan<string>"
+                IL_003c:  call       "System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)"
+                IL_0041:  castclass  "System.Reflection.MethodInfo"
+                IL_0046:  call       "System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)"
+                IL_004b:  stelem.ref
+                IL_004c:  call       "System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])"
+                IL_0051:  call       "System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()"
+                IL_0056:  call       "System.Linq.Expressions.Expression<System.Action> System.Linq.Expressions.Expression.Lambda<System.Action>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])"
+                IL_005b:  call       "void C.R(System.Linq.Expressions.Expression<System.Action>)"
+                IL_0060:  ret
+            }
+            """;
+
+        if (ExecutionConditionUtil.IsCoreClr)
+        {
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
+        }
+        else
+        {
+            // The test ReadOnlySpan source contains a non-standard operator from `string` to `ReadOnlySpan<T>`
+            // which is ambiguous with the one from `T[]` to `ReadOnlySpan<T>` resulting in this slightly misleading error.
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+                // (4,15): error CS0037: Cannot convert null to 'ReadOnlySpan<string>' because it is a non-nullable value type
+                // C.R(() => C.M(null));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.ReadOnlySpan<string>").WithLocation(4, 15));
+
+            var source2 = """
+                namespace System;
+
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator ReadOnlySpan<T>(T[] array) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation([source, source2], parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
+        }
     }
 
     [Theory, CombinatorialData]
