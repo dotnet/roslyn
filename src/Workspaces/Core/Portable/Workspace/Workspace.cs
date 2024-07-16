@@ -1606,7 +1606,7 @@ public abstract partial class Workspace : IDisposable
         {
             // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
             ApplyDocumentInfoChanged(newDoc.Id,
-                new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
+                new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.DocumentServiceProvider));
         }
     }
 

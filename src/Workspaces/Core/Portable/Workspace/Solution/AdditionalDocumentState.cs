@@ -10,29 +10,34 @@ namespace Microsoft.CodeAnalysis;
 
 internal sealed class AdditionalDocumentState : TextDocumentState
 {
-    private readonly AdditionalText _additionalText;
+    public readonly AdditionalText AdditionalText;
 
     private AdditionalDocumentState(
         SolutionServices solutionServices,
-        IDocumentServiceProvider documentServiceProvider,
+        IDocumentServiceProvider? documentServiceProvider,
         DocumentInfo.DocumentAttributes attributes,
         ITextAndVersionSource textAndVersionSource,
         LoadTextOptions loadTextOptions)
         : base(solutionServices, documentServiceProvider, attributes, textAndVersionSource, loadTextOptions)
     {
-        _additionalText = new AdditionalTextWithState(this);
+        AdditionalText = new AdditionalTextWithState(this);
     }
 
     public AdditionalDocumentState(
         SolutionServices solutionServices,
         DocumentInfo documentInfo,
         LoadTextOptions loadTextOptions)
-        : base(solutionServices, documentInfo, loadTextOptions)
+        : this(solutionServices, documentInfo.DocumentServiceProvider, documentInfo.Attributes, CreateTextAndVersionSource(solutionServices, documentInfo, loadTextOptions), loadTextOptions)
     {
-        _additionalText = new AdditionalTextWithState(this);
     }
 
-    public AdditionalText AdditionalText => _additionalText;
+    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => new AdditionalDocumentState(
+            SolutionServices,
+            DocumentServiceProvider,
+            newAttributes,
+            TextAndVersionSource,
+            LoadTextOptions);
 
     public new AdditionalDocumentState UpdateText(TextLoader loader, PreservationMode mode)
         => (AdditionalDocumentState)base.UpdateText(loader, mode);
@@ -46,8 +51,8 @@ internal sealed class AdditionalDocumentState : TextDocumentState
     protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
     {
         return new AdditionalDocumentState(
-            this.solutionServices,
-            this.Services,
+            this.SolutionServices,
+            this.DocumentServiceProvider,
             this.Attributes,
             newTextSource,
             this.LoadTextOptions);
