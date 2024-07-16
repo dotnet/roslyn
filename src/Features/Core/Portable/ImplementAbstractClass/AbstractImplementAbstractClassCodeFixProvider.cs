@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass;
@@ -39,7 +40,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
             return;
 
         var data = await ImplementAbstractClassData.TryGetDataAsync(
-            document, classNode, GetClassIdentifier(classNode), context.Options.GetOptions(document.Project.Services).ImplementTypeOptions, cancellationToken).ConfigureAwait(false);
+            document, classNode, GetClassIdentifier(classNode), cancellationToken).ConfigureAwait(false);
         if (data == null)
             return;
 

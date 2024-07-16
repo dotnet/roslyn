@@ -24,8 +24,7 @@ internal readonly record struct MemberDisplayOptions()
 /// </summary>
 internal static class MemberDisplayOptionsStorage
 {
-    public static readonly OptionGroup CodeActionsGroup = new(name: "code_actions", description: FeaturesResources.NET_Code_Actions, priority: 3);
-    public static readonly OptionGroup TypeMemberGroup = new(name: "type_members", description: FeaturesResources.Type_members, priority: 3, parent: CodeActionsGroup);
+    public static readonly OptionGroup TypeMemberGroup = new(name: "type_members", description: FeaturesResources.Type_members, priority: 3, parent: null);
 
     public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
         "dotnet_hide_advanced_members",

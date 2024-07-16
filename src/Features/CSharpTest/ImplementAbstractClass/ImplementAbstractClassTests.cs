@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1713,7 +1712,7 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
 
                 public override int Prop => throw new System.NotImplementedException();
             }
-            """, globalOptions: options);
+            """, options: options);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17274")]
@@ -1910,7 +1909,7 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
                 public override int ReadWriteProp { get; set; }
                 public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
             }
-            """, parameters: new TestParameters(globalOptions: options));
+            """, parameters: new TestParameters(options: options));
     }
 
     [Theory, CombinatorialData]

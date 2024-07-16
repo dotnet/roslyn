@@ -8007,10 +8007,13 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 public int Prop => throw new System.NotImplementedException();
             }
             """,
-            CodeActionOptions = (CodeActionOptions.Default with
+            Options =
             {
-                ImplementTypeOptions = new() { InsertionBehavior = ImplementTypeInsertionBehavior.AtTheEnd }
-            }).CreateProvider()
+                new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd }
+                }
+            }
         }.RunAsync();
     }
 
@@ -8189,10 +8192,13 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
             }
             """,
-            CodeActionOptions = (CodeActionOptions.Default with
+            Options =
             {
-                ImplementTypeOptions = new() { PropertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferAutoProperties }
-            }).CreateProvider()
+                new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties }
+                }
+            }
         }.RunAsync();
     }
 
