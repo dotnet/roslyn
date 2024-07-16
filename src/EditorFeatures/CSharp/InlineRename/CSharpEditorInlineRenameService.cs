@@ -107,11 +107,38 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
                 startLine = documentText.Lines.GetLineFromPosition(surroundingSpanOfInterest.Value.Start).LineNumber;
                 endLine = documentText.Lines.GetLineFromPosition(surroundingSpanOfInterest.Value.End).LineNumber;
                 lineCount = endLine - startLine + 1;
+
+                if (lineCount > NumberOfContextLines * 2)
+                {
+                    // The computed span is too large, trim it such that the fallback span is included
+                    // and no content is provided from before startLine or after endLine.
+                    var fallbackStartLine = Math.Max(0, documentText.Lines.GetLineFromPosition(fallbackSpan.Start).LineNumber - NumberOfContextLines);
+                    var fallbackEndLine = Math.Min(documentText.Lines.Count - 1, documentText.Lines.GetLineFromPosition(fallbackSpan.End).LineNumber + NumberOfContextLines);
+                    var excessAtStart = startLine - fallbackStartLine;
+                    var excessAtEnd = fallbackEndLine - endLine;
+                    if (excessAtStart > 0)
+                    {
+                        // The fallback span extends before the relevant span (startLine)
+                        endLine = Math.Min(documentText.Lines.Count - 1, fallbackEndLine + excessAtStart);
+                    }
+                    else if (excessAtEnd > 0)
+                    {
+                        // The fallback span extends after the relevant span (endLine)
+                        startLine = Math.Max(0, fallbackStartLine - excessAtEnd);
+                    }
+                    else
+                    {
+                        // Fallback span surrounds the renamed identifier completely within startLine-endLine span. Use the fallback span as is.
+                        startLine = fallbackStartLine;
+                        endLine = fallbackEndLine;
+                    }
+                    lineCount = endLine - startLine + 1;
+                }
             }
 
-            // If a well defined surrounding span was not computed or if the computed surrounding span was too large,
+            // If a well defined surrounding span was not computed,
             // select a span that encompasses NumberOfContextLines lines above and NumberOfContextLines lines below the identifier.
-            if (surroundingSpanOfInterest is null || lineCount <= 0 || lineCount > NumberOfContextLines * 2)
+            if (surroundingSpanOfInterest is null || lineCount <= 0)
             {
                 startLine = Math.Max(0, documentText.Lines.GetLineFromPosition(fallbackSpan.Start).LineNumber - NumberOfContextLines);
                 endLine = Math.Min(documentText.Lines.Count - 1, documentText.Lines.GetLineFromPosition(fallbackSpan.End).LineNumber + NumberOfContextLines);
