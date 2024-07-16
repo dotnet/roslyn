@@ -182,16 +182,6 @@ namespace Roslyn.Utilities
 
         public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-
             foreach (var item in source)
             {
                 if (predicate(item, arg))
@@ -199,6 +189,17 @@ namespace Roslyn.Utilities
             }
 
             return default;
+        }
+
+        public static bool Any<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                    return true;
+            }
+
+            return false;
         }
 
         public static T? FirstOrNull<T>(this IEnumerable<T> source)

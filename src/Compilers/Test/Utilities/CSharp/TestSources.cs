@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal static class TestSources
     {
-        internal const string Span = @"
+        internal static readonly string Span = @"
 namespace System
 {
     public readonly ref struct Span<T>
@@ -19,6 +19,7 @@ namespace System
         public ref T this[int i] => ref arr[start + i];
         public override int GetHashCode() => 1;
         public int Length { get; }
+        public bool IsEmpty => Length == 0;
 
         unsafe public Span(void* pointer, int length)
         {
@@ -103,6 +104,7 @@ namespace System
         public ref readonly T this[int i] => ref arr[start + i];
         public override int GetHashCode() => 2;
         public int Length { get; }
+        public bool IsEmpty => Length == 0;
 
         unsafe public ReadOnlySpan(void* pointer, int length)
         {
@@ -174,6 +176,7 @@ namespace System
 
         public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
 
+        // NOTE: This is defined on String in the BCL (and the target type is non-generic ReadOnlySpan<char>).
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
@@ -200,12 +203,12 @@ namespace System
                 return null;
             }
 
-            if (typeof(T) == typeof(int))
+            if (typeof(T) == typeof(sbyte))
             {
-                var arr = new int[count];
+                var arr = new sbyte[count];
                 for(int i = 0; i < count; i++)
                 {
-                    arr[i] = ((int*)ptr)[i];
+                    arr[i] = ((sbyte*)ptr)[i];
                 }
 
                 return (T[])(object)arr;
@@ -217,6 +220,72 @@ namespace System
                 for(int i = 0; i < count; i++)
                 {
                     arr[i] = ((byte*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(short))
+            {
+                var arr = new short[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((short*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(ushort))
+            {
+                var arr = new ushort[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((ushort*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(int))
+            {
+                var arr = new int[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((int*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(uint))
+            {
+                var arr = new uint[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((uint*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(long))
+            {
+                var arr = new long[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((long*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(ulong))
+            {
+                var arr = new ulong[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((ulong*)ptr)[i];
                 }
 
                 return (T[])(object)arr;
@@ -249,7 +318,7 @@ namespace System
     }
 }";
 
-        internal const string Index = @"
+        internal static readonly string Index = @"
 
 namespace System
 {
@@ -345,7 +414,7 @@ namespace System
     }
 }";
 
-        internal const string Range = @"
+        internal static readonly string Range = @"
 namespace System
 {
     using System.Runtime.CompilerServices;
@@ -415,7 +484,7 @@ namespace System
     }
 }";
 
-        public const string GetSubArray = @"
+        public static readonly string GetSubArray = @"
 namespace System.Runtime.CompilerServices
 {
     public static class RuntimeHelpers
@@ -432,7 +501,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        public const string ITuple = @"
+        public static readonly string ITuple = @"
 namespace System.Runtime.CompilerServices
 {
     public interface ITuple
@@ -442,7 +511,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        public const string MemoryExtensions = @"
+        public static readonly string MemoryExtensions = @"
 namespace System
 {
     public static class MemoryExtensions

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -58,9 +59,10 @@ public partial class Solution
         Workspace workspace,
         SolutionInfo.SolutionAttributes solutionAttributes,
         SolutionOptionSet options,
-        IReadOnlyList<AnalyzerReference> analyzerReferences)
+        IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
-                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
                   workspace.PartialSemanticsEnabled))
     {
     }
@@ -499,6 +501,12 @@ public partial class Solution
 
         return WithCompilationState(_compilationState.WithProjectParseOptions(projectId, options));
     }
+
+    /// <summary>
+    /// Create a new solution instance updated to use the specified <see cref="FallbackAnalyzerOptions"/>.
+    /// </summary>
+    internal Solution WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => WithCompilationState(_compilationState.WithFallbackAnalyzerOptions(options));
 
     /// <summary>
     /// Create a new solution instance with the project specified updated to have
@@ -1161,18 +1169,9 @@ public partial class Solution
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the specified file path.
     /// </summary>
-    public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
+    public Solution WithDocumentFilePath(DocumentId documentId, string? filePath)
     {
         CheckContainsDocument(documentId);
-
-        // TODO (https://github.com/dotnet/roslyn/issues/37125): 
-        // We *do* support null file paths. Why can't you switch a document back to null?
-        // See DocumentState.GetSyntaxTreeFilePath
-        if (filePath == null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
         return WithCompilationState(_compilationState.WithDocumentFilePath(documentId, filePath));
     }
 
@@ -1632,6 +1631,14 @@ public partial class Solution
     /// Analyzer references associated with the solution.
     /// </summary>
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
+
+    /// <summary>
+    /// Fallback analyzer config options by language. The set of languages does not need to match the set of languages of projects included in the current solution snapshot
+    /// since these options can be updated independently of the projects contained in the solution.
+    /// Generally, the host is responsible for keeping these options up-to-date with whatever option store it maintains
+    /// and for making sure fallback options are available in the solution for all languages the host supports.
+    /// </summary>
+    internal ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions => SolutionState.FallbackAnalyzerOptions;
 
     /// <summary>
     /// Creates a new solution instance with the specified <paramref name="options"/>.

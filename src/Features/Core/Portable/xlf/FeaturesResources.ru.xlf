@@ -1285,6 +1285,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для перемещения {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Name_expected">
         <source>Name expected</source>
         <target state="translated">Ожидалось имя</target>
@@ -2803,6 +2808,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Завершающая запятая не разрешена</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">

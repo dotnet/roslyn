@@ -212,7 +212,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
 
         // This might be an item promoted by us, make sure we restore it to the original state first.
         roslynItem = Helpers.DemoteItem(roslynItem);
-        CompletionChange change = null!;
+        CompletionChange change;
 
         // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not canceled.
         // Catching this scenario for further investigations.
@@ -229,10 +229,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
             if (_textView is IDebuggerTextView)
                 roslynItem = ImportCompletionItem.MarkItemToAlwaysFullyQualify(roslynItem);
 
-            _threadingContext.JoinableTaskFactory.Run(async () =>
-            {
-                change = await completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).ConfigureAwait(true);
-            });
+            change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
         }
         catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportAndCatch(e))
         {
@@ -322,11 +319,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
                 var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
                 // Note: C# always completes synchronously, TypeScript is async
-                var changes = ImmutableArray<TextChange>.Empty;
-                _threadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    changes = await formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).ConfigureAwait(true);
-                });
+                var changes = formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
                 subjectBuffer.ApplyChanges(changes);
             }
         }

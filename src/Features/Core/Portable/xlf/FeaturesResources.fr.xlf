@@ -1285,6 +1285,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Le déplacement de {0} requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Name_expected">
         <source>Name expected</source>
         <target state="translated">Nom attendu</target>
@@ -2803,6 +2808,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Virgule de fin non autorisée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">

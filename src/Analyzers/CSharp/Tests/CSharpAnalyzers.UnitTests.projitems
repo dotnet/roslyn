@@ -159,6 +159,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\UsePrimaryConstructorTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemThreadingLock\UseSystemThreadingLockTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />

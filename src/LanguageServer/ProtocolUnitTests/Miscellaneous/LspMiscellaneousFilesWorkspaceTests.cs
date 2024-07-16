@@ -214,12 +214,14 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
     public async Task TestLooseFile_OpenedWithLanguageId(bool mutatingLspWorkspace)
     {
         var source =
-@"class A
-{
-    void M()
-    {
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                }
+            }
+            """;
 
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
@@ -238,6 +240,56 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
         var miscDoc = GetMiscellaneousDocument(testLspServer);
         AssertEx.NotNull(miscDoc);
         Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestLooseFile_OpenedWithLanguageIdWithSubsequentRequest(bool mutatingLspWorkspace)
+    {
+        var source =
+            """
+            class A
+            {
+                void M()
+                {
+                    A a = new A();
+                }
+            }
+            """;
+
+        // Create a server that supports LSP misc files and verify no misc files present.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        Assert.Null(GetMiscellaneousDocument(testLspServer));
+
+        // Open an empty loose file that hasn't been saved with a name.
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        var looseFileUri = new Uri("untitled:untitledFile");
+#pragma warning restore
+
+        await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
+        // Make an immediate followup request as soon as we queue the didOpen.
+        // This should succeed and use the language from the didOpen.
+        var result = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
+            CreateTextDocumentPositionParams(new LSP.Location
+            {
+                Uri = looseFileUri,
+                Range = new LSP.Range
+                {
+                    Start = new(4, 8)
+                }
+            }), CancellationToken.None);
+
+        // Verify file was added to the misc file workspace.
+        await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
+        var miscDoc = GetMiscellaneousDocument(testLspServer);
+        AssertEx.NotNull(miscDoc);
+        Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
+
+        // Verify GTD request succeeded.
+        Assert.Equal(0, result.Single().Range.Start.Line);
+        Assert.Equal(6, result.Single().Range.Start.Character);
+        Assert.Equal(0, result.Single().Range.End.Line);
+        Assert.Equal(7, result.Single().Range.End.Character);
     }
 
     private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, Uri fileUri)

@@ -608,6 +608,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            return _reducedFrom.TryGetOverloadResolutionPriority();
+        }
+
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol
         {
             private readonly ReducedExtensionMethodSymbol _containingMethod;

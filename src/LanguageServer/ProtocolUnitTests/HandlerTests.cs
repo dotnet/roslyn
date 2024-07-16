@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
         protected override TestComposition Composition => base.Composition.AddParts(
             typeof(TestDocumentHandler),
+            typeof(TestNonMutatingDocumentHandler),
             typeof(TestRequestHandlerWithNoParams),
             typeof(TestNotificationHandlerFactory),
             typeof(TestNotificationWithoutParamsHandlerFactory),
@@ -120,7 +121,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
             var request = new TestRequestTypeThree("value");
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestDocumentHandler.MethodName, request, CancellationToken.None));
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestNonMutatingDocumentHandler.MethodName, request, CancellationToken.None));
+            Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ShutsdownIfDeserializationFailsOnMutatingRequest(bool mutatingLspWorkspace)
+        {
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestTypeThree("value");
+            await Assert.ThrowsAnyAsync<Exception>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestDocumentHandler.MethodName, request, CancellationToken.None));
+            await server.AssertServerShuttingDownAsync();
         }
 
         internal record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
@@ -138,6 +150,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             public const string MethodName = nameof(TestDocumentHandler);
 
             public bool MutatesSolutionState => true;
+            public bool RequiresLSPSolution => true;
+
+            public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
+            {
+                return request.TextDocumentIdentifier;
+            }
+
+            public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(this.GetType().Name);
+            }
+        }
+
+        [ExportCSharpVisualBasicStatelessLspService(typeof(TestNonMutatingDocumentHandler)), PartNotDiscoverable, Shared]
+        [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestNonMutatingDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+        {
+            public const string MethodName = nameof(TestNonMutatingDocumentHandler);
+
+            public bool MutatesSolutionState => false;
             public bool RequiresLSPSolution => true;
 
             public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)

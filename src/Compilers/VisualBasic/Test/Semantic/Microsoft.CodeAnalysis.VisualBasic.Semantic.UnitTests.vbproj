@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynNext);net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
 
     <!--
@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'" />
