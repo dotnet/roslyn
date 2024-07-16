@@ -86,7 +86,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         //Add the leading trivia from the declaration of the builder to the invocation where we convert the builder to a collection.
         var dummyObjectCreationDeclaration = dummyObjectCreation.Ancestors().Take(3);
 
-        if (dummyObjectCreationDeclaration.Last() is VariableDeclarationSyntax variableDeclaration)
+        if (dummyObjectCreationDeclaration.LastOrDefault() is VariableDeclarationSyntax variableDeclaration)
         {
             var type = variableDeclaration.Type;
             subEditor.ReplaceNode(type, type.WithPrependedNonIndentationTriviaFrom(analysisResult.LocalDeclarationStatement));
