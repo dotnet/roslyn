@@ -15,28 +15,29 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [Export(typeof(AbstractRazorLanguageServerFactoryWrapper))]
     [Shared]
-    internal class RazorLanguageServerFactoryWrapper : AbstractRazorLanguageServerFactoryWrapper
+    [Export(typeof(RazorTestLanguageServerFactory))]
+    [Export(typeof(AbstractRazorLanguageServerFactoryWrapper))]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [method: ImportingConstructor]
+    internal class RazorTestLanguageServerFactory(ILanguageServerFactory languageServerFactory) : AbstractRazorLanguageServerFactoryWrapper
     {
-        private readonly ILanguageServerFactory _languageServerFactory;
-
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        [ImportingConstructor]
-        public RazorLanguageServerFactoryWrapper(ILanguageServerFactory languageServerFactory)
-        {
-            if (languageServerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(languageServerFactory));
-            }
-
-            _languageServerFactory = languageServerFactory;
-        }
+        private readonly ILanguageServerFactory _languageServerFactory = languageServerFactory;
 
         internal override IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
         {
+            return CreateLanguageServerCore(jsonRpc, options, razorCapabilitiesProvider, hostServices, WellKnownLspServerKinds.RazorLspServer);
+        }
+
+        internal IRazorLanguageServerTarget CreateAlwaysActiveVSLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
+        {
+            return CreateLanguageServerCore(jsonRpc, options, razorCapabilitiesProvider, hostServices, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
+        }
+
+        private IRazorLanguageServerTarget CreateLanguageServerCore(JsonRpc jsonRpc, JsonSerializerOptions options, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices, WellKnownLspServerKinds serverKind)
+        {
             var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider, options);
-            var languageServer = _languageServerFactory.Create(jsonRpc, options, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
+            var languageServer = _languageServerFactory.Create(jsonRpc, options, capabilitiesProvider, serverKind, NoOpLspLogger.Instance, hostServices);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }
