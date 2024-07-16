@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 for (int n = list.Statements.Length; i < n; i++)
                 {
                     var statement = list.Statements[i];
-                    if (statement is BoundSequencePointWithSpan { StatementOpt: BoundStatementList nestedList } nestedSequencePointWithSpan)
+                    if (statement is BoundSequencePointWithSpan { StatementOpt: BoundStatementList { Kind: BoundKind.StatementList } nestedList } nestedSequencePointWithSpan)
                     {
                         EmitSequencePointStatementBegin(nestedSequencePointWithSpan);
                         stack.Push((list, i + 1, sequencePointWithSpan, instructionsEmittedBegin));
