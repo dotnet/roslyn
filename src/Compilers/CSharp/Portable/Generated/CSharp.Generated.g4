@@ -776,7 +776,6 @@ expression
   | tuple_expression
   | type
   | type_of_expression
-  | value_expression
   | with_expression
   ;
 
@@ -1137,10 +1136,6 @@ tuple_expression
 
 type_of_expression
   : 'typeof' '(' type ')'
-  ;
-
-value_expression
-  : 'value'
   ;
 
 with_expression

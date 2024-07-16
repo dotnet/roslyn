@@ -49,8 +49,7 @@ public class DiagnosticAnalyzerDriverTests
             SyntaxKind.RecordDeclaration,
             SyntaxKind.CollectionExpression,
             SyntaxKind.ExpressionElement,
-            SyntaxKind.SpreadElement,
-            SyntaxKind.ValueExpression,
+            SyntaxKind.SpreadElement
         };
 
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();

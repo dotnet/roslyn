@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ValueKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.AllowsKeyword; i++)
             {
                 // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
                 if (i != 8441)
@@ -1228,7 +1228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ScopedKeyword:
                 case SyntaxKind.FileKeyword:
                 case SyntaxKind.AllowsKeyword:
-                case SyntaxKind.ValueKeyword:
                     return true;
                 default:
                     return false;
@@ -1356,8 +1355,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.FileKeyword;
                 case "allows":
                     return SyntaxKind.AllowsKeyword;
-                case "value":
-                    return SyntaxKind.ValueKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1805,8 +1802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "file";
                 case SyntaxKind.AllowsKeyword:
                     return "allows";
-                case SyntaxKind.ValueKeyword:
-                    return "value";
                 default:
                     return string.Empty;
             }

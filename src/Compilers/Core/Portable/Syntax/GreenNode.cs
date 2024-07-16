@@ -268,9 +268,7 @@ namespace Microsoft.CodeAnalysis
             FactoryContextIsInAsync = 1 << 2,
             FactoryContextIsInQuery = 1 << 3,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
-
             FactoryContextIsInFieldKeywordContext = 1 << 4,
-            FactoryContextIsInValueKeywordContext = 1 << 5,
 
             // Flags that are inherited upwards when building parent nodes.  They should all start with "Contains" to
             // indicate that the information could be found on it or anywhere in its children.
@@ -278,15 +276,15 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// If this node, or any of its descendants has annotations attached to them.
             /// </summary>
-            ContainsAnnotations = 1 << 6,
+            ContainsAnnotations = 1 << 5,
             /// <summary>
             /// If this node, or any of its descendants has attributes attached to it.
             /// </summary>
-            ContainsAttributes = 1 << 7,
-            ContainsDiagnostics = 1 << 8,
-            ContainsDirectives = 1 << 9,
-            ContainsSkippedText = 1 << 10,
-            ContainsStructuredTrivia = 1 << 11,
+            ContainsAttributes = 1 << 6,
+            ContainsDiagnostics = 1 << 7,
+            ContainsDirectives = 1 << 8,
+            ContainsSkippedText = 1 << 9,
+            ContainsStructuredTrivia = 1 << 10,
 
             InheritMask = IsNotMissing | ContainsAnnotations | ContainsAttributes | ContainsDiagnostics | ContainsDirectives | ContainsSkippedText | ContainsStructuredTrivia,
         }
@@ -344,14 +342,6 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return (this.Flags & NodeFlags.FactoryContextIsInFieldKeywordContext) != 0;
-            }
-        }
-
-        internal bool ParsedInValueKeywordContext
-        {
-            get
-            {
-                return (this.Flags & NodeFlags.FactoryContextIsInValueKeywordContext) != 0;
             }
         }
 

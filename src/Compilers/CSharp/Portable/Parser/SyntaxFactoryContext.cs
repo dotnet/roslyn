@@ -40,11 +40,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// to determine whether the token is a keyword or an identifier.
         /// </summary>
         internal bool IsInFieldKeywordContext;
-
-        /// <summary>
-        /// If an accessor kind changes, "value" within the accessor may need to be reinterpreted,
-        /// to determine whether the token is a keyword or an identifier.
-        /// </summary>
-        internal bool IsInValueKeywordContext;
     }
 }

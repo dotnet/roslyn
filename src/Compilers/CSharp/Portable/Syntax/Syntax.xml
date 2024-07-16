@@ -925,21 +925,6 @@
       <summary>Creates a FieldExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="ValueExpressionSyntax" Base="ExpressionSyntax">
-    <Kind Name="ValueExpression"/>
-    <Field Name="Token" Type="SyntaxToken">
-      <Kind Name="ValueKeyword"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the value keyword.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents the syntax node for a value expression.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates a ValueExpressionSyntax node.</summary>
-    </FactoryComment>
-  </Node>
   <Node Name="MakeRefExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="MakeRefExpression"/>
     <Field Name="Keyword" Type="SyntaxToken">

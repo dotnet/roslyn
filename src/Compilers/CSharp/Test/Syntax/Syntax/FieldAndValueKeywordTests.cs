@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class FieldAndValueKeywordTests : CSharpTestBase
+    public class FieldKeywordTests : CSharpTestBase
     {
         [Theory]
         [CombinatorialData]
@@ -393,8 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Func<object> field;
                     Func<object> P1 { get { _ = field(); return null; } }
                     Func<object> P2 { get { _ = @field(); return null; } }
-                    Func<object> P3 { set { _ = value(); } }
-                    Func<object> P4 { set { _ = @value(); } }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -416,8 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object[] field;
                     object[] P1 { get { _ = field[0]; return null; } }
                     object[] P2 { get { _ = @field[0]; return null; } }
-                    object[] P3 { set { _ = value[0]; } }
-                    object[] P4 { set { _ = @value[0]; } }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));

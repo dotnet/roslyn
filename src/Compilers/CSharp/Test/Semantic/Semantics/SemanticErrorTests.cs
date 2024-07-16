@@ -4017,21 +4017,6 @@ class Test
                 //         System.Func<int, int> f = q=>q; // 0136
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.Regular12);
-            comp.VerifyDiagnostics(
-                // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         string x = null; // CS0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
-                // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             int y = 0; // CS0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
-                // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             int value = 0; // CS0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
-                // (25,15): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                //             M(value);
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(25, 15));
-
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -4043,9 +4028,6 @@ class Test
                 // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int value = 0; // CS0136
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
-                // (24,17): warning CS0219: The variable 'value' is assigned but its value is never used
-                //             int value = 0; // CS0136
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "value").WithArguments("value").WithLocation(24, 17),
                 // (25,15): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
                 //             M(value);
                 Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(25, 15));

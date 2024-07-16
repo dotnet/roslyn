@@ -421,8 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         FileKeyword = 8449,
         /// <summary>Represents <see langword="allows"/>.</summary>
         AllowsKeyword = 8450,
-        /// <summary>Represents <see langword="value"/>.</summary>
-        ValueKeyword = 8451,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -702,7 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         DefaultLiteralExpression = 8755,
         Utf8StringLiteralExpression = 8756,
         FieldExpression = 8757,
-        ValueExpression = 8758,
 
         // primary function expressions
         TypeOfExpression = 8760,

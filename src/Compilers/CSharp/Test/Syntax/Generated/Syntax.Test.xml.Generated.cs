@@ -124,9 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.FieldExpressionSyntax GenerateFieldExpression()
             => InternalSyntaxFactory.FieldExpression(InternalSyntaxFactory.Token(SyntaxKind.FieldKeyword));
 
-        private static Syntax.InternalSyntax.ValueExpressionSyntax GenerateValueExpression()
-            => InternalSyntaxFactory.ValueExpression(InternalSyntaxFactory.Token(SyntaxKind.ValueKeyword));
-
         private static Syntax.InternalSyntax.MakeRefExpressionSyntax GenerateMakeRefExpression()
             => InternalSyntaxFactory.MakeRefExpression(InternalSyntaxFactory.Token(SyntaxKind.MakeRefKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -1171,16 +1168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateFieldExpression();
 
             Assert.Equal(SyntaxKind.FieldKeyword, node.Token.Kind);
-
-            AttachAndCheckDiagnostics(node);
-        }
-
-        [Fact]
-        public void TestValueExpressionFactoryAndProperties()
-        {
-            var node = GenerateValueExpression();
-
-            Assert.Equal(SyntaxKind.ValueKeyword, node.Token.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -4872,32 +4859,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFieldExpressionIdentityRewriter()
         {
             var oldNode = GenerateFieldExpression();
-            var rewriter = new IdentityRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            Assert.Same(oldNode, newNode);
-        }
-
-        [Fact]
-        public void TestValueExpressionTokenDeleteRewriter()
-        {
-            var oldNode = GenerateValueExpression();
-            var rewriter = new TokenDeleteRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestValueExpressionIdentityRewriter()
-        {
-            var oldNode = GenerateValueExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10379,9 +10340,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static FieldExpressionSyntax GenerateFieldExpression()
             => SyntaxFactory.FieldExpression(SyntaxFactory.Token(SyntaxKind.FieldKeyword));
 
-        private static ValueExpressionSyntax GenerateValueExpression()
-            => SyntaxFactory.ValueExpression(SyntaxFactory.Token(SyntaxKind.ValueKeyword));
-
         private static MakeRefExpressionSyntax GenerateMakeRefExpression()
             => SyntaxFactory.MakeRefExpression(SyntaxFactory.Token(SyntaxKind.MakeRefKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -11426,16 +11384,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateFieldExpression();
 
             Assert.Equal(SyntaxKind.FieldKeyword, node.Token.Kind());
-            var newNode = node.WithToken(node.Token);
-            Assert.Equal(node, newNode);
-        }
-
-        [Fact]
-        public void TestValueExpressionFactoryAndProperties()
-        {
-            var node = GenerateValueExpression();
-
-            Assert.Equal(SyntaxKind.ValueKeyword, node.Token.Kind());
             var newNode = node.WithToken(node.Token);
             Assert.Equal(node, newNode);
         }
@@ -15127,32 +15075,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFieldExpressionIdentityRewriter()
         {
             var oldNode = GenerateFieldExpression();
-            var rewriter = new IdentityRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            Assert.Same(oldNode, newNode);
-        }
-
-        [Fact]
-        public void TestValueExpressionTokenDeleteRewriter()
-        {
-            var oldNode = GenerateValueExpression();
-            var rewriter = new TokenDeleteRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestValueExpressionIdentityRewriter()
-        {
-            var oldNode = GenerateValueExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

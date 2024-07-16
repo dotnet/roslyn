@@ -598,6 +598,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindThis((ThisExpressionSyntax)node, diagnostics);
                     case SyntaxKind.BaseExpression:
                         return BindBase((BaseExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.FieldExpression:
+                        return BindFieldExpression((FieldExpressionSyntax)node, diagnostics);
                     case SyntaxKind.InvocationExpression:
                         return BindInvocationExpression((InvocationExpressionSyntax)node, diagnostics);
                     case SyntaxKind.ArrayInitializerExpression:
@@ -729,12 +731,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.SizeOfExpression:
                         return BindSizeOf((SizeOfExpressionSyntax)node, diagnostics);
-
-                    case SyntaxKind.FieldExpression:
-                        return BindFieldExpression((FieldExpressionSyntax)node, diagnostics);
-
-                    case SyntaxKind.ValueExpression:
-                        return BindValueExpression((ValueExpressionSyntax)node, invoked, diagnostics);
 
                     case SyntaxKind.AddAssignmentExpression:
                     case SyntaxKind.AndAssignmentExpression:
@@ -1444,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ContainingType is { });
             SynthesizedBackingFieldSymbolBase field;
 
-            ReportFieldOrValueContextualKeywordConflict(node, node.Token, diagnostics);
+            ReportFieldContextualKeywordConflict(node, node.Token, diagnostics);
 
             switch (ContainingMember())
             {
@@ -1464,32 +1460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // use when referencing an explicitly-declared field, and which of those should be used here?
             var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);
             return new BoundFieldAccess(node, implicitReceiver, field, constantValueOpt: null);
-        }
-
-        private BoundExpression BindValueExpression(ValueExpressionSyntax node, bool invoked, BindingDiagnosticBag diagnostics)
-        {
-            // Report diagnostic if the value identifier does not bind to the implicit parameter.
-            if (!bindsToImplicitParameter(this, invoked))
-            {
-                ReportFieldOrValueContextualKeywordConflict(node, node.Token, diagnostics);
-            }
-
-            var method = (MethodSymbol)ContainingMember();
-            Debug.Assert(method.MethodKind is MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove);
-            // PROTOTYPE: We're not applying any checks to this parameter reference. What checks do we
-            // use for a parameter referenced by identifier, and which of those should be used here?
-            var parameter = method.Parameters[^1];
-            return new BoundParameter(node, parameter);
-
-            static bool bindsToImplicitParameter(Binder binder, bool invoked)
-            {
-                var lookupResult = LookupResult.GetInstance();
-                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                binder.LookupIdentifier(lookupResult, "value", arity: 0, invoked, ref useSiteInfo);
-                bool any = lookupResult.Symbols.Any(s => s is SynthesizedAccessorValueParameterSymbol { Name: "value" });
-                lookupResult.Free();
-                return any;
-            }
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
@@ -1610,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
                 {
-                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+                    ReportFieldContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
                 }
 
                 if ((object)symbol == null)
@@ -1800,19 +1770,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Report a diagnostic for a 'field' or 'value' identifier that the meaning will
         /// change when the identifier is considered a contextual keyword.
         /// </summary>
-        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        internal void ReportFieldContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
             string name = identifier.Text;
             switch (name)
             {
                 case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
                 case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
-                    ReportFieldOrValueContextualKeywordConflict(syntax, identifier, diagnostics);
+                    ReportFieldContextualKeywordConflict(syntax, identifier, diagnostics);
                     break;
             }
         }
 
-        private static void ReportFieldOrValueContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        private static void ReportFieldContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
             string name = identifier.Text;
             var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
@@ -1821,11 +1791,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable disable
 
         private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            LookupIdentifier(lookupResult, node.Identifier.ValueText, arity: node.Arity, invoked, useSiteInfo: ref useSiteInfo);
-        }
-
-        private void LookupIdentifier(LookupResult lookupResult, string name, int arity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
@@ -1839,7 +1804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
             }
 
-            this.LookupSymbolsWithFallback(lookupResult, name, arity, useSiteInfo: ref useSiteInfo, options: options);
+            this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: node.Arity, useSiteInfo: ref useSiteInfo, options: options);
         }
 
         /// <summary>

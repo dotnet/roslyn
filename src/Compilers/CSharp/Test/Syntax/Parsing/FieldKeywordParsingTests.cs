@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class FieldAndValueKeywordParsingTests : ParsingTests
+    public class FieldKeywordParsingTests : ParsingTests
     {
-        public FieldAndValueKeywordParsingTests(ITestOutputHelper output) : base(output)
+        public FieldKeywordParsingTests(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -21,46 +21,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return !escapeIdentifier && languageVersion > LanguageVersion.CSharp12;
         }
 
-        private void IdentifierNameOrFieldOrValueExpression(LanguageVersion languageVersion, SyntaxKind tokenKind, bool escapeIdentifier)
+        private void IdentifierNameOrFieldExpression(LanguageVersion languageVersion, bool escapeIdentifier)
         {
-            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier, IsParsedAsToken(languageVersion, escapeIdentifier));
+            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier, IsParsedAsToken(languageVersion, escapeIdentifier));
         }
 
-        private void IdentifierNameOrFieldOrValueExpression(LanguageVersion languageVersion, SyntaxKind tokenKind, bool escapeIdentifier, bool isParsedAsToken)
+        private void IdentifierNameOrFieldExpression(LanguageVersion languageVersion, bool escapeIdentifier, bool isParsedAsToken)
         {
             if (isParsedAsToken)
             {
-                N(tokenKind == SyntaxKind.FieldKeyword ? SyntaxKind.FieldExpression : SyntaxKind.ValueExpression);
+                N(SyntaxKind.FieldExpression);
                 {
-                    N(tokenKind);
+                    N(SyntaxKind.FieldKeyword);
                 }
             }
             else
             {
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken, GetIdentifier(tokenKind, escapeIdentifier));
+                    N(SyntaxKind.IdentifierToken, GetFieldIdentifier(escapeIdentifier));
                 }
             }
         }
 
-        private static string GetIdentifier(SyntaxKind tokenKind, bool escapeIdentifier)
+        private static string GetFieldIdentifier(bool escapeIdentifier)
         {
-            string identifier = SyntaxFacts.GetText(tokenKind);
-            return escapeIdentifier ? "@" + identifier : identifier;
+            return escapeIdentifier ? "@field" : "field";
         }
 
         [Theory]
         [CombinatorialData]
         public void Context_Property_Initializer(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
-                    object P { get; set; } = {{SyntaxFacts.GetText(tokenKind)}};
+                    object P { get; set; } = field;
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
@@ -111,14 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Context_Property_ExpressionBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.FieldKeyword;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
             UsingTree($$"""
                 class C
                 {
-                    object P => {{SyntaxFacts.GetText(tokenKind)}};
+                    object P => field;
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.ArrowExpressionClause);
                         {
                             N(SyntaxKind.EqualsGreaterThanToken);
-                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
@@ -154,14 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Context_PropertyGet_ExpressionBody(
-           [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
+           [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.FieldKeyword;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
             UsingTree($$"""
                 class C
                 {
-                    object P { get => {{SyntaxFacts.GetText(tokenKind)}}; }
+                    object P { get => field; }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -189,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.ArrowExpressionClause);
                                 {
                                     N(SyntaxKind.EqualsGreaterThanToken);
-                                    IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
@@ -206,14 +202,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Context_PropertyGet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.FieldKeyword;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
             UsingTree($$"""
                 class C
                 {
-                    object P { get { return {{SyntaxFacts.GetText(tokenKind)}}; } }
+                    object P { get { return field; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -244,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.ReturnStatement);
                                     {
                                         N(SyntaxKind.ReturnKeyword);
-                                        IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                         N(SyntaxKind.SemicolonToken);
                                     }
                                     N(SyntaxKind.CloseBraceToken);
@@ -264,14 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void Context_PropertySet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool useInit)
         {
             bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
             UsingTree($$"""
                 class C
                 {
-                    object P { {{(useInit ? "init" : "set")}} { {{SyntaxFacts.GetText(tokenKind)}} = 0; } }
+                    object P { {{(useInit ? "init" : "set")}} { field = 0; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -303,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
@@ -328,14 +322,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Context_Indexer_ExpressionBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
-                    object this[int i] => {{SyntaxFacts.GetText(tokenKind)}};
+                    object this[int i] => field;
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -370,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.ArrowExpressionClause);
                         {
                             N(SyntaxKind.EqualsGreaterThanToken);
-                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
@@ -384,14 +377,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Context_IndexerGet_ExpressionBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
-                    object this[int i] { get => {{SyntaxFacts.GetText(tokenKind)}}; }
+                    object this[int i] { get => field; }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -432,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.ArrowExpressionClause);
                                 {
                                     N(SyntaxKind.EqualsGreaterThanToken);
-                                    IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
@@ -449,14 +441,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Context_IndexerGet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind)
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
-                    object this[int i] { get { return {{SyntaxFacts.GetText(tokenKind)}}; } }
+                    object this[int i] { get { return field; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -500,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.ReturnStatement);
                                     {
                                         N(SyntaxKind.ReturnKeyword);
-                                        IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                         N(SyntaxKind.SemicolonToken);
                                     }
                                     N(SyntaxKind.CloseBraceToken);
@@ -520,14 +511,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void Context_IndexerSet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool useInit)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.ValueKeyword;
+            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
-                    object this[int i] { {{(useInit ? "init" : "set")}} { {{SyntaxFacts.GetText(tokenKind)}} = 0; } }
+                    object this[int i] { {{(useInit ? "init" : "set")}} { field = 0; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -572,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
@@ -598,14 +588,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void Context_EventAccessor(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool useRemove)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.ValueKeyword;
+            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
-                    event EventHandler E { {{(useRemove ? "remove" : "add")}} { {{SyntaxFacts.GetText(tokenKind)}} = null; } }
+                    event EventHandler E { {{(useRemove ? "remove" : "add")}} { field = null; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -638,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NullLiteralExpression);
                                             {
@@ -664,14 +653,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void Context_ExplicitImplementation_PropertySet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool useInit)
         {
             bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
             UsingTree($$"""
                 class C
                 {
-                    object I<object>.P { {{(useInit ? "init" : "set")}} { {{SyntaxFacts.GetText(tokenKind)}} = 0; } }
+                    object I<object>.P { {{(useInit ? "init" : "set")}} { field = 0; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -720,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
@@ -746,14 +734,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void Context_ExplicitImplementation_IndexerSet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool useInit)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.ValueKeyword;
+            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
-                    object I<int>.this[int i] { {{(useInit ? "init" : "set")}} { {{SyntaxFacts.GetText(tokenKind)}} = 0; } }
+                    object I<int>.this[int i] { {{(useInit ? "init" : "set")}} { field = 0; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -815,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
+                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
@@ -839,89 +826,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_ExplicitImplementation_EventAccessor(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
-            bool useRemove)
-        {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12 && tokenKind == SyntaxKind.ValueKeyword;
-            UsingTree($$"""
-                class C
-                {
-                    event EventHandler I.E { {{(useRemove ? "remove" : "add")}} { {{SyntaxFacts.GetText(tokenKind)}} = null; } }
-                }
-                """,
-                TestOptions.Regular.WithLanguageVersion(languageVersion));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.EventDeclaration);
-                    {
-                        N(SyntaxKind.EventKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "EventHandler");
-                        }
-                        N(SyntaxKind.ExplicitInterfaceSpecifier);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "I");
-                            }
-                            N(SyntaxKind.DotToken);
-                        }
-                        N(SyntaxKind.IdentifierToken, "E");
-                        N(SyntaxKind.AccessorList);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(useRemove ? SyntaxKind.RemoveAccessorDeclaration : SyntaxKind.AddAccessorDeclaration);
-                            {
-                                N(useRemove ? SyntaxKind.RemoveKeyword : SyntaxKind.AddKeyword);
-                                N(SyntaxKind.Block);
-                                {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.ExpressionStatement);
-                                    {
-                                        N(SyntaxKind.SimpleAssignmentExpression);
-                                        {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier: false, expectedParsedAsToken);
-                                            N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.NullLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NullKeyword);
-                                            }
-                                        }
-                                        N(SyntaxKind.SemicolonToken);
-                                    }
-                                    N(SyntaxKind.CloseBraceToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Theory]
-        [CombinatorialData]
         public void Invocation(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool escapeIdentifier)
         {
             UsingTree($$"""
                 class C
                 {
-                    object P { set { {{GetIdentifier(tokenKind, escapeIdentifier)}}(); } }
+                    object P { set { {{GetFieldIdentifier(escapeIdentifier)}}(); } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -953,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.InvocationExpression);
                                         {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier);
+                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
                                             N(SyntaxKind.ArgumentList);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
@@ -979,10 +891,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void Arguments(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool escapeIdentifier)
         {
-            string identifier = GetIdentifier(tokenKind, escapeIdentifier);
+            string identifier = GetFieldIdentifier(escapeIdentifier);
             UsingTree($$"""
                 class C
                 {
@@ -1027,18 +938,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                                 N(SyntaxKind.OpenParenToken);
                                                 N(SyntaxKind.Argument);
                                                 {
-                                                    IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier);
+                                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
                                                 }
                                                 N(SyntaxKind.CommaToken);
                                                 N(SyntaxKind.Argument);
                                                 {
-                                                    IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier);
+                                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
                                                 }
                                                 N(SyntaxKind.CommaToken);
                                                 N(SyntaxKind.Argument);
                                                 {
                                                     N(SyntaxKind.OutKeyword);
-                                                    IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier);
+                                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
                                                 }
                                                 N(SyntaxKind.CloseParenToken);
                                             }
@@ -1062,13 +973,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void NameOf(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool escapeIdentifier)
         {
             UsingTree($$"""
                 class C
                 {
-                    object P { set { _ = nameof({{GetIdentifier(tokenKind, escapeIdentifier)}}); } }
+                    object P { set { _ = nameof({{GetFieldIdentifier(escapeIdentifier)}}); } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -1116,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                                     N(SyntaxKind.OpenParenToken);
                                                     N(SyntaxKind.Argument);
                                                     {
-                                                        IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier);
+                                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
                                                     }
                                                     N(SyntaxKind.CloseParenToken);
                                                 }
@@ -1141,13 +1051,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void Lvalue(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool escapeIdentifier)
         {
             UsingTree($$"""
                 class C
                 {
-                    object P { set { {{GetIdentifier(tokenKind, escapeIdentifier)}} = 0; } }
+                    object P { set { {{GetFieldIdentifier(escapeIdentifier)}} = 0; } }
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -1179,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldOrValueExpression(languageVersion, tokenKind, escapeIdentifier);
+                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
@@ -1205,10 +1114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void NewTypeName(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool escapeIdentifier)
         {
-            string identifier = GetIdentifier(tokenKind, escapeIdentifier);
+            string identifier = GetFieldIdentifier(escapeIdentifier);
             UsingTree($$"""
                 class C
                 {
@@ -1282,10 +1190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void CatchDeclaration(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues(SyntaxKind.FieldKeyword, SyntaxKind.ValueKeyword)] SyntaxKind tokenKind,
             bool escapeIdentifier)
         {
-            string identifier = GetIdentifier(tokenKind, escapeIdentifier);
+            string identifier = GetFieldIdentifier(escapeIdentifier);
             UsingTree($$"""
                 class C
                 {
@@ -1358,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        // PROTOTYPE: Test all possible identifier token cases. See FieldAndValueKeywordTests.IdentifierToken_*. Already covered:
+        // PROTOTYPE: Test all possible identifier token cases. See FieldKeywordTests.IdentifierToken_*. Already covered:
         // IdentifierToken_IdentifierNameSyntax
         // IdentifierToken_CatchDeclarationSyntax
     }
