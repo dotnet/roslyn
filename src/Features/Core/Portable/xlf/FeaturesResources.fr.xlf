@@ -2725,6 +2725,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Symbole trouvé dans le chemin d’accès de l’assembly '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search">
+        <source>Symbol search</source>
+        <target state="new">Symbol search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols">
         <source>Symbols</source>
         <target state="translated">Symboles</target>

@@ -47,7 +47,8 @@ internal sealed class EditorConfigOptionsEnumerator(
         yield return (FeaturesResources.NET_Code_Actions,
         [
             .. ImplementTypeOptionsStorage.EditorConfigOptions,
-            .. MemberDisplayOptionsStorage.EditorConfigOptions
+            .. MemberDisplayOptionsStorage.EditorConfigOptions,
+            .. SymbolSearchOptionsStorage.EditorConfigOptions,
         ]);
 
         yield return (WorkspacesResources.dot_NET_Coding_Conventions,

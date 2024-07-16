@@ -24,10 +24,10 @@ internal readonly record struct SymbolSearchOptions()
 
 internal static class SymbolSearchOptionsStorage
 {
-    private static readonly OptionGroup s_optionGroup = new(name: "symbol_search", description: "");
+    private static readonly OptionGroup s_optionGroup = new(name: "symbol_search", description: FeaturesResources.Symbol_search);
 
     public static PerLanguageOption2<bool> SearchReferenceAssemblies = new(
-        "dotnet_unsupported_search_reference_assemblies",
+        "dotnet_search_reference_assemblies",
         SymbolSearchOptions.Default.SearchReferenceAssemblies,
         isEditorConfigOption: true,
         group: s_optionGroup);
@@ -38,7 +38,8 @@ internal static class SymbolSearchOptionsStorage
         isEditorConfigOption: true,
         group: s_optionGroup);
 
-    public static readonly ImmutableArray<IOption2> UnsupportedOptions = [SearchReferenceAssemblies, SearchNuGetPackages];
+    public static readonly ImmutableArray<IOption2> EditorConfigOptions = [SearchReferenceAssemblies];
+    public static readonly ImmutableArray<IOption2> UnsupportedOptions = [SearchNuGetPackages];
 }
 
 internal static class SymbolSearchOptionsProviders

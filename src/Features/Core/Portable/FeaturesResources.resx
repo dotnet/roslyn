@@ -3270,4 +3270,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="NET_Code_Actions" xml:space="preserve">
     <value>.NET Code Actions</value>
   </data>
+  <data name="Symbol_search" xml:space="preserve">
+    <value>Symbol search</value>
+  </data>
 </root>
