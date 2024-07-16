@@ -32,7 +32,8 @@ internal abstract partial class AbstractInProcLanguageClient(
     ILspServiceLoggerFactory lspLoggerFactory,
     IThreadingContext threadingContext,
     ExportProvider exportProvider,
-    AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2, IPropertyOwner
+    AbstractLanguageClientMiddleLayer? middleLayer = null)
+        : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2, IPropertyOwner
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ILanguageClientMiddleLayer2<JsonElement>? _middleLayer = middleLayer;
@@ -101,6 +102,10 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// </summary>
     public IEnumerable<string>? FilesToWatch { get; }
 
+    /// <summary>
+    /// Property collection used by the client.
+    /// This is where we set the property to enable the use of client side System.Text.Json serialization.
+    /// </summary>
     public PropertyCollection Properties { get; } = CreateStjPropertyCollection();
 
     public event AsyncEventHandler<EventArgs>? StartAsync;
@@ -271,6 +276,7 @@ internal abstract partial class AbstractInProcLanguageClient(
     private static PropertyCollection CreateStjPropertyCollection()
     {
         var collection = new PropertyCollection();
+        // These are well known property names used by the LSP client to enable STJ client side serialization.
         collection.AddProperty("lsp-serialization", "stj");
         return collection;
     }
