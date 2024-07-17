@@ -66,6 +66,7 @@ internal readonly struct AssetPath
     public bool IncludeSolutionStateChecksums => (_kind & AssetPathKind.SolutionStateChecksums) != 0;
     public bool IncludeSolutionAttributes => (_kind & AssetPathKind.SolutionAttributes) != 0;
     public bool IncludeSolutionAnalyzerReferences => (_kind & AssetPathKind.SolutionAnalyzerReferences) != 0;
+    public bool IncludeSolutionFallbackAnalyzerOptions => (_kind & AssetPathKind.SolutionFallbackAnalyzerOptions) != 0;
 
     public bool IncludeProjectStateChecksums => (_kind & AssetPathKind.ProjectStateChecksums) != 0;
     public bool IncludeProjectAttributes => (_kind & AssetPathKind.ProjectAttributes) != 0;
@@ -119,6 +120,7 @@ internal enum AssetPathKind
     SolutionStateChecksums = 1 << 10,
     SolutionAttributes = 1 << 11,
     SolutionAnalyzerReferences = 1 << 12,
+    SolutionFallbackAnalyzerOptions = 1 << 13,
 
     // Keep a gap so we can easily add more solution kinds
     ProjectStateChecksums = 1 << 15,
@@ -141,7 +143,7 @@ internal enum AssetPathKind
     /// <summary>
     /// Search solution-state level information.
     /// </summary>
-    SolutionState = SolutionStateChecksums | SolutionAttributes | SolutionAnalyzerReferences,
+    SolutionState = SolutionStateChecksums | SolutionAttributes | SolutionAnalyzerReferences | SolutionFallbackAnalyzerOptions,
 
     /// <summary>
     /// Search projects for results.  All project-level information will be searched.

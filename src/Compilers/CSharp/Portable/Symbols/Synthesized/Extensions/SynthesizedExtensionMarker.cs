@@ -150,5 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderArgument = null;
             return false;
         }
+
+        internal override int? TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
     }
 }

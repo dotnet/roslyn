@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="AI_generated_content_may_be_inaccurate">
-        <source>AI-generated content may be inaccurate</source>
-        <target state="translated">Il est possible que le contenu généré par IA soit inexact</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
         <source>An error occurred while generating documentation for this code.</source>
         <target state="translated">Une erreur s'est produite lors de la génération de la documentation pour ce code.</target>
@@ -30,6 +25,21 @@
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Calcul des informations « Encapsuler le champ »</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Réflexion Copilot...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Décrire avec Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -67,19 +77,14 @@
         <target state="translated">Filtrer</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Générer un résumé avec Copilot (peut être inexact)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">Obtenir de l'aide pour '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot">
-        <source>GitHub Copilot</source>
-        <target state="translated">GitHub Copilot</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot_thinking">
-        <source>GitHub Copilot thinking...</source>
-        <target state="translated">Réflexion GitHub Copilot...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -327,11 +332,6 @@
         <target state="translated">Exécuter</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_an_AI_generated_summary_of_this_code">
-        <source>Show an AI generated summary of this code</source>
-        <target state="translated">Afficher un résumé de ce code généré par IA</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">Diviser le commentaire</target>
@@ -350,11 +350,6 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">Taille des tabulations</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Tell_me_more">
-        <source>Tell me more</source>
-        <target state="translated">En savoir plus</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
@@ -642,6 +637,11 @@
         <target state="translated">{0} conflit(s) seront résolus</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="new">'{0}' declarations and interceptors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">'{0}' membres implémentés</target>
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="_0_intercepted_locations">
         <source>'{0}' intercepted locations</source>
-        <target state="new">'{0}' intercepted locations</target>
+        <target state="translated">« {0} » emplacements interceptés</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">

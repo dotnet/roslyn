@@ -347,6 +347,16 @@
         <target state="translated">L'attribut AsyncMethodBuilder n'est pas autorisé pour les méthodes anonymes sans type de retour explicite.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">La chaîne d’entrée ne peut pas être convertie en représentation d’octet UTF-8 équivalente. {0}</target>
@@ -815,6 +825,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
         <target state="translated">La fonctionnalité « {0} » n’est pas disponible en C# 12.0. Veuillez utiliser la version de langage {1} ou une version ultérieure.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1503,13 +1518,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}' : le type utilisé dans une instruction using asynchrone doit être implicitement convertible en 'System.IAsyncDisposable' ou doit implémenter une méthode 'DisposeAsync' appropriée. Est-ce qu'il ne s'agit pas plutôt de 'using' au lieu de 'await using' ?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">'{0}' : le type utilisé dans une instruction using asynchrone doit être implicitement convertible en 'System.IAsyncDisposable' ou doit implémenter une méthode 'DisposeAsync' appropriée. Est-ce qu'il ne s'agit pas plutôt de 'using' au lieu de 'await using' ?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable'. Est-ce qu'il ne s'agit pas plutôt de 'await using' au lieu de 'using' ?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable'. Est-ce qu'il ne s'agit pas plutôt de 'await using' au lieu de 'using' ?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -2685,6 +2700,11 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;manquant&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -9667,8 +9687,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable'.</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13195,8 +13215,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}' : le type utilisé dans une instruction using asynchrone doit être implicitement convertible en 'System.IAsyncDisposable' ou doit implémenter une méthode 'DisposeAsync' appropriée.</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">'{0}' : le type utilisé dans une instruction using asynchrone doit être implicitement convertible en 'System.IAsyncDisposable' ou doit implémenter une méthode 'DisposeAsync' appropriée.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

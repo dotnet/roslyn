@@ -54,7 +54,6 @@ internal static partial class ConflictResolver
         LightweightRenameLocations lightweightRenameLocations,
         string replacementText,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -70,8 +69,7 @@ internal static partial class ConflictResolver
 
                 var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                     solution,
-                    (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
-                    callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, fallbackOptions),
+                    (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue && result.Value != null)
@@ -86,7 +84,7 @@ internal static partial class ConflictResolver
             return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 
         return await ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-            heavyweightLocations, replacementText, nonConflictSymbolKeys, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            heavyweightLocations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -97,7 +95,6 @@ internal static partial class ConflictResolver
         SymbolicRenameLocations renameLocations,
         string replacementText,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
@@ -109,14 +106,13 @@ internal static partial class ConflictResolver
         }
 
         var resolution = await ResolveMutableConflictsAsync(
-            renameLocations, fallbackOptions, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+            renameLocations, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
 
         return resolution.ToConflictResolution();
     }
 
     private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
         SymbolicRenameLocations renameLocationSet,
-        CodeCleanupOptionsProvider fallbackOptions,
         Location renameSymbolDeclarationLocation,
         string replacementText,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
@@ -124,7 +120,7 @@ internal static partial class ConflictResolver
     {
         cancellationToken.ThrowIfCancellationRequested();
         var session = new Session(
-            renameLocationSet, fallbackOptions, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken);
+            renameLocationSet, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken);
         return session.ResolveConflictsAsync();
     }
 

@@ -870,8 +870,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
-
             // is this a local?
             if ((object)localSymbol != null)
             {

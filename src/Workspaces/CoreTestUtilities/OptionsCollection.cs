@@ -4,30 +4,33 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+
+#if !CODE_STYLE
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Linq;
+using Xunit;
+#endif
 
 #if !NETCOREAPP
 using System;
 using Roslyn.Utilities;
+using System.Text;
 #endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
-    internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>, IOptionsReader
+    internal sealed class OptionsCollection(string languageName) : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>, IOptionsReader
     {
         private readonly Dictionary<OptionKey2, object?> _options = [];
-        private readonly string _languageName;
 
-        public OptionsCollection(string languageName)
-        {
-            _languageName = languageName;
-        }
-
-        public string DefaultExtension => _languageName == LanguageNames.CSharp ? "cs" : "vb";
+        public string LanguageName => languageName;
+        public string DefaultExtension => languageName == LanguageNames.CSharp ? "cs" : "vb";
 
         public int Count => _options.Count;
 
@@ -51,21 +54,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => Add(new OptionKey2(option), new CodeStyleOption2<T>(value, notification));
 
         public void Add<T>(PerLanguageOption2<T> option, T value)
-            => Add(new OptionKey2(option, _languageName), value);
+            => Add(new OptionKey2(option, languageName), value);
 
         public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value)
             => Add(option, value, option.DefaultValue.Notification);
 
         public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
-            => Add(new OptionKey2(option, _languageName), new CodeStyleOption2<T>(value, notification));
+            => Add(new OptionKey2(option, languageName), new CodeStyleOption2<T>(value, notification));
 
         // 📝 This can be removed if/when collection initializers support AddRange.
         public void Add(OptionsCollection? options)
             => AddRange(options);
 
-        public void AddRange(OptionsCollection? options)
+        public void AddRange(IEnumerable<KeyValuePair<OptionKey2, object?>>? options)
         {
-            if (options is null)
+            if (options == null)
                 return;
 
             foreach (var (key, value) in options)
@@ -88,6 +91,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 globalOptions.SetGlobalOption(optionKey, value);
             }
+        }
+
+        public StructuredAnalyzerConfigOptions ToAnalyzerConfigOptions()
+        {
+            Assert.All(this, o => Assert.True(o.Key.Option.Definition.IsEditorConfigOption));
+
+            var builder = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
+
+            foreach (var (key, value) in this)
+            {
+                if (value is NamingStylePreferences namingPreferences)
+                {
+                    NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
+                        namingPreferences.SymbolSpecifications,
+                        namingPreferences.NamingStyles,
+                        namingPreferences.NamingRules,
+                        LanguageName,
+                        entryWriter: builder.Add,
+                        triviaWriter: null);
+                }
+                else
+                {
+                    builder.Add(key.Option.Definition.ConfigName, key.Option.Definition.Serializer.Serialize(value));
+                }
+            }
+
+            return StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
         }
 #endif
 

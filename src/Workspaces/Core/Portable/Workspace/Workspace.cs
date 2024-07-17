@@ -86,7 +86,7 @@ public abstract partial class Workspace : IDisposable
 
         var emptyOptions = new SolutionOptionSet(_legacyOptions);
 
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: []);
+        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: [], fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed
@@ -121,14 +121,14 @@ public abstract partial class Workspace : IDisposable
     protected internal Solution CreateSolution(SolutionInfo solutionInfo)
     {
         var options = new SolutionOptionSet(_legacyOptions);
-        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
+        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences, solutionInfo.FallbackAnalyzerOptions);
     }
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace, and with the given options.
     /// </summary>
-    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-        => new(this, solutionInfo.Attributes, options, analyzerReferences);
+    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences, ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
+        => new(this, solutionInfo.Attributes, options, analyzerReferences, fallbackAnalyzerOptions);
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace.
@@ -254,6 +254,8 @@ public abstract partial class Workspace : IDisposable
             transformation: static (oldSolution, data) =>
             {
                 var newSolution = data.transformation(oldSolution);
+
+                newSolution = data.@this.InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
 
                 // Attempt to unify the syntax trees in the new solution.
                 return UnifyLinkedDocumentContents(oldSolution, newSolution);
@@ -389,6 +391,55 @@ public abstract partial class Workspace : IDisposable
 
             return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
         }
+    }
+
+    /// <summary>
+    /// Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
+    /// allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
+    /// Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
+    /// we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
+    /// 
+    /// This mechanism only takes care of flowing the initial snapshot of option values.
+    /// It's up to the host to keep the individual values up-to-date by updating 
+    /// <see cref="CurrentSolution"/> as appropriate.
+    /// 
+    /// Implementing the initialization here allows us to uphold an invariant that
+    /// the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
+    /// of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
+    /// </summary>
+    private Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+    {
+        var newFallbackOptions = newSolution.FallbackAnalyzerOptions;
+
+        // Clear out languages that are no longer present in the solution.
+        // If we didn't, the workspace might clear the solution (which removes the fallback options)
+        // and we would never re-initialize them from global options.
+        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (!newSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                newFallbackOptions = newFallbackOptions.Remove(language);
+            }
+        }
+
+        // Update solution snapshot to include options for newly added languages:
+        foreach (var (language, _) in newSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                continue;
+            }
+
+            if (newFallbackOptions.ContainsKey(language))
+            {
+                continue;
+            }
+
+            var provider = Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
+            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
+        }
+
+        return newSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
     }
 
     /// <summary>
@@ -929,6 +980,12 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
+    /// Call this method when <see cref="Solution.FallbackAnalyzerOptions"/> change in the host environment.
+    /// </summary>
+    internal void OnSolutionFallbackAnalyzerOptionsChanged(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => SetCurrentSolution(oldSolution => oldSolution.WithFallbackAnalyzerOptions(options), WorkspaceChangeKind.SolutionChanged);
+
+    /// <summary>
     /// Call this method when status of project has changed to incomplete.
     /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
     /// </summary>
@@ -1031,10 +1088,7 @@ public abstract partial class Workspace : IDisposable
 
                 if (oldAttributes.FilePath != newInfo.FilePath)
                 {
-                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
-                    // but should be removed when the bug is fixed.
-                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
+                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
                 }
 
                 if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
@@ -1503,6 +1557,11 @@ public abstract partial class Workspace : IDisposable
             {
                 var changedOptions = newSolution.SolutionState.Options.GetChangedOptions();
                 _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
+            }
+
+            if (CurrentSolution.FallbackAnalyzerOptions != newSolution.FallbackAnalyzerOptions)
+            {
+                OnSolutionFallbackAnalyzerOptionsChanged(newSolution.FallbackAnalyzerOptions);
             }
 
             if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))

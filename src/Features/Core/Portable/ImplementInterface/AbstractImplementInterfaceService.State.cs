@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -14,12 +11,18 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    internal class State(Document document, SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
+    internal sealed class State(
+        Document document,
+        SyntaxNode interfaceNode,
+        SyntaxNode classOrStructDecl,
+        INamedTypeSymbol classOrStructType,
+        ImmutableArray<INamedTypeSymbol> interfaceTypes,
+        SemanticModel model) : IImplementInterfaceInfo
     {
-        public SyntaxNode Location { get; } = interfaceNode;
+        public SyntaxNode InterfaceNode { get; } = interfaceNode;
         public SyntaxNode ClassOrStructDecl { get; } = classOrStructDecl;
         public INamedTypeSymbol ClassOrStructType { get; } = classOrStructType;
-        public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
+        public ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
         public SemanticModel Model { get; } = model;
 
         public readonly Document Document = document;
@@ -31,7 +34,7 @@ internal abstract partial class AbstractImplementInterfaceService
         // The members that have no explicit implementation.
         public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; private set; } = [];
 
-        public static State Generate(
+        public static State? Generate(
             AbstractImplementInterfaceService service,
             Document document,
             SemanticModel model,

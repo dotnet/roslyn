@@ -803,6 +803,12 @@ public partial class Project
     internal AnalyzerConfigData? GetAnalyzerConfigOptions()
         => _projectState.GetAnalyzerConfigOptions();
 
+    /// <summary>
+    /// Retrieves fallback analyzer options for this project's language.
+    /// </summary>
+    internal StructuredAnalyzerConfigOptions GetFallbackAnalyzerOptions()
+        => _solution.FallbackAnalyzerOptions.GetValueOrDefault(Language, StructuredAnalyzerConfigOptions.Empty);
+
     private string GetDebuggerDisplay()
         => this.Name;
 

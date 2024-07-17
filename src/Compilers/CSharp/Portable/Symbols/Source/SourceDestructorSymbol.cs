@@ -176,5 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
+        }
     }
 }

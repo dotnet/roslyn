@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -402,4 +404,63 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
 
     public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
         => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
+
+#if !CODE_STYLE
+
+    public async Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        // Have to be on an invocation name.
+
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root.FullSpan.Contains(position))
+            return null;
+
+        var token = root.FindToken(position);
+        if (!token.IsKind(SyntaxKind.IdentifierToken) ||
+            token.Parent is not SimpleNameSyntax simpleName)
+        {
+            return null;
+        }
+
+        // Supported syntax points for interception in v1 are:
+        //
+        // Goo()
+        // X.Goo()
+        // X?.Goo()
+        var expression = simpleName.Parent switch
+        {
+            MemberAccessExpressionSyntax memberAccess when memberAccess.Name == simpleName => memberAccess,
+            MemberBindingExpressionSyntax memberBinding when memberBinding.Name == simpleName => memberBinding,
+            _ => (ExpressionSyntax)simpleName,
+        };
+
+        if (expression.Parent is not InvocationExpressionSyntax)
+            return null;
+
+        var contentHash = await document.GetContentHashAsync(cancellationToken).ConfigureAwait(false);
+        var interceptsLocationData = new InterceptsLocationData(contentHash, simpleName.FullSpan.Start);
+
+        // We only look for interceptors in generated source documents.  Interceptors cannot reasonably be written by
+        // hand (as they involve embedded an encoded version of a file's content hash, position, and other debugging
+        // information).  So the only realistic way to create them is by asking the compiler to create the attribute
+        // using SemanticModel.GetInterceptableLocation as part of a generator.
+        foreach (var generatedDocument in await document.Project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var syntaxIndex = await generatedDocument.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+            if (!syntaxIndex.TryGetInterceptsLocation(interceptsLocationData, out var methodDeclarationSpan))
+                continue;
+
+            var generatedRoot = await generatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!generatedRoot.FullSpan.Contains(methodDeclarationSpan))
+                continue;
+
+            var methodDeclaration = generatedRoot.FindNode(methodDeclarationSpan);
+            var semanticModel = await generatedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
+        }
+
+        return null;
+    }
+
+#endif
 }
