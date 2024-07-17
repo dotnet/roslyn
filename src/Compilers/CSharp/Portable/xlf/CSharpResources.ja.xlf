@@ -332,6 +332,16 @@
         <target state="translated">AsyncMethodBuilder 属性は、明示的な戻り値の型のない匿名メソッドでは許可されていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">入力文字列を同等の UTF-8 バイト表現に変換できません。{0}</target>
@@ -772,6 +782,11 @@
         <target state="translated">機能 '{0}' は C# 12.0 では使用できません。{1} 以上の言語バージョンを使用してください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">機能 '{0}' は C# 8.0 では使用できません。言語バージョン {1} 以上を使用してください。</target>
@@ -974,7 +989,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
         <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
-        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <target state="translated">属性 'System.Runtime.CompilerServices.InlineArray' をレコード構造体に適用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
@@ -1448,13 +1463,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。'using' ではなく 'await using' ですか?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。'using' ではなく 'await using' ですか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1644,47 +1659,47 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
-        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
+        <target state="translated">両方の部分メンバー宣言には、同じアクセシビリティ修飾子を指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberCannotBeAbstract">
         <source>A partial member cannot have the 'abstract' modifier</source>
-        <target state="new">A partial member cannot have the 'abstract' modifier</target>
+        <target state="translated">部分メンバーに 'abstract' 修飾子を指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
+        <target state="translated">部分メンバー宣言 '{0}' および '{1}' は、どちらも同じタプル要素名を使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
         <source>A partial member must be declared within a partial type</source>
-        <target state="new">A partial member must be declared within a partial type</target>
+        <target state="translated">部分メンバーは、部分型内で宣言される必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberParamsDifference">
         <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="new">Both partial member declarations must use a params parameter or neither may use a params parameter</target>
+        <target state="translated">部分メンバー宣言は、両方とも params パラメーターを使用するか、両方とも params パラメーターを使用しないかのいずれかである必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberReadOnlyDifference">
         <source>Both partial member declarations must be readonly or neither may be readonly</source>
-        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <target state="translated">部分メンバー宣言は、両方とも readonly であるか、両方とも readonly でないかのいずれかである必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
+        <target state="translated">両方の部分メンバー宣言には、'virtual'、'override'、'sealed'、'new' 修飾子の同じ組み合わせを指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="new">Partial member declarations must have matching ref return values.</target>
+        <target state="translated">部分メンバーの宣言には、一致する ref 戻り値が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
         <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
-        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
+        <target state="translated">部分メンバー宣言は、両方とも unsafe であるか、両方とも unsafe でないかのいずれかである必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
@@ -1714,47 +1729,47 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
         <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
-        <target state="new">A partial property may not have multiple defining declarations, and cannot be an auto-property.</target>
+        <target state="translated">部分プロパティには複数の定義宣言を含めることはできません。また、自動プロパティにすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
-        <target state="new">A partial property may not have multiple implementing declarations</target>
+        <target state="translated">部分プロパティには、複数の実装宣言を含めることができない場合があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
-        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <target state="translated">プロパティ アクセサー '{0}' は、定義パーツと一致するように '{1}' である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingAccessor">
         <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
-        <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
+        <target state="translated">プロパティ アクセサー '{0}' は定義パーツで宣言されているため、実装する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingDefinition">
         <source>Partial property '{0}' must have a definition part.</source>
-        <target state="new">Partial property '{0}' must have a definition part.</target>
+        <target state="translated">部分プロパティ '{0}' には定義パーツが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
-        <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <target state="translated">部分プロパティ '{0}' には実装パーツが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyRequiredDifference">
         <source>Both partial property declarations must be required or neither may be required</source>
-        <target state="new">Both partial property declarations must be required or neither may be required</target>
+        <target state="translated">両方の部分プロパティ宣言を必須にするか、どちらも必須にしないようにする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyTypeDifference">
         <source>Both partial property declarations must have the same type.</source>
-        <target state="new">Both partial property declarations must have the same type.</target>
+        <target state="translated">両方の部分プロパティ宣言の型が同じである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
         <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
-        <target state="new">Property accessor '{0}' does not implement any accessor declared on the definition part</target>
+        <target state="translated">プロパティ アクセサー '{0}' は、定義パーツで宣言されたアクセサーを実装しません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -2024,7 +2039,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
+        <target state="translated">パラメーター '{0}' の 'scoped' 修飾子が部分定義と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -2344,7 +2359,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
-        <target state="new">allows ref struct constraint</target>
+        <target state="translated">ref 構造体制約を許可します</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
@@ -2384,7 +2399,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldAndValueKeywords">
         <source>field and value keywords</source>
-        <target state="new">field and value keywords</target>
+        <target state="translated">フィールドと値のキーワード</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2592,6 +2607,11 @@
         <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">ポインター要素アクセス</target>
@@ -2619,12 +2639,12 @@
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
         <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="new">'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</target>
+        <target state="translated">'{0}' は、言語バージョン {1} 以降のプロパティ アクセサーのコンテキスト キーワードです。代わりに '@{0}' を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
+        <target state="translated">識別子は、後の言語バージョンでは、特定の意味を持つコンテキスト キーワードです。</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -3104,12 +3124,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference">
         <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">部分プロパティ宣言 '{0}' と '{1}' には、シグネチャの違いがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
         <source>Partial property declarations have signature differences.</source>
-        <target state="new">Partial property declarations have signature differences.</target>
+        <target state="translated">部分プロパティの宣言には、シグネチャの違いがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -6590,7 +6610,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
+        <target state="translated">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、またはメソッドまだはプロパティの戻り値の型の直前にのみ指定できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8199,7 +8219,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="new">A partial member may not explicitly implement an interface member</target>
+        <target state="translated">部分メンバーは、インターフェイス メンバーを明示的に実装できないことがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8234,7 +8254,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="new">Both partial member declarations must be static or neither may be static</target>
+        <target state="translated">部分メンバー宣言は、両方とも static であるか、両方とも static でないかのいずれかである必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
@@ -9562,8 +9582,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13090,8 +13110,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

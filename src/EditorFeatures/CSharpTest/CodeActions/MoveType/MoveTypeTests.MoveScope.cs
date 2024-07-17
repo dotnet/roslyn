@@ -921,7 +921,7 @@ namespace N1
         var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
         Assert.NotNull(moveTypeService);
 
-        var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CodeActionOptions.DefaultProvider, CancellationToken.None).ConfigureAwait(false);
+        var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CancellationToken.None).ConfigureAwait(false);
 
         if (expectOperation)
         {

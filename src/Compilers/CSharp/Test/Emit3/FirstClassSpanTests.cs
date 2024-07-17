@@ -55,13 +55,11 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+        // PROTOTYPE: Use LangVersion=13 in other tests as well instead of LangVersion=12.
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             // (7,65): error CS0121: The call is ambiguous between the following methods or properties: 'StringExtensions.Join(string, params string[])' and 'StringExtensions.Join(string, params ReadOnlySpan<string>)'
             //     public static string M(StringValues sv) => StringExtensions.Join(",", sv);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Join").WithArguments("StringExtensions.Join(string, params string[])", "StringExtensions.Join(string, params System.ReadOnlySpan<string>)").WithLocation(7, 65),
-            // (13,49): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static string Join(string separator, params ReadOnlySpan<string> values) => "span";
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "params ReadOnlySpan<string> values").WithArguments("params collections").WithLocation(13, 49));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Join").WithArguments("StringExtensions.Join(string, params string[])", "StringExtensions.Join(string, params System.ReadOnlySpan<string>)").WithLocation(7, 65));
 
         var expectedOutput = "array";
 

@@ -68,7 +68,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         // Looks good!
         context.RegisterRefactoring(CodeAction.Create(
             string.Format(FeaturesResources.Replace_0_with_property, methodName),
-            c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, context.Options, cancellationToken: c),
+            c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
             methodName),
             methodDeclaration.Span);
 
@@ -81,7 +81,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
             {
                 context.RegisterRefactoring(CodeAction.Create(
                     string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
-                    c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, context.Options, cancellationToken: c),
+                    c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                     methodName + "-get/set"),
                     methodDeclaration.Span);
             }
@@ -154,7 +154,6 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         bool nameChanged,
         IMethodSymbol getMethod,
         IMethodSymbol? setMethod,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -181,7 +180,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         var updatedSolution = originalSolution;
 
         updatedSolution = await UpdateReferencesAsync(updatedSolution, propertyName, nameChanged, getReferencesByDocument, setReferencesByDocument, cancellationToken).ConfigureAwait(false);
-        updatedSolution = await ReplaceGetMethodsAndRemoveSetMethodsAsync(originalSolution, updatedSolution, propertyName, nameChanged, getMethodReferences, setMethodReferences, updateSetMethod: setMethod != null, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        updatedSolution = await ReplaceGetMethodsAndRemoveSetMethodsAsync(originalSolution, updatedSolution, propertyName, nameChanged, getMethodReferences, setMethodReferences, updateSetMethod: setMethod != null, cancellationToken).ConfigureAwait(false);
 
         return updatedSolution;
     }
@@ -317,7 +316,6 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         IEnumerable<ReferencedSymbol> getMethodReferences,
         IEnumerable<ReferencedSymbol> setMethodReferences,
         bool updateSetMethod,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var getDefinitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, getMethodReferences, cancellationToken).ConfigureAwait(false);
@@ -332,7 +330,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
             var setDefinitions = setDefinitionsByDocumentId[documentId];
 
             updatedSolution = await ReplaceGetMethodsAndRemoveSetMethodsAsync(
-                propertyName, nameChanged, updatedSolution, documentId, getDefinitions, setDefinitions, updateSetMethod, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                propertyName, nameChanged, updatedSolution, documentId, getDefinitions, setDefinitions, updateSetMethod, cancellationToken).ConfigureAwait(false);
         }
 
         return updatedSolution;
@@ -346,7 +344,6 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         MultiDictionary<DocumentId, IMethodSymbol>.ValueSet originalGetDefinitions,
         MultiDictionary<DocumentId, IMethodSymbol>.ValueSet originalSetDefinitions,
         bool updateSetMethod,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var updatedDocument = await updatedSolution.GetRequiredDocumentAsync(
@@ -366,7 +363,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
 
         var editor = new SyntaxEditor(root, updatedSolution.Services);
 
-        var codeGenerationOptions = await updatedDocument.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var codeGenerationOptions = await updatedDocument.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parseOptions = syntaxTree.Options;
 
         // First replace all the get methods with properties.

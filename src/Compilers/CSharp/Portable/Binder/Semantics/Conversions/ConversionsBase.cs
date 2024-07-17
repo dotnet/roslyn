@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
                 !conversion.IsInterpolatedStringHandler &&
-                !conversion.IsCollectionExpression)
+                !isImplicitCollectionExpressionConversion(conversion))
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -682,6 +682,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
+
+            static bool isImplicitCollectionExpressionConversion(Conversion conversion)
+            {
+                return conversion switch
+                {
+                    { Kind: ConversionKind.CollectionExpression } => true,
+                    { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: [{ Kind: ConversionKind.CollectionExpression }] } => true,
+                    _ => false,
+                };
+            }
         }
 
         private Conversion ClassifyStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

@@ -134,7 +134,7 @@ internal abstract class AbstractAssignOutParametersCodeFixProvider : SyntaxEdito
 
     protected sealed override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var unassignedParameters = await GetUnassignedParametersAsync(
             document, diagnostics, cancellationToken).ConfigureAwait(false);

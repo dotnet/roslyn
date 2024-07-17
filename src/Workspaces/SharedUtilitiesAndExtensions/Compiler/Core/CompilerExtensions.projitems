@@ -203,13 +203,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\EditorConfigSeverityStrings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ExpressionBodyPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ForEachExplicitCastInSourcePreference.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\IdeCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NamespaceDeclarationPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasic\VisualBasicCodeStyleOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasic\VisualBasicIdeCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableIntervalTree`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IIntervalTree`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeAlgorithms`2.cs" />
@@ -217,7 +215,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.NodeEnumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
@@ -244,6 +241,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxToken.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxTrivia.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\PredefinedEmbeddedLanguageClassifierNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\AbstractVirtualCharService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\AbstractVirtualCharService.ITextInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharService.cs" />
@@ -408,6 +406,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStyleRules.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\NamingStylePreferences.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\NamingStylePreferencesEditorConfigSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDictionary.cs" />
@@ -511,7 +510,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditorConfigFileGenerator_NamingStyles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EventMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IBidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ICacheEntry.cs" />
@@ -561,13 +559,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValueTaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEvent`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\EnumerableConditionalWeakTable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WordSimilarityChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringEscapeEncoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxPath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskFactoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TopologicalSorter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\EventHandlerFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AccessibilityUtilities.cs" />

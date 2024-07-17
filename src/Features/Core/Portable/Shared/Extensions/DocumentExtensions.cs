@@ -99,15 +99,15 @@ internal static class DocumentExtensions
     /// will only be used if the user hasn't specified a preference.
     /// </summary>
     public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-        this Document document, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        this Document document, CancellationToken cancellationToken)
     {
-        var options = await document.GetNamingStylePreferencesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
         return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
     }
 
-    public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+    public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
-        var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         foreach (var rule in rules)
         {
             if (rule.SymbolSpecification.AppliesTo(symbol))
@@ -118,9 +118,9 @@ internal static class DocumentExtensions
     }
 
     public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-        this Document document, SymbolKind symbolKind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        this Document document, SymbolKind symbolKind, Accessibility accessibility, CancellationToken cancellationToken)
     {
-        var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         foreach (var rule in rules)
         {
             if (rule.SymbolSpecification.AppliesTo(symbolKind, accessibility))
@@ -131,9 +131,9 @@ internal static class DocumentExtensions
     }
 
     public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-        this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
     {
-        var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         foreach (var rule in rules)
         {
             if (rule.SymbolSpecification.AppliesTo(kind, modifiers, accessibility))

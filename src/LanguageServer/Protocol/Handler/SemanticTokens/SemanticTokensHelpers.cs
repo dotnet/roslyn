@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal static class SemanticTokensHelpers
     {
+        private static readonly ObjectPool<List<int>> s_tokenListPool = new ObjectPool<List<int>>(() => new List<int>(capacity: 1000));
+
         internal static async Task<int[]> HandleRequestHelperAsync(
             IGlobalOptionService globalOptions,
             SemanticTokensRefreshQueue semanticTokensRefreshQueue,
@@ -243,7 +245,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
 
-            using var _ = ArrayBuilder<int>.GetInstance(5 * classifiedSpans.Count, out var data);
+            using var pooledData = s_tokenListPool.GetPooledObject();
+            var data = pooledData.Object;
+
+            // Items in the pool may not have been cleared
+            data.Clear();
+
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
             {
                 currentClassifiedSpanIndex = ComputeNextToken(

@@ -27,7 +27,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
         => (new CSharpJsonDiagnosticAnalyzer(), null);
 
     private OptionsCollection OptionOn()
-        => Option(IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, true);
+        => Option(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, true);
 
     [Fact]
     public async Task TestWarning1()
@@ -41,7 +41,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
                 }     
             }
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
@@ -59,7 +59,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
                 }     
             }
             """",
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
@@ -77,7 +77,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
                 }     
             }
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -104,7 +104,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
                 </Project>
             </Workspace>
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -131,7 +131,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
                 </Project>
             </Workspace>
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -202,7 +202,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
                 </Project>
             </Workspace>
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -229,7 +229,7 @@ public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUser
                 </Project>
             </Workspace>
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -304,7 +304,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -335,7 +335,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,

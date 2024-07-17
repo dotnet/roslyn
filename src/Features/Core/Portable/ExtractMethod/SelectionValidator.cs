@@ -21,14 +21,12 @@ internal abstract partial class SelectionValidator<
     TSelectionResult,
     TStatementSyntax>(
         SemanticDocument document,
-        TextSpan textSpan,
-        ExtractMethodOptions options)
+        TextSpan textSpan)
     where TSelectionResult : SelectionResult<TStatementSyntax>
     where TStatementSyntax : SyntaxNode
 {
     protected readonly SemanticDocument SemanticDocument = document;
     protected readonly TextSpan OriginalSpan = textSpan;
-    protected readonly ExtractMethodOptions Options = options;
 
     public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 

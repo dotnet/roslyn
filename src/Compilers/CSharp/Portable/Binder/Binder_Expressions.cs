@@ -5762,6 +5762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt = default;
             BitVector defaultArguments = default;
             bool expanded = false;
+            AccessorKind accessorKind = AccessorKind.Unknown;
 
             switch (boundMemberKind)
             {
@@ -5800,6 +5801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
                         defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
+                        accessorKind = indexer.AccessorKind;
 
                         // If any of the arguments is an interpolated string handler that takes the receiver as an argument for creation,
                         // we disallow this. During lowering, indexer arguments are evaluated before the receiver for this scenario, and
@@ -5876,6 +5878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 defaultArguments,
                 resultKind,
+                accessorKind,
                 implicitReceiver.Type,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
@@ -6543,7 +6546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 ImmutableArray<MethodSymbol> accessibleConstructors = GetAccessibleConstructorsForOverloadResolution(type, ref useSiteInfo);
-                this.OverloadResolution.ObjectCreationOverloadResolution(accessibleConstructors, analyzedArguments, overloadResolutionResult, dynamicResolution: true, ref useSiteInfo);
+                this.OverloadResolution.ObjectCreationOverloadResolution(accessibleConstructors, analyzedArguments, overloadResolutionResult, dynamicResolution: true, isEarlyAttributeBinding: IsEarlyAttributeBinder, ref useSiteInfo);
 
                 if (overloadResolutionResult.HasAnyApplicableMember)
                 {
@@ -7014,7 +7017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (candidateConstructors.Any())
             {
                 // We have at least one accessible candidate constructor, perform overload resolution with accessible candidateConstructors.
-                this.OverloadResolution.ObjectCreationOverloadResolution(candidateConstructors, analyzedArguments, result, dynamicResolution: false, ref useSiteInfo);
+                this.OverloadResolution.ObjectCreationOverloadResolution(candidateConstructors, analyzedArguments, result, dynamicResolution: false, isEarlyAttributeBinding: IsEarlyAttributeBinder, ref useSiteInfo);
 
                 if (result.Succeeded)
                 {
@@ -7028,7 +7031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We might have a best match constructor which is inaccessible.
                 // Try overload resolution with all instance constructors to generate correct diagnostics and semantic info for this case.
                 OverloadResolutionResult<MethodSymbol> inaccessibleResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                this.OverloadResolution.ObjectCreationOverloadResolution(allInstanceConstructors, analyzedArguments, inaccessibleResult, dynamicResolution: false, ref useSiteInfo);
+                this.OverloadResolution.ObjectCreationOverloadResolution(allInstanceConstructors, analyzedArguments, inaccessibleResult, dynamicResolution: false, isEarlyAttributeBinding: IsEarlyAttributeBinder, ref useSiteInfo);
 
                 if (inaccessibleResult.Succeeded)
                 {
@@ -8248,6 +8251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
                                       OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter |
+                                      OverloadResolution.Options.DisallowExpandedNonArrayParams |
                                       OverloadResolution.Options.DynamicResolution |
                                       OverloadResolution.Options.DynamicConvertsToAnything)) == 0);
 
@@ -9765,6 +9769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentNames,
                     argumentRefKinds,
                     expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                    AccessorKind.Unknown,
                     argsToParams,
                     defaultArguments: default,
                     property.Type,
@@ -10282,6 +10287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
                                       OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter |
+                                      OverloadResolution.Options.DisallowExpandedNonArrayParams |
                                       OverloadResolution.Options.DynamicResolution |
                                       OverloadResolution.Options.DynamicConvertsToAnything)) == 0);
 
@@ -10448,7 +10454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
-            if (Compilation.LanguageVersion < LanguageVersionFacts.CSharpNext)
+            if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
             {
                 return GetUniqueSignatureFromMethodGroup_CSharp10(node);
             }
@@ -10607,7 +10613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
 
-            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol, out _);
+            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol, disallowExpandedNonArrayParams: false, out _);
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
