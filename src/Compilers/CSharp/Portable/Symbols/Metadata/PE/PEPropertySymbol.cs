@@ -118,6 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool CallMethodsDirectly => (_bits & CallMethodsDirectlyFlag) != 0;
         }
 
+        // PROTOTYPE(Roles): Pack this flag
+        private readonly bool _isExtensionInstanceUnderlyingSymbol;
+
         internal static PEPropertySymbol Create(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
@@ -125,7 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEMethodSymbol getMethod,
             PEExtensionInstanceMethodSymbol extensionGet,
             PEMethodSymbol setMethod,
-            PEExtensionInstanceMethodSymbol extensionSet)
+            PEExtensionInstanceMethodSymbol extensionSet,
+            TypeSymbol extendedType)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -140,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var returnInfo = propertyParams[0];
 
             PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
-                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet, propertyParams, metadataDecoder)
-                : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet, propertyParams, metadataDecoder);
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet, propertyParams, metadataDecoder, extendedType)
+                : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet, propertyParams, metadataDecoder, extendedType);
 
             // A property should always have this modreq, and vice versa.
             var isBad = (result.RefKind == RefKind.In) != result.RefCustomModifiers.HasInAttributeModifier();
@@ -163,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEMethodSymbol setMethod,
             PEExtensionInstanceMethodSymbol extensionSet,
             ParamInfo<TypeSymbol>[] propertyParams,
-            MetadataDecoder metadataDecoder)
+            MetadataDecoder metadataDecoder,
+            TypeSymbol extendedType)
         {
             _containingType = containingType;
             var module = moduleSymbol.Module;
@@ -249,6 +254,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             _propertyTypeWithAnnotations = propertyTypeWithAnnotations;
 
+            // If this check causes a perf problem, we could optimize it.
+            if (extendedType is not null && this.IsStatic && this.ParameterCount > 0 &&
+                PENamedTypeSymbol.IsSynthesizedExtensionThisParameter(extendedType, this.Parameters[0]))
+            {
+                _isExtensionInstanceUnderlyingSymbol = true;
+            }
+
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
             // or if it has parameters and is not an indexer or indexed property.
@@ -260,15 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     (extensionGet is not null || extensionSet is not null) &&
                     (extensionGet is not null || _getMethod is null) &&
                     (extensionSet is not null || _setMethod is null) &&
-                    containingType.GetDeclaredExtensionUnderlyingType() is { } extendedType &&
-                    PENamedTypeSymbol.IsSynthesizedExtensionThisParameter(extendedType, Parameters[0]);
+                    _isExtensionInstanceUnderlyingSymbol;
 
                 callMethodsDirectly = MustCallMethodsDirectlyCore(isInstanceExtension);
             }
 
             if (!callMethodsDirectly)
             {
-                callMethodsDirectly = anyUnexpectedRequiredModifiers(propertyParams);
+                callMethodsDirectly = anyUnexpectedRequiredModifiers(propertyParams, _isExtensionInstanceUnderlyingSymbol);
             }
 
             if (!callMethodsDirectly)
@@ -289,12 +300,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 isRuntimeSpecialName: (mdFlags & PropertyAttributes.RTSpecialName) != 0,
                 callMethodsDirectly);
 
-            static bool anyUnexpectedRequiredModifiers(ParamInfo<TypeSymbol>[] propertyParams)
+            static bool anyUnexpectedRequiredModifiers(ParamInfo<TypeSymbol>[] propertyParams, bool isExtensionInstanceUnderlyingSymbol)
             {
-                return propertyParams.Any(p => (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(static m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute())) ||
-                                               p.CustomModifiers.AnyRequired());
+                for (int i = 0; i < propertyParams.Length; i++)
+                {
+                    var p = propertyParams[i];
+
+                    if (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(static m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute()))
+                    {
+                        return true;
+                    }
+
+                    if ((!isExtensionInstanceUnderlyingSymbol || i != 1) && p.CustomModifiers.AnyRequired())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
+
+        internal bool IsExtensionInstanceUnderlyingSymbol => _isExtensionInstanceUnderlyingSymbol;
 
         private bool MustCallMethodsDirectlyCore(bool isInstanceExtension)
         {
@@ -919,10 +946,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 PEMethodSymbol setMethod,
                 PEExtensionInstanceMethodSymbol extensionSet,
                 ParamInfo<TypeSymbol>[] propertyParams,
-                MetadataDecoder metadataDecoder)
+                MetadataDecoder metadataDecoder,
+                TypeSymbol extendedType)
                 : base(moduleSymbol, containingType, handle, getMethod, extensionGet, setMethod, extensionSet,
                     propertyParams,
-                    metadataDecoder)
+                    metadataDecoder,
+                    extendedType)
             {
                 var returnInfo = propertyParams[0];
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);

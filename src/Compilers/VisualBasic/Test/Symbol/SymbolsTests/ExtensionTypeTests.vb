@@ -49,6 +49,7 @@ Class Program
         System.Console.Write(c.F)
         E.Method(c)
         System.Console.Write(c.F)
+        c.Method()
     End Sub
 End Class
 ]]></file>
@@ -56,7 +57,18 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugExe)
 
-            CompileAndVerify(comp1, expectedOutput:="012").VerifyDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30657: 'Method' has a return type that is not supported or parameter types that are not supported.
+        E.Method(c)
+          ~~~~~~
+BC30657: 'Method' has a return type that is not supported or parameter types that are not supported.
+        E.Method(c)
+          ~~~~~~
+BC30456: 'Method' is not a member of 'C'.
+        c.Method()
+        ~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -139,6 +151,8 @@ Class Program
         Dim c = new C()
         E.P1(c) = 2
         System.Console.WriteLine(E.P1(c))
+        c.P1 = 2
+        System.Console.WriteLine(c.P1)
     End Sub
 End Class
 ]]></file>
@@ -146,7 +160,21 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugExe)
 
-            CompileAndVerify(comp1, expectedOutput:="2").VerifyDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30643: Property 'E.P1(<>4__this As C)' is of an unsupported type.
+        E.P1(c) = 2
+          ~~
+BC30643: Property 'E.P1(<>4__this As C)' is of an unsupported type.
+        System.Console.WriteLine(E.P1(c))
+                                   ~~
+BC30456: 'P1' is not a member of 'C'.
+        c.P1 = 2
+        ~~~~
+BC30456: 'P1' is not a member of 'C'.
+        System.Console.WriteLine(c.P1)
+                                 ~~~~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -180,6 +208,8 @@ Class Program
         Dim c = new C()
         Test1(c)
         System.Console.WriteLine(Test2(c))
+        c.P1 = 2
+        System.Console.WriteLine(c.P1)
     End Sub
 
     Shared Sub Test1(ByRef c As C)
@@ -195,46 +225,22 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugExe)
 
-            ' PROTOTYPE(roles): In VB all arguments for properties are passed by value regardless of ref-ness of parameters. Therefore, struct mutations are not preserved.
-            Dim verifier = CompileAndVerify(comp1, expectedOutput:="0").VerifyDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30456: 'P1' is not a member of 'C'.
+        c.P1 = 2
+        ~~~~
+BC30456: 'P1' is not a member of 'C'.
+        System.Console.WriteLine(c.P1)
+                                 ~~~~
+BC30643: Property 'E.P1(ByRef <>4__this As C)' is of an unsupported type.
+        E.P1(c) = 2
+          ~~
+BC30643: Property 'E.P1(ByRef <>4__this As C)' is of an unsupported type.
+        Return E.P1(c)
+                 ~~
+]]></expected>)
 
-            verifier.VerifyIL("Program.Test1",
-            <![CDATA[
-{
-  // Code size       18 (0x12)
-  .maxstack  2
-  .locals init (C V_0)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      "C"
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.2
-  IL_000b:  call       "Sub E.set_P1(ByRef C, Integer)"
-  IL_0010:  nop
-  IL_0011:  ret
-}
-]]>)
-
-            verifier.VerifyIL("Program.Test2",
-            <![CDATA[
-{
-  // Code size       20 (0x14)
-  .maxstack  1
-  .locals init (Integer V_0, //Test2
-            C V_1)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      "C"
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  call       "Function E.get_P1(ByRef C) As Integer"
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0012
-  IL_0012:  ldloc.0
-  IL_0013:  ret
-}
-]]>)
             Dim source2 =
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -350,13 +356,29 @@ Class Program
         Dim c = new C()
         E.Item(c, 1) = 2
         System.Console.WriteLine(E.Item(c, 1))
+        c(1) = 2
+        System.Console.WriteLine(c(1))
     End Sub
 End Class
 ]]></file>
 </compilation>
 
             Dim comp3 = CreateCompilation(source3, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugExe)
-            CompileAndVerify(comp3, expectedOutput:="2").VerifyDiagnostics()
+            comp3.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30643: Property 'E.Item(<>4__this As C, i As Integer)' is of an unsupported type.
+        E.Item(c, 1) = 2
+          ~~~~
+BC30643: Property 'E.Item(<>4__this As C, i As Integer)' is of an unsupported type.
+        System.Console.WriteLine(E.Item(c, 1))
+                                   ~~~~
+BC30367: Class 'C' cannot be indexed because it has no default property.
+        c(1) = 2
+        ~
+BC30367: Class 'C' cannot be indexed because it has no default property.
+        System.Console.WriteLine(c(1))
+                                 ~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -440,14 +462,29 @@ Class Program
         Dim c = new C()
         E.Item(c, 1) = 2
         System.Console.WriteLine(E.Item(c, 1))
+        c(1) = 2
+        System.Console.WriteLine(c(1))
     End Sub
 End Class
 ]]></file>
 </compilation>
 
-            ' PROTOTYPE(roles): In VB all arguments for properties are passed by value regardless of ref-ness of parameters. Therefore, struct mutations are not preserved.
             Dim comp3 = CreateCompilation(source3, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugExe)
-            CompileAndVerify(comp3, expectedOutput:="0").VerifyDiagnostics()
+            comp3.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30643: Property 'E.Item(ByRef <>4__this As C, i As Integer)' is of an unsupported type.
+        E.Item(c, 1) = 2
+          ~~~~
+BC30643: Property 'E.Item(ByRef <>4__this As C, i As Integer)' is of an unsupported type.
+        System.Console.WriteLine(E.Item(c, 1))
+                                   ~~~~
+BC30690: Structure 'C' cannot be indexed because it has no default property.
+        c(1) = 2
+        ~
+BC30690: Structure 'C' cannot be indexed because it has no default property.
+        System.Console.WriteLine(c(1))
+                                 ~
+]]></expected>)
         End Sub
 
         <Theory>
@@ -498,29 +535,17 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugExe)
 
             comp1.AssertTheseDiagnostics(
-                If(asStruct,
 <expected><![CDATA[
-BC30657: 'Public Shared Overloads AddHandler Event E1(ByRef <>4__this As C, value As Action)' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'E1' has a return type that is not supported or parameter types that are not supported.
         AddHandler E.E1, C.M2()
                    ~~~~
-BC30657: 'Public Shared Overloads AddHandler Event E1(ByRef <>4__this As C, value As Action)' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'E1' has a return type that is not supported or parameter types that are not supported.
         AddHandler E.E1, C.M3()
                    ~~~~
-BC30657: 'Public Shared Overloads RemoveHandler Event E1(ByRef <>4__this As C, value As Action)' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'E1' has a return type that is not supported or parameter types that are not supported.
         RemoveHandler E.E1, C.M2()
                       ~~~~
-]]></expected>,
-<expected><![CDATA[
-BC30657: 'Public Shared Overloads AddHandler Event E1(<>4__this As C, value As Action)' has a return type that is not supported or parameter types that are not supported.
-        AddHandler E.E1, C.M2()
-                   ~~~~
-BC30657: 'Public Shared Overloads AddHandler Event E1(<>4__this As C, value As Action)' has a return type that is not supported or parameter types that are not supported.
-        AddHandler E.E1, C.M3()
-                   ~~~~
-BC30657: 'Public Shared Overloads RemoveHandler Event E1(<>4__this As C, value As Action)' has a return type that is not supported or parameter types that are not supported.
-        RemoveHandler E.E1, C.M2()
-                      ~~~~
-]]></expected>))
+]]></expected>)
 
             Dim source2 =
 <compilation>
