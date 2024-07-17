@@ -254,12 +254,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(solution, solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Regular));
 
             var newSolution1 = solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Script);
-            Assert.Equal(SourceCodeKind.Script, newSolution1.GetDocument(documentId)!.SourceCodeKind);
+            Assert.Equal(SourceCodeKind.Script, newSolution1.GetRequiredDocument(documentId).SourceCodeKind);
 
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSourceCodeKind(documentId, (SourceCodeKind)(-1)));
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSourceCodeKind(null!, SourceCodeKind.Script));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_unrelatedDocumentId, SourceCodeKind.Script));
+        }
+
+        [Fact]
+        public void WithSourceCodeKind_ParseOptions()
+        {
+            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+
+            var solution = workspace.CurrentSolution;
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var projectId = documentId.ProjectId;
+
+            solution = solution.WithProjectParseOptions(projectId, CSharpParseOptions.Default.WithKind(SourceCodeKind.Script));
+
+            var document1 = solution.GetRequiredDocument(documentId);
+            Assert.Equal(SourceCodeKind.Script, document1.DocumentState.ParseOptions?.Kind);
+            Assert.Equal(SourceCodeKind.Script, document1.SourceCodeKind);
+
+            var document2 = document1.WithSourceCodeKind(SourceCodeKind.Regular);
+            Assert.Equal(SourceCodeKind.Regular, document2.DocumentState.ParseOptions?.Kind);
+            Assert.Equal(SourceCodeKind.Regular, document2.SourceCodeKind);
         }
 
         [Fact, Obsolete("Testing obsolete API")]
@@ -4365,6 +4385,26 @@ class C
 
             Assert.False(document.TryGetSemanticModel(out _));
             Assert.Null(document.GetSemanticModelAsync().Result);
+        }
+
+        [Fact]
+        public void NoCompilation_SourceCodeKind()
+        {
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var solution = workspace.CurrentSolution
+                .AddProject(projectId, "Test", "Test.dll", NoCompilationConstants.LanguageName)
+                .AddDocument(DocumentInfo.Create(documentId, "Test", sourceCodeKind: SourceCodeKind.Script));
+
+            var document1 = solution.GetRequiredDocument(documentId);
+            Assert.Equal(SourceCodeKind.Script, document1.SourceCodeKind);
+            Assert.Null(document1.DocumentState.ParseOptions);
+
+            var document2 = document1.WithSourceCodeKind(SourceCodeKind.Regular);
+            Assert.Equal(SourceCodeKind.Regular, document2.SourceCodeKind);
+            Assert.Null(document2.DocumentState.ParseOptions);
         }
 
         [Fact]
