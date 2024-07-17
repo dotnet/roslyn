@@ -1030,9 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 overridingMemberLocation,
                                 overriddenMethod,
                                 overridingMethod,
-                                diagnostics,
-                                checkReturnType: true,
-                                checkParameters: true);
+                                diagnostics);
                         }
                     }
 
@@ -1103,13 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 overridingProperty.GetMethod.GetFirstLocation(),
                                 overriddenGetMethod,
                                 overridingProperty.GetMethod,
-                                diagnostics,
-                                checkReturnType: true,
-                                // Don't check parameters on the getter if there is a setter
-                                // because they will be a subset of the setter
-                                checkParameters: overridingProperty.SetMethod is null ||
-                                                 overriddenGetMethod?.AssociatedSymbol != overriddenProperty ||
-                                                 overriddenProperty.GetOwnOrInheritedSetMethod()?.AssociatedSymbol != overriddenProperty);
+                                diagnostics);
                         }
 
                         if (overridingProperty.SetMethod is object)
@@ -1119,9 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 overridingProperty.SetMethod.GetFirstLocation(),
                                 ownOrInheritedOverriddenSetMethod,
                                 overridingProperty.SetMethod,
-                                diagnostics,
-                                checkReturnType: false,
-                                checkParameters: true);
+                                diagnostics);
 
                             if (ownOrInheritedOverriddenSetMethod is object &&
                                 overridingProperty.SetMethod.IsInitOnly != ownOrInheritedOverriddenSetMethod.IsInitOnly)
@@ -1159,11 +1149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Location overridingMemberLocation,
                 MethodSymbol overriddenMethod,
                 MethodSymbol overridingMethod,
-                BindingDiagnosticBag diagnostics,
-                bool checkReturnType,
-                bool checkParameters)
+                BindingDiagnosticBag diagnostics)
             {
-                if (checkParameters && RequiresValidScopedOverrideForRefSafety(overriddenMethod))
+                if (RequiresValidScopedOverrideForRefSafety(overriddenMethod))
                 {
                     CheckValidScopedOverride(
                         overriddenMethod,
@@ -1184,23 +1172,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
-                                                 checkReturnType ? ReportBadReturn : null,
-                                                 checkParameters ? ReportBadParameter : null,
+                                                 ReportBadReturn,
+                                                 ReportBadParameter,
                                                  overridingMemberLocation);
 
-                if (checkParameters)
-                {
-                    CheckRefReadonlyInMismatch(
-                        overriddenMethod, overridingMethod, diagnostics,
-                        static (diagnostics, _, _, overridingParameter, _, arg) =>
-                        {
-                            var (overriddenParameter, location) = arg;
-                            // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
-                            diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, overridingParameter, overriddenParameter);
-                        },
-                        overridingMemberLocation,
-                        invokedAsExtensionMethod: false);
-                }
+                CheckRefReadonlyInMismatch(
+                    overriddenMethod, overridingMethod, diagnostics,
+                    static (diagnostics, _, _, overridingParameter, _, arg) =>
+                    {
+                        var (overriddenParameter, location) = arg;
+                        // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
+                        diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, overridingParameter, overriddenParameter);
+                    },
+                    overridingMemberLocation,
+                    invokedAsExtensionMethod: false);
             }
         }
 

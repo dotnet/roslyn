@@ -26,30 +26,19 @@ internal readonly record struct OrganizeImportsOptions
     public static readonly OrganizeImportsOptions Default = new();
 }
 
-internal interface OrganizeImportsOptionsProvider : OptionsProvider<OrganizeImportsOptions>
-{
-}
-
 internal static class OrganizeImportsOptionsProviders
 {
-    public static OrganizeImportsOptions GetOrganizeImportsOptions(this IOptionsReader options, string language, OrganizeImportsOptions? fallbackOptions)
-    {
-        fallbackOptions ??= OrganizeImportsOptions.Default;
-
-        return new()
+    public static OrganizeImportsOptions GetOrganizeImportsOptions(this IOptionsReader options, string language)
+        => new()
         {
-            PlaceSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, language, fallbackOptions.Value.PlaceSystemNamespaceFirst),
-            SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.Value.SeparateImportDirectiveGroups),
-            NewLine = options.GetOption(FormattingOptions2.NewLine, language, fallbackOptions.Value.NewLine)
+            PlaceSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, language),
+            SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language),
+            NewLine = options.GetOption(FormattingOptions2.NewLine, language)
         };
-    }
 
-    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptions? fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetOrganizeImportsOptions(document.Project.Language, fallbackOptions);
+        return configOptions.GetOrganizeImportsOptions(document.Project.Language);
     }
-
-    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetOrganizeImportsOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }

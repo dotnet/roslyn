@@ -201,11 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
-            foreach (var parameter in this.Syntax.ParameterList.Parameters)
-            {
-                WithTypeParametersBinder.ReportFieldOrValueContextualKeywordConflictIfAny(parameter, parameter.Identifier, diagnostics);
-            }
-
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
@@ -437,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
-                _binder.ReportFieldOrValueContextualKeywordConflictIfAny(parameter, identifier, diagnostics);
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)

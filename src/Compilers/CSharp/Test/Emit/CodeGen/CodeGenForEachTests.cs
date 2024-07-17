@@ -5327,5 +5327,254 @@ public static class Extensions
 }";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123123");
         }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_01(
+            [CombinatorialValues("ref", "")] string eRef,
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (var r in new E(arr))
+                {
+                    r.V.F++;
+                }
+
+                foreach (var v in arr) Console.Write(v.F);
+
+                {{eRef}} struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public R Current => new(ref arr[i - 1]);
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "111").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_02(
+            [CombinatorialValues("ref", "")] string eRef,
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (var r in new E(arr))
+                {
+                    r.V.F += 2;
+                }
+
+                foreach (var v in arr) Console.Write(v.F);
+
+                {{eRef}} struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public R Current => new(ref arr[i - 1]);
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "222").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_03(
+            [CombinatorialValues("ref", "")] string eRef,
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (var r in new E(arr))
+                {
+                    r.V.S.Inc();
+                }
+
+                foreach (var v in arr) Console.Write(v.S.F);
+
+                {{eRef}} struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public R Current => new(ref arr[i - 1]);
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                }
+
+                struct V
+                {
+                    public S S;
+                }
+
+                struct S
+                {
+                    public int F;
+                    public void Inc() => F++;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "111").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_04(
+            [CombinatorialValues("ref", "")] string eRef,
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (var r in new E(arr))
+                {
+                    r.V.F++;
+                }
+
+                foreach (var v in arr) Console.Write(v.F);
+
+                {{eRef}} struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public R Current => new(ref arr[i - 1]);
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref readonly V V = ref v;
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (7,5): error CS8332: Cannot assign to a member of field 'V' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //     r.V.F++;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "r.V.F").WithArguments("field", "V").WithLocation(7, 5));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_05(
+            [CombinatorialValues("ref", "")] string eRef,
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (ref var r in new E(arr))
+                {
+                    r.S.F++;
+                }
+
+                foreach (var v in arr) Console.Write(v.S.F);
+
+                {{eRef}} struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public {{vReadonly}} ref V Current => ref arr[i - 1];
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                struct V
+                {
+                    public S S;
+                }
+
+                struct S
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.Skipped,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "111").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_06(
+            [CombinatorialValues("ref", "")] string eRef,
+            [CombinatorialValues("readonly", "")] string vReadonly,
+            [CombinatorialValues("readonly", "")] string vReadonlyInner)
+        {
+            var source = $$"""
+                using System;
+
+                V[] arr = new V[3];
+
+                foreach (ref readonly var r in new E(arr))
+                {
+                    r.S.F++;
+                }
+
+                foreach (var v in arr) Console.Write(v.S.F);
+
+                {{eRef}} struct E(V[] arr)
+                {
+                    int i;
+                    public E GetEnumerator() => this;
+                    public {{vReadonly}} ref {{vReadonlyInner}} V Current => ref arr[i - 1];
+                    public bool MoveNext() => i++ < arr.Length;
+                }
+
+                struct V
+                {
+                    public S S;
+                }
+
+                struct S
+                {
+                    public int F;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (7,5): error CS1654: Cannot modify members of 'r' because it is a 'foreach iteration variable'
+                //     r.S.F++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal2Cause, "r.S.F").WithArguments("r", "foreach iteration variable").WithLocation(7, 5));
+        }
     }
 }

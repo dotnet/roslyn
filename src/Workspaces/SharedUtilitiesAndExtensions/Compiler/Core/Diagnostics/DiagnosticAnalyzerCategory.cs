@@ -35,9 +35,4 @@ internal enum DiagnosticAnalyzerCategory
     /// It needs to re-analyze the whole document for reporting semantic diagnostics even for method body editing scenarios.
     /// </summary>
     SemanticDocumentAnalysis = 0x0100,
-
-    /// <summary>
-    /// Analyzer reports project diagnostics (i.e. registers a Compilation action and/or Compilation end action diagnostics).
-    /// </summary>
-    ProjectAnalysis = 0x1000
 }

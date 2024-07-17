@@ -106,7 +106,7 @@ internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
         }
 
         var service = document.GetLanguageService<IGenerateDeconstructMemberService>();
-        var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, context.Options, cancellationToken).ConfigureAwait(false);
+        var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, cancellationToken).ConfigureAwait(false);
 
         Debug.Assert(!codeActions.IsDefault);
         context.RegisterFixes(codeActions, context.Diagnostics);

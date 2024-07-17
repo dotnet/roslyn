@@ -2454,6 +2454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
                 or ErrorCode.INF_IdentifierConflictWithContextualKeyword
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord
+                or ErrorCode.ERR_FeatureNotAvailableInVersion13
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                 or ErrorCode.ERR_BadExtensionUnderlyingType
                 or ErrorCode.ERR_StaticBaseTypeOnInstanceExtension
                 or ErrorCode.ERR_OnlyBaseExtensionAllowed

@@ -30,7 +30,6 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
     public async Task<ImmutableArray<CodeAction>> GenerateMethodAsync(
         Document document,
         SyntaxNode node,
-        CodeAndImportGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
@@ -42,7 +41,7 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
                 return [];
             }
 
-            return await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false);
         }
     }
 }

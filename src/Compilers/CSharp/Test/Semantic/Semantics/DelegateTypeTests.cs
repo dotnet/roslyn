@@ -1625,7 +1625,7 @@ namespace N
         {methodB}
     }}
 }}";
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
                 CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
@@ -1676,7 +1676,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1726,7 +1726,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1776,7 +1776,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1826,7 +1826,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1876,7 +1876,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1926,7 +1926,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1977,7 +1977,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "RAN N.B.F: System.Action");
             verifier.VerifyDiagnostics();
 
@@ -2022,7 +2022,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // 0.cs(9,34): error CS8917: The delegate type could not be inferred.
                 //         System.Delegate d = this.F<int>;
@@ -2078,7 +2078,7 @@ public static class E
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(7, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "C.M E.M C.M");
@@ -2135,7 +2135,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -2200,7 +2200,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -2260,7 +2260,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -2313,7 +2313,7 @@ namespace N
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "E2.M E2.M");
@@ -2352,7 +2352,7 @@ public static class E
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "E.M");
@@ -2395,7 +2395,7 @@ public static class E
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "E.M E.M");
@@ -2463,7 +2463,7 @@ public static class E
             // PROTOTYPE instead of finding the extension method and reporting an error on its receiver,
             // we should instead discard it as a candidate early like we do for instance methods in OverloadResolution.RemoveStaticInstanceMismatches
             {
-                var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+                var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
                 comp.VerifyDiagnostics(
                     // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
                     // System.Action x = C.M;
@@ -2595,7 +2595,7 @@ public static class E
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "E.M");
             verifier.VerifyDiagnostics();
 
@@ -2643,7 +2643,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "E2.M E2.M");
             verifier.VerifyDiagnostics();
 
@@ -2691,7 +2691,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "E1.M E1.M");
             verifier.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
@@ -2740,7 +2740,7 @@ public static class E
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M<int, int>").WithLocation(4, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "E.M<T, U> E.M<T, U>");
@@ -2789,7 +2789,7 @@ namespace N
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "E2.M<T, U> E2.M<T, U>");
 
@@ -2830,7 +2830,7 @@ public static class E
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(2, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // System.Action x = new C().M;
@@ -2882,7 +2882,7 @@ public static class DExt
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ran11");
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ran12");
 
@@ -3181,7 +3181,7 @@ static class A
                 // var x = new object().F;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().F").WithLocation(1, 9));
 
-            var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "A.F");
             verifier.VerifyDiagnostics();
 
@@ -3214,7 +3214,7 @@ static class E
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "new C().F<object>").WithArguments("E.F<T>(C)", "T", "object").WithLocation(1, 9));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (1,9): error CS8917: The delegate type could not be inferred.
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
@@ -3243,7 +3243,7 @@ class C
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "new C().F<object>").WithArguments("C.F<T>()", "T", "object").WithLocation(1, 9));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (1,9): error CS8917: The delegate type could not be inferred.
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
@@ -3665,7 +3665,7 @@ class Program
                 //         d = p.F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 15));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -3764,7 +3764,7 @@ class Program
                 //         d = p.F2; // 2
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(23, 15));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics(
                 // (23,15): error CS8917: The delegate type could not be inferred.
                 //         d = p.F2; // 2
@@ -9497,13 +9497,13 @@ var d3 = delegate () { };
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (5,9): error CS1674: 'Action': type used in a using statement must implement 'System.IDisposable'.
                 //         using var d1 = Main;
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d1 = Main;").WithArguments("System.Action").WithLocation(5, 9),
-                // (6,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,9): error CS1674: 'Action': type used in a using statement must implement 'System.IDisposable'.
                 //         using var d2 = () => { };
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d2 = () => { };").WithArguments("System.Action").WithLocation(6, 9),
-                // (7,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (7,9): error CS1674: 'Action': type used in a using statement must implement 'System.IDisposable'.
                 //         using var d3 = delegate () { };
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d3 = delegate () { };").WithArguments("System.Action").WithLocation(7, 9));
         }

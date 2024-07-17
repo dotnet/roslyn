@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
     internal static class OmniSharpFormatter
     {
         public static Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OmniSharpSyntaxFormattingOptionsWrapper options, CancellationToken cancellationToken)
-            => Formatter.FormatAsync(document, spans, options.CleanupOptions.FormattingOptions, rules: default, cancellationToken);
+            => Formatter.FormatAsync(document, spans, options.UnderlyingObject, rules: default, cancellationToken);
 
         public static async Task<Document> OrganizeImportsAsync(Document document, OmniSharpOrganizeImportsOptionsWrapper options, CancellationToken cancellationToken)
         {

@@ -35,7 +35,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             {
                 var span = diagnostic.Location.SourceSpan;
                 var pragmaSuppressions = await _suppressionFixProvider.GetPragmaSuppressionsAsync(
-                    document, span, [diagnostic], fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                    document, span, [diagnostic], cancellationToken).ConfigureAwait(false);
                 var pragmaSuppression = pragmaSuppressions.SingleOrDefault();
                 if (pragmaSuppression != null)
                 {

@@ -7172,4 +7172,33 @@ public class Derived : Base
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C2").WithArguments("C1.P1").WithLocation(1, 9)
         );
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74108")]
+    public void CycleOnConstructorAppliedToSelf()
+    {
+        var source = """
+            namespace System.Diagnostics;
+
+            [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method, AllowMultiple=true)]
+            public sealed class ConditionalAttribute : Attribute
+            {
+                [Conditional("blah")]
+                public ConditionalAttribute(string condition)
+                {
+                    Condition = condition;
+                }
+
+                public string Condition { get;}
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.NetStandard20).VerifyEmitDiagnostics(
+            // (6,6): warning CS0436: The type 'ConditionalAttribute' in '' conflicts with the imported type 'ConditionalAttribute' in 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. Using the type defined in ''.
+            //     [Conditional("blah")]
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Conditional").WithArguments("", "System.Diagnostics.ConditionalAttribute", "netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51", "System.Diagnostics.ConditionalAttribute").WithLocation(6, 6),
+            // (6,6): error CS0592: Attribute 'Conditional' is not valid on this declaration type. It is only valid on 'class, method' declarations.
+            //     [Conditional("blah")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Conditional").WithArguments("Conditional", "class, method").WithLocation(6, 6)
+        );
+    }
 }

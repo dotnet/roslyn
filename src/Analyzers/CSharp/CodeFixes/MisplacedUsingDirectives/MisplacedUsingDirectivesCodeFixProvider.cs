@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 /// <summary>
 /// Implements a code fix for all misplaced using statements.
 /// </summary>
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives)]
-[Shared]
-internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvider
 {
     private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new(nameof(s_usingPlacementCodeFixAnnotation));
 
@@ -39,12 +40,6 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
     /// </summary>
     private static readonly SyntaxAnnotation s_warningAnnotation = WarningAnnotation.Create(
         CSharpAnalyzersResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public MisplacedUsingDirectivesCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId];
 
@@ -62,7 +57,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var simplifierOptions = options.GetSimplifierOptions();
 
         // Read the preferred placement option and verify if it can be applied to this code file. There are cases

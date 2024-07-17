@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -253,5 +254,20 @@ internal interface IInlineRenameInfo
 /// </summary>
 internal interface IEditorInlineRenameService : ILanguageService
 {
+    /// <summary>
+    /// Returns <see cref="IInlineRenameInfo"/> necessary to establish the inline rename session.
+    /// </summary>
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns optional context used in Copilot addition to inline rename feature.
+    /// </summary>
+    /// <param name="inlineRenameInfo"></param>
+    /// <param name="inlineRenameLocationSet"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(
+        IInlineRenameInfo inlineRenameInfo,
+        IInlineRenameLocationSet inlineRenameLocationSet,
+        CancellationToken cancellationToken);
 }

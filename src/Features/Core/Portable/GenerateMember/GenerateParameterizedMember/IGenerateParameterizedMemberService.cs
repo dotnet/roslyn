@@ -13,5 +13,5 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
 internal interface IGenerateParameterizedMemberService : ILanguageService
 {
-    Task<ImmutableArray<CodeAction>> GenerateMethodAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    Task<ImmutableArray<CodeAction>> GenerateMethodAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
 }

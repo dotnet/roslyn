@@ -151,7 +151,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // Has to be a simple identifier or generic name.
             syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
-            inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
+            inAttributeContext = syntaxFacts.IsNameOfAttribute(nameNode);
             hasIncompleteParentMember = nameNode?.Parent?.RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
             looksGeneric = syntaxFacts.LooksGeneric(nameNode);
         }
@@ -201,7 +201,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // editor browsable rules.
             var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                 s => ArityAccessibilityAndAttributeContextAreCorrect(s.Symbol, arity, inAttributeContext, hasIncompleteParentMember, looksGeneric) &&
-                     s.Symbol.IsEditorBrowsable(_options.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
+                     s.Symbol.IsEditorBrowsable(_options.MemberDisplayOptions.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
 
             // These types may be contained within namespaces, or they may be nested 
             // inside generic types.  Record these namespaces/types if it would be 
