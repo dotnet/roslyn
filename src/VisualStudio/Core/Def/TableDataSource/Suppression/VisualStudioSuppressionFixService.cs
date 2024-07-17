@@ -270,8 +270,6 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var language = languageService.Language;
-                var options = _globalOptions.GetCodeActionOptions(languageService);
-                var optionsProvider = options.CreateProvider();
 
                 var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
                 if (!documentDiagnosticsPerLanguage.IsEmpty)
@@ -285,7 +283,6 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                             _workspace,
                             suppressionFixer,
                             suppressionFixAllProvider,
-                            optionsProvider,
                             equivalenceKey,
                             title,
                             waitDialogMessage,
@@ -311,7 +308,6 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                              _workspace,
                              suppressionFixer,
                              suppressionFixAllProvider,
-                             optionsProvider,
                              equivalenceKey,
                              title,
                              waitDialogMessage,

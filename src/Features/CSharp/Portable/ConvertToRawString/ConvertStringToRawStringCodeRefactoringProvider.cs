@@ -136,7 +136,6 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

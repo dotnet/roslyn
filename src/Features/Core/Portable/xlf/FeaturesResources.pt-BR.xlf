@@ -2725,6 +2725,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Símbolo encontrado no caminho de montagem '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search">
+        <source>Symbol search</source>
+        <target state="new">Symbol search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols">
         <source>Symbols</source>
         <target state="translated">Símbolos</target>

@@ -87,11 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return parseOptions.WithLanguageVersion(LanguageVersion);
             }
 
-#if !CODE_STYLE
-            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
-#endif
-
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {
                 return DiagnosticSelector?.Invoke(fixableDiagnostics)

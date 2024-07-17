@@ -87,7 +87,6 @@ internal class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCode
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

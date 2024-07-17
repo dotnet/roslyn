@@ -2725,6 +2725,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">어셈블리 경로 '{0}'에서 기호를 찾음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search">
+        <source>Symbol search</source>
+        <target state="new">Symbol search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols">
         <source>Symbols</source>
         <target state="translated">기호</target>
