@@ -38,7 +38,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFi
 
     protected abstract string GetTitle();
 
-    private async Task<Document> RemoveUnnecessaryImportsAsync(
+    private static async Task<Document> RemoveUnnecessaryImportsAsync(
         Document document,
         CancellationToken cancellationToken)
     {

@@ -76,7 +76,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             Solution solution, DocumentId sourceDocumentId, DocumentId documentWithMovedTypeId)
         {
             var documentWithMovedType = solution.GetRequiredDocument(documentWithMovedTypeId);
-            var documentWithMovedTypeFormattingOptions = await documentWithMovedType.GetSyntaxFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = documentWithMovedType.GetRequiredLanguageService<ISyntaxFactsService>();
             var removeUnnecessaryImports = documentWithMovedType.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
@@ -95,7 +94,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
             // Now remove any unnecessary imports from the original doc that moved to the new doc.
             var sourceDocument = solution.GetRequiredDocument(sourceDocumentId);
-            var sourceDocumentFormattingOptions = await sourceDocument.GetSyntaxFormattingOptionsAsync(CancellationToken).ConfigureAwait(false);
             sourceDocument = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(
                 sourceDocument,
                 n => movedImports.Contains(i => syntaxFacts.AreEquivalent(i, n)),
